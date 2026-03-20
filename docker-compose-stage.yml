@@ -4,7 +4,7 @@ services:
 
   php:
     container_name: ildeposito_stage_php
-    
+
   crond:
     container_name: ildeposito_stage_crond
   
@@ -22,5 +22,4 @@ services:
     labels:
       caddy: stage.ildeposito.org
       caddy.reverse_proxy: "{{upstreams 80}}"   
-      caddy.basicauth: "*"
-      caddy.basicauth.ildeposito: "$2b$14$nNWWEXBKad18l1Vs5VaRRuqOcN3dhWY9AVIQTTriF6nrdPeCGfvFy"   
+   
