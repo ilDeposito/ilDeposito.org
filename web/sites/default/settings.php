@@ -27,7 +27,7 @@ $settings['trusted_host_patterns'] = [
 ];
 
 if (isset($_SERVER['ILDEPOSITO_ENV']) && $_SERVER['ILDEPOSITO_ENV'] === 'prod') {
-      include __DIR__ . '/settings.live.php';
+      include __DIR__ . '/settings.prod.php';
 } elseif (isset($_SERVER['ILDEPOSITO_ENV']) && $_SERVER['ILDEPOSITO_ENV'] === 'stage') {
       include __DIR__ . '/settings.stage.php';
 } else {
