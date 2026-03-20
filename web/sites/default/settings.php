@@ -26,8 +26,10 @@ $settings['trusted_host_patterns'] = [
   '^localhost$',
 ];
 
-if (isset($_SERVER['ILDEPOSITO_ENV'])) {
+if (isset($_SERVER['ILDEPOSITO_ENV']) && $_SERVER['ILDEPOSITO_ENV'] === 'prod') {
       include __DIR__ . '/settings.live.php';
+} elseif (isset($_SERVER['ILDEPOSITO_ENV']) && $_SERVER['ILDEPOSITO_ENV'] === 'stage') {
+      include __DIR__ . '/settings.stage.php';
 } else {
   $ddev_settings = __DIR__ . '/settings.ddev.php';
   $dev_settings = __DIR__ . '/settings.dev.php';

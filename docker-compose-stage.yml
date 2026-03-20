@@ -4,6 +4,8 @@ services:
 
   php:
     container_name: ildeposito_stage_php
+    environment:
+      ILDEPOSITO_ENV: "prod"
 
   crond:
     container_name: ildeposito_stage_crond
