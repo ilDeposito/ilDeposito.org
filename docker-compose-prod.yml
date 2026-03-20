@@ -24,7 +24,7 @@ services:
       PHP_MAIL_MIXED_LF_AND_CRLF: On
       PHP_APCU_SHM_SIZE: 64M
       PHP_SESSION_COOKIE_SAMESITE: Strict
-      ILDEPOSITO_ENV: "live"
+      ILDEPOSITO_ENV: "prod"
     volumes:
     - ./:/var/www/html:cached
     - ../backup:/var/backup_migrate  
@@ -57,8 +57,6 @@ services:
     labels:
       caddy: stage.ildeposito.org
       caddy.reverse_proxy: "{{upstreams 80}}"   
-      caddy.basicauth: "*"
-      caddy.basicauth.ildeposito: "$2b$14$nNWWEXBKad18l1Vs5VaRRuqOcN3dhWY9AVIQTTriF6nrdPeCGfvFy"   
     volumes:
     - ./:/var/www/html:cached
     networks:
@@ -86,7 +84,7 @@ services:
     image: wodby/memcached:$MEMCACHED_TAG
     networks:
       - internal  
-      
+
 networks:
   internal:
     driver: bridge
