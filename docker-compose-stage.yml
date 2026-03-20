@@ -1,5 +1,24 @@
 services:    
+  mariadb:
+    container_name: ildeposito_stage_mariadb
+
+  php:
+    container_name: ildeposito_stage_php
+    
+  crond:
+    container_name: ildeposito_stage_crond
+  
+  memcached:
+    container_name: ildeposito_stage_memcached
+  
+  solr:
+    container_name: ildeposito_stage_solr
+  
+  zookeeper:
+    container_name: ildeposito_stage_zookeeper
+
   nginx:
+    container_name: ildeposito_stage_nginx
     labels:
       caddy: stage.ildeposito.org
       caddy.reverse_proxy: "{{upstreams 80}}"   

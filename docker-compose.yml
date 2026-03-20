@@ -1,7 +1,6 @@
 services:
   mariadb:
     image: wodby/mariadb:$MARIADB_TAG
-    container_name: "${PROJECT_NAME}_mariadb"
     stop_grace_period: 30s
     restart: unless-stopped
     environment:
@@ -17,7 +16,6 @@ services:
 
   php:
     image: wodby/drupal-php:$PHP_TAG
-    container_name: "${PROJECT_NAME}_php"
     restart: unless-stopped
     environment:
       PHP_EXTENSIONS_DISABLE: xhprof,spx
@@ -33,7 +31,6 @@ services:
   crond:
     init: true
     image: wodby/drupal-php:$PHP_TAG
-    container_name: "${PROJECT_NAME}_crond"
     restart: unless-stopped
     environment:
       CRONTAB: "0 * * * * drush -r /var/www/html/web cron"
@@ -45,7 +42,6 @@ services:
 
   nginx:
     image: wodby/nginx:$NGINX_TAG
-    container_name: "${PROJECT_NAME}_nginx"
     restart: unless-stopped
     depends_on:
     - php
@@ -63,7 +59,6 @@ services:
       - caddy    
 
   memcached:
-    container_name: "${PROJECT_NAME}_memcached"
     restart: unless-stopped
     image: wodby/memcached:$MEMCACHED_TAG
     networks:
@@ -72,7 +67,6 @@ services:
   solr:
     image: wodby/solr:$SOLR_TAG
     restart: unless-stopped
-    container_name: "${PROJECT_NAME}_solr"
     environment:
       SOLR_OPTS: "-Dsolr.config.lib.enabled=true"
       SOLR_MODULES: extraction,langid,ltr,analysis-extras
@@ -85,7 +79,6 @@ services:
 
   zookeeper:
     image: wodby/zookeeper:$ZOOKEEPER_TAG
-    container_name: "${PROJECT_NAME}_zookeeper"
     restart: unless-stopped
     networks:
       - internal 
