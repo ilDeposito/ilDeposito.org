@@ -39,6 +39,7 @@
         "drupal/redirect": "^1.12",
         "drupal/search_api": "^1.35",
         "drupal/search_api_opensearch": "^2.5",
+        "drupal/search_api_solr": "^4.3",
         "drupal/security_review": "^3.0",
         "drupal/statistics": "^1.0",
         "drupal/token": "^1.14",
