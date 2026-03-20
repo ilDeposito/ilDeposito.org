@@ -1,0 +1,21 @@
+uuid: 4f24ab15-7342-4d24-b0c9-759f8c5e76f9
+langcode: it
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_descrizione_header
+field_name: field_descrizione_header
+entity_type: node
+type: string
+settings:
+  max_length: 255
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -1,0 +1,31 @@
+// Header component styles — scoped BEM
+@import "../../../src/scss/init";
+
+header {
+    height: 39px;
+
+    .hamburger {
+        height: 38px;
+    }
+
+    @include media-breakpoint-up(sm) {
+        height: 65px;
+
+        background-color: $primary !important;
+
+        .site-logo {
+            font-size: 2.5rem !important;
+        }
+
+        .hamburger {
+            background-color: $primary !important;
+
+            .icon {
+                fill: $light !important;
+                color: $light !important;
+            }
+        }
+    }
+
+    @include media-breakpoint-up(lg) {}
+}

@@ -1,0 +1,36 @@
+name: ilDeposito
+description: "ilDeposito theme based on <a href='https://www.drupal.org/project/radix' target='_blank'>Radix 6.x</a> and Bootstrap 5.x"
+screenshot: screenshot.png
+'alt text': 'ilDeposito theme screenshot'
+core_version_requirement: ^11
+engine: twig
+type: theme
+'base theme': radix
+starterkit: true
+'interface translation project': ildeposito
+'interface translation server pattern': themes/custom/ildeposito/translations/%language.po
+regions:
+  navbar_branding: 'Navbar branding'
+  navbar_left: 'Navbar left'
+  navbar_right: 'Navbar right'
+  header: Header
+  content: Content
+  page_bottom: 'Page bottom'
+  footer: Footer
+libraries:
+  - ildeposito/style
+ckeditor5-stylesheets:
+  - build/css/main.style.css
+libraries-extend:
+  core/drupal.ajax:
+    - ildeposito/drupal.ajax
+  core/drupal.checkbox:
+    - ildeposito/drupal.checkbox
+  core/drupal.message:
+    - ildeposito/drupal.message
+  core/drupal.progress:
+    - ildeposito/drupal.progress
+  clientside_validation_jquery/cv.jquery.validate:
+    - ildeposito/jquery.validate
+project: radix
+generator: 'radix_starterkit:6.0.2'

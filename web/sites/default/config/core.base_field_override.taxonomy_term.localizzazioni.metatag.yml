@@ -1,0 +1,20 @@
+uuid: 0d24e761-ebeb-4f13-a009-f8068e286668
+langcode: it
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.localizzazioni
+  module:
+    - metatag
+id: taxonomy_term.localizzazioni.metatag
+field_name: metatag
+entity_type: taxonomy_term
+bundle: localizzazioni
+label: 'Metatags (Hidden field for JSON support)'
+description: 'The computed meta tags for the entity.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: metatag_computed

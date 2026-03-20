@@ -1,0 +1,21 @@
+uuid: 7347b74e-8004-405a-9744-bc0ec3fde321
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_metatag
+    - node.type.pagina
+  module:
+    - metatag
+id: node.pagina.field_metatag
+field_name: field_metatag
+entity_type: node
+bundle: pagina
+label: Metatag
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: metatag

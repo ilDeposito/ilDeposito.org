@@ -1,0 +1,18 @@
+uuid: d9e6acbe-7f24-4297-a487-0fe02402a7c7
+langcode: it
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.lingue
+id: taxonomy_term.lingue.name
+field_name: name
+entity_type: taxonomy_term
+bundle: lingue
+label: Nome
+description: ''
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

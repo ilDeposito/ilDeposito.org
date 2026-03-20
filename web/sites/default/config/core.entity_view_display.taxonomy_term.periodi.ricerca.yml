@@ -1,0 +1,55 @@
+uuid: de08ec8d-5e5e-4d88-b64e-32f918ee950c
+langcode: it
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.taxonomy_term.ricerca
+    - field.field.taxonomy_term.periodi.field_anno_periodo
+    - field.field.taxonomy_term.periodi.field_immagine
+    - field.field.taxonomy_term.periodi.field_metatag
+    - field.field.taxonomy_term.periodi.field_old_id
+    - taxonomy.vocabulary.periodi
+  module:
+    - text
+id: taxonomy_term.periodi.ricerca
+targetEntityType: taxonomy_term
+bundle: periodi
+mode: ricerca
+content:
+  description:
+    type: text_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  field_anno_periodo:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_immagine:
+    type: entity_reference_entity_view
+    label: above
+    settings:
+      view_mode: default
+      link: false
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  field_old_id:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 3
+    region: content
+hidden:
+  field_metatag: true
+  langcode: true
+  search_api_excerpt: true

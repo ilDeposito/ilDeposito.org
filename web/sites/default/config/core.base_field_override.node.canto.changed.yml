@@ -1,0 +1,18 @@
+uuid: 13edcb0c-b0c3-419f-80be-401d64c51188
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.canto
+id: node.canto.changed
+field_name: changed
+entity_type: node
+bundle: canto
+label: Modificato
+description: "Data e ora in cui il nodo è stato modificato l'ultima volta."
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: changed

@@ -1,0 +1,22 @@
+uuid: 5bb8e05f-5b0b-47c3-9ca3-305beb7c1034
+langcode: it
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - ildeposito
+_core:
+  default_config_hash: 0RLxznOL5hAtXoiPLX24hARG6r4g3FUnxG-WChThJvc
+id: ildeposito_content
+theme: ildeposito
+region: content
+weight: -5
+provider: null
+plugin: system_main_block
+settings:
+  id: system_main_block
+  label: 'Contenuto della pagina principale'
+  label_display: '0'
+  provider: system
+visibility: {  }

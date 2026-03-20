@@ -1,0 +1,97 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Funzioni di estrazione dati per i vari bundle del content-header.
+ */
+
+function _get_header_canto(array $data): array {
+
+  // Prendo evento solo se il bundle esiste.
+
+    $evento = \Drupal::entityTypeManager()->getStorage('node')
+      ->getQuery()
+      ->condition('type', 'evento')
+      ->condition('field_canti_correlati', $data['id'])
+      ->accessCheck(FALSE)
+      ->range(0, 1)
+      ->execute();
+
+      if (!empty($evento)) {
+        $evento_id = reset($evento);
+        // load entity and return title and absolure url localized
+        $evento = \Drupal::entityTypeManager()->getStorage('node')->load($evento_id);
+        $values['evento'] = [
+          'label' => $evento->getTitle(),
+          'url' => $evento->toUrl()->setAbsolute()->toString(),
+        ];  
+      }
+  
+
+  $values['anno'] = substr($data['anno'] ?? '', 0, 4);
+
+  foreach ($data['autori_testo'] ?? [] as $autore) {
+    $values['autori'][] = [
+      'label' => $autore['label'] ?? '',
+      'url' => $autore['url'] ?? '',
+    ];
+  }
+
+  if (!empty($data['audio'])) {
+    $values['audio'] = $data['audio'];
+  }
+
+
+  return $values;
+}
+
+function _get_header_autore(array $data): array {
+  $values = [];
+  return $values;
+}
+
+function _get_header_evento(array $data): array {
+  $values = [];
+  return $values;
+}
+
+function _get_header_traduzione(array $data): array {
+  $values = [];
+  return $values;
+}
+
+function _get_header_periodi(array $data): array {
+  $values = [];
+  return $values;
+}
+
+function _get_header_pagina(array $data): array {
+  $values = [];
+  return $values;
+}
+
+function _get_header_lingue(array $data): array {
+  $values = [];
+  return $values;
+}
+
+function _get_header_localizzazioni(array $data): array {
+  $values = [];
+  return $values;
+}
+
+function _get_header_tematiche(array $data): array {
+  $values = [];
+  return $values;
+}
+
+function _get_header_tags(array $data): array {
+  $values = [];
+  return $values;
+}
+
+function _get_header_view(array $variables): array {
+  $values = [];
+  return $values;
+}

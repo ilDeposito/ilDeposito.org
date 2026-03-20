@@ -1,0 +1,21 @@
+uuid: 936a0dea-cc25-4f6d-9131-ecd23cf3ec52
+langcode: it
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.lingue
+  module:
+    - text
+id: taxonomy_term.lingue.description
+field_name: description
+entity_type: taxonomy_term
+bundle: lingue
+label: Descrizione
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

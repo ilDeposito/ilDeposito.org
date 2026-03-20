@@ -1,0 +1,21 @@
+uuid: 9979eabd-2689-4a07-abc2-18b7f3c1a771
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_metatag
+    - node.type.traduzione
+  module:
+    - metatag
+id: node.traduzione.field_metatag
+field_name: field_metatag
+entity_type: node
+bundle: traduzione
+label: Metatag
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: metatag

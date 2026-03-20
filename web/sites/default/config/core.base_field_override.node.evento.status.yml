@@ -1,0 +1,22 @@
+uuid: 62609360-c3e3-4524-b314-391b2690bb33
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.evento
+id: node.evento.status
+field_name: status
+entity_type: node
+bundle: evento
+label: Pubblicato
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 1
+default_value_callback: ''
+settings:
+  on_label: Acceso
+  off_label: Spento
+field_type: boolean

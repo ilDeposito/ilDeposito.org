@@ -1,0 +1,22 @@
+uuid: d6cfdee5-0486-48de-8751-3c2c7b3d7340
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.traduzione
+id: node.traduzione.sticky
+field_name: sticky
+entity_type: node
+bundle: traduzione
+label: 'Sempre in cima agli elenchi'
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: Acceso
+  off_label: Spento
+field_type: boolean

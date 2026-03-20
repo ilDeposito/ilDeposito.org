@@ -1,0 +1,22 @@
+uuid: 366011a1-ed31-4d29-b641-d81ba7b7e887
+langcode: it
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.tematiche
+id: taxonomy_term.tematiche.status
+field_name: status
+entity_type: taxonomy_term
+bundle: tematiche
+label: Pubblicato
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 1
+default_value_callback: ''
+settings:
+  on_label: Acceso
+  off_label: Spento
+field_type: boolean

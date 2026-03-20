@@ -1,0 +1,22 @@
+uuid: 553ff726-2149-4ac4-84df-4ebd02725a0e
+langcode: it
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.periodi
+id: taxonomy_term.periodi.status
+field_name: status
+entity_type: taxonomy_term
+bundle: periodi
+label: Pubblicato
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 1
+default_value_callback: ''
+settings:
+  on_label: Acceso
+  off_label: Spento
+field_type: boolean

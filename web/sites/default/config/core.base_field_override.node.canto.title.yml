@@ -1,0 +1,18 @@
+uuid: 440b10cb-cd67-4f2f-9a68-c73f3760a492
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.canto
+id: node.canto.title
+field_name: title
+entity_type: node
+bundle: canto
+label: Titolo
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

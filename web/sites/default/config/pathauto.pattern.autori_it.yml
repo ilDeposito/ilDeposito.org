@@ -1,0 +1,33 @@
+uuid: bee96a01-da4b-4031-ba13-493445a19402
+langcode: en
+status: true
+dependencies:
+  module:
+    - language
+    - node
+id: autori_it
+label: 'Autori IT'
+type: 'canonical_entities:node'
+pattern: 'autori/[node:title]'
+selection_criteria:
+  12bcf657-dcca-428c-a1b8-dc313e1bfd57:
+    id: 'entity_bundle:node'
+    negate: false
+    uuid: 12bcf657-dcca-428c-a1b8-dc313e1bfd57
+    context_mapping:
+      node: node
+    bundles:
+      autore: autore
+  d7d34b85-60fd-4965-a0a1-0db4a62e997d:
+    id: language
+    negate: false
+    uuid: d7d34b85-60fd-4965-a0a1-0db4a62e997d
+    context_mapping:
+      language: 'node:langcode:language'
+    langcodes:
+      it: it
+selection_logic: and
+weight: -10
+relationships:
+  'node:langcode:language':
+    label: Language

@@ -1,0 +1,18 @@
+uuid: eedeccb8-ed59-44cb-a193-b5bec0eecc41
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.traduzione
+id: node.traduzione.changed
+field_name: changed
+entity_type: node
+bundle: traduzione
+label: Modificato
+description: "Data e ora in cui il nodo è stato modificato l'ultima volta."
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: changed

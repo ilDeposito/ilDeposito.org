@@ -1,0 +1,33 @@
+uuid: 7b1b90a1-1ded-4daf-bf2a-341cac1705a6
+langcode: en
+status: true
+dependencies:
+  module:
+    - language
+    - node
+id: eventi_it
+label: 'Eventi IT'
+type: 'canonical_entities:node'
+pattern: 'eventi/[node:title]'
+selection_criteria:
+  d14fc172-de27-4590-8f66-052a9c9ba922:
+    id: 'entity_bundle:node'
+    negate: false
+    uuid: d14fc172-de27-4590-8f66-052a9c9ba922
+    context_mapping:
+      node: node
+    bundles:
+      evento: evento
+  6dc3a7b4-05f2-4426-a7e1-106a38ec8dd6:
+    id: language
+    negate: false
+    uuid: 6dc3a7b4-05f2-4426-a7e1-106a38ec8dd6
+    context_mapping:
+      language: 'node:langcode:language'
+    langcodes:
+      it: it
+selection_logic: and
+weight: -10
+relationships:
+  'node:langcode:language':
+    label: Language

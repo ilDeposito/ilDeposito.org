@@ -1,0 +1,20 @@
+uuid: ff95ebaf-16ef-4fc8-819d-6d30a9c2b710
+langcode: it
+status: true
+dependencies:
+  module:
+    - datetime
+    - node
+id: node.field_anno
+field_name: field_anno
+entity_type: node
+type: datetime
+settings:
+  datetime_type: date
+module: datetime
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

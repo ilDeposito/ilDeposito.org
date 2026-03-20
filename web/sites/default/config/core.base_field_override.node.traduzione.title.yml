@@ -1,0 +1,18 @@
+uuid: f4080f5a-4477-4bb2-9cfd-19b6d135dd3a
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.traduzione
+id: node.traduzione.title
+field_name: title
+entity_type: node
+bundle: traduzione
+label: Titolo
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

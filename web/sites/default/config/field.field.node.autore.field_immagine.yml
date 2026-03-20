@@ -1,0 +1,29 @@
+uuid: 11f14d36-34c5-400e-9035-0eed6dd14652
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_immagine
+    - media.type.image
+    - node.type.autore
+id: node.autore.field_immagine
+field_name: field_immagine
+entity_type: node
+bundle: autore
+label: Immagine
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:media'
+  handler_settings:
+    target_bundles:
+      image: image
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

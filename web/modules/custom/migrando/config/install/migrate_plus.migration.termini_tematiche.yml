@@ -1,0 +1,50 @@
+id: termini_tematiche
+label: Termini Tematiche
+migration_group: ilDeposito
+
+source:
+  plugin: url
+  data_fetcher_plugin: file
+  data_parser_plugin: json
+  urls:
+    - modules/custom/migrando/files/tematiche/tematiche_0.json
+  item_selector: 'items'
+  fields:
+    -
+      name: tid
+      selector: tid
+    -
+      name: name
+      selector: name
+    -
+      name: uuid
+      selector: uuid
+    -
+      name: description
+      selector: description
+    -
+  ids:
+    tid:
+      type: string
+
+process:
+  name:
+    plugin: encode
+    source: name
+  uuid: uuid
+  field_old_id: tid
+  'description/value': description
+  'description/format':
+    plugin: default_value
+    default_value: basic_html
+
+destination:
+  plugin: entity:taxonomy_term
+  default_bundle: tematiche
+  default_langcode: it
+  langcode: it
+
+dependencies:
+  enforced:
+    module:
+      - migrando

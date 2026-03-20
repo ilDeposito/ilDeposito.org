@@ -1,0 +1,33 @@
+uuid: 9ff80c86-6265-4fb9-a77b-169d633ffc5b
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.field.media.image.field_header
+    - field.field.media.image.field_media_image
+    - media.type.image
+_core:
+  default_config_hash: 73xaTNkI5J6sfFcBmNYeuk070X3mQS_iwwWaPYyfG2M
+id: media.image.default
+targetEntityType: media
+bundle: image
+mode: default
+content:
+  field_header:
+    type: boolean
+    label: above
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    weight: 2
+    region: content
+hidden:
+  created: true
+  field_media_image: true
+  langcode: true
+  name: true
+  search_api_excerpt: true
+  thumbnail: true
+  uid: true

@@ -1,0 +1,29 @@
+uuid: 9ac31807-75b6-4e7b-a2eb-4cb984277bbf
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_periodo
+    - node.type.autore
+    - taxonomy.vocabulary.periodi
+id: node.autore.field_periodo
+field_name: field_periodo
+entity_type: node
+bundle: autore
+label: Periodo
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      periodi: periodi
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

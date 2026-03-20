@@ -1,0 +1,20 @@
+uuid: 69bb2c93-2c80-4000-9e65-9412c394750e
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.traduzione
+  module:
+    - metatag
+id: node.traduzione.metatag
+field_name: metatag
+entity_type: node
+bundle: traduzione
+label: 'Metatags (Hidden field for JSON support)'
+description: 'The computed meta tags for the entity.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: metatag_computed

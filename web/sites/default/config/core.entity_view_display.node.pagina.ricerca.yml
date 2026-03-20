@@ -1,0 +1,36 @@
+uuid: 9b1f78dd-85f9-48c3-bc07-9d4a36b2bdef
+langcode: it
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.ricerca
+    - field.field.node.pagina.field_descrizione_header
+    - field.field.node.pagina.field_immagine
+    - field.field.node.pagina.field_metatag
+    - node.type.pagina
+  module:
+    - user
+id: node.pagina.ricerca
+targetEntityType: node
+bundle: pagina
+mode: ricerca
+content:
+  field_immagine:
+    type: entity_reference_entity_view
+    label: above
+    settings:
+      view_mode: default
+      link: false
+    third_party_settings: {  }
+    weight: 102
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden:
+  field_descrizione_header: true
+  field_metatag: true
+  langcode: true
+  search_api_excerpt: true

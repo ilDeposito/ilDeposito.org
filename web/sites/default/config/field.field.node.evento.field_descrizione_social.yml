@@ -1,0 +1,19 @@
+uuid: c5c54119-af17-4492-af3a-60ca41ac0d99
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_descrizione_social
+    - node.type.evento
+id: node.evento.field_descrizione_social
+field_name: field_descrizione_social
+entity_type: node
+bundle: evento
+label: 'Descrizione social'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

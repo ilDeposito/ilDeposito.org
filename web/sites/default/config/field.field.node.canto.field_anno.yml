@@ -1,0 +1,21 @@
+uuid: 9fdad010-a5cf-4e40-9925-90d590b65b8a
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_anno
+    - node.type.canto
+  module:
+    - datetime
+id: node.canto.field_anno
+field_name: field_anno
+entity_type: node
+bundle: canto
+label: Anno
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

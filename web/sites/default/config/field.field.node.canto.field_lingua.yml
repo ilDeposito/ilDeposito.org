@@ -1,0 +1,29 @@
+uuid: 4a654076-1afd-4fd7-88c4-441aa3fe3694
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_lingua
+    - node.type.canto
+    - taxonomy.vocabulary.lingue
+id: node.canto.field_lingua
+field_name: field_lingua
+entity_type: node
+bundle: canto
+label: Lingua
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      lingue: lingue
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

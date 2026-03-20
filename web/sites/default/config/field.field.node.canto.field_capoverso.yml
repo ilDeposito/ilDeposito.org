@@ -1,0 +1,19 @@
+uuid: 9ad5d5f1-7148-4691-9bc0-e09f8a3bc94f
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_capoverso
+    - node.type.canto
+id: node.canto.field_capoverso
+field_name: field_capoverso
+entity_type: node
+bundle: canto
+label: Capoverso
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

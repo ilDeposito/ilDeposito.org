@@ -1,0 +1,57 @@
+id: termini_periodi
+label: Termini Periodi
+migration_group: ilDeposito
+
+source:
+  plugin: url
+  data_fetcher_plugin: file
+  data_parser_plugin: json
+  urls:
+    - modules/custom/migrando/files/periodi/periodi_0.json
+  item_selector: 'items'
+  fields:
+    -
+      name: tid
+      selector: tid
+    -
+      name: name
+      selector: name
+    -
+      name: uuid
+      selector: uuid
+    -
+      name: description
+      selector: description
+    -
+      name: immagine
+      selector: immagine
+    -
+  ids:
+    tid:
+      type: string
+
+process:
+  name:
+    plugin: encode
+    source: name
+  uuid: uuid
+  field_old_id: tid
+  field_immagine:
+    plugin: migration_lookup
+    migration: media
+    source: immagine
+  'description/value': description
+  'description/format':
+    plugin: default_value
+    default_value: basic_html
+
+destination:
+  plugin: entity:taxonomy_term
+  default_bundle: periodi
+  default_langcode: it
+  langcode: it
+
+dependencies:
+  enforced:
+    module:
+      - migrando

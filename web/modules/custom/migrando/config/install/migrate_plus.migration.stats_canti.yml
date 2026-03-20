@@ -1,0 +1,50 @@
+id: stats_canti
+label: 'Import canti statistics'
+migration_group: ilDeposito
+migration_dependencies:
+  required:
+    - migrate_nodes
+
+source:
+  plugin: url
+  data_fetcher_plugin: file
+  data_parser_plugin: json
+  urls:
+    - modules/custom/migrando/files/stats_canti/stats_canti_0.json
+    - modules/custom/migrando/files/stats_canti/stats_canti_1.json
+    - modules/custom/migrando/files/stats_canti/stats_canti_2.json
+    - modules/custom/migrando/files/stats_canti/stats_canti_3.json
+  item_selector: 'items'
+  fields:
+    -
+      name: nid
+      selector: nid
+    -
+      name: totalcount
+      selector: totalcount
+    -
+
+  ids:
+    nid:
+      type: string
+
+process:
+
+  nid:
+    plugin: migration_lookup
+    migration: canti
+    source: nid
+    no_stub: true
+
+  totalcount: totalcount
+
+  daycount:
+    plugin: default_value
+    default_value: 0
+
+  timestamp:
+    plugin: default_value
+    default_value: 0
+
+destination:
+  plugin: node_counter

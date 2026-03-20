@@ -1,0 +1,23 @@
+uuid: 9812565f-6de8-4d55-a46a-f6d23500bd4d
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_old_id
+    - taxonomy.vocabulary.tags
+id: taxonomy_term.tags.field_old_id
+field_name: field_old_id
+entity_type: taxonomy_term
+bundle: tags
+label: 'Old ID'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

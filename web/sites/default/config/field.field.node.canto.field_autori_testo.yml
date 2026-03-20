@@ -1,0 +1,29 @@
+uuid: c412cc16-fe6c-4739-9bdb-4e49980a6f84
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_autori_testo
+    - node.type.autore
+    - node.type.canto
+id: node.canto.field_autori_testo
+field_name: field_autori_testo
+entity_type: node
+bundle: canto
+label: 'Autori testo'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      autore: autore
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

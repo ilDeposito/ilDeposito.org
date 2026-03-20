@@ -1,0 +1,18 @@
+uuid: 8dd776e6-3823-491c-bb1f-2a2358357c0a
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.autore
+id: node.autore.created
+field_name: created
+entity_type: node
+bundle: autore
+label: 'Creato il'
+description: 'The date and time that the content was created.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: created

@@ -1,0 +1,47 @@
+id: stats_autori
+label: 'Import autori statistics'
+migration_group: ilDeposito
+migration_dependencies:
+  required:
+    - migrate_nodes
+
+source:
+  plugin: url
+  data_fetcher_plugin: file
+  data_parser_plugin: json
+  urls:
+    - modules/custom/migrando/files/stats_autori/stats_autori_0.json
+  item_selector: 'items'
+  fields:
+    -
+      name: nid
+      selector: nid
+    -
+      name: totalcount
+      selector: totalcount
+    -
+
+  ids:
+    nid:
+      type: string
+
+process:
+
+  nid:
+    plugin: migration_lookup
+    migration: autori
+    source: nid
+    no_stub: true
+
+  totalcount: totalcount
+
+  daycount:
+    plugin: default_value
+    default_value: 0
+  
+  timestamp:
+    plugin: default_value
+    default_value: 0
+
+destination:
+  plugin: node_counter

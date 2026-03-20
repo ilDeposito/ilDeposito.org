@@ -1,0 +1,33 @@
+uuid: 6388dc1b-5fb1-4780-8e42-eb179518b9f4
+langcode: en
+status: true
+dependencies:
+  module:
+    - language
+    - node
+id: traduzioni_it
+label: 'Traduzioni IT'
+type: 'canonical_entities:node'
+pattern: 'traduzioni/[node:title]'
+selection_criteria:
+  70016fe2-e07b-43a2-8c9c-3274fcb8de54:
+    id: 'entity_bundle:node'
+    negate: false
+    uuid: 70016fe2-e07b-43a2-8c9c-3274fcb8de54
+    context_mapping:
+      node: node
+    bundles:
+      traduzione: traduzione
+  471a12c0-62df-45ae-bc17-40522c980aa4:
+    id: language
+    negate: false
+    uuid: 471a12c0-62df-45ae-bc17-40522c980aa4
+    context_mapping:
+      language: 'node:langcode:language'
+    langcodes:
+      it: it
+selection_logic: and
+weight: -10
+relationships:
+  'node:langcode:language':
+    label: Language

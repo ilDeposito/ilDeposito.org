@@ -1,0 +1,40 @@
+ildeposito_raw.settings:
+  path: '/admin/config/development/ildeposito-raw'
+  defaults:
+    _form: 'Drupal\ildeposito_raw\Form\RawEntitySettingsForm'
+    _title: 'Configurazione ilDeposito Raw'
+  requirements:
+    _permission: 'administer ildeposito raw settings'
+
+ildeposito_raw.debug:
+  path: '/admin/config/development/ildeposito-raw/debug'
+  defaults:
+    _form: 'Drupal\ildeposito_raw\Form\RawEntityDebugForm'
+    _title: 'Debug dati raw entità'
+  requirements:
+    _permission: 'administer ildeposito raw settings'
+
+ildeposito_raw.delete_config:
+  path: '/admin/config/development/ildeposito-raw/{delta}/delete'
+  defaults:
+    _form: 'Drupal\ildeposito_raw\Form\RawEntityDeleteForm'
+    _title: 'Elimina configurazione'
+  requirements:
+    _permission: 'administer ildeposito raw settings'
+    delta: '\d+'
+
+ildeposito_raw.status_report:
+  path: '/admin/reports/ildeposito-raw'
+  defaults:
+    _controller: '\Drupal\ildeposito_raw\Controller\RawStatusReportController::report'
+    _title: 'Report stato cache ilDeposito Raw'
+  requirements:
+    _permission: 'administer ildeposito raw settings'
+
+ildeposito_raw.cache_settings:
+  path: '/admin/config/development/ildeposito-raw/cache'
+  defaults:
+    _form: '\Drupal\ildeposito_raw\Form\RawCacheSettingsForm'
+    _title: 'Impostazioni cache ilDeposito Raw'
+  requirements:
+    _permission: 'administer ildeposito raw settings'

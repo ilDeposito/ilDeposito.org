@@ -1,0 +1,22 @@
+$schema: https://git.drupalcode.org/project/drupal/-/raw/10.1.x/core/modules/sdc/src/metadata.schema.json
+name: Logo
+status: stable
+description: 'Logo SVG ilDeposito, personalizzabile per colore e dimensione'
+group: atoms
+props:
+  type: object
+  properties:
+    class_color:
+      type: string
+      title: Classe colore
+      description: 'Classe CSS per il colore (es: text-primary, text-danger)'
+      default: ''
+    size:
+      type: string
+      title: Dimensione
+      description: 'Dimensione CSS (es: 48px, 2em, 100%)'
+      default: '64px'
+    attributes:
+      type: Drupal\Core\Template\Attribute
+      title: Attributi HTML
+      description: Attributi HTML aggiuntivi

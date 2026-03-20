@@ -1,0 +1,22 @@
+uuid: a8c7dcfd-c2e3-4775-b081-17244794402e
+langcode: it
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - ildeposito
+_core:
+  default_config_hash: CI88ewOZPduR1ZtIKGZtemUsYWgiqyqHU_YuBUJIkTk
+id: ildeposito_messages
+theme: ildeposito
+region: header
+weight: -3
+provider: null
+plugin: system_messages_block
+settings:
+  id: system_messages_block
+  label: 'Messaggi di stato'
+  label_display: '0'
+  provider: system
+visibility: {  }

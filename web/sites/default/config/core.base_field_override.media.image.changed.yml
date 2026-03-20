@@ -1,0 +1,18 @@
+uuid: b1d071f6-f4c6-46a1-be68-42125f80fed6
+langcode: it
+status: true
+dependencies:
+  config:
+    - media.type.image
+id: media.image.changed
+field_name: changed
+entity_type: media
+bundle: image
+label: Modificato
+description: 'The time the media item was last edited.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: changed

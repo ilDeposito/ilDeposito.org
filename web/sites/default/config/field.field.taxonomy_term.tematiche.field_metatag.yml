@@ -1,0 +1,21 @@
+uuid: f50d5a7f-5095-4aaf-b777-5d640c8f3f99
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_metatag
+    - taxonomy.vocabulary.tematiche
+  module:
+    - metatag
+id: taxonomy_term.tematiche.field_metatag
+field_name: field_metatag
+entity_type: taxonomy_term
+bundle: tematiche
+label: Metatag
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: metatag

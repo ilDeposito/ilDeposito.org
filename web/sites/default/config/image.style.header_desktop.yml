@@ -1,0 +1,21 @@
+uuid: 15e57f82-a325-4a2a-9486-a7ac906d6157
+langcode: it
+status: true
+dependencies: {  }
+name: header_desktop
+label: 'Header desktop'
+effects:
+  312c2dd0-b347-4287-9056-d72494ea8b8e:
+    uuid: 312c2dd0-b347-4287-9056-d72494ea8b8e
+    id: image_convert_avif
+    weight: 1
+    data:
+      extension: webp
+  14abd6e1-23a0-4828-b393-396611402114:
+    uuid: 14abd6e1-23a0-4828-b393-396611402114
+    id: image_scale
+    weight: 2
+    data:
+      width: 1920
+      height: null
+      upscale: true

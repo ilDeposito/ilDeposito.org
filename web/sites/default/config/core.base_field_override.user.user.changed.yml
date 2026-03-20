@@ -1,0 +1,18 @@
+uuid: fe14bc7a-2151-4243-a5e2-40955f98e745
+langcode: it
+status: true
+dependencies:
+  module:
+    - user
+id: user.user.changed
+field_name: changed
+entity_type: user
+bundle: user
+label: Modificato
+description: "Data e ora nella quale il profilo dell'utente è stato modificato l'ultima volta."
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: changed

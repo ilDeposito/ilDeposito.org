@@ -1,0 +1,20 @@
+uuid: 965075fa-2370-4dae-b414-28d6117e60c2
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.traduzione
+  module:
+    - path
+id: node.traduzione.path
+field_name: path
+entity_type: node
+bundle: traduzione
+label: 'Alias URL'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: path

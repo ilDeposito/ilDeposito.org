@@ -1,0 +1,75 @@
+uuid: 5de8d968-d883-43a9-b754-9b31d342b8a3
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.field.node.traduzione.field_canti_correlati
+    - field.field.node.traduzione.field_canto_testo
+    - field.field.node.traduzione.field_informazioni
+    - field.field.node.traduzione.field_lingua
+    - field.field.node.traduzione.field_metatag
+    - field.field.node.traduzione.field_old_id
+    - node.type.traduzione
+  module:
+    - metatag
+    - text
+    - user
+id: node.traduzione.default
+targetEntityType: node
+bundle: traduzione
+mode: default
+content:
+  field_canti_correlati:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 101
+    region: content
+  field_canto_testo:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 113
+    region: content
+  field_informazioni:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 110
+    region: content
+  field_lingua:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 111
+    region: content
+  field_metatag:
+    type: metatag_empty_formatter
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 115
+    region: content
+  field_old_id:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 114
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden:
+  langcode: true
+  search_api_excerpt: true

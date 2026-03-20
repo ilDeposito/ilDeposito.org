@@ -1,0 +1,16 @@
+{#
+  Componente Icon
+  Props:
+    - name:  ID del symbol nello sprite SVG (obbligatorio)
+    - class: array di classi CSS aggiuntive (colore, dimensione, ecc.)
+    - size:  dimensione CSS opzionale (es: 24px, 1.5rem) — alternativa a fs-*
+    - type:  "fill" (default) o "regular" — seleziona sprite SVG
+#}
+{% set icon_classes = ['icon'] | merge(class | default([])) %}
+{% set sprite_type = type|default('fill') %}
+{% set sprite_file = sprite_type == 'regular' ? 'sprite-regular.svg' : 'sprite-fill.svg' %}
+{% set icon_id = sprite_type == 'fill' ? name ~ '-fill' : name %}
+
+<svg {{ attributes.addClass(icon_classes) }} fill="currentColor" aria-hidden="true" focusable="false"{% if size %} style="font-size: {{ size }}"{% endif %}>
+  <use href="{{ '/' ~ active_theme_path() ~ '/build/assets/icons/' ~ sprite_file ~ '#' ~ icon_id }}"/>
+</svg>

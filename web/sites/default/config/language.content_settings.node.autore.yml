@@ -1,0 +1,18 @@
+uuid: 211a7f14-fafa-4c6d-997e-4007e7597e8a
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.autore
+  module:
+    - content_translation
+third_party_settings:
+  content_translation:
+    enabled: false
+    bundle_settings:
+      untranslatable_fields_hide: '0'
+id: node.autore
+target_entity_type_id: node
+target_bundle: autore
+default_langcode: site_default
+language_alterable: false

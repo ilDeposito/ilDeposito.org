@@ -1,0 +1,22 @@
+uuid: 973e6c42-cb59-438b-a074-582f209f673d
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.traduzione
+id: node.traduzione.status
+field_name: status
+entity_type: node
+bundle: traduzione
+label: Pubblicato
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 1
+default_value_callback: ''
+settings:
+  on_label: Acceso
+  off_label: Spento
+field_type: boolean

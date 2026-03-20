@@ -1,0 +1,184 @@
+uuid: a7a381cc-2b67-4b01-89d1-d5657652ff0e
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.field.node.canto.field_altri_titoli
+    - field.field.node.canto.field_anno
+    - field.field.node.canto.field_audio
+    - field.field.node.canto.field_autore_originale
+    - field.field.node.canto.field_autori_musica
+    - field.field.node.canto.field_autori_testo
+    - field.field.node.canto.field_canto_accordi
+    - field.field.node.canto.field_canto_testo
+    - field.field.node.canto.field_capoverso
+    - field.field.node.canto.field_fonte
+    - field.field.node.canto.field_immagine
+    - field.field.node.canto.field_informazioni
+    - field.field.node.canto.field_lingua
+    - field.field.node.canto.field_metatag
+    - field.field.node.canto.field_old_id
+    - field.field.node.canto.field_periodo
+    - field.field.node.canto.field_tags
+    - node.type.canto
+  module:
+    - datetime
+    - link
+    - metatag
+    - text
+id: node.canto.default
+targetEntityType: node
+bundle: canto
+mode: default
+content:
+  field_altri_titoli:
+    type: string_textfield
+    weight: 1
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_anno:
+    type: datetime_default
+    weight: 2
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_audio:
+    type: link_default
+    weight: 8
+    region: content
+    settings:
+      placeholder_url: ''
+      placeholder_title: ''
+    third_party_settings: {  }
+  field_autore_originale:
+    type: string_textfield
+    weight: 27
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_autori_musica:
+    type: entity_reference_autocomplete
+    weight: 4
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_autori_testo:
+    type: entity_reference_autocomplete
+    weight: 3
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_canto_accordi:
+    type: string_textarea
+    weight: 11
+    region: content
+    settings:
+      rows: 20
+      placeholder: ''
+    third_party_settings: {  }
+  field_canto_testo:
+    type: string_textarea
+    weight: 10
+    region: content
+    settings:
+      rows: 20
+      placeholder: ''
+    third_party_settings: {  }
+  field_capoverso:
+    type: string_textfield
+    weight: 9
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_fonte:
+    type: text_textarea
+    weight: 13
+    region: content
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  field_informazioni:
+    type: text_textarea_with_summary
+    weight: 12
+    region: content
+    settings:
+      rows: 5
+      summary_rows: 3
+      placeholder: ''
+      show_summary: false
+    third_party_settings: {  }
+  field_lingua:
+    type: entity_reference_autocomplete
+    weight: 6
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_metatag:
+    type: metatag_firehose
+    weight: 26
+    region: content
+    settings:
+      sidebar: true
+      use_details: true
+    third_party_settings: {  }
+  field_periodo:
+    type: options_select
+    weight: 5
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_tags:
+    type: entity_reference_autocomplete
+    weight: 7
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  simple_sitemap:
+    weight: 10
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  title:
+    type: string_textfield
+    weight: 0
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+hidden:
+  created: true
+  field_immagine: true
+  field_old_id: true
+  langcode: true
+  path: true
+  promote: true
+  status: true
+  sticky: true
+  translation: true
+  uid: true
+  url_redirects: true

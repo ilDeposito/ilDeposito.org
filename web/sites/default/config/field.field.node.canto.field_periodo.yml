@@ -1,0 +1,29 @@
+uuid: 5bb18211-f5b2-4fb2-b1b5-96f04b2cb605
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_periodo
+    - node.type.canto
+    - taxonomy.vocabulary.periodi
+id: node.canto.field_periodo
+field_name: field_periodo
+entity_type: node
+bundle: canto
+label: Periodo
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      periodi: periodi
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

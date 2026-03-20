@@ -1,0 +1,41 @@
+<div class="content-header align-items-center border-bottom border-1 border-accent py-4{% if bundle %} content-header--{{ bundle }}{% endif %}{% if image_url_mobile or image_url_tablet or image_url_desktop %} content-header--has-bg{% endif %}"{% if image_url_mobile or image_url_tablet or image_url_desktop %} style="--content-header-bg-image-mobile: url('{{ image_url_mobile|e('html_attr') }}');--content-header-bg-image-tablet: url('{{ image_url_tablet|e('html_attr') }}');--content-header-bg-image-desktop: url('{{ image_url_desktop|e('html_attr') }}');"{% endif %}>
+  <div class="container">
+
+    <div class="text-secondary bread pb-4">
+      <a href="{{ breadcrumb_url }}" class="text-dark lowercase">
+        {{ include('ildeposito:icon', {
+          name: 'arrow-left',
+          class: ['text-dark'],
+          type: 'regular',
+          size: '1rem',
+        }, with_context = false) }}
+        {{ breadcrumb_text }}
+      </a>
+    </div>
+
+    <h1 class="page-title fw-medium">{{ page_title }}</h1>
+
+    {# Mappa bundle → component #}
+    {% set header_components = {
+      'canto': 'ildeposito:content-header-canto',
+      'autore': 'ildeposito:content-header-autore',
+      'evento': 'ildeposito:content-header-evento',
+      'traduzione': 'ildeposito:content-header-traduzione',
+      'periodi': 'ildeposito:content-header-periodi',
+      'pagina': 'ildeposito:content-header-pagina',
+      'lingue': 'ildeposito:content-header-lingue',
+      'localizzazioni': 'ildeposito:content-header-localizzazioni',
+      'tematiche': 'ildeposito:content-header-tematiche',
+      'tags': 'ildeposito:content-header-tags',
+      'view': 'ildeposito:content-header-view'
+    } %}
+    {% set header_component = header_components[bundle]|default(null) %}
+
+    {% if header_component %}
+      {{ include(header_component, { data: data }, with_context = false) }}
+    {% else %}
+      <h5 class="page-description fst-italic fw-light">Descrizione di default!</h5>
+    {% endif %}
+
+  </div>
+</div>

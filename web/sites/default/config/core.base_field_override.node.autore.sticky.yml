@@ -1,0 +1,22 @@
+uuid: 74ddbbfa-101d-469e-93d4-e0f527012c7b
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.autore
+id: node.autore.sticky
+field_name: sticky
+entity_type: node
+bundle: autore
+label: 'Sempre in cima agli elenchi'
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: Acceso
+  off_label: Spento
+field_type: boolean

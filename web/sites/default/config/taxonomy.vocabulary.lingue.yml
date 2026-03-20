@@ -1,0 +1,9 @@
+uuid: 68d80a5e-6965-4f01-93e1-da10e285ba54
+langcode: it
+status: true
+dependencies: {  }
+name: Lingue
+vid: lingue
+description: null
+weight: 0
+new_revision: false

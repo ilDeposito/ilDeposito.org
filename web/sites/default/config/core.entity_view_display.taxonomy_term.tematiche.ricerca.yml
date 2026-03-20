@@ -1,0 +1,46 @@
+uuid: 8e331c0b-beb5-41a1-a457-e16fa73ae7d3
+langcode: it
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.taxonomy_term.ricerca
+    - field.field.taxonomy_term.tematiche.field_immagine
+    - field.field.taxonomy_term.tematiche.field_metatag
+    - field.field.taxonomy_term.tematiche.field_old_id
+    - taxonomy.vocabulary.tematiche
+  module:
+    - text
+id: taxonomy_term.tematiche.ricerca
+targetEntityType: taxonomy_term
+bundle: tematiche
+mode: ricerca
+content:
+  description:
+    type: text_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  field_immagine:
+    type: entity_reference_entity_view
+    label: above
+    settings:
+      view_mode: default
+      link: false
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  field_old_id:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 3
+    region: content
+hidden:
+  field_metatag: true
+  langcode: true
+  search_api_excerpt: true

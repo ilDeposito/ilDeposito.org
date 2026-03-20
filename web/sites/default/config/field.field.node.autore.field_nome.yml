@@ -1,0 +1,19 @@
+uuid: 0560eade-418c-4d42-ac03-2af8ad645b7d
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_nome
+    - node.type.autore
+id: node.autore.field_nome
+field_name: field_nome
+entity_type: node
+bundle: autore
+label: Nome
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

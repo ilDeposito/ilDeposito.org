@@ -1,0 +1,21 @@
+uuid: 8f79e99a-356a-4593-863d-5a7746938a4c
+langcode: it
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.periodi
+  module:
+    - text
+id: taxonomy_term.periodi.description
+field_name: description
+entity_type: taxonomy_term
+bundle: periodi
+label: Descrizione
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

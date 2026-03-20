@@ -1,0 +1,21 @@
+uuid: d2448bb6-5f52-4f5b-ab1a-ab49fab1f0ac
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_metatag
+    - taxonomy.vocabulary.periodi
+  module:
+    - metatag
+id: taxonomy_term.periodi.field_metatag
+field_name: field_metatag
+entity_type: taxonomy_term
+bundle: periodi
+label: Metatag
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: metatag

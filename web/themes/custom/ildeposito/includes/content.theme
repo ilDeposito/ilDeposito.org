@@ -1,0 +1,16 @@
+<?php
+
+/**
+ * @file
+ * Theme and preprocess functions for nodes.
+ */
+
+function ildeposito_preprocess_node(array &$variables): void
+{
+  // Recupera l'entità node per evitare errori e permettere il debug
+  $node = $variables['node'];
+  // add logic to switch between bundle if the view mode is "full"
+  $a = 1;
+
+  $variables['pippo'] = $node;
+}

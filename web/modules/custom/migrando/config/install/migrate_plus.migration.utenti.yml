@@ -1,0 +1,61 @@
+id: utenti
+label: 01. Utenti
+migration_group: ilDeposito
+
+source:
+  plugin: url
+  data_fetcher_plugin: file
+  data_parser_plugin: json
+  urls:
+    - modules/custom/migrando/files/utenti/utenti_0.json
+    - modules/custom/migrando/files/utenti/utenti_1.json
+    - modules/custom/migrando/files/utenti/utenti_2.json
+    - modules/custom/migrando/files/utenti/utenti_3.json
+    - modules/custom/migrando/files/utenti/utenti_4.json
+    - modules/custom/migrando/files/utenti/utenti_5.json
+  item_selector: items
+  fields:
+    -
+      name: uuid
+      selector: uuid
+    -
+      name: uid
+      selector: uid
+    -
+      name: created
+      selector: created
+    -
+      name: mail
+      selector: mail
+    -
+      name: username
+      selector: username
+
+  ids:
+    uid:
+      type: string
+
+process:
+  name: username
+  field_old_id: uid
+  uuid: uuid
+  mail: mail
+  status:
+    plugin: default_value
+    default_value: '1'
+  created:
+    plugin: callback
+    source: created
+    callable: strtotime
+  roles:
+    plugin: default_value
+    default_value: 'community'
+
+destination:
+  plugin: 'entity:user'
+
+dependencies:
+  enforced:
+    module:
+      - migrando
+

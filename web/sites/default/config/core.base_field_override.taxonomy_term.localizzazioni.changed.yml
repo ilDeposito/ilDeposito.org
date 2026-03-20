@@ -1,0 +1,18 @@
+uuid: e76cd194-32bd-4074-b854-4f1a99aaa8c1
+langcode: it
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.localizzazioni
+id: taxonomy_term.localizzazioni.changed
+field_name: changed
+entity_type: taxonomy_term
+bundle: localizzazioni
+label: Modificato
+description: "La data e l'ora in cui il termine è stato mofificato l'ultima volta."
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: changed

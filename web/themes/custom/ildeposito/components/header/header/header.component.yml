@@ -1,0 +1,34 @@
+$schema: https://git.drupalcode.org/project/drupal/-/raw/10.1.x/core/modules/sdc/src/metadata.schema.json
+name: Header
+status: stable
+description: 'Header mobile-first con logo, barra di ricerca e hamburger menu. Usa Bootstrap 5, Bootstrap Icons, variabili Bootstrap.'
+group: molecules
+props:
+  type: object
+  properties:
+    logo_url:
+      type: string
+      title: URL logo
+      description: 'URL destinazione logo (home)'
+    search_placeholder:
+      type: string
+      title: Placeholder ricerca
+      description: 'Testo placeholder barra di ricerca'
+      default: 'cerca canti, autori..'
+    menu_aria_label:
+      type: string
+      title: Aria label menu
+      description: 'Label accessibilità per hamburger menu'
+      default: 'Apri navigazione'
+    attributes:
+      type: Drupal\Core\Template\Attribute
+      title: Attributi HTML
+      description: 'Attributi HTML aggiuntivi per il header'
+    langcode:
+      type: string
+      title: Codice lingua attiva
+      description: 'Codice lingua attualmente attivo (es: it, en)'
+  required:
+    - logo_url
+    - search_placeholder
+    - menu_aria_label

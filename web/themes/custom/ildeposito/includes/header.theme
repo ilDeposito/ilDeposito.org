@@ -1,0 +1,70 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Funzioni di supporto per il preprocess di page.
+ */
+
+function _get_page_breadcrumb($variables)
+{
+  $breadcrumb_manager = \Drupal::service('breadcrumb');
+  $breadcrumb = $breadcrumb_manager->build(\Drupal::routeMatch());
+  if (method_exists($breadcrumb, 'addCacheContexts')) {
+    $breadcrumb->addCacheContexts(['url.path']);
+  }
+  $links = $breadcrumb->getLinks();
+  // Restituisci solo il secondo elemento (il primo dopo home)
+  if (isset($links[1])) {
+    $link = $links[1];
+    return [
+      'text' => $link->getText(),
+      'url' => $link->getUrl()->toString(),
+    ];
+  }
+  return NULL;
+}
+
+function _get_content_image($variables)
+{
+  $media = \Drupal::entityTypeManager()->getStorage('media')
+    ->getQuery()
+    ->condition('bundle', 'image')
+    ->condition('field_header', 1)
+    ->accessCheck(FALSE)
+    ->range(0, 1)
+    ->execute();
+  return $media;
+}
+
+function _get_image_styles_url_from_media($media)
+{
+  $images_style = ['header_mobile', 'header_tablet', 'header_desktop'];
+  $image_urls = [];
+  $media_id = reset($media);
+  if (!$media_id) {
+    return $image_urls;
+  }
+  $media_entity = \Drupal::entityTypeManager()->getStorage('media')->load($media_id);
+  if (!$media_entity || !$media_entity->hasField('field_media_image')) {
+    return $image_urls;
+  }
+  $file = $media_entity->get('field_media_image')->entity;
+  if (!$file) {
+    return $image_urls;
+  }
+  foreach ($images_style as $style) {
+    $image_style = \Drupal::entityTypeManager()->getStorage('image_style')->load($style);
+    if (!$image_style) {
+      continue;
+    }
+    try {
+      $url = $image_style->buildUrl($file->getFileUri());
+    } catch (\Exception $e) {
+      \Drupal::logger('ildeposito')->error('Errore generazione URL immagine: ' . $e->getMessage());
+      continue;
+    }
+    $image_urls[$style] = $url;
+  }
+  return $image_urls;
+}

@@ -1,0 +1,174 @@
+uuid: 41866a6a-3111-493f-9aa6-7f440a588641
+langcode: it
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.full
+    - field.field.node.canto.field_altri_titoli
+    - field.field.node.canto.field_anno
+    - field.field.node.canto.field_audio
+    - field.field.node.canto.field_autore_originale
+    - field.field.node.canto.field_autori_musica
+    - field.field.node.canto.field_autori_testo
+    - field.field.node.canto.field_canto_accordi
+    - field.field.node.canto.field_canto_testo
+    - field.field.node.canto.field_capoverso
+    - field.field.node.canto.field_fonte
+    - field.field.node.canto.field_immagine
+    - field.field.node.canto.field_informazioni
+    - field.field.node.canto.field_lingua
+    - field.field.node.canto.field_metatag
+    - field.field.node.canto.field_old_id
+    - field.field.node.canto.field_periodo
+    - field.field.node.canto.field_tags
+    - node.type.canto
+  module:
+    - datetime
+    - link
+    - metatag
+    - text
+    - user
+id: node.canto.full
+targetEntityType: node
+bundle: canto
+mode: full
+content:
+  field_altri_titoli:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 3
+    region: content
+  field_anno:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_audio:
+    type: link
+    label: above
+    settings:
+      trim_length: 80
+      url_only: false
+      url_plain: false
+      rel: ''
+      target: ''
+    third_party_settings: {  }
+    weight: 5
+    region: content
+  field_autori_musica:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 7
+    region: content
+  field_autori_testo:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 8
+    region: content
+  field_canto_accordi:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  field_canto_testo:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 16
+    region: content
+  field_capoverso:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 9
+    region: content
+  field_fonte:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 12
+    region: content
+  field_immagine:
+    type: entity_reference_entity_view
+    label: above
+    settings:
+      view_mode: default
+      link: false
+    third_party_settings: {  }
+    weight: 4
+    region: content
+  field_informazioni:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 13
+    region: content
+  field_lingua:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 14
+    region: content
+  field_metatag:
+    type: metatag_empty_formatter
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 115
+    region: content
+  field_old_id:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 17
+    region: content
+  field_periodo:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 6
+    region: content
+  field_tags:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 15
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden:
+  field_autore_originale: true
+  langcode: true
+  search_api_excerpt: true

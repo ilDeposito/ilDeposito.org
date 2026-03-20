@@ -1,0 +1,1 @@
+{"version":3,"file":"/components/header/header/header.js","mappings":";;;;AAAA,4E","sources":["webpack://ildeposito/./components/header/header/_header.js"],"sourcesContent":["// Rimosso: Bootstrap Modal gestito via markup, nessun JS custom necessario.\n"],"names":[],"sourceRoot":""}

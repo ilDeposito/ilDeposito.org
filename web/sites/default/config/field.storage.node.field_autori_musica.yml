@@ -1,0 +1,19 @@
+uuid: e69422d9-42b6-4da4-a876-46cdd6b8e517
+langcode: it
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_autori_musica
+field_name: field_autori_musica
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: -1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

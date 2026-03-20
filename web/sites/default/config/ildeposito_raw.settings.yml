@@ -1,0 +1,100 @@
+_core:
+  default_config_hash: QEa3g4oT5p60TnYdZOJ4wU5cqR6iP6MJsbT8dwjjEmI
+cache_max_age: 60
+raw_entities:
+  -
+    entity_type: node
+    bundles:
+      - autore
+    view_modes:
+      - full
+  -
+    entity_type: node
+    bundles:
+      - canto
+    view_modes:
+      - full
+  -
+    entity_type: node
+    bundles:
+      - evento
+    view_modes:
+      - full
+  -
+    entity_type: node
+    bundles:
+      - traduzione
+    view_modes:
+      - full
+  -
+    entity_type: taxonomy_term
+    bundles:
+      - lingue
+    view_modes:
+      - full
+  -
+    entity_type: taxonomy_term
+    bundles:
+      - localizzazioni
+    view_modes:
+      - full
+  -
+    entity_type: taxonomy_term
+    bundles:
+      - periodi
+    view_modes:
+      - full
+  -
+    entity_type: taxonomy_term
+    bundles:
+      - tags
+    view_modes:
+      - full
+  -
+    entity_type: taxonomy_term
+    bundles:
+      - tematiche
+    view_modes:
+      - full
+  -
+    entity_type: node
+    bundles:
+      - autore
+    view_modes:
+      - ricerca
+  -
+    entity_type: node
+    bundles:
+      - canto
+    view_modes:
+      - ricerca
+  -
+    entity_type: node
+    bundles:
+      - evento
+    view_modes:
+      - ricerca
+  -
+    entity_type: node
+    bundles:
+      - traduzione
+    view_modes:
+      - ricerca
+  -
+    entity_type: taxonomy_term
+    bundles:
+      - periodi
+    view_modes:
+      - ricerca
+  -
+    entity_type: taxonomy_term
+    bundles:
+      - tematiche
+    view_modes:
+      - ricerca
+  -
+    entity_type: node
+    bundles:
+      - pagina
+    view_modes:
+      - ricerca

@@ -1,0 +1,33 @@
+uuid: 4b783279-6356-4845-9c47-243c9fb2688e
+langcode: en
+status: true
+dependencies:
+  module:
+    - language
+    - node
+id: canti_it
+label: 'Canti IT'
+type: 'canonical_entities:node'
+pattern: 'canti/[node:title]'
+selection_criteria:
+  337065d0-1818-4646-b4cd-8c01cfb72638:
+    id: 'entity_bundle:node'
+    negate: false
+    uuid: 337065d0-1818-4646-b4cd-8c01cfb72638
+    context_mapping:
+      node: node
+    bundles:
+      canto: canto
+  e7a083da-daf0-48e3-ad37-bdcbccee0169:
+    id: language
+    negate: false
+    uuid: e7a083da-daf0-48e3-ad37-bdcbccee0169
+    context_mapping:
+      language: 'node:langcode:language'
+    langcodes:
+      it: it
+selection_logic: and
+weight: -10
+relationships:
+  'node:langcode:language':
+    label: Language

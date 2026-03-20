@@ -1,0 +1,33 @@
+uuid: 077962f0-4227-4142-9dd1-cffe2f71ae47
+langcode: it
+status: true
+dependencies:
+  module:
+    - language
+    - taxonomy
+id: tematiche_it
+label: 'Tematiche IT'
+type: 'canonical_entities:taxonomy_term'
+pattern: 'tematiche/[term:name]'
+selection_criteria:
+  2b1ea7e3-6a2c-426f-86d3-61f4cdda1aa3:
+    id: 'entity_bundle:taxonomy_term'
+    negate: false
+    uuid: 2b1ea7e3-6a2c-426f-86d3-61f4cdda1aa3
+    context_mapping:
+      taxonomy_term: taxonomy_term
+    bundles:
+      tematiche: tematiche
+  c2989c1b-fe68-4e1e-9c78-6b4b8bfbfe9d:
+    id: language
+    negate: false
+    uuid: c2989c1b-fe68-4e1e-9c78-6b4b8bfbfe9d
+    context_mapping:
+      language: 'taxonomy_term:langcode:language'
+    langcodes:
+      it: it
+selection_logic: and
+weight: -10
+relationships:
+  'taxonomy_term:langcode:language':
+    label: Lingua

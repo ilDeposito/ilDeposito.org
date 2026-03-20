@@ -1,0 +1,20 @@
+uuid: 0679cf6e-870e-4e22-97d7-b942341c7db4
+langcode: it
+status: true
+dependencies:
+  theme:
+    - ildeposito
+_core:
+  default_config_hash: VAW9xIRo8rD7uDPgew1cfttu5V-aWayCbmhedgVTmGg
+id: ildeposito_local_actions
+theme: ildeposito
+region: header
+weight: -4
+provider: null
+plugin: local_actions_block
+settings:
+  id: local_actions_block
+  label: 'Azioni di amministrazione principali'
+  label_display: '0'
+  provider: core
+visibility: {  }

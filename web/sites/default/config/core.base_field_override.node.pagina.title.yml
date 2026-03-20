@@ -1,0 +1,18 @@
+uuid: a77a859a-626f-4800-99a8-712c059e4b1f
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.pagina
+id: node.pagina.title
+field_name: title
+entity_type: node
+bundle: pagina
+label: Titolo
+description: ''
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

@@ -1,0 +1,19 @@
+uuid: 92b23b09-9ec3-4a2c-8dec-a01b71245daf
+langcode: it
+status: true
+dependencies:
+  module:
+    - user
+_core:
+  default_config_hash: mZLyuWM9CQx2ZJVqFGSbzgFnHzudVbHBYmdU256A5Wk
+id: user.user.default
+targetEntityType: user
+bundle: user
+mode: default
+content:
+  member_for:
+    weight: 5
+    region: content
+hidden:
+  langcode: true
+  search_api_excerpt: true

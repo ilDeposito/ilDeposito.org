@@ -1,0 +1,19 @@
+uuid: 2b7e2db0-bd5a-454e-9f00-70ae5ad947e0
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_canto_testo
+    - node.type.canto
+id: node.canto.field_canto_testo
+field_name: field_canto_testo
+entity_type: node
+bundle: canto
+label: Testo
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

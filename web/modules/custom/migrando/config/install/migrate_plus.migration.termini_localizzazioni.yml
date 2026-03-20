@@ -1,0 +1,55 @@
+id: termini_localizzazioni
+label: Termini Localizzazioni
+migration_group: ilDeposito
+
+source:
+  plugin: url
+  data_fetcher_plugin: file
+  data_parser_plugin: json
+  urls:
+    - modules/custom/migrando/files/localizzazioni/localizzazioni_0.json
+  item_selector: 'items'
+  fields:
+    -
+      name: tid
+      selector: tid
+    -
+      name: name
+      selector: name
+    -
+      name: uuid
+      selector: uuid
+    -
+      name: description
+      selector: description
+    -
+  ids:
+    tid:
+      type: string
+
+process:
+  name:
+    plugin: encode
+    source: name
+  uuid: uuid
+  field_old_id: tid
+  field_immagine:
+    plugin: migration_lookup
+    migration: media
+    no_stub: true
+    source: immagine
+  'description/value': description
+  'description/format':
+    plugin: default_value
+    default_value: basic_html
+
+destination:
+  plugin: entity:taxonomy_term
+  default_bundle: localizzazioni
+  default_langcode: it
+  langcode: it
+
+dependencies:
+  enforced:
+    module:
+      - migrando

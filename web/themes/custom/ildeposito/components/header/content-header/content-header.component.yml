@@ -1,0 +1,23 @@
+$schema: https://git.drupalcode.org/project/drupal/-/raw/10.1.x/core/modules/sdc/src/metadata.schema.json
+name: Content Header
+status: stable
+props:
+  type: object
+  properties:
+    page_title:
+      type: string
+    bundle:
+      type: string
+    image_url_desktop:
+      type: string
+    image_url_tablet:
+      type: string
+    image_url_mobile:
+      type: string
+    breadcrumb_url:
+      type: string
+    breadcrumb_text:
+      type: string
+    data:
+      type: object
+  required: [page_title, image_url_desktop, image_url_tablet, image_url_mobile]

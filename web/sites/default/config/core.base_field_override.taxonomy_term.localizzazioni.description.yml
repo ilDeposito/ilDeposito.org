@@ -1,0 +1,21 @@
+uuid: 4d46206a-6a97-4438-9383-5a46440cf626
+langcode: it
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.localizzazioni
+  module:
+    - text
+id: taxonomy_term.localizzazioni.description
+field_name: description
+entity_type: taxonomy_term
+bundle: localizzazioni
+label: Descrizione
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

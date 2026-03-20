@@ -1,0 +1,21 @@
+uuid: a64eacfc-8036-4f34-a5a4-d3bb71509841
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.media.field_header
+    - media.type.image
+id: media.image.field_header
+field_name: field_header
+entity_type: media
+bundle: image
+label: Header
+description: "Abilita per utilizzare come header casuale per le pagine che non hanno un'immagine specifica."
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

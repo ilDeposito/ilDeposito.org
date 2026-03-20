@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "drupal-radix-cli": "^1.0.8"
+  }
+}

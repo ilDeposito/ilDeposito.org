@@ -1,0 +1,109 @@
+id: traduzioni
+label: 12. Traduzioni
+migration_group: ilDeposito
+
+source:
+  plugin: url
+  data_fetcher_plugin: file
+  data_parser_plugin: json
+  urls:
+    - modules/custom/migrando/files/traduzioni/traduzioni_0.json
+  item_selector: 'items'
+  fields:
+    -
+      name: nid
+      selector: nid
+    -
+      name: title
+      selector: title
+    -
+      name: uuid
+      selector: uuid
+    -
+      name: uid
+      selector: uid
+    -
+      name: created
+      selector: created
+    -
+      name: changed
+      selector: changed
+    -
+      name: informazioni
+      selector: informazioni
+    -
+      name: canto_originale
+      selector: canto_originale
+    -
+      name: lingua
+      selector: lingua
+    -
+      name: testo
+      selector: testo
+
+  ids:
+    nid:
+      type: string
+
+process:
+  uuid: uuid
+  field_old_id: nid
+  created:
+    plugin: callback
+    source: created
+    callable: strtotime
+  changed:
+    plugin: callback
+    source: changed
+    callable: strtotime
+#  uid:
+#    plugin: migration_lookup
+#    migration: utenti
+#    source: uid
+  uid:
+    plugin: default_value
+    default_value: 1
+  type:
+    plugin: default_value
+    default_value: traduzione
+  title:
+    plugin: encode
+    source: title
+  field_canto_testo:
+    plugin: encode
+    source: testo
+  'field_informazioni/value': informazioni
+  'field_informazioni/format':
+    plugin: default_value
+    default_value: basic_html
+  field_canti_correlati:
+    -
+      plugin: explode
+      delimiter: ', '
+      source: canto_originale
+    -
+      plugin: multiple_values
+    -
+      plugin: get_migration_id
+      importer: 'canti'
+  field_lingua:
+    -
+      plugin: explode
+      delimiter: ', '
+      source: lingua
+    -
+      plugin: multiple_values
+    -
+      plugin: get_migration_id
+      importer: 'termini_lingue'
+
+destination:
+  plugin: entity:node
+  bundle: traduzione
+  default_langcode: it
+  langcode: it
+
+dependencies:
+  enforced:
+    module:
+      - migrando

@@ -1,0 +1,62 @@
+<div class="content-header-canto">
+
+{% if data.anno %}
+    <span class=" d-block fs-5 fst-italic fw-semibold font-title">{{ 'Year: '|t }}{{ data.anno }}</span>
+{% endif %}
+
+{% if data.autori %}
+    {% set autori_count = data.autori|length %}
+    <span class=" d-block fs-5 fst-italic fw-semibold font-title">
+        {{ autori_count == 1 ? 'Author'|t : 'Authors'|t }}:
+        {% for autore in data.autori %}
+            <a href="{{ autore.url }}">{{ autore.label }}</a>
+            {% if not loop.last %}, {% endif %} 
+        {% endfor %}
+    </span>
+{% endif %}
+
+<div class="pt-4">
+
+{% if data.audio %}
+    {{ include('ildeposito:icon', {
+            name: 'play',
+            class: ['text-dark', 'fs-5'],
+            type: 'fill',
+            size: '1rem',
+    }, with_context = false) }}
+        <span class="fs-5 d-inline-block pe-3">2.45</span>
+{% endif %}
+
+{{ include('ildeposito:icon', {
+        name: 'share-network',
+        class: ['text-dark', 'fs-5'],
+        type: 'regular',
+        size: '1rem',
+      }, with_context = false) }}
+     <span class="fs-5">{{ 'Share'|t }}</span>
+
+      <a href="#scheda-canto" class="text-dark d-inline-block ps-3">
+          <span class="">
+            {{ include('ildeposito:icon', {
+              name: 'arrow-down',
+              class: ['text-dark', 'fs-5'],
+              type: 'regular', 
+              size: '1rem',            
+            }, with_context = false) }}
+          </span>
+          <span class="fs-5">{{ 'Song details'|t }}</span>
+      </a>
+
+</div>
+      {% if data.evento %}
+        <span class="fs-5 fw-semibold  font-title d-block pt-3">{{ 'Storia Cantata'|t }}</span>
+        <a class="d-block fs-5" href="{{ data.evento.url }}">{{ data.evento.label }}</a>
+      {% endif %}
+
+
+
+
+
+
+
+</div>

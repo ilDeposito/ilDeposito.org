@@ -1,0 +1,13 @@
+uuid: 6beb5aab-b582-4347-922c-3729854c1430
+langcode: it
+status: true
+dependencies:
+  enforced:
+    module:
+      - devel
+_core:
+  default_config_hash: 3V-l1uuTcyirYOGLPZV5HWaDfr02uEbWZJIwc8Byz-c
+id: devel
+label: Sviluppo
+description: 'Links related to Devel module.'
+locked: true

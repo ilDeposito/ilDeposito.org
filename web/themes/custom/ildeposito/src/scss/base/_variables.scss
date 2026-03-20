@@ -1,0 +1,69 @@
+/**
+ * Variables
+ * Variables should follow the $component-state-property-size formula for
+ * consistent naming. Examples:
+ * $nav-link-disabled-color
+ * $modal-content-box-shadow-xs
+ *
+ * Customization:
+ * To customize Bootstrap variables:
+ * Copy the desired variable from node_modules/bootstrap/scss/_variables.scss
+ * @see https://github.com/twbs/bootstrap/blob/main/scss/_variables.scss
+ * Change the value and remove the !default flag.
+ * Examples:
+ * $body-bg: #000;
+ * $body-color: $gray-100;
+ */
+
+//@import "~bootstrap/scss/functions";
+
+// === BRAND COLORS ===
+$primary:   #9E1B1B;
+$secondary: #2F2F2F;
+$warning:   #A8842C;
+$light:     #F4F1E8;
+$dark:      #2F2F2F;
+$accent:    #A8842C;
+$lighter:   #F8F5EE;
+
+// === BACKGROUND & TEXT ===
+$body-bg:       #F4F1E8;
+$body-color:    #1E1E1E;
+
+// Typography
+$headings-line-height: 1.2;
+
+$font-family-base: "Source Sans 3", system-ui, sans-serif;
+$font-title: "Bitter", serif;
+$font-monospace: "IBM Plex Mono", monospace;
+$font-family-monospace: "IBM Plex Mono", monospace;
+
+
+$headings-font-family: $font-title; // Bitter for all headings
+$headings-font-weight: 600;
+
+$link-color:                $primary;
+$link-decoration:           none;
+
+$link-hover-color:          darken($primary, 10%);
+$link-hover-decoration:     underline;
+
+$btn-border-radius: 0;  // Appena più arrotondato
+
+// FORM
+$input-border-radius: none;// Input più squadrati
+
+// Rimuovi l'effetto glow
+$input-focus-box-shadow: none;
+
+// Sfondo bianco quando attivo
+$input-bg: mix(white, $light, 50%);
+$input-focus-bg: mix(white, $light, 80%);
+
+
+// (Opzionale) Colore del bordo quando attivo
+//$input-focus-border-color: #80bdff; // o il colore che preferisci
+
+// (Opzionale) Colore del testo quando attivo
+$input-focus-color: $secondary;
+

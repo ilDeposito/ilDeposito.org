@@ -1,0 +1,66 @@
+@import "../../../src/scss/init";
+
+.content-header {
+  position: relative;
+  background-color: var(--bs-light, #f4f1e8);
+  z-index: 1;
+
+  // Mobile-first: default mobile
+  --content-header-bg-image: var(--content-header-bg-image-mobile);
+
+  // Tablet
+  @include media-breakpoint-up(md) {
+    --content-header-bg-image: var(--content-header-bg-image-tablet);
+  }
+
+  // Desktop
+  @include media-breakpoint-up(lg) {
+    --content-header-bg-image: var(--content-header-bg-image-desktop);
+  }
+
+  &--has-bg {
+    overflow: hidden;
+
+    > .container {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Layer immagine: scala di grigi + opacita 10%. */
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: var(--content-header-bg-image);
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      filter: grayscale(100%);
+      opacity: 0.1;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Overlay per mantenere leggibile il testo sullo sfondo. */
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .page-title,
+    .page-description,
+    .text-align-right {
+      position: relative;
+      z-index: 2;
+    }
+  }
+
+  .text-secondary.pb-4 {
+    position: relative;
+    z-index: 2;
+  }
+
+}

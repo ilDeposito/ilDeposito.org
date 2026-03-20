@@ -1,0 +1,19 @@
+uuid: d03e971e-7c9b-45d0-8517-ea08e2946f2c
+langcode: it
+status: true
+dependencies:
+  module:
+    - node
+    - text
+id: node.field_informazioni
+field_name: field_informazioni
+entity_type: node
+type: text_with_summary
+settings: {  }
+module: text
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

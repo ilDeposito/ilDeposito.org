@@ -1,0 +1,23 @@
+uuid: 52503b0a-f57c-48d4-b4bc-ffe0172adefb
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_old_id
+    - node.type.evento
+id: node.evento.field_old_id
+field_name: field_old_id
+entity_type: node
+bundle: evento
+label: 'Old ID'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

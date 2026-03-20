@@ -1,0 +1,22 @@
+uuid: 4f4cffb4-0f7e-458f-8cec-2ecaeb0bc388
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.canto
+id: node.canto.sticky
+field_name: sticky
+entity_type: node
+bundle: canto
+label: 'Sempre in cima agli elenchi'
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: Acceso
+  off_label: Spento
+field_type: boolean

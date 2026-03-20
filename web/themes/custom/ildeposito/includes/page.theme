@@ -1,0 +1,91 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @file
+ * Theme and preprocess functions for page.
+ */
+
+/**
+ * Implements hook_theme_suggestions_page_alter().
+ *
+ * Appends the page__styleguide suggestion when the current path alias is
+ * /styleguide, so page--styleguide.html.twig is used instead of page.html.twig.
+ */
+function ildeposito_theme_suggestions_page_alter(array &$suggestions, array $variables): void
+{
+  $currentPath = \Drupal::service('path.current')->getPath();
+  $alias = \Drupal::service('path_alias.manager')->getAliasByPath($currentPath);
+
+  if ($alias === '/styleguide') {
+    $suggestions[] = 'page__styleguide';
+  }
+}
+
+/**
+ * Preprocess generico per tutte le pagine: passa props a content-header SDC.
+ */
+function ildeposito_preprocess_page(array &$variables): void
+{
+  $variables['langcode'] = \Drupal::languageManager()->getCurrentLanguage()->getId();
+
+  $route_match = \Drupal::routeMatch();
+  $request = \Drupal::request();
+  $title = \Drupal::service('title_resolver')->getTitle($request, $route_match->getRouteObject());
+
+  $image_content = _get_content_image($variables);
+  $image_urls = _get_image_styles_url_from_media($image_content);
+
+  $breadcrumb = _get_page_breadcrumb($variables);
+
+  $variables['content_header_props'] = [
+    'page_title' => $title,
+    'bundle' => '',
+    'breadcrumb_url' => $breadcrumb['url'] ?? '',
+    'breadcrumb_text' => $breadcrumb['text'] ?? '',
+    'image_url_mobile' => $image_urls['header_mobile'] ?? '',
+    'image_url_tablet' => $image_urls['header_tablet'] ?? '',
+    'image_url_desktop' => $image_urls['header_desktop'] ?? '',
+    'data' => [],
+  ];
+
+  // Cache: la pagina varia per route e per stato di autenticazione.
+  $variables['#cache']['contexts'] = array_merge(
+    $variables['#cache']['contexts'] ?? [],
+    ['route', 'user.roles'],
+  );
+
+  // Cache tags per la media entity header (se presente).
+  foreach ($image_content as $media_id) {
+    $variables['#cache']['tags'][] = 'media:' . $media_id;
+  }
+
+  // Raw entity data per il content-header.
+  $raw_manager = \Drupal::service('ildeposito_raw.manager');
+  $node = $route_match->getParameter('node');
+  $term = $route_match->getParameter('taxonomy_term');
+
+  $entity = $node instanceof \Drupal\Core\Entity\EntityInterface ? $node : ($term instanceof \Drupal\Core\Entity\EntityInterface ? $term : null);
+  if ($entity) {
+    // Cache tags dell'entity: la pagina si invalida quando l'entity cambia.
+    $variables['#cache']['tags'] = array_merge(
+      $variables['#cache']['tags'] ?? [],
+      $entity->getCacheTags(),
+    );
+
+    $raw_data = $raw_manager->getRawData($entity);
+    $bundle = $entity->bundle();
+    $variables['content_header_props']['bundle'] = $bundle;
+    $function = '_get_header_' . $bundle;
+    if (function_exists($function)) {
+      $variables['content_header_props']['data'] = $function($raw_data);
+    } else {
+      $variables['content_header_props']['data'] = $raw_data;
+    }
+  } elseif ($route_match->getRouteName() && str_starts_with($route_match->getRouteName(), 'view.')) {
+    // Pagina di tipo Views: delega a _get_header_view per costruire i dati.
+    $variables['content_header_props']['bundle'] = 'view';
+    $variables['content_header_props']['data'] = _get_header_view($variables);
+  }
+}

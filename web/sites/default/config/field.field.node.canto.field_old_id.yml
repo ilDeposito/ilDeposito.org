@@ -1,0 +1,23 @@
+uuid: e247b633-42f7-42e7-9226-eb3a8d6accc9
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_old_id
+    - node.type.canto
+id: node.canto.field_old_id
+field_name: field_old_id
+entity_type: node
+bundle: canto
+label: 'Old ID'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

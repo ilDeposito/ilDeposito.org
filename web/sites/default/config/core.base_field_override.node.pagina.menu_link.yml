@@ -1,0 +1,20 @@
+uuid: dea18061-f372-49b3-8ac9-4e48dc9990ee
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.pagina
+id: node.pagina.menu_link
+field_name: menu_link
+entity_type: node
+bundle: pagina
+label: 'Voce del menu'
+description: 'Computed menu link for the node (only available during node saving).'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: default
+  handler_settings: {  }
+field_type: entity_reference

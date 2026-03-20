@@ -1,0 +1,20 @@
+uuid: bff602fd-b529-4c63-9af7-c6dab3b5a454
+langcode: it
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.periodi
+  module:
+    - metatag
+id: taxonomy_term.periodi.metatag
+field_name: metatag
+entity_type: taxonomy_term
+bundle: periodi
+label: 'Metatags (Hidden field for JSON support)'
+description: 'The computed meta tags for the entity.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: metatag_computed

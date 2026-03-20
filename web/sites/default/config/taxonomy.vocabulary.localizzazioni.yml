@@ -1,0 +1,9 @@
+uuid: d714a4bc-324d-4b31-b6f6-469674c38d3f
+langcode: it
+status: true
+dependencies: {  }
+name: Localizzazioni
+vid: localizzazioni
+description: null
+weight: 0
+new_revision: false

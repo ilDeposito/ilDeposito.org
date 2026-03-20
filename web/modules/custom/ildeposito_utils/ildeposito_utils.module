@@ -1,0 +1,119 @@
+<?php
+
+use Drupal\path_alias\Entity\PathAlias;
+use Drupal\simple_sitemap\Entity\SimpleSitemapInterface;
+use Drupal\Core\Url;
+
+/**
+ * Implements hook_entity_insert().
+ */
+function ildeposito_utils_node_insert(\Drupal\Core\Entity\EntityInterface $entity) {
+  /*switch ($entity->bundle()) {
+    case 'canto':
+    case 'autore':
+    case 'traduzione':
+      _ildeposito_create_alias($entity);
+      break;
+  }*/
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_update().
+ */
+function ildeposito_utils_node_update(\Drupal\Core\Entity\EntityInterface $entity) {
+  /*switch ($entity->bundle()) {
+    case 'canto':
+    case 'autore':
+    case 'traduzione':
+      $aliases = _ildeposito_get_alias_by_path($entity);
+      foreach ($aliases as $alias_id) {
+        $alias = \Drupal::entityTypeManager()
+          ->getStorage('path_alias')
+          ->load($alias_id);
+        $alias->delete();
+      }
+      _ildeposito_create_alias($entity);
+  }*/
+}
+
+/**
+ * Implements hook_simple_sitemap_links_alter().
+ */
+function ildeposito_utils_simple_sitemap_links_alter(array &$links, SimpleSitemapInterface $sitemap) {
+  /*$languages = \Drupal::languageManager()->getLanguages();
+  foreach ($links as $key => $link) {
+    $strings = explode('/', $link['url']);
+    $types = ['canti', 'autori', 'traduzioni'];
+    if (isset($strings[4]) && in_array($strings[4], $types)) {
+      $path = '/' . $link['meta']['path'];
+      foreach ($languages as $language) {
+        if ($language->getId() != 'it') {
+          $relative_url = '/' . $language->getId() . \Drupal::service('path_alias.manager')->getAliasByPath($path, $language->getId());
+          $absolute_url = Url::fromUserInput($relative_url)->setAbsolute()->toString();
+          $links[$key]['alternate_urls'][$language->getId()] = $absolute_url;
+        }
+      }
+    }
+  }*/
+}
+
+/**
+ * @param $entity \Drupal\Core\Entity\EntityInterface
+ * @param $alias
+ *
+ * @throws \Drupal\Core\Entity\EntityStorageException
+ */
+function _ildeposito_create_alias(\Drupal\Core\Entity\EntityInterface $entity) {
+  $languages = \Drupal::languageManager()->getLanguages();
+  $title_clean = \Drupal::service('pathauto.alias_cleaner')
+    ->cleanString($entity->label());
+  $aliases = _get_node_aliases();
+    foreach ($languages as $language) {
+      if ($language->getId() != 'it') {
+        $base_alias = $aliases[$entity->bundle()][$language->getId()] ?? '/'. $entity->bundle() . '-' . $language->getId();
+        if (!empty($base_alias) && !empty($title_clean)) {
+          $pathAlias = PathAlias::create([
+            'path' => '/node/' . $entity->id(),
+            'alias' => $base_alias . '/' . $title_clean,
+            'langcode' => $language->getId(),
+          ]);
+          $pathAlias->save();
+        }
+      }
+    }
+  }
+
+function _ildeposito_get_alias_by_path($entity) {
+  $query = \Drupal::entityQuery('path_alias')
+    ->condition('path', '/node/' . $entity->id())
+    ->condition('langcode', 'it', '<>')
+    ->accessCheck(TRUE);
+  return $query->execute();
+}
+
+function _get_node_aliases() {
+  $aliases['canto']['en'] = '/songs';
+  $aliases['autore']['en'] = '/authors';
+  $aliases['traduzione']['en'] = '/translations';
+
+  $aliases['canto']['fr'] = '/songs-fr';
+  $aliases['autore']['fr'] = '/authors-fr';
+  $aliases['traduzione']['fr'] = '/translations-fr';
+
+  $aliases['canto']['es'] = '/songs-es';
+    $aliases['autore']['es'] = '/authors-es';
+    $aliases['traduzione']['es'] = '/translations-es';
+
+    // Fallback automatico per tutte le lingue/bundle gestiti.
+    $bundles = ['canto', 'autore', 'traduzione'];
+    $languages = ['en', 'fr', 'es']; // Estendi se necessario
+    foreach ($bundles as $bundle) {
+      foreach ($languages as $lang) {
+        if (empty($aliases[$bundle][$lang])) {
+          $aliases[$bundle][$lang] = '/' . $bundle . '-' . $lang;
+        }
+      }
+    }
+    return $aliases;
+}
+

@@ -1,0 +1,18 @@
+uuid: be944880-a171-4452-a9f7-a9b5ea34ef0d
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.autore
+id: node.autore.title
+field_name: title
+entity_type: node
+bundle: autore
+label: 'Cognome (o nome del gruppo)'
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

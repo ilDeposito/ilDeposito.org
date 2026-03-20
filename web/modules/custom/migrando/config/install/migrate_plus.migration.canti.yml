@@ -1,0 +1,223 @@
+id: canti
+label: 10. Canti
+migration_group: ilDeposito
+
+source:
+  plugin: url
+  data_fetcher_plugin: file
+  data_parser_plugin: json
+  urls:
+    - modules/custom/migrando/files/canti/canti_0.json
+    - modules/custom/migrando/files/canti/canti_1.json
+    - modules/custom/migrando/files/canti/canti_2.json
+    - modules/custom/migrando/files/canti/canti_3.json
+    - modules/custom/migrando/files/canti/canti_4.json
+    - modules/custom/migrando/files/canti/canti_5.json
+    - modules/custom/migrando/files/canti/canti_6.json
+  item_selector: 'items'
+  fields:
+    -
+      name: nid
+      selector: nid
+    -
+      name: title
+      selector: title
+    -
+      name: uuid
+      selector: uuid
+    -
+      name: uid
+      selector: uid
+    -
+      name: created
+      selector: created
+    -
+      name: changed
+      selector: changed
+    -
+      name: accordi
+      selector: accordi
+    -
+      name: anno
+      selector: anno
+    -
+      name: autori_musica
+      selector: autori_musica
+    -
+      name: autori_testo
+      selector: autori_testo
+    -
+      name: capoverso
+      selector: capoverso
+    -
+      name: fonte
+      selector: fonte
+    -
+      name: informazioni
+      selector: informazioni
+    -
+      name: lingua
+      selector: lingua
+    -
+      name: audio
+      selector: audio
+    -
+      name: periodo
+      selector: periodo
+    -
+      name: tags
+      selector: tags
+    -
+      name: testo
+      selector: testo
+    -
+      name: altri_titoli
+      selector: altri_titoli
+    -
+      name: video_url
+      selector: video_url
+    -
+      name: autore_originale
+      selector: autore_originale
+
+  ids:
+    nid:
+      type: string
+
+process:
+  uuid: uuid
+  field_old_id: nid
+  created:
+    plugin: callback
+    source: created
+    callable: strtotime
+  changed:
+    plugin: callback
+    source: changed
+    callable: strtotime
+  status:
+    plugin: default_value
+    default_value: 1
+  uid:
+    -
+      plugin: explode
+      delimiter: ', '
+      source: uid
+    -
+      plugin: multiple_values
+    -
+      plugin: get_migration_id
+      importer: 'utenti'
+  #  plugin: default_value
+  #  default_value: 1
+  type:
+    plugin: default_value
+    default_value: canto
+  title:
+    plugin: encode
+    source: title
+  field_canto_testo:
+    plugin: encode
+    source: testo
+  'field_fonte/value': fonte
+  'field_fonte/format':
+    plugin: default_value
+    default_value: 'basic_html'
+  'field_informazioni/value': informazioni
+  'field_informazioni/format':
+    plugin: default_value
+    default_value: 'basic_html'
+  field_canto_accordi:
+    plugin: encode
+    source: accordi
+  field_capoverso:
+    plugin: encode
+    source: capoverso
+  field_altri_titoli:
+    plugin: encode
+    source: altri_titoli
+  field_audio/uri: video_url
+
+  field_autore_originale:
+    plugin: encode
+    source: autore_originale
+
+  field_lingua:
+    -
+      plugin: explode
+      delimiter: ', '
+      source: lingua
+    -
+      plugin: multiple_values
+    -
+      plugin: get_migration_id
+      importer: 'termini_lingue'
+  field_tags:
+    -
+      plugin: skip_on_empty
+      method: process
+      source: tags
+    -
+      plugin: explode
+      delimiter: ', '
+      source: tags
+    -
+      plugin: multiple_values
+    -
+      plugin: get_migration_id
+      importer: 'termini_tags'
+
+  field_autori_testo:
+    -
+      plugin: skip_on_empty
+      method: process
+      source: autori_testo
+    -
+      plugin: explode
+      delimiter: ', '
+      source: autori_testo
+    -
+      plugin: multiple_values
+    -
+      plugin: get_migration_id
+      importer: 'autori'
+  field_autori_musica:
+    -
+      plugin: skip_on_empty
+      method: process
+      source: autori_musica
+    -
+      plugin: explode
+      delimiter: ', '
+      source: autori_musica
+    -
+      plugin: multiple_values
+    -
+      plugin: get_migration_id
+      importer: 'autori'
+  field_periodo:
+    -
+      plugin: explode
+      delimiter: ', '
+      source: periodo
+    -
+      plugin: multiple_values
+    -
+      plugin: get_migration_id
+      importer: 'termini_periodi'
+
+  field_anno: anno
+#    plugin: callback
+#    source: anno
+#    callable: strtotime
+
+destination:
+  plugin: entity:node
+  bundle: canto
+  default_langcode: it
+  langcode: it
+
+dependencies:
+  enforced:
+    module:
+      - migrando

@@ -1,0 +1,23 @@
+uuid: 5e7f9615-df40-40e7-b672-a96f4cf84f43
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_old_id
+    - taxonomy.vocabulary.tematiche
+id: taxonomy_term.tematiche.field_old_id
+field_name: field_old_id
+entity_type: taxonomy_term
+bundle: tematiche
+label: 'Old ID'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

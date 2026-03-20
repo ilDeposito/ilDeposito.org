@@ -1,0 +1,18 @@
+uuid: 916b8f83-19f4-4fcf-9cf2-2e9173c33db1
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.pagina
+  module:
+    - content_translation
+third_party_settings:
+  content_translation:
+    enabled: true
+    bundle_settings:
+      untranslatable_fields_hide: '0'
+id: node.pagina
+target_entity_type_id: node
+target_bundle: pagina
+default_langcode: site_default
+language_alterable: true

@@ -1,0 +1,22 @@
+uuid: cfc1ff42-425f-41d5-af28-c356b7954fc4
+langcode: it
+status: true
+dependencies:
+  theme:
+    - radix
+_core:
+  default_config_hash: 2L0geP-ixCbCkEpW6BVF6H7vDUZN4ea07_Y9CociQm4
+id: radix_secondary_local_tasks
+theme: radix
+region: navbar_branding
+weight: 0
+provider: null
+plugin: local_tasks_block
+settings:
+  id: local_tasks_block
+  label: 'Schede secondarie'
+  label_display: '0'
+  provider: core
+  primary: false
+  secondary: true
+visibility: {  }

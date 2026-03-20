@@ -1,0 +1,65 @@
+{#
+  Header mobile-first per sito di ricerca canti musicali.
+  - Logo a sinistra (link home)
+  - Barra di ricerca centrata
+  - Hamburger menu a destra
+  Bootstrap 5, Bootstrap Icons, variabili Bootstrap.
+#}
+
+<header class="border-bottom border-primary p-0" {{ attributes }}>
+  <div class="container p-0">
+    <div class="d-flex align-items-center justify-content-between">
+      <!-- Logo (icon component) -->
+      <a href="{{ logo_url }}" class="d-flex align-items-center text-decoration-none">
+          <span class="bg-primary d-flex justify-content-center align-items-center p-2">
+            {{ include('ildeposito:icon', {
+              name: 'ildeposito',
+              class: ['text-light', 'site-logo'],
+              type: 'regular', 
+              size: '1.4rem',            
+            }, with_context = false) }}
+          </span>
+          <span class="fs-1 text-light font-title d-inline-block ps-2 d-none d-md-inline-block">ilDeposito.org</span>
+      </a>
+      <!-- Search bar -->
+      <form class="flex-grow-1 bg-lighter" role="search" method="get" action="{{front_page}}/{{langcode}}/search">
+        <div class="input-group">
+          <input name="key" type="search" class="form-control bg-lighter border-0" placeholder="{{ search_placeholder }}" aria-label="{{ search_placeholder }}">
+          <button type="submit" class="input-group-text bg-lighter border-0 p-0 px-3" aria-label="Cerca">
+            {{ include('ildeposito:icon', {
+              name: 'magnifying-glass',
+              class: ['text-dark', 'fs-2'],
+              type: 'regular'
+            }, with_context = false) }}
+          </button>
+        </div>
+      </form>
+
+      <!-- Hamburger menu -->
+      <button class="bg-light btn hamburger d-flex align-items-center justify-content-center" type="button" aria-label="{{ menu_aria_label }}" data-bs-toggle="modal" data-bs-target="#headerNavModal">
+        {{ include('ildeposito:icon', {
+          name: 'list',
+          class: ['text-dark', 'fs-2'],
+          type: 'regular'
+        }, with_context = false) }}
+      </button>
+    </div>
+  </div>
+
+</header>
+
+
+{# Modale Bootstrap fullscreen per hamburger menu #}
+<div class="modal fade" id="headerNavModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content bg-body">
+      <div class="modal-header border-bottom-0">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+      </div>
+      <div class="modal-body d-flex flex-column align-items-center justify-content-center">
+        <h2 class="mb-4">Navigazione</h2>
+        <div class="text-muted">Menu placeholder statico</div>
+      </div>
+    </div>
+  </div>
+</div>

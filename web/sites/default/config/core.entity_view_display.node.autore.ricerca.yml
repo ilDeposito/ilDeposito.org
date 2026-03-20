@@ -1,0 +1,89 @@
+uuid: dd12657a-470d-4e5f-8009-ab25422a0903
+langcode: it
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.ricerca
+    - field.field.node.autore.field_altri_nomi
+    - field.field.node.autore.field_cognome
+    - field.field.node.autore.field_immagine
+    - field.field.node.autore.field_localizzazione
+    - field.field.node.autore.field_metatag
+    - field.field.node.autore.field_nome
+    - field.field.node.autore.field_old_id
+    - field.field.node.autore.field_periodo
+    - node.type.autore
+  module:
+    - user
+id: node.autore.ricerca
+targetEntityType: node
+bundle: autore
+mode: ricerca
+content:
+  field_altri_nomi:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 101
+    region: content
+  field_cognome:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 106
+    region: content
+  field_immagine:
+    type: entity_reference_entity_view
+    label: above
+    settings:
+      view_mode: default
+      link: false
+    third_party_settings: {  }
+    weight: 102
+    region: content
+  field_localizzazione:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 103
+    region: content
+  field_nome:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 105
+    region: content
+  field_old_id:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 114
+    region: content
+  field_periodo:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 104
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden:
+  field_metatag: true
+  langcode: true
+  search_api_excerpt: true

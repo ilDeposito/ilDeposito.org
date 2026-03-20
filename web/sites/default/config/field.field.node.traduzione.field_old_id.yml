@@ -1,0 +1,23 @@
+uuid: 5f803eca-eb72-48eb-8a92-4ab63e354b4f
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_old_id
+    - node.type.traduzione
+id: node.traduzione.field_old_id
+field_name: field_old_id
+entity_type: node
+bundle: traduzione
+label: 'Old ID'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

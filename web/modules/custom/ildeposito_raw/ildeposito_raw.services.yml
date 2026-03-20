@@ -1,0 +1,26 @@
+services:
+  cache.ildeposito_raw:
+    class: Drupal\Core\Cache\CacheBackendInterface
+    tags:
+      - { name: cache.bin }
+    factory: cache_factory:get
+    arguments: [ildeposito_raw]
+
+  ildeposito_raw.manager:
+    class: Drupal\ildeposito_raw\RawEntityManager
+    arguments:
+      - '@entity_type.manager'
+      - '@config.factory'
+      - '@cache.ildeposito_raw'
+      - '@datetime.time'
+      - '@language_manager'
+      - '@file_url_generator'
+      - '@cache_tags.invalidator'
+
+  Drupal\ildeposito_raw\Hook\IldepositoRawHooks:
+    arguments:
+      - '@ildeposito_raw.manager'
+      - '@module_handler'
+      - '@theme.manager'
+      - '@state'
+      - '@logger.factory'

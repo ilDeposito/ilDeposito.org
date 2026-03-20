@@ -1,0 +1,20 @@
+uuid: 039917d7-fba5-4259-baa7-3d5e695c6d3f
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.pagina
+id: node.pagina.uid
+field_name: uid
+entity_type: node
+bundle: pagina
+label: 'Creato da'
+description: "Nome utente dell'autore del contenuto."
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: 'Drupal\node\Entity\Node::getDefaultEntityOwner'
+settings:
+  handler: default
+  handler_settings: {  }
+field_type: entity_reference

@@ -1,0 +1,137 @@
+id: autori
+label: 09. Autori
+migration_group: ilDeposito
+
+source:
+  plugin: url
+  data_fetcher_plugin: file
+  data_parser_plugin: json
+  urls:
+    - modules/custom/migrando/files/autori/autori_0.json
+    - modules/custom/migrando/files/autori/autori_1.json
+  item_selector: 'items'
+  fields:
+    -
+      name: nid
+      selector: nid
+    -
+      name: title
+      selector: title
+    -
+      name: uuid
+      selector: uuid
+    -
+      name: uid
+      selector: uid
+    -
+      name: created
+      selector: created
+    -
+      name: changed
+      selector: changed
+    -
+      name: status
+      selector: status
+    -
+      name: immagine
+      selector: immagine
+    -
+      name: periodo
+      selector: periodo
+    -
+      name: localizzazione
+      selector: localizzazione
+    -
+      name: nome
+      selector: nome
+    -
+      name: cognome
+      selector: cognome
+    -
+      name: altri_nomi
+      selector: altri_nomi
+
+  ids:
+    nid:
+      type: string
+
+process:
+  uuid: uuid
+  field_old_id: nid
+  created:
+    plugin: callback
+    source: created
+    callable: strtotime
+  changed:
+    plugin: callback
+    source: changed
+    callable: strtotime
+  uid:
+    plugin: default_value
+    default_value: 1
+  status:
+    plugin: default_value
+    default_value: 1  
+  type:
+    plugin: default_value
+    default_value: autore
+  #moderation_state:
+  #  plugin: default_value
+  #  default_value: 'published'
+
+  title:
+    plugin: encode
+    source: cognome
+  field_immagine:
+    plugin: migration_lookup
+    migration: media
+    no_stub: true
+    source: immagine
+  field_localizzazione:
+    -
+      plugin: skip_on_empty
+      method: process
+      source: localizzazione
+    -
+      plugin: explode
+      delimiter: ', '
+      source: localizzazione
+    -
+      plugin: multiple_values
+    -
+      plugin: get_migration_id
+      importer: 'termini_localizzazioni'
+  field_nome:
+    plugin: encode
+    source: nome
+  field_cognome:
+    plugin: encode
+    source: cognome
+  field_altri_nomi:
+    plugin: encode
+    source: altri_nomi
+  field_periodo:
+    -
+      plugin: skip_on_empty
+      method: process
+      source: periodo
+    -
+      plugin: explode
+      delimiter: ', '
+      source: periodo
+    -
+      plugin: multiple_values
+    -
+      plugin: get_migration_id
+      importer: 'termini_periodi'
+
+destination:
+  plugin: entity:node
+  bundle: autore
+  default_langcode: it
+  langcode: it
+
+dependencies:
+  enforced:
+    module:
+      - migrando

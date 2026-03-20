@@ -1,0 +1,10 @@
+status: 1
+pattern: '[node:field_nome] [node:field_cognome]'
+escape: false
+preserve_titles: false
+save: false
+chunk: 50
+dependencies:
+  config:
+    - node.type.autore
+new_content_behavior: 1

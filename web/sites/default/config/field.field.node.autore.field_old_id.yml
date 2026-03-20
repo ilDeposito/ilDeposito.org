@@ -1,0 +1,23 @@
+uuid: 7af3aff5-ef0a-4136-8494-c2703cd3cfb8
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_old_id
+    - node.type.autore
+id: node.autore.field_old_id
+field_name: field_old_id
+entity_type: node
+bundle: autore
+label: 'Old ID'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

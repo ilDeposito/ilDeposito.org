@@ -1,0 +1,21 @@
+uuid: 961b8cb5-b901-408d-ae7c-ed60e404676e
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_data_evento
+    - node.type.evento
+  module:
+    - datetime
+id: node.evento.field_data_evento
+field_name: field_data_evento
+entity_type: node
+bundle: evento
+label: 'Data evento'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

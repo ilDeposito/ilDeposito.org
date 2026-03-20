@@ -1,0 +1,22 @@
+uuid: 8877bcf3-59d1-4e89-8c06-5c5c18ab04ab
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.canto
+id: node.canto.status
+field_name: status
+entity_type: node
+bundle: canto
+label: Pubblicato
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 1
+default_value_callback: ''
+settings:
+  on_label: Acceso
+  off_label: Spento
+field_type: boolean

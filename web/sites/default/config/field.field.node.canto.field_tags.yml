@@ -1,0 +1,29 @@
+uuid: ad3b9977-5b47-415b-bfa8-349ed93ac1a6
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_tags
+    - node.type.canto
+    - taxonomy.vocabulary.tags
+id: node.canto.field_tags
+field_name: field_tags
+entity_type: node
+bundle: canto
+label: Tags
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      tags: tags
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

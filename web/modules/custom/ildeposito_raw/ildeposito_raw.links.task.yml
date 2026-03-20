@@ -1,0 +1,16 @@
+ildeposito_raw.settings:
+  title: 'Impostazioni'
+  route_name: ildeposito_raw.settings
+  base_route: ildeposito_raw.settings
+
+ildeposito_raw.debug:
+  title: 'Debug'
+  route_name: ildeposito_raw.debug
+  base_route: ildeposito_raw.settings
+  weight: 100
+
+ildeposito_raw.cache_settings:
+  title: 'Impostazioni cache'
+  route_name: ildeposito_raw.cache_settings
+  base_route: ildeposito_raw.settings
+  weight: 50

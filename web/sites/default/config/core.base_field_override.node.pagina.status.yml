@@ -1,0 +1,22 @@
+uuid: 4d2e740e-3ada-44f7-aabc-59b7b4020a00
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.pagina
+id: node.pagina.status
+field_name: status
+entity_type: node
+bundle: pagina
+label: Pubblicato
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 1
+default_value_callback: ''
+settings:
+  on_label: Acceso
+  off_label: Spento
+field_type: boolean

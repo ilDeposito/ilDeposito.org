@@ -1,0 +1,20 @@
+uuid: c778076a-2942-4c91-988f-e6604a023d77
+langcode: it
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.periodi
+  module:
+    - path
+id: taxonomy_term.periodi.path
+field_name: path
+entity_type: taxonomy_term
+bundle: periodi
+label: 'Alias URL'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: path

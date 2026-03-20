@@ -1,0 +1,20 @@
+uuid: eae2b158-18bd-41b5-868d-da037867c9a8
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.traduzione
+id: node.traduzione.uid
+field_name: uid
+entity_type: node
+bundle: traduzione
+label: 'Creato da'
+description: "Nome utente dell'autore del contenuto."
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: 'Drupal\node\Entity\Node::getDefaultEntityOwner'
+settings:
+  handler: default
+  handler_settings: {  }
+field_type: entity_reference

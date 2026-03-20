@@ -1,0 +1,21 @@
+uuid: 4b82c9a8-af40-4ef8-ad07-ec4dbaa938d3
+langcode: it
+status: true
+dependencies: {  }
+name: header_mobile
+label: 'Header mobile'
+effects:
+  0278f699-e5b8-4fc9-b937-886fd4c429c4:
+    uuid: 0278f699-e5b8-4fc9-b937-886fd4c429c4
+    id: image_scale
+    weight: 1
+    data:
+      width: 600
+      height: null
+      upscale: true
+  6047ac52-b2d6-406d-a04a-78b6bc4804e7:
+    uuid: 6047ac52-b2d6-406d-a04a-78b6bc4804e7
+    id: image_convert_avif
+    weight: 2
+    data:
+      extension: webp

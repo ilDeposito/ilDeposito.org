@@ -1,0 +1,20 @@
+uuid: 05e3f946-c0ee-4eab-8371-e192697de381
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.evento
+id: node.evento.menu_link
+field_name: menu_link
+entity_type: node
+bundle: evento
+label: 'Voce del menu'
+description: 'Computed menu link for the node (only available during node saving).'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: default
+  handler_settings: {  }
+field_type: entity_reference

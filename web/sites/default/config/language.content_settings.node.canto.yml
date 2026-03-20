@@ -1,0 +1,18 @@
+uuid: 493ef4f4-d76c-46b0-9f1f-32a3bdd5cab1
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.canto
+  module:
+    - content_translation
+third_party_settings:
+  content_translation:
+    enabled: false
+    bundle_settings:
+      untranslatable_fields_hide: '0'
+id: node.canto
+target_entity_type_id: node
+target_bundle: canto
+default_langcode: site_default
+language_alterable: false

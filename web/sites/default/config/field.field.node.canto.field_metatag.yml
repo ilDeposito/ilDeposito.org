@@ -1,0 +1,21 @@
+uuid: 64f40679-b93b-4777-b436-fafc323f4ae5
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_metatag
+    - node.type.canto
+  module:
+    - metatag
+id: node.canto.field_metatag
+field_name: field_metatag
+entity_type: node
+bundle: canto
+label: Metatag
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: metatag

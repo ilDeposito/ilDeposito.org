@@ -1,0 +1,20 @@
+uuid: 722fbfcf-b7b1-45ec-94f1-d0641c59ff69
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.autore
+id: node.autore.menu_link
+field_name: menu_link
+entity_type: node
+bundle: autore
+label: 'Voce del menu'
+description: 'Computed menu link for the node (only available during node saving).'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: default
+  handler_settings: {  }
+field_type: entity_reference

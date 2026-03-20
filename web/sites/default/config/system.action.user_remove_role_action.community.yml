@@ -1,0 +1,14 @@
+uuid: df36a4c9-43e1-4425-a828-2134c943968a
+langcode: it
+status: true
+dependencies:
+  config:
+    - user.role.community
+  module:
+    - user
+id: user_remove_role_action.community
+label: 'Remove the Community role from the selected user(s)'
+type: user
+plugin: user_remove_role_action
+configuration:
+  rid: community

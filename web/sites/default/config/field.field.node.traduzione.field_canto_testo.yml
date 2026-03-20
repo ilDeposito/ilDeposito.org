@@ -1,0 +1,19 @@
+uuid: f7ea5f35-5a28-4a03-ad42-257f64b47e66
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_canto_testo
+    - node.type.traduzione
+id: node.traduzione.field_canto_testo
+field_name: field_canto_testo
+entity_type: node
+bundle: traduzione
+label: 'Testo traduzione'
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

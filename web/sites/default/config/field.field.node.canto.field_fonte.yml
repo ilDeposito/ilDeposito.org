@@ -1,0 +1,22 @@
+uuid: 259ec99b-3e2b-4dfd-a608-f19849abd53d
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_fonte
+    - node.type.canto
+  module:
+    - text
+id: node.canto.field_fonte
+field_name: field_fonte
+entity_type: node
+bundle: canto
+label: Fonte
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

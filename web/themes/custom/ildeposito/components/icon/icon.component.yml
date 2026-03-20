@@ -1,0 +1,37 @@
+$schema: https://git.drupalcode.org/project/drupal/-/raw/10.1.x/core/modules/sdc/src/metadata.schema.json
+name: Icon
+status: stable
+description: 'Icona SVG inline dallo sprite, il colore segue currentColor e si controlla via classi Bootstrap (text-*)'
+group: atoms
+props:
+  type: object
+  properties:
+    name:
+      type: string
+      title: Nome icona
+      description: 'ID del symbol nel file sprite.svg (es: music-note, play, user)'
+    class:
+      type: array
+      title: Classi CSS
+      description: 'Array di classi CSS (es: ["text-primary", "fs-4"]). Usa classi Bootstrap text-* per il colore e fs-* per la dimensione.'
+      items:
+        type: string
+      default: []
+    size:
+      type: string
+      title: Dimensione
+      description: 'Valore CSS per font-size (es: 24px, 1.5rem, 2em)'
+    attributes:
+      type: Drupal\Core\Template\Attribute
+      title: Attributi HTML
+      description: 'Attributi HTML aggiuntivi (role, aria-label, ecc.)'
+    type:
+      type: string
+      title: Variante sprite
+      description: '"fill" (default) usa sprite_fill.svg, "regular" usa sprite_regular.svg'
+      enum:
+        - fill
+        - regular
+      default: fill
+  required:
+    - name

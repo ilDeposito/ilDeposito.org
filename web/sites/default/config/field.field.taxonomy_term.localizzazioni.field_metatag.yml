@@ -1,0 +1,21 @@
+uuid: 10894532-0b25-43bb-9f7a-c945854b5f82
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_metatag
+    - taxonomy.vocabulary.localizzazioni
+  module:
+    - metatag
+id: taxonomy_term.localizzazioni.field_metatag
+field_name: field_metatag
+entity_type: taxonomy_term
+bundle: localizzazioni
+label: Metatag
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: metatag

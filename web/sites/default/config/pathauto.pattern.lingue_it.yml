@@ -1,0 +1,33 @@
+uuid: 8ab29b78-7450-4a23-af10-63a719061519
+langcode: en
+status: true
+dependencies:
+  module:
+    - language
+    - taxonomy
+id: lingue_it
+label: 'Lingue IT'
+type: 'canonical_entities:taxonomy_term'
+pattern: 'lingue/[term:name]'
+selection_criteria:
+  8834eb23-dfaf-4f79-b198-3cefea850a47:
+    id: 'entity_bundle:taxonomy_term'
+    negate: false
+    uuid: 8834eb23-dfaf-4f79-b198-3cefea850a47
+    context_mapping:
+      taxonomy_term: taxonomy_term
+    bundles:
+      lingue: lingue
+  7ea794d1-df83-4e37-a29f-9cf7feeebd3a:
+    id: language
+    negate: false
+    uuid: 7ea794d1-df83-4e37-a29f-9cf7feeebd3a
+    context_mapping:
+      language: 'taxonomy_term:langcode:language'
+    langcodes:
+      it: it
+selection_logic: and
+weight: -10
+relationships:
+  'taxonomy_term:langcode:language':
+    label: Language

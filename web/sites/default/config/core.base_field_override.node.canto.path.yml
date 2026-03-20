@@ -1,0 +1,20 @@
+uuid: f78eb66f-1a24-4ecd-8ccd-82b6c163f4a2
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.canto
+  module:
+    - path
+id: node.canto.path
+field_name: path
+entity_type: node
+bundle: canto
+label: 'Alias URL'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: path

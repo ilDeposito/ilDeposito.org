@@ -1,0 +1,8 @@
+@import "../../src/scss/init";
+
+// Componente Logo ilDeposito
+.ildeposito-logo {
+  display: inline-block;
+  vertical-align: middle;
+  color: var(--bs-primary, #005fa3);
+}

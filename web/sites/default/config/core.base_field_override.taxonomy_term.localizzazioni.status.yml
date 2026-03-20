@@ -1,0 +1,22 @@
+uuid: 2cadf2a5-4f7e-4470-bc87-9c96ed7bc754
+langcode: it
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.localizzazioni
+id: taxonomy_term.localizzazioni.status
+field_name: status
+entity_type: taxonomy_term
+bundle: localizzazioni
+label: Pubblicato
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 1
+default_value_callback: ''
+settings:
+  on_label: Acceso
+  off_label: Spento
+field_type: boolean

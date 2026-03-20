@@ -1,0 +1,18 @@
+uuid: 6501a47d-ad8f-42b2-8c80-42ad069ffe12
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.evento
+id: node.evento.title
+field_name: title
+entity_type: node
+bundle: evento
+label: Titolo
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

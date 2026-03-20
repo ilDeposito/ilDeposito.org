@@ -1,0 +1,19 @@
+uuid: ea2c7118-917c-4d2d-9d98-580c7470a515
+langcode: it
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_descrizione_social
+field_name: field_descrizione_social
+entity_type: node
+type: string_long
+settings:
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

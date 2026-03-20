@@ -1,0 +1,75 @@
+uuid: 252712c2-8109-4bdc-ac34-dc224406b18c
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.field.taxonomy_term.periodi.field_anno_periodo
+    - field.field.taxonomy_term.periodi.field_immagine
+    - field.field.taxonomy_term.periodi.field_metatag
+    - field.field.taxonomy_term.periodi.field_old_id
+    - taxonomy.vocabulary.periodi
+  module:
+    - media_library
+    - metatag
+    - text
+id: taxonomy_term.periodi.default
+targetEntityType: taxonomy_term
+bundle: periodi
+mode: default
+content:
+  description:
+    type: text_textarea
+    weight: 2
+    region: content
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  field_anno_periodo:
+    type: string_textfield
+    weight: 3
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_immagine:
+    type: media_library_widget
+    weight: 4
+    region: content
+    settings:
+      media_types: {  }
+    third_party_settings: {  }
+  field_metatag:
+    type: metatag_firehose
+    weight: 26
+    region: content
+    settings:
+      sidebar: true
+      use_details: true
+    third_party_settings: {  }
+  langcode:
+    type: language_select
+    weight: 1
+    region: content
+    settings:
+      include_locked: true
+    third_party_settings: {  }
+  name:
+    type: string_textfield
+    weight: 0
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  simple_sitemap:
+    weight: 10
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  field_old_id: true
+  path: true
+  status: true
+  translation: true

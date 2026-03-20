@@ -1,0 +1,183 @@
+{#
+/**
+ * @file
+ * Style Guide — visual reference for all design tokens and components.
+ *
+ * Active when the page__styleguide suggestion is appended (path alias /styleguide).
+ */
+#}
+<div class="container-xl py-5">
+
+  {# ── Color Palette ─────────────────────────────────────────────────────── #}
+  <section class="mb-5">
+    <h2 class="mb-4 border-bottom pb-2">Palette colori</h2>
+    <div class="row g-3">
+      {% set swatches = [
+        { name: 'Primary',   cls: 'bg-primary',   text: 'text-white' },
+        { name: 'Secondary', cls: 'bg-secondary',  text: 'text-white' },
+        { name: 'Warning',   cls: 'bg-warning',    text: 'text-dark'  },
+        { name: 'Light',     cls: 'bg-light',      text: 'text-dark'  },
+        { name: 'Dark',      cls: 'bg-dark',       text: 'text-white' },
+      ] %}
+      {% for swatch in swatches %}
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="{{ swatch.cls }} {{ swatch.text }} rounded p-3 text-center">
+            <div class="fw-semibold">{{ swatch.name }}</div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  {# ── Typography Scale ───────────────────────────────────────────────────── #}
+  <section class="mb-5">
+    <h2 class="mb-4 border-bottom pb-2">Tipografia</h2>
+    <h1>H1 — Intestazione principale</h1>
+    <h2>H2 — Intestazione sezione</h2>
+    <h3>H3 — Sottosezione</h3>
+    <h4>H4 — Titolo componente</h4>
+    <h5>H5 — Etichetta prominente</h5>
+    <h6>H6 — Etichetta minore</h6>
+    <p class="mt-3">Corpo del testo (body) — Source Sans 3. Archivio di canti sociali e di protesta italiani. Questo paragrafo mostra la leggibilità del corpo principale su sfondo chiaro, con una densità di testo sufficiente per verificare l'interlinea e la spaziatura tra i caratteri.</p>
+    <p class="display-editorial mt-3">Display editorial — Bitter, grande formato per hero o titoli di sezione.</p>
+    <p class="text-meta mt-2">text-meta — Source Sans 3 small, per etichette e metadati (es. Genere · Periodo storico)</p>
+    <p class="text-mono mt-2 p-3">text-mono — IBM Plex Mono, per ID, <br>
+    codici, riferimenti d'archivio (es. CANTO-0042)</p>
+  </section>
+
+  {# ── Buttons ────────────────────────────────────────────────────────────── #}
+  <section class="mb-5">
+    <h2 class="mb-4 border-bottom pb-2">Bottoni</h2>
+    <div class="d-flex flex-wrap gap-2">
+      <button type="button" class="btn btn-primary">Primary</button>
+      <button type="button" class="btn btn-secondary">Secondary</button>
+      <button type="button" class="btn btn-warning">Warning</button>
+      <button type="button" class="btn btn-light">Light</button>
+      <button type="button" class="btn btn-dark">Dark</button>
+      <button type="button" class="btn btn-outline-primary">Outline Primary</button>
+      <button type="button" class="btn btn-outline-secondary">Outline Secondary</button>
+      <button type="button" class="btn btn-outline-dark">Outline Dark</button>
+    </div>
+    <div class="d-flex flex-wrap gap-2 mt-2">
+      <button type="button" class="btn btn-primary btn-sm">Primary sm</button>
+      <button type="button" class="btn btn-secondary btn-sm">Secondary sm</button>
+      <button type="button" class="btn btn-outline-primary btn-sm">Outline sm</button>
+      <button type="button" class="btn btn-primary" disabled>Disabled</button>
+    </div>
+  </section>
+
+  {# ── Badges ─────────────────────────────────────────────────────────────── #}
+  <section class="mb-5">
+    <h2 class="mb-4 border-bottom pb-2">Badge</h2>
+    <div class="d-flex flex-wrap gap-2">
+      <span class="badge bg-primary">Genere</span>
+      <span class="badge bg-secondary">Periodo storico</span>
+      <span class="badge bg-warning text-dark">Area geografica</span>
+      <span class="badge bg-light text-dark border">Light</span>
+      <span class="badge bg-dark">Dark</span>
+      <span class="badge rounded-pill bg-primary">Pill primary</span>
+      <span class="badge rounded-pill bg-secondary">Pill secondary</span>
+    </div>
+  </section>
+
+  {# ── Sample Card (canto skeleton) ───────────────────────────────────────── #}
+  <section class="mb-5">
+    <h2 class="mb-4 border-bottom pb-2">Card (skeleton — canto)</h2>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+
+      {% for i in 1..3 %}
+        <div class="col">
+          <div class="card h-100">
+            <div class="card-body">
+              <h3 class="card-title h5">
+                <a href="#" class="text-decoration-none">Titolo del canto {{ i }}</a>
+              </h3>
+              <div class="d-flex flex-wrap gap-1 mb-2">
+                <span class="badge bg-primary">Politico</span>
+                <span class="badge bg-secondary">Dopoguerra</span>
+                <span class="badge bg-warning text-dark">Toscana</span>
+              </div>
+              <p class="card-text text-meta">Artista · Nome Artista {{ i }}</p>
+            </div>
+            <div class="card-footer text-meta">
+              <a href="#" class="link-primary">Leggi il canto →</a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+
+    </div>
+  </section>
+
+  {# ── Accordion ──────────────────────────────────────────────────────────── #}
+  <section class="mb-5">
+    <h2 class="mb-4 border-bottom pb-2">Accordion</h2>
+    <div class="accordion" id="styleguideAccordion">
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#acc1" aria-expanded="true">
+            Sezione aperta
+          </button>
+        </h2>
+        <div id="acc1" class="accordion-collapse collapse show" data-bs-parent="#styleguideAccordion">
+          <div class="accordion-body">Contenuto della sezione aperta dell'accordion.</div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#acc2" aria-expanded="false">
+            Sezione chiusa
+          </button>
+        </h2>
+        <div id="acc2" class="accordion-collapse collapse" data-bs-parent="#styleguideAccordion">
+          <div class="accordion-body">Contenuto della sezione chiusa dell'accordion.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# ── Citazioni ──────────────────────────────────────────────────────────── #}
+  <section class="mb-5">
+    <h2 class="mb-4 border-bottom pb-2">Citazioni</h2>
+
+    {# Blockquote standard BS5 #}
+    <figure class="mb-4">
+      <blockquote class="blockquote">
+        <p>«Sebben che siamo donne, paura non abbiamo, per amor della liberta.»</p>
+      </blockquote>
+      <figcaption class="blockquote-footer">
+        Canto di protesta, <cite title="Periodo">inizio Novecento</cite>
+      </figcaption>
+    </figure>
+
+    {# Citazione con bordo a sinistra — stile editoriale #}
+    <figure class="mb-4 ps-4 border-start border-primary border-3">
+      <blockquote class="blockquote">
+        <p class="text-secondary fst-italic">«O bella ciao, bella ciao, bella ciao ciao ciao, o bella ciao, bella ciao, bella ciao ciao ciao.»</p>
+      </blockquote>
+      <figcaption class="blockquote-footer">
+        Tradizionale partigiano, <cite title="Area geografica">Italia settentrionale</cite>
+      </figcaption>
+    </figure>
+
+    {# Citazione centrata — uso per pullquote editoriale #}
+    <figure class="mb-4 text-center">
+      <blockquote class="blockquote">
+        <p class="display-editorial">«Contadini, non c'è più niente da fare.»</p>
+      </blockquote>
+      <figcaption class="blockquote-footer text-center">
+        <cite title="Fonte">Anonimo, Toscana</cite>
+      </figcaption>
+    </figure>
+  </section>
+
+  {# ── Alerts ─────────────────────────────────────────────────────────────── #}
+  <section class="mb-5">
+    <h2 class="mb-4 border-bottom pb-2">Alert</h2>
+    <div class="alert alert-primary">Alert primary — informazione principale.</div>
+    <div class="alert alert-secondary">Alert secondary — nota secondaria.</div>
+    <div class="alert alert-warning">Alert warning — attenzione.</div>
+    <div class="alert alert-dark">Alert dark — messaggio scuro.</div>
+  </section>
+
+</div>

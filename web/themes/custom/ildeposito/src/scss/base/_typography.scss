@@ -1,0 +1,11 @@
+// Define your custom typography/classes here.
+// -----------------------------------------------------------------------------
+
+ .text-mono {
+    font-family: $font-monospace;
+    line-height: 2rem;
+ }
+
+ .font-title {
+    font-family: $font-title;
+ }

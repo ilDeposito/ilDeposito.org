@@ -1,0 +1,18 @@
+uuid: 5a1da18c-71a4-4b20-9e83-c446b5f663eb
+langcode: it
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.periodi
+id: taxonomy_term.periodi.changed
+field_name: changed
+entity_type: taxonomy_term
+bundle: periodi
+label: Modificato
+description: "La data e l'ora in cui il termine è stato mofificato l'ultima volta."
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: changed

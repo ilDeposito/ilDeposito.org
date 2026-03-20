@@ -1,0 +1,20 @@
+uuid: 225cadae-06e4-409b-b1a1-3047a688ac77
+langcode: it
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.localizzazioni
+  module:
+    - path
+id: taxonomy_term.localizzazioni.path
+field_name: path
+entity_type: taxonomy_term
+bundle: localizzazioni
+label: 'Alias URL'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: path

@@ -1,0 +1,10 @@
+name: Migrando
+description: Tool di migrazione per ilDeposito.org
+package: ilDeposito
+core_version_requirement: ^10 || ^11
+type: module
+configure: admin_toolbar.settings
+dependencies:
+  - drupal:migrate
+  - drupal:migrate_tools
+  - drupal:migrate_plus

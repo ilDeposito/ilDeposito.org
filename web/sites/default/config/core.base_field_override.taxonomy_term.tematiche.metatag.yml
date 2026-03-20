@@ -1,0 +1,20 @@
+uuid: 45a437ec-abf9-45ee-bc82-b67b823bf1fd
+langcode: it
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.tematiche
+  module:
+    - metatag
+id: taxonomy_term.tematiche.metatag
+field_name: metatag
+entity_type: taxonomy_term
+bundle: tematiche
+label: 'Metatags (Hidden field for JSON support)'
+description: 'The computed meta tags for the entity.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: metatag_computed

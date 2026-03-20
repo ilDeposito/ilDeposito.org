@@ -1,0 +1,36 @@
+uuid: 3444dbed-4466-401c-966f-4e2fa275234b
+langcode: it
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.taxonomy_term.ricerca
+    - field.field.taxonomy_term.localizzazioni.field_metatag
+    - field.field.taxonomy_term.localizzazioni.field_old_id
+    - taxonomy.vocabulary.localizzazioni
+  module:
+    - text
+id: taxonomy_term.localizzazioni.ricerca
+targetEntityType: taxonomy_term
+bundle: localizzazioni
+mode: ricerca
+content:
+  description:
+    type: text_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  field_old_id:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 3
+    region: content
+hidden:
+  field_metatag: true
+  langcode: true
+  search_api_excerpt: true

@@ -1,0 +1,9 @@
+uuid: f3ec813a-3a09-4cba-97ae-9972b1c8913d
+langcode: it
+status: true
+dependencies: {  }
+name: Periodi
+vid: periodi
+description: null
+weight: 0
+new_revision: false

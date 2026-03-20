@@ -1,0 +1,17 @@
+uuid: 82bdfea8-686b-4ff3-b3a4-325f996dbde4
+langcode: it
+status: true
+dependencies:
+  module:
+    - menu_ui
+third_party_settings:
+  menu_ui:
+    available_menus: {  }
+    parent: ''
+name: Autore
+type: autore
+description: null
+help: null
+new_revision: true
+preview_mode: 0
+display_submitted: false

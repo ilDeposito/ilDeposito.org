@@ -1,0 +1,11 @@
+uuid: 452a9459-91e0-4690-b9ef-3727a98502ea
+langcode: it
+status: true
+dependencies:
+  module:
+    - taxonomy
+id: taxonomy_term.ricerca
+label: Ricerca
+description: ''
+targetEntityType: taxonomy_term
+cache: true

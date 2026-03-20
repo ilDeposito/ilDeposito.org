@@ -1,0 +1,23 @@
+uuid: 6e25b0c0-02dc-4d27-865e-a9d5b49f3909
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_audio
+    - node.type.canto
+  module:
+    - link
+id: node.canto.field_audio
+field_name: field_audio
+entity_type: node
+bundle: canto
+label: Audio
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  title: 0
+  link_type: 16
+field_type: link

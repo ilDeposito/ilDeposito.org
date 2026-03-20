@@ -1,0 +1,18 @@
+uuid: 3d87eb24-aaec-4919-bd2a-7c924ad8b126
+langcode: it
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.localizzazioni
+  module:
+    - content_translation
+third_party_settings:
+  content_translation:
+    enabled: true
+    bundle_settings:
+      untranslatable_fields_hide: '0'
+id: taxonomy_term.localizzazioni
+target_entity_type_id: taxonomy_term
+target_bundle: localizzazioni
+default_langcode: site_default
+language_alterable: true

@@ -1,0 +1,23 @@
+uuid: 71141eb9-ce57-41e3-b2a0-f9ecec686a85
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_old_id
+    - taxonomy.vocabulary.periodi
+id: taxonomy_term.periodi.field_old_id
+field_name: field_old_id
+entity_type: taxonomy_term
+bundle: periodi
+label: 'Old ID'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

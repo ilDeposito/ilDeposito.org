@@ -1,0 +1,18 @@
+uuid: aa293e1f-ff15-4c96-8db9-5c47b407f79b
+langcode: it
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.tematiche
+id: taxonomy_term.tematiche.changed
+field_name: changed
+entity_type: taxonomy_term
+bundle: tematiche
+label: Modificato
+description: "La data e l'ora in cui il termine è stato mofificato l'ultima volta."
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: changed

@@ -1,0 +1,19 @@
+uuid: d585aafa-1061-419c-89dd-11b6da9dfeb2
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_altri_titoli
+    - node.type.canto
+id: node.canto.field_altri_titoli
+field_name: field_altri_titoli
+entity_type: node
+bundle: canto
+label: 'Altri titoli'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

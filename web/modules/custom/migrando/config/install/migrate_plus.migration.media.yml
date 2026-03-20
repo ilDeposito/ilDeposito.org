@@ -1,0 +1,61 @@
+id: media
+label: 03. Media immagini
+migration_group: ilDeposito
+
+source:
+  plugin: url
+  data_fetcher_plugin: file
+  data_parser_plugin: json
+  urls:
+    - modules/custom/migrando/files/media/media_0.json
+    - modules/custom/migrando/files/media/media_1.json
+  item_selector: 'items'
+  fields:
+    -
+      name: mid
+      selector: id_media  
+    -
+      name: fid
+      selector: id_file
+    -
+      name: created
+      selector: created
+    -
+      name: filename
+      selector: filename
+
+  ids:
+    mid:
+      type: string
+
+process:
+  uid:
+    plugin: default_value
+    default_value: 1
+  status:
+    plugin: default_value
+    default_value: 1
+  created: 
+    plugin: callback
+    source: created
+    callable: strtotime
+  bundle:
+    plugin: default_value
+    default_value: image
+  name: filename
+  'field_media_image/target_id':
+      plugin: migration_lookup
+      migration: immagini
+      source: fid
+
+  'field_media_image/alt': filename
+
+destination:
+  plugin: entity:media
+  bundle: image
+
+dependencies:
+  enforced:
+    module:
+      - migrando
+

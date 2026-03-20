@@ -1,0 +1,3 @@
+administer ildeposito raw settings:
+  title: 'Amministra le impostazioni di Il Deposito Raw'
+  description: 'Permette di configurare quali entità devono essere elaborate in modalità raw.'

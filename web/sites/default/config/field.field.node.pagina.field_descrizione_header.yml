@@ -1,0 +1,19 @@
+uuid: 99e06f43-402f-4d14-9d11-d43be8a71c8c
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_descrizione_header
+    - node.type.pagina
+id: node.pagina.field_descrizione_header
+field_name: field_descrizione_header
+entity_type: node
+bundle: pagina
+label: 'Descrizione header'
+description: 'La descrizione della pagina che appare sotto il titolo'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

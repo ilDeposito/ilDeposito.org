@@ -1,0 +1,9 @@
+uuid: 937487c3-df1f-410f-bd29-d92a99d9d91f
+langcode: it
+status: true
+dependencies: {  }
+id: community
+label: Community
+weight: 5
+is_admin: null
+permissions: {  }

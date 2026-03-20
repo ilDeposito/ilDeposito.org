@@ -1,0 +1,45 @@
+{# SDC Testi: visualizza dati testuali #}
+
+{% if data.canto_accordi %}
+  {# Tab accordion Bootstrap 5.3 #}
+  <ul class="nav nav-tabs mt-4" id="testiTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="test1-tab" data-bs-toggle="tab" data-bs-target="#test1" type="button" role="tab" aria-controls="test1" aria-selected="true">{{'Lyric'|t}}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="test-tab" data-bs-toggle="tab" data-bs-target="#test" type="button" role="tab" aria-controls="test" aria-selected="false">{{'Chords'|t}}</button>
+    </li>
+  </ul>
+  <div class="tab-content" id="testiTabContent">
+    <div class="tab-pane fade show active" id="test1" role="tabpanel" aria-labelledby="test1-tab">
+     <div class="font-monospace">
+      {{ data.canto_testo|raw }}
+      </div>
+        <span class="d-block mt-5 text-primary">
+        {{ include('ildeposito:icon', {
+            name: 'file-pdf',
+            class: ['text-primary', 'fs-2'],
+            type: 'regular',            
+            }, with_context = false) }}
+            {{ 'Download PDF'|t }}
+            </span>
+    </div>
+    <div class="tab-pane fade" id="test" role="tabpanel" aria-labelledby="test-tab">
+      <pre class="font-monospace whitespace-pre-wrap">
+      {{ data.canto_accordi|e }}
+      </pre>
+        <span class="d-block mt-5 text-primary">
+        {{ include('ildeposito:icon', {
+            name: 'file-pdf',
+            class: ['text-primary', 'fs-2'],
+            type: 'regular',            
+            }, with_context = false) }}
+            {{ 'Download PDF'|t }}
+            </span>
+    </div>
+    </div>
+  </div>
+  
+{% endif %}
+
+

@@ -1,0 +1,132 @@
+uuid: 41c8c761-53f6-45be-8630-d4aa18fd609c
+langcode: it
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.ricerca
+    - field.field.node.evento.field_canti_correlati
+    - field.field.node.evento.field_data_evento
+    - field.field.node.evento.field_descrizione_social
+    - field.field.node.evento.field_geofield
+    - field.field.node.evento.field_immagine
+    - field.field.node.evento.field_informazioni
+    - field.field.node.evento.field_links
+    - field.field.node.evento.field_localizzazione
+    - field.field.node.evento.field_metatag
+    - field.field.node.evento.field_old_id
+    - field.field.node.evento.field_periodo
+    - field.field.node.evento.field_tags
+    - node.type.evento
+  module:
+    - datetime
+    - geofield
+    - link
+    - text
+    - user
+id: node.evento.ricerca
+targetEntityType: node
+bundle: evento
+mode: ricerca
+content:
+  field_canti_correlati:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 101
+    region: content
+  field_data_evento:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+    third_party_settings: {  }
+    weight: 113
+    region: content
+  field_descrizione_social:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 104
+    region: content
+  field_geofield:
+    type: geofield_latlon
+    label: above
+    settings:
+      output_format: wkt
+    third_party_settings: {  }
+    weight: 105
+    region: content
+  field_immagine:
+    type: entity_reference_entity_view
+    label: above
+    settings:
+      view_mode: default
+      link: false
+    third_party_settings: {  }
+    weight: 102
+    region: content
+  field_informazioni:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 110
+    region: content
+  field_links:
+    type: link
+    label: above
+    settings:
+      trim_length: 80
+      url_only: false
+      url_plain: false
+      rel: ''
+      target: ''
+    third_party_settings: {  }
+    weight: 111
+    region: content
+  field_localizzazione:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 103
+    region: content
+  field_old_id:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 114
+    region: content
+  field_periodo:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 104
+    region: content
+  field_tags:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 112
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden:
+  field_metatag: true
+  langcode: true
+  search_api_excerpt: true

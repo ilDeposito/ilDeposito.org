@@ -1,0 +1,97 @@
+{#
+  Footer SDC — senza props.
+  Usa Bootstrap 5 utilities, struttura base.
+#}
+
+<footer class="text-light py-4 mt-auto border-top border-primary border-5" {{ attributes }}>
+	<div class="container">
+
+		<div class="d-flex align-items-center pb-3">
+			<a href="{{ logo_url }}" class="me-3 flex-shrink-0">
+				<span class="d-flex justify-content-center align-items-center">
+					{{ include('ildeposito:icon', {
+            name: 'ildeposito',
+            class: ['text-light'],
+            type: 'regular',
+            size: '4rem',
+          }, with_context = false) }}
+				</span>
+			</a>
+			<div>
+				<div class="font-title fw-semibold fs-2">ilDeposito.org</div>
+				<div class="font-title fst-italic fs-6">canti di protesta politica e sociale</div>
+			</div>
+		</div>
+
+    <!-- Sezione "The Archive" -->
+		<hr class="text-light align-self-center"/>
+		<h6 class="text-uppercase fs-4 pt-4 pb-2 tracking-wider">{{ 'The Archive'|t}}</h6>
+		<div class="row">
+			<div class="col-6">
+				<ul class="list-unstyled menu fs-4 fw-normal">
+					<li class="py-2">{{ link('Canti'|t, alias_lang('test-it')) }}</li>
+					<li class="py-2">{{ link('Autori'|t, alias_lang('test-en')) }}</li>
+					<li class="py-2">{{ link('Periodi storici'|t, alias_lang('test-fr')) }}</li>
+				</ul>
+			</div>
+			<div class="col-6">
+				<ul class="list-unstyled menu fs-4 fw-normal">
+					<li class="py-2">{{ link('Eventi'|t, alias_lang('test-it')) }}</li>
+					<li class="py-2">{{ link('Tematiche'|t, alias_lang('test-en')) }}</li>
+					<li class="py-2">{{ link('Storia cantata'|t, alias_lang('test-fr')) }}</li>
+				</ul>
+			</div>
+		</div>
+    <!-- Fine sezione "The Archive" -->
+
+   <!--  Sezione "The Project" -->
+		<hr class="text-light align-self-center"/>
+		<h6 class="text-uppercase fs-4 pt-4 pb-2 tracking-wider">{{ 'The Project'|t}}</h6>
+		<div class="row">
+			<div class="col-6">
+				<ul class="list-unstyled menu fs-4 fw-normal">
+					<li class="py-2">{{ link('Informazioni'|t, alias_lang('test-it')) }}</li>
+					<li class="py-2">{{ link('Collabora'|t, alias_lang('test-en')) }}</li>
+				</ul>
+			</div>
+			<div class="col-6">
+				<ul class="list-unstyled menu fs-4 fw-normal">
+					<li class="py-2">{{ link('Staff'|t, alias_lang('test-it')) }}</li>
+					<li class="py-2">{{ link('Contatti'|t, alias_lang('test-en')) }}</li>
+				</ul>
+			</div>
+		</div>
+    <!-- Fine sezione "The Project" -->
+
+    <!-- Sezione "Social" -->
+    <hr class="text-light align-self-center"/>
+    <div class="fs-6 pb-3">{{'Follow us'|t}}</div>
+
+    <a class="pe-3 d-inline-block" href="https://www.facebook.com/ildeposito.org">{{ include('ildeposito:icon', {
+            name: 'facebook-logo',
+            class: ['text-light'],
+            type: 'fill',
+            size: '4rem',
+          }, with_context = false) }}
+    </a>
+
+        <a class="pe-3 d-inline-block"  href="https://www.youtube.com/ildeposito">{{ include('ildeposito:icon', {
+            name: 'youtube-logo',
+            class: ['text-light'],
+            type: 'fill',
+            size: '4rem',
+          }, with_context = false) }}
+    </a>
+    <!-- Fine sezione "Social" -->
+
+    <!-- Sezione "Disclaimer" -->
+    <hr class="text-light align-self-center"/>
+    <div class="small disclaimer">
+    ilDeposito.org è un progetto collettivo. <br />
+I contenuti sono rilasciati sotto licenza CC BY-NC-SA 4.0.  <br />
+I diritti dei testi e degli accordi sono dei rispettivi autori.
+    </div>
+    <!-- Fine sezione "Disclaimer" -->
+
+	</div>
+</footer>

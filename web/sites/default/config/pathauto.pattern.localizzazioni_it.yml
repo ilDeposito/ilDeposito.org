@@ -1,0 +1,33 @@
+uuid: 0cf3aec6-42d3-4528-baba-cc650aa570d3
+langcode: en
+status: true
+dependencies:
+  module:
+    - language
+    - taxonomy
+id: localizzazioni_it
+label: 'Localizzazioni IT'
+type: 'canonical_entities:taxonomy_term'
+pattern: 'localizzazioni/[term:name]'
+selection_criteria:
+  10b9bd27-5449-4a0b-82ab-98e83ef8a5ae:
+    id: 'entity_bundle:taxonomy_term'
+    negate: false
+    uuid: 10b9bd27-5449-4a0b-82ab-98e83ef8a5ae
+    context_mapping:
+      taxonomy_term: taxonomy_term
+    bundles:
+      localizzazioni: localizzazioni
+  48522d8e-889b-4b7c-b821-f704f4dbb605:
+    id: language
+    negate: false
+    uuid: 48522d8e-889b-4b7c-b821-f704f4dbb605
+    context_mapping:
+      language: 'taxonomy_term:langcode:language'
+    langcodes:
+      it: it
+selection_logic: and
+weight: -10
+relationships:
+  'taxonomy_term:langcode:language':
+    label: Language

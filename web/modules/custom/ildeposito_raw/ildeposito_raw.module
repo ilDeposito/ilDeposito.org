@@ -1,0 +1,10 @@
+<?php
+
+/**
+ * @file
+ * Hook implementations for Il Deposito Raw module.
+ *
+ * Tutti gli hook sono implementati nella classe OOP
+ * \Drupal\ildeposito_raw\Hook\IldepositoRawHooks utilizzando
+ * gli attributi #[Hook] di Drupal 11.1+.
+ */

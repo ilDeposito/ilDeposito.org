@@ -1,0 +1,20 @@
+uuid: d746e940-cbab-4a92-b384-ef65eb174a80
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.autore
+  module:
+    - path
+id: node.autore.path
+field_name: path
+entity_type: node
+bundle: autore
+label: 'Alias URL'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: path

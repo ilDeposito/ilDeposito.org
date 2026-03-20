@@ -1,0 +1,130 @@
+{#
+/**
+ * @file
+ * Template per la visualizzazione di un'entità in formato raw.
+ *
+ * Variabili disponibili:
+ * - entity: L'entità che viene visualizzata.
+ * - entity_type: Il tipo di entità.
+ * - data: Array con i dati raw dell'entità.
+ * - title: Il titolo dell'entità.
+ * - view_mode: La view mode utilizzata.
+ * - node: L'oggetto nodo (se l'entità è un nodo).
+ *
+ * SICUREZZA: Non usare il filtro |raw su nessuna variabile di questo template.
+ * L'autoescaping di Twig protegge da XSS nell'output JSON.
+ */
+#}
+{% set classes = [
+  'ildeposito-raw',
+  'ildeposito-raw--' ~ entity_type,
+] %}
+<article{{ attributes.addClass(classes).setAttribute('data-view-mode', view_mode) }}>
+
+  <!-- testo e accordi -->
+  <div class="testo-accordi bg-lighter p-5">
+    {{ include('ildeposito:testi', { data: data }, with_context = false) }}
+  </div>
+  <!-- fine testo e accordi -->
+
+
+  {% if data.tematica %}
+  <div class="tematica my-5">
+  <h5 class="my-6">{{ 'Topics'|t }}</h5>
+    {% for tematica in data.tematica %}
+      <span class="bg-accent text-light fw-normal d-inline-block py-1 px-2 me-2 fs-5"><a class="text-light"href="{{ tematica.url }}">{{ tematica.label }}</a></span>
+    {% endfor %}
+    </div>
+  {% endif %}
+
+  {% if data.informazioni %} 
+  <div class="informazioni my-5">
+    <h5 class="py-6">{{ 'Information'|t }}</h5>
+    {{ data.informazioni|raw }}
+    </div>
+  {% endif %}
+
+  {% if data.fonte %} 
+  <div class="fonte my-5">
+    <h5 class="py-6">{{ 'Bibliography'|t }}</h5>
+    {{ data.fonte|raw }}
+    </div>
+  {% endif %}
+
+  <div id="scheda-canto" class="my-5">
+  <h5>{{ 'Song details'|t }}</h5>
+
+  <ul class="list-unstyled">
+    {% if data.periodo %}
+      {% set periodo_count = data.periodo|length %}
+      <span class=" d-block">
+          {{ periodo_count == 1 ? 'Periodo'|t : 'Periods'|t }}:
+          {% for periodo in data.periodo %}
+              <a href="{{ periodo.url }}">{{ periodo.label }}</a>{% if not loop.last %}, {% endif %} 
+          {% endfor %}
+      </span>
+    {% endif %}
+
+    {% if data.anno %}
+      <li>{{ 'Year'|t }}: {{ data.anno|slice(0, 4) }}</li>
+    {% endif %}
+
+    {% if data.autori_testo %}  
+      {% set autori_count = data.autori_testo|length %}
+      <span class=" d-block">
+          {{ autori_count == 1 ? 'Text Author'|t : 'Text Authors'|t }}:
+          {% for autore in data.autori_testo %}
+              <a href="{{ autore.url }}">{{ autore.label }}</a>{% if not loop.last %}, {% endif %}
+          {% endfor %}
+      </span>
+    {% endif %}
+
+    {% if data.autori_musica %}
+      {% set autori_count = data.autori_musica|length %}
+      <span class=" d-block">
+          {{ autori_count == 1 ? 'Music Author'|t : 'Music Authors'|t }}:
+          {% for autore in data.autori_musica %}
+              <a href="{{ autore.url }}">{{ autore.label }}</a>{% if not loop.last %}, {% endif %} 
+          {% endfor %}
+      </span>
+    {% endif %}
+
+    {% if data.lingua %}
+      {% set lingua_count = data.lingua|length %}
+      <span class=" d-block">
+          {{ lingua_count == 1 ? 'Language'|t : 'Languages'|t }}:
+          {% for lingua in data.lingua %}
+              <a href="{{ lingua.url }}">{{ lingua.label }}</a>{% if not loop.last %}, {% endif %} 
+          {% endfor %}
+      </span>
+    {% endif %}
+
+    {% if data.tematica %}
+      {% set tematica_count = data.tematica|length %}
+      <span class=" d-block">
+          {{ tematica_count == 1 ? 'Topic'|t : 'Topics'|t }}:
+          {% for tematica in data.tematica %}
+              <a href="{{ tematica.url }}">{{ tematica.label }}</a>{% if not loop.last %}, {% endif %} 
+          {% endfor %}
+      </span>
+    {% endif %}        
+
+    {% if data.tags %}
+      {% set tags_count = data.tags|length %}
+      <span class=" d-block">
+          {{ tags_count == 1 ? 'Tag'|t : 'Tags'|t }}:
+          {% for tag in data.tags %}
+              <a href="{{ tag.url }}">{{ tag.label }}</a>{% if not loop.last %}, {% endif %} 
+          {% endfor %}
+      </span>
+    {% endif %}
+
+      {% if data.audio %}
+      <span class=" d-block">
+        Audio: <a href="{{ data.audio[0].url|raw }}" target="_blank">YouTube</a> 
+      </span>
+    {% endif %}
+
+  </div>
+  
+</article>

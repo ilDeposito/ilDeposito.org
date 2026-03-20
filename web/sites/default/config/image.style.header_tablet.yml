@@ -1,0 +1,21 @@
+uuid: fe86b333-6b09-42fe-84f6-ef2235563c72
+langcode: it
+status: true
+dependencies: {  }
+name: header_tablet
+label: 'Header tablet'
+effects:
+  76e3b660-5c5e-4d43-8b68-666ac25256d4:
+    uuid: 76e3b660-5c5e-4d43-8b68-666ac25256d4
+    id: image_convert_avif
+    weight: 1
+    data:
+      extension: webp
+  883f8be9-a045-47e0-8938-e253b1a00a86:
+    uuid: 883f8be9-a045-47e0-8938-e253b1a00a86
+    id: image_scale
+    weight: 2
+    data:
+      width: 1000
+      height: null
+      upscale: true

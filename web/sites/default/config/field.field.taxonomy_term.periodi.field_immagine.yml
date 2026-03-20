@@ -1,0 +1,29 @@
+uuid: c80ef341-dc7d-4eb3-ab78-d9ba09be9a81
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_immagine
+    - media.type.image
+    - taxonomy.vocabulary.periodi
+id: taxonomy_term.periodi.field_immagine
+field_name: field_immagine
+entity_type: taxonomy_term
+bundle: periodi
+label: Immagine
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:media'
+  handler_settings:
+    target_bundles:
+      image: image
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

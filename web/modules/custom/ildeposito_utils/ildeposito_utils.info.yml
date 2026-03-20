@@ -1,0 +1,13 @@
+name: ilDeposito Utils
+description: Tool per ilDeposito.org
+package: ilDeposito
+core_version_requirement: ^10 || ^11
+type: module
+dependencies:
+  - node 
+  - path_alias
+  - menu_link_content
+  - image
+  - media
+
+

@@ -1,0 +1,206 @@
+id: eventi
+label: 11. Eventi
+migration_group: ilDeposito
+
+source:
+  plugin: url
+  data_fetcher_plugin: file
+  data_parser_plugin: json
+  urls:
+    - modules/custom/migrando/files/eventi/eventi_0.json
+  item_selector: 'items'
+  fields:
+    -
+      name: nid
+      selector: nid
+    -
+      name: title
+      selector: title
+    -
+      name: uuid
+      selector: uuid
+    -
+      name: uid
+      selector: uid
+    -
+      name: created
+      selector: created
+    -
+      name: changed
+      selector: changed
+    -
+      name: informazioni
+      selector: informazioni
+    -
+      name: immagine
+      selector: immagine
+    -
+      name: tags
+      selector: tags
+    -
+      name: links
+      selector: links
+    -
+      name: data_evento
+      selector: data_evento
+    -
+      name: contenuti_correlati
+      selector: contenuti_correlati
+    -
+      name: localizzazione
+      selector: localizzazione
+    -
+      name: periodo
+      selector: periodo
+    -
+      name: percorso
+      selector: percorso
+    -
+      name: descrizione_social
+      selector: descrizione_social
+    -
+      name: latitude
+      selector: latitude
+    -
+      name: longitude
+      selector: longitude
+    -
+      name: totalcount
+      selector: totalcount  
+
+  ids:
+    nid:
+      type: string
+
+process:
+  uuid: uuid
+  field_old_id: nid
+  created:
+    plugin: callback
+    source: created
+    callable: strtotime
+  changed:
+    plugin: callback
+    source: changed
+    callable: strtotime
+  status: 
+    plugin: default_value
+    default_value: 1
+  uid:
+    plugin: default_value
+    default_value: 1
+  type:
+    plugin: default_value
+    default_value: evento
+  title:
+    plugin: encode
+    source: title
+  'field_informazioni/value': informazioni
+  'field_informazioni/format':
+    plugin: default_value
+    default_value: basic_html
+  field_tags:
+    -
+      plugin: skip_on_empty
+      method: process
+      source: tags
+    -
+      plugin: explode
+      delimiter: ', '
+      source: tags
+    -
+      plugin: multiple_values
+    -
+      plugin: get_migration_id
+      importer: 'termini_tags'
+  field_immagine:
+    plugin: migration_lookup
+    migration: media
+    source: immagine
+#  field_links:
+#    plugin: sub_process
+#    source: links
+#    process:
+#      uri: url
+#      title: title
+#      options: attributes
+  field_data_evento: data_evento
+  field_canti_correlati:
+    -
+      plugin: explode
+      delimiter: ', '
+      source: contenuti_correlati
+    -
+      plugin: multiple_values
+    -
+      plugin: get_migration_id
+      importer: 'canti'
+  field_localizzazione:
+    -
+      plugin: explode
+      delimiter: ', '
+      source: localizzazione
+    -
+      plugin: multiple_values
+    -
+      plugin: get_migration_id
+      importer: 'termini_localizzazioni'
+  field_periodo:
+    -
+      plugin: explode
+      delimiter: ', '
+      source: periodo
+    -
+      plugin: multiple_values
+    -
+      plugin: get_migration_id
+      importer: 'termini_periodi'
+  # field_percorso:
+  #   -
+  #     plugin: skip_on_empty
+  #     method: process
+  #     source: percorso
+  #   -
+  #     plugin: explode
+  #     delimiter: ', '
+  #     source: percorso
+  #   -
+  #     plugin: multiple_values
+  #   -
+  #     plugin: get_migration_id
+  #     importer: 'termini_percorsi'
+  'field_descrizione_social/value':
+    plugin: encode
+    source: descrizione_social
+  'field_descrizione_social/format':
+    plugin: default_value
+    default_value: plain_text
+  _latitude:
+    - plugin: callback
+      source: latitude
+      callable: trim
+    - plugin: skip_on_empty
+      method: process
+  _longitude:
+    - plugin: callback
+      source: longitude
+      callable: trim
+    - plugin: skip_on_empty
+      method: process
+
+  field_geofield:
+    plugin: geofield_latlon
+    source:
+      - 'latitude'
+      - 'longitude'
+
+destination:
+  plugin: entity:node
+  bundle: evento
+  default_langcode: it
+  langcode: it
+
+dependencies:
+  enforced:
+    module:
+      - migrando
