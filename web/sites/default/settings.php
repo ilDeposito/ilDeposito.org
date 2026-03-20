@@ -27,7 +27,9 @@ $settings['trusted_host_patterns'] = [
 ];
 
 if (isset($_SERVER['ILDEPOSITO_ENV'])) {
-      include __DIR__ . '/settings.live.php';
+  include __DIR__ . '/settings.live.php';
+} elseif (getenv('CODESPACES') === 'true') {
+  include __DIR__ . '/settings.codespace.php';
 } else {
   $ddev_settings = __DIR__ . '/settings.ddev.php';
   $dev_settings = __DIR__ . '/settings.dev.php';
