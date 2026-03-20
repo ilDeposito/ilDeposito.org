@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Uso: ./dc.sh <prod|stage> <comando> [args...]
-# Esempio: ./dc.sh prod up -d
-#          ./dc.sh stage logs -f php
+# Uso: ./ildeposito.sh <prod|stage> <comando> [args...]
+# Esempio: ./ildeposito.sh prod up -d
+#          ./ildeposito.sh stage logs -f php
 
-ENV=${1:?"Uso: ./dc.sh <prod|stage> <comando> [args...]"}
+ENV=${1:?"Uso: ./ildeposito.sh <prod|stage> <comando> [args...]"}
 shift
 
 # Validazione ambiente
@@ -15,7 +15,7 @@ if [[ "$ENV" != "prod" && "$ENV" != "stage" ]]; then
 fi
 
 # Comando richiesto
-CMD=${1:?"Uso: ./dc.sh $ENV <comando> [args...]"}
+CMD=${1:?"Uso: ./ildeposito.sh $ENV <comando> [args...]"}
 
 # Protezione produzione
 if [[ "$ENV" == "prod" && "$CMD" == "down" ]]; then
@@ -26,5 +26,5 @@ fi
 
 docker compose -p "ildeposito_${ENV}" \
   -f docker-compose.yml \
-  -f "docker-compose.${ENV}.yml" \
+  -f "docker-compose-${ENV}.yml" \
   "$@"
