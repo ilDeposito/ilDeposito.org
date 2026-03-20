@@ -44,6 +44,8 @@ module:
   path_alias: 0
   search_api: 0
   search_api_opensearch: 0
+  search_api_solr: 0
+  search_api_solr_admin: 0
   shortcut: 0
   statistics: 0
   system: 0
