@@ -24,6 +24,7 @@ services:
       PHP_MAIL_MIXED_LF_AND_CRLF: On
       PHP_APCU_SHM_SIZE: 64M
       PHP_SESSION_COOKIE_SAMESITE: Strict
+      ILDEPOSITO_ENV: "live"
     volumes:
     - ./:/var/www/html:cached
     - ../backup:/var/backup_migrate  
@@ -56,11 +57,28 @@ services:
     labels:
       caddy: stage.ildeposito.org
       caddy.reverse_proxy: "{{upstreams 80}}"   
+      caddy.basicauth: "*"
+      caddy.basicauth.ildeposito: "$2b$14$nNWWEXBKad18l1Vs5VaRRuqOcN3dhWY9AVIQTTriF6nrdPeCGfvFy"   
     volumes:
     - ./:/var/www/html:cached
     networks:
       - internal  
       - caddy    
+
+#  varnish:
+#    image: wodby/varnish:$VARNISH_TAG
+#    container_name: "${PROJECT_NAME}_varnish"
+#    depends_on:
+#    - nginx
+#    environment:
+#      VARNISH_SECRET: secret
+#      VARNISH_BACKEND_HOST: nginx
+#      VARNISH_BACKEND_PORT: 80
+#      VARNISH_CONFIG_PRESET: drupal
+#      VARNISH_ALLOW_UNRESTRICTED_PURGE: 1
+#    labels:
+#    - "traefik.http.services.${PROJECT_NAME}_varnish.loadbalancer.server.port=6081"
+#    - "traefik.http.routers.${PROJECT_NAME}_varnish.rule=Host(`varnish.${PROJECT_BASE_URL}`)"
 
   memcached:
     container_name: "${PROJECT_NAME}_memcached"
@@ -69,26 +87,16 @@ services:
     networks:
       - internal  
 
-  solr:
-    image: wodby/solr:$SOLR_TAG
-    restart: unless-stopped
-    container_name: "${PROJECT_NAME}_solr"
-    environment:
-      SOLR_OPTS: "-Dsolr.config.lib.enabled=true"
-      SOLR_MODULES: extraction,langid,ltr,analysis-extras
-      ZK_HOST: zookeeper:2181
-      SOLR_HEAP: 1024m
-    depends_on:
-    - zookeeper
-    networks:
-      - internal
-
-  zookeeper:
-    image: wodby/zookeeper:$ZOOKEEPER_TAG
-    container_name: "${PROJECT_NAME}_zookeeper"
-    restart: unless-stopped
-    networks:
-      - internal 
+  # opensearch:
+  #   image: opensearchproject/opensearch:$OPENSEARCH_TAG
+  #   container_name: "${PROJECT_NAME}_opensearch"
+  #   restart: unless-stopped
+  #   environment:
+  #     "discovery.type": "single-node"
+  #     "plugins.security.disabled": true
+  #     OPENSEARCH_INITIAL_ADMIN_PASSWORD: $OPENSEARCH_ADMIN_PASSWORD
+  #   networks:
+  #     - internal    
 
 networks:
   internal:
