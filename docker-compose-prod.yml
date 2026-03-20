@@ -1,7 +1,7 @@
 services:
   mariadb:
     image: wodby/mariadb:$MARIADB_TAG
-    container_name: "${PROJECT_NAME}_mariadb"
+    container_name: ildeposito_prod_mariadb
     stop_grace_period: 30s
     restart: unless-stopped
     environment:
@@ -17,7 +17,7 @@ services:
 
   php:
     image: wodby/drupal-php:$PHP_TAG
-    container_name: "${PROJECT_NAME}_php"
+    container_name: ildeposito_prod_php
     restart: unless-stopped
     environment:
       PHP_EXTENSIONS_DISABLE: xhprof,spx
@@ -34,7 +34,7 @@ services:
   crond:
     init: true
     image: wodby/drupal-php:$PHP_TAG
-    container_name: "${PROJECT_NAME}_crond"
+    container_name: ildeposito_prod_crond
     restart: unless-stopped
     environment:
       CRONTAB: "0 * * * * drush -r /var/www/html/web cron"
@@ -46,7 +46,7 @@ services:
 
   nginx:
     image: wodby/nginx:$NGINX_TAG
-    container_name: "${PROJECT_NAME}_nginx"
+    container_name: ildeposito_prod_nginx
     restart: unless-stopped
     depends_on:
     - php
@@ -67,7 +67,7 @@ services:
 
 #  varnish:
 #    image: wodby/varnish:$VARNISH_TAG
-#    container_name: "${PROJECT_NAME}_varnish"
+#    container_name: ildeposito_prod_varnish
 #    depends_on:
 #    - nginx
 #    environment:
@@ -81,23 +81,12 @@ services:
 #    - "traefik.http.routers.${PROJECT_NAME}_varnish.rule=Host(`varnish.${PROJECT_BASE_URL}`)"
 
   memcached:
-    container_name: "${PROJECT_NAME}_memcached"
+    container_name: ildeposito_prod_memcached
     restart: unless-stopped
     image: wodby/memcached:$MEMCACHED_TAG
     networks:
       - internal  
-
-  # opensearch:
-  #   image: opensearchproject/opensearch:$OPENSEARCH_TAG
-  #   container_name: "${PROJECT_NAME}_opensearch"
-  #   restart: unless-stopped
-  #   environment:
-  #     "discovery.type": "single-node"
-  #     "plugins.security.disabled": true
-  #     OPENSEARCH_INITIAL_ADMIN_PASSWORD: $OPENSEARCH_ADMIN_PASSWORD
-  #   networks:
-  #     - internal    
-
+      
 networks:
   internal:
     driver: bridge
