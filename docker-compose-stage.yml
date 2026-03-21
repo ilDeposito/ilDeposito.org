@@ -23,5 +23,7 @@ services:
     container_name: ildeposito_stage_nginx
     labels:
       caddy: stage.ildeposito.org
-      caddy.reverse_proxy: "{{upstreams 80}}"   
+      caddy.basic_auth: "*"
+      caddy.basic_auth.ildeposito: "$$2b$$12$$lkOTABkIjzM7G3w.uUZjD.122R3LG5lI3DMB11Occ2TR/XSNI1U4y"
+      caddy.reverse_proxy: "{{upstreams 80}}"  
    
