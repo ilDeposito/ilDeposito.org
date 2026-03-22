@@ -1,0 +1,36 @@
+{
+  "name": "ilDeposito.org - Drupal 11",
+  "dockerComposeFile": [
+    "../docker-compose.yml",
+    "docker-compose.codespace.yml"
+  ],
+  "service": "php",
+  "workspaceFolder": "/var/www/html",
+  "remoteUser": "wodby",
+  "shutdownAction": "stopCompose",
+  "forwardPorts": [80, 8983],
+  "portsAttributes": {
+    "80": {
+      "label": "Drupal (Nginx)",
+      "onAutoForward": "openBrowser"
+    },
+    "8983": {
+      "label": "Solr Admin",
+      "onAutoForward": "ignore"
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "bmewburn.vscode-intelephense-client",
+        "whatwedo.twig",
+        "mblode.twig-language-2",
+        "EditorConfig.EditorConfig"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  }
+}
