@@ -1,0 +1,12 @@
+.testi {
+  margin-bottom: 1rem;
+}
+.testi__item {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+.testi__item:last-child {
+  border-bottom: none;
+}
+
+/*# sourceMappingURL=testi.css.map*/
