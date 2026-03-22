@@ -26,8 +26,10 @@ $settings['trusted_host_patterns'] = [
   '^localhost$',
 ];
 
-if (isset($_SERVER['ILDEPOSITO_ENV'])) {
-  include __DIR__ . '/settings.live.php';
+if (isset($_SERVER['ILDEPOSITO_ENV']) && $_SERVER['ILDEPOSITO_ENV'] === 'prod') {
+  include __DIR__ . '/settings.prod.php';
+} elseif (isset($_SERVER['ILDEPOSITO_ENV']) && $_SERVER['ILDEPOSITO_ENV'] === 'stage') {
+  include __DIR__ . '/settings.stage.php';
 } elseif (getenv('CODESPACES') === 'true') {
   include __DIR__ . '/settings.codespace.php';
 } else {

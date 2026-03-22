@@ -1,7 +1,7 @@
 services:
   mariadb:
     image: wodby/mariadb:$MARIADB_TAG
-    container_name: "${PROJECT_NAME}_mariadb"
+    container_name: ildeposito_prod_mariadb
     stop_grace_period: 30s
     restart: unless-stopped
     environment:
@@ -17,14 +17,14 @@ services:
 
   php:
     image: wodby/drupal-php:$PHP_TAG
-    container_name: "${PROJECT_NAME}_php"
+    container_name: ildeposito_prod_php
     restart: unless-stopped
     environment:
       PHP_EXTENSIONS_DISABLE: xhprof,spx
       PHP_MAIL_MIXED_LF_AND_CRLF: On
       PHP_APCU_SHM_SIZE: 64M
       PHP_SESSION_COOKIE_SAMESITE: Strict
-      ILDEPOSITO_ENV: "live"
+      ILDEPOSITO_ENV: "prod"
     volumes:
     - ./:/var/www/html:cached
     - ../backup:/var/backup_migrate  
@@ -34,7 +34,7 @@ services:
   crond:
     init: true
     image: wodby/drupal-php:$PHP_TAG
-    container_name: "${PROJECT_NAME}_crond"
+    container_name: ildeposito_prod_crond
     restart: unless-stopped
     environment:
       CRONTAB: "0 * * * * drush -r /var/www/html/web cron"
@@ -46,7 +46,7 @@ services:
 
   nginx:
     image: wodby/nginx:$NGINX_TAG
-    container_name: "${PROJECT_NAME}_nginx"
+    container_name: ildeposito_prod_nginx
     restart: unless-stopped
     depends_on:
     - php
@@ -57,8 +57,6 @@ services:
     labels:
       caddy: stage.ildeposito.org
       caddy.reverse_proxy: "{{upstreams 80}}"   
-      caddy.basicauth: "*"
-      caddy.basicauth.ildeposito: "$2b$14$nNWWEXBKad18l1Vs5VaRRuqOcN3dhWY9AVIQTTriF6nrdPeCGfvFy"   
     volumes:
     - ./:/var/www/html:cached
     networks:
@@ -67,7 +65,7 @@ services:
 
 #  varnish:
 #    image: wodby/varnish:$VARNISH_TAG
-#    container_name: "${PROJECT_NAME}_varnish"
+#    container_name: ildeposito_prod_varnish
 #    depends_on:
 #    - nginx
 #    environment:
@@ -81,22 +79,11 @@ services:
 #    - "traefik.http.routers.${PROJECT_NAME}_varnish.rule=Host(`varnish.${PROJECT_BASE_URL}`)"
 
   memcached:
-    container_name: "${PROJECT_NAME}_memcached"
+    container_name: ildeposito_prod_memcached
     restart: unless-stopped
     image: wodby/memcached:$MEMCACHED_TAG
     networks:
       - internal  
-
-  # opensearch:
-  #   image: opensearchproject/opensearch:$OPENSEARCH_TAG
-  #   container_name: "${PROJECT_NAME}_opensearch"
-  #   restart: unless-stopped
-  #   environment:
-  #     "discovery.type": "single-node"
-  #     "plugins.security.disabled": true
-  #     OPENSEARCH_INITIAL_ADMIN_PASSWORD: $OPENSEARCH_ADMIN_PASSWORD
-  #   networks:
-  #     - internal    
 
 networks:
   internal:
