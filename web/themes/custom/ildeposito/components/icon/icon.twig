@@ -8,7 +8,7 @@
 #}
 {% set icon_classes = ['icon'] | merge(class | default([])) %}
 {% set sprite_type = type|default('fill') %}
-{% set sprite_file = sprite_type == 'regular' ? 'sprite-regular.svg' : 'sprite-fill.svg' %}
+{% set sprite_file = sprite_type == 'regular' ? 'sprite_regular.svg' : 'sprite_fill.svg' %}
 {% set icon_id = sprite_type == 'fill' ? name ~ '-fill' : name %}
 
 <svg {{ attributes.addClass(icon_classes) }} fill="currentColor" aria-hidden="true" focusable="false"{% if size %} style="font-size: {{ size }}"{% endif %}>
