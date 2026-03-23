@@ -44,6 +44,7 @@ run_task "Creo i contenuti di default..." ddev drush ildeposito:create-default-m
 run_task "Controllo se ci sono traduzioni..." ddev drush locale:check
 run_task "Aggiorno le traduzioni..." ddev drush locale:update
 run_task "Importo di nuovo le configurazioni..." ddev drush cim -y
+run_task "Aggiorno il config-set di Search API" ddev drush search-api-solr:upload-configset ildeposito_solr
 run_task "Indicizzo i contenuti..." ddev drush search-api:index
 run_task "Ricostruisco la cache..." ddev drush cr
 
