@@ -1,0 +1,17 @@
+uuid: 69ab6867-d30d-4ee4-b4e5-b7a818101a88
+langcode: it
+status: true
+dependencies:
+  module:
+    - visitors
+title: 'Default cron handler'
+id: visitors_cron
+weight: 0
+module: visitors
+callback: 'visitors#cron'
+scheduler:
+  id: simple
+launcher:
+  id: serial
+logger:
+  id: database

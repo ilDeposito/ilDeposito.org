@@ -1,0 +1,672 @@
+label: Visitors
+description: 'Visitors web analytics reports.'
+display:
+  default:
+    display_title: Default
+    display_options:
+      fields:
+        visitor_id:
+          label: 'Unique visitors'
+      pager:
+        options:
+          tags:
+            next: ››
+            previous: ‹‹
+          expose:
+            items_per_page_label: 'Items per page'
+            items_per_page_options_all_label: '- All -'
+            offset_label: Offset
+      exposed_form:
+        options:
+          submit_button: Apply
+          reset_button_label: Reset
+          exposed_sorts_label: 'Sort by'
+          sort_asc_label: Asc
+          sort_desc_label: Desc
+  browser_engine_pie:
+    display_title: 'Engine Pie'
+    display_options:
+      title: 'Browser Engines'
+      fields:
+        config_browser_engine:
+          label: Engine
+        visitor_id:
+          label: 'Unique visitors'
+      style:
+        options:
+          chart_settings:
+            display:
+              title: 'Browser Engines'
+      footer:
+        visitors_display_link:
+          label: table
+  browser_engine_table:
+    display_title: 'Engine Table'
+    display_options:
+      title: 'Browser Engines'
+      fields:
+        config_browser_engine:
+          label: Engine
+        visitor_id:
+          label: 'Unique visitors'
+      footer:
+        visitors_display_link:
+          label: chart
+  browser_name_table:
+    display_title: 'Browser Name'
+    display_options:
+      title: Browser
+      fields:
+        config_browser_name:
+          label: Browser
+        visitor_id:
+          label: 'Unique visitors'
+      footer:
+        visitors_display_link:
+          label: 'Browser version'
+  browser_plugin_list:
+    display_title: 'Browser Plugins'
+    display_options:
+      title: 'Browser Plugins'
+      fields:
+        config_cookie:
+          label: Cookie
+        config_pdf:
+          label: PDF
+        config_flash:
+          label: Flash
+        config_java:
+          label: Java
+        config_silverlight:
+          label: Silverlight
+        config_windowsmedia:
+          label: 'Windows Media'
+        config_quicktime:
+          label: Quicktime
+        config_realplayer:
+          label: Realplayer
+      footer:
+        area_text_custom:
+          content: 'Note: Plugin detection does not work in Internet Explorer before 11. This report is only based on non-IE browsers and newer versions of IE.'
+  browser_version_table:
+    display_title: 'Browser Version'
+    display_options:
+      title: 'Browser Version'
+      fields:
+        config_browser_name:
+          label: 'Browser Name'
+        config_browser_version:
+          label: 'Browser Version'
+          alter:
+            text: '{{ config_browser_name }} {{ config_browser_version }} '
+        visitor_id:
+          label: 'Unique visitors'
+      footer:
+        visitors_display_link:
+          label: Browser
+  continent_pie:
+    display_title: 'Continent Pie'
+    display_options:
+      title: Continent
+      fields:
+        location_continent:
+          label: Continent
+        visitor_id:
+          label: 'Unique visitors'
+      style:
+        options:
+          chart_settings:
+            display:
+              title: Continent
+      footer:
+        visitors_display_link:
+          label: table
+  continent_table:
+    display_title: 'Continent Table'
+    display_options:
+      title: Continent
+      fields:
+        location_continent_1:
+          label: Abbreviation
+          alter:
+            text: '{{ location_continent_1|lower }}'
+        location_continent:
+          label: Continent
+          alter:
+            path: 'internal:/visitors/location/continent/{{ location_continent_1 }}'
+        visitor_id:
+          label: 'Unique visitors'
+      footer:
+        visitors_display_link:
+          label: chart
+  country_table:
+    display_title: Country
+    display_options:
+      title: Country
+      fields:
+        location_country_1:
+          label: Abbreviation
+          alter:
+            text: '{{ location_country_1|lower }}'
+            path: 'internal:/visitors/location/region/{{ location_country_1 }}'
+        location_country:
+          label: Country
+          alter:
+            path: 'internal:/visitors/location/country/{{location_country_1}}'
+        visitor_id:
+          label: 'Unique visitors'
+      arguments:
+        location_continent:
+          exception:
+            title: All
+  daily_column:
+    display_title: 'Daily Column'
+    display_options:
+      fields:
+        visitors_day:
+          label: Day
+        visitor_id:
+          label: 'Unique visitors'
+      style:
+        options:
+          chart_settings:
+            display:
+              title: Daily
+  day_of_month_column:
+    display_title: 'Day of Month Column'
+    display_options:
+      fields:
+        visitors_day_of_month:
+          label: 'Day of Month'
+        visitor_id:
+          label: 'Unique visitors'
+      style:
+        options:
+          chart_settings:
+            display:
+              title: 'Day of Month'
+      footer:
+        visitors_display_link:
+          label: table
+  day_of_month_table:
+    display_title: 'Day of Month Table'
+    display_options:
+      title: 'Day of Month'
+      fields:
+        visitors_day_of_month:
+          label: 'Day of Month'
+        visitor_id:
+          label: 'Unique visitors'
+      style:
+        options:
+          caption: 'Day of Month'
+      footer:
+        visitors_display_link:
+          label: chart
+  day_of_week_column:
+    display_title: 'Day of Week Column'
+    display_options:
+      fields:
+        visitors_day_of_week:
+          label: 'Day of Week'
+        visitor_id:
+          label: 'Unique visitors'
+      style:
+        options:
+          chart_settings:
+            display:
+              title: 'Day of Week'
+      footer:
+        visitors_display_link:
+          label: table
+  day_of_week_table:
+    display_title: 'Day of Week Table'
+    display_options:
+      title: 'Day of Week'
+      fields:
+        visitors_day_of_week:
+          label: 'Day of Week'
+        visitor_id:
+          label: 'Unique visitors'
+      style:
+        options:
+          caption: 'Day of Week'
+      footer:
+        visitors_display_link:
+          label: chart
+  device_brand_table:
+    display_title: 'Device Brand'
+    display_options:
+      title: 'Device Brand'
+      fields:
+        config_device_brand:
+          label: Brand
+        visitor_id:
+          label: 'Unique visitors'
+  device_config_table:
+    display_title: Configuration
+    display_options:
+      title: Configuration
+      fields:
+        config_os:
+          label: 'Operating System'
+        config_browser_name:
+          label: 'Browser Name'
+        config_resolution:
+          label: Configurations
+          alter:
+            text: '{{ config_os }} / {{ config_browser_name }} / {{ config_resolution }} '
+        visitor_id:
+          label: 'Unique visitors'
+      footer:
+        visitors_display_link:
+          label: Resolution
+  device_model_table:
+    display_title: 'Device Model'
+    display_options:
+      title: Model
+      fields:
+        config_device_brand:
+          label: 'Device brand'
+          alter:
+            text: '{{ config_device_brand }} - '
+        config_device_model:
+          label: 'Device model'
+        config_device_type:
+          label: 'Device model'
+          alter:
+            text: '{{ config_device_brand }}{{ config_device_model }} {{ config_device_type }} '
+        visitor_id:
+          label: 'Unique visitors'
+  device_resolution_table:
+    display_title: Resolution
+    display_options:
+      title: Resolution
+      fields:
+        config_resolution:
+          label: Resolution
+        visitor_id:
+          label: 'Unique visitors'
+      footer:
+        visitors_display_link:
+          label: Configurations
+  device_type_table:
+    display_title: 'Device Type'
+    display_options:
+      title: 'Device Type'
+      fields:
+        config_device_type:
+          label: Device
+        visitor_id:
+          label: 'Unique visitors'
+  distinct_countries_list:
+    display_title: 'Distinct Countries'
+    display_options:
+      title: 'Distinct Countries'
+      fields:
+        location_country:
+          alter:
+            text: '{{ location_country }} distinct countries'
+          format_plural_string: !!binary MSBkaXN0aW5jdCBjb3VudHJ5A0Bjb3VudCBkaXN0aW5jdCBjb3VudHJpZXM=
+  hour_column:
+    display_title: 'Hour Column'
+    display_options:
+      fields:
+        visitors_hour:
+          label: Hour
+        visitor_id:
+          label: 'Unique visitors'
+      style:
+        options:
+          chart_settings:
+            display:
+              title: 'Your time'
+      footer:
+        visitors_display_link:
+          label: table
+  hour_table:
+    display_title: 'Hour Table'
+    display_options:
+      title: 'Your time'
+      fields:
+        visitors_hour:
+          label: Hour
+        visitor_id:
+          label: 'Unique visitors'
+      style:
+        options:
+          caption: 'Your time'
+      footer:
+        visitors_display_link:
+          label: chart
+  language_code_table:
+    display_title: 'Language Code'
+    display_options:
+      title: 'Language Code'
+      fields:
+        language:
+          label: Language
+        visitor_id:
+          label: 'Unique visitors'
+      footer:
+        visitors_display_link:
+          label: Language
+  language_table:
+    display_title: Language
+    display_options:
+      title: Language
+      fields:
+        language:
+          label: Language
+        visitor_id:
+          label: 'Unique visitors'
+      footer:
+        visitors_display_link:
+          label: 'Language Code'
+  local_hour_column:
+    display_title: 'Local Column'
+    display_options:
+      fields:
+        visitor_localtime:
+          label: Hour
+        visitor_id:
+          label: 'Unique visitors'
+      style:
+        options:
+          chart_settings:
+            display:
+              title: "Visitor's time"
+      footer:
+        visitors_display_link:
+          label: table
+  local_hour_table:
+    display_title: 'Local Table'
+    display_options:
+      title: "Visitor's time"
+      fields:
+        visitor_localtime:
+          label: Hour
+        visitor_id:
+          label: 'Unique visitors'
+      style:
+        options:
+          caption: "Visitor's time"
+      footer:
+        visitors_display_link:
+          label: chart
+  monthly_column:
+    display_title: 'Monthly Column'
+    display_options:
+      fields:
+        visitors_month:
+          label: Month
+        visitor_id:
+          label: 'Unique visitors'
+      style:
+        options:
+          chart_settings:
+            display:
+              title: Monthly
+      footer:
+        visitors_display_link:
+          label: table
+  monthly_table:
+    display_title: 'Monthly Table'
+    display_options:
+      title: Monthly
+      fields:
+        visitors_month:
+          label: Month
+        visitor_id:
+          label: 'Unique visitors'
+      style:
+        options:
+          caption: Monthly
+      footer:
+        visitors_display_link:
+          label: chart
+  os_family_table:
+    display_title: 'OS Family'
+    display_options:
+      title: 'OS Family'
+      fields:
+        config_os:
+          label: 'Operating System families'
+        visitor_id:
+          label: 'Unique visitors'
+      footer:
+        visitors_display_link:
+          label: 'Operating System versions'
+  os_version_table:
+    display_title: 'OS Version'
+    display_options:
+      title: 'OS Version'
+      fields:
+        config_os_version:
+          label: 'OS version'
+        config_os:
+          label: 'Operating System'
+          alter:
+            text: '{{ config_os }}  {{ config_os_version }}'
+        visitor_id:
+          label: 'Unique visitors'
+      footer:
+        visitors_display_link:
+          label: 'Operating System families'
+  performance_daily_column:
+    display_title: 'Performance Daily'
+    display_options:
+      fields:
+        pf_network:
+          label: Network
+          format_plural_string: !!binary MQNAY291bnQ=
+        pf_server:
+          label: Server
+          format_plural_string: !!binary MQNAY291bnQ=
+        pf_transfer:
+          label: Transfer
+          format_plural_string: !!binary MQNAY291bnQ=
+        pf_dom_processing:
+          label: 'DOM Processing'
+          format_plural_string: !!binary MQNAY291bnQ=
+        pf_dom_complete:
+          label: 'DOM Complete'
+          format_plural_string: !!binary MQNAY291bnQ=
+        pf_on_load:
+          label: 'On Load'
+          format_plural_string: !!binary MQNAY291bnQ=
+        visitors_day:
+          label: Day
+  performance_hourly_column:
+    display_title: 'Performance Hourly'
+    display_options:
+      fields:
+        pf_network:
+          label: Network
+          format_plural_string: !!binary MQNAY291bnQ=
+        pf_server:
+          label: Server
+          format_plural_string: !!binary MQNAY291bnQ=
+        pf_transfer:
+          label: Transfer
+          format_plural_string: !!binary MQNAY291bnQ=
+        pf_dom_processing:
+          label: 'DOM Processing'
+          format_plural_string: !!binary MQNAY291bnQ=
+        pf_dom_complete:
+          label: 'DOM Complete'
+          format_plural_string: !!binary MQNAY291bnQ=
+        pf_on_load:
+          label: 'On Load'
+          format_plural_string: !!binary MQNAY291bnQ=
+        visitors_hour:
+          label: Hour
+  performance_weekly_column:
+    display_title: 'Performance Weekly'
+    display_options:
+      fields:
+        pf_network:
+          label: Network
+          format_plural_string: !!binary MQNAY291bnQ=
+        pf_server:
+          label: Server
+          format_plural_string: !!binary MQNAY291bnQ=
+        pf_transfer:
+          label: Transfer
+          format_plural_string: !!binary MQNAY291bnQ=
+        pf_dom_processing:
+          label: 'DOM Processing'
+          format_plural_string: !!binary MQNAY291bnQ=
+        pf_dom_complete:
+          label: 'DOM Complete'
+          format_plural_string: !!binary MQNAY291bnQ=
+        pf_on_load:
+          label: 'On Load'
+          format_plural_string: !!binary MQNAY291bnQ=
+        visitors_week:
+          label: Week
+  recent_view_table:
+    display_title: 'Recent views'
+    display_options:
+      fields:
+        visitors_id:
+          label: 'Visitors ID'
+          format_plural_string: !!binary MQNAY291bnQ=
+        visitors_url:
+          label: URL
+        visitors_date_time:
+          label: 'Date Time'
+        visitor_id:
+          label: Visitor
+        nothing:
+          label: Operations
+          alter:
+            text: details
+            path: 'internal:/visitors/hits/{{ visitors_id }}'
+      pager:
+        options:
+          tags:
+            next: ››
+            previous: ‹‹
+            first: '« First'
+            last: 'Last »'
+          expose:
+            items_per_page_label: 'Items per page'
+            items_per_page_options_all_label: '- All -'
+            offset_label: Offset
+      arguments:
+        route:
+          exception:
+            title: All
+        visitors_ip:
+          exception:
+            title: All
+        location_country:
+          exception:
+            title: All
+      filters:
+        visitors_path:
+          expose:
+            label: Path
+      header:
+        result:
+          content: 'Displaying @start - @end of @total'
+  referrer_table:
+    display_title: 'Referrer views'
+    display_options:
+      fields:
+        visitors_id:
+          label: 'Visitors ID'
+          format_plural_string: !!binary MQNAY291bnQ=
+        visitors_referer:
+          label: Referrer
+        visitors_date_time:
+          label: 'Date Time'
+        visitor_id:
+          label: Visitor
+        nothing:
+          label: Operations
+          alter:
+            text: details
+            path: 'internal:/visitors/hits/{{ visitors_id }}'
+      pager:
+        options:
+          tags:
+            next: ››
+            previous: ‹‹
+            first: '« First'
+            last: 'Last »'
+          expose:
+            items_per_page_label: 'Items per page'
+            items_per_page_options_all_label: '- All -'
+            offset_label: Offset
+      arguments:
+        visitors_path:
+          exception:
+            title: All
+      header:
+        result:
+          content: 'Displaying @start - @end of @total'
+  top_host_table:
+    display_title: 'Top Host'
+    display_options:
+      fields:
+        visitors_ip:
+          label: Host
+          alter:
+            path: 'internal:/visitors/host/{{ visitors_ip }}'
+        visitor_id:
+          label: 'Unique visitors'
+      header:
+        result:
+          content: 'Displaying @start - @end of @total'
+  top_path_table:
+    display_title: 'Top Path'
+    display_options:
+      title: Path
+      fields:
+        visitors_path:
+          label: Path
+        visitor_id:
+          label: 'Unique visitors'
+      header:
+        result:
+          content: 'Displaying @start - @end of @total'
+  top_route_table:
+    display_title: 'Top Route'
+    display_options:
+      fields:
+        route:
+          label: Route
+          alter:
+            path: 'internal:/visitors/route/{{ route }}'
+        visitor_id:
+          label: 'Unique visitors'
+      filters:
+        route:
+          expose:
+            label: Route
+      header:
+        result:
+          content: 'Displaying @start - @end of @total'
+  weekly_column:
+    display_title: 'Weekly Column'
+    display_options:
+      fields:
+        visitor_id:
+          label: 'Unique visitors'
+        visitors_week:
+          label: Week
+      style:
+        options:
+          chart_settings:
+            display:
+              title: Weekly
+  weekly_table:
+    display_title: 'Weekly Table'
+    display_options:
+      fields:
+        visitors_week:
+          label: Week
+        visitor_id:
+          label: 'Unique visitors'

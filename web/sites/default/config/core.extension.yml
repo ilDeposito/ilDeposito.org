@@ -7,6 +7,8 @@ module:
   automated_cron: 0
   block: 0
   breakpoint: 0
+  charts: 0
+  charts_chartjs: 0
   ckeditor5: 0
   config: 0
   config_translation: 0
@@ -58,6 +60,7 @@ module:
   update: 0
   user: 0
   views_ui: 0
+  visitors: 0
   pathauto: 1
   content_translation: 10
   views: 10

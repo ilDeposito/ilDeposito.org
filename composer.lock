@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ae3ad94d67b0b70b1fdf0907f075a346",
+    "content-hash": "3dcd1e0ba122961138aef6fac5c42915",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -183,6 +183,78 @@
                 "source": "https://github.com/Chi-teck/drupal-code-generator/tree/4.2.0"
             },
             "time": "2025-06-01T13:48:30+00:00"
+        },
+        {
+            "name": "composer/ca-bundle",
+            "version": "1.5.10",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/composer/ca-bundle.git",
+                "reference": "961a5e4056dd2e4a2eedcac7576075947c28bf63"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/composer/ca-bundle/zipball/961a5e4056dd2e4a2eedcac7576075947c28bf63",
+                "reference": "961a5e4056dd2e4a2eedcac7576075947c28bf63",
+                "shasum": ""
+            },
+            "require": {
+                "ext-openssl": "*",
+                "ext-pcre": "*",
+                "php": "^7.2 || ^8.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^1.10",
+                "phpunit/phpunit": "^8 || ^9",
+                "psr/log": "^1.0 || ^2.0 || ^3.0",
+                "symfony/process": "^4.0 || ^5.0 || ^6.0 || ^7.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "1.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Composer\\CaBundle\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jordi Boggiano",
+                    "email": "j.boggiano@seld.be",
+                    "homepage": "http://seld.be"
+                }
+            ],
+            "description": "Lets you find a path to the system CA bundle, and includes a fallback to the Mozilla CA bundle.",
+            "keywords": [
+                "cabundle",
+                "cacert",
+                "certificate",
+                "ssl",
+                "tls"
+            ],
+            "support": {
+                "irc": "irc://irc.freenode.org/composer",
+                "issues": "https://github.com/composer/ca-bundle/issues",
+                "source": "https://github.com/composer/ca-bundle/tree/1.5.10"
+            },
+            "funding": [
+                {
+                    "url": "https://packagist.com",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/composer",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-12-08T15:06:51+00:00"
         },
         {
             "name": "composer/installers",
@@ -1587,6 +1659,125 @@
             "support": {
                 "source": "https://git.drupalcode.org/project/better_exposed_filters",
                 "issues": "https://www.drupal.org/project/issues/better_exposed_filters"
+            }
+        },
+        {
+            "name": "drupal/charts",
+            "version": "5.1.10",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/charts.git",
+                "reference": "5.1.10"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/charts-5.1.10.zip",
+                "reference": "5.1.10",
+                "shasum": "ad3c3225f3c747618d6330bb9775e78418c0cdb6"
+            },
+            "require": {
+                "drupal/core": "^10.3 || ^11"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "5.1.10",
+                    "datestamp": "1765584158",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Daniel Cothran (andileco)",
+                    "homepage": "https://www.drupal.org/u/andileco",
+                    "role": "Maintainer"
+                },
+                {
+                    "name": "Nia Kathoni (nikathone)",
+                    "homepage": "https://www.drupal.org/u/nikathone",
+                    "role": "Maintainer"
+                },
+                {
+                    "name": "Nate Lampton (quicksketch)",
+                    "homepage": "https://www.drupal.org/u/quicksketch",
+                    "role": "Maintainer"
+                },
+                {
+                    "name": "brmassa",
+                    "homepage": "https://www.drupal.org/u/brmassa",
+                    "role": "Maintainer"
+                },
+                {
+                    "name": "Rafal W (kenorb)",
+                    "homepage": "https://www.drupal.org/u/kenorb",
+                    "role": "Maintainer"
+                },
+                {
+                    "name": "Pierre Vriens (pierrevriens)",
+                    "homepage": "https://www.drupal.org/u/pierrevriens",
+                    "role": "Maintainer"
+                },
+                {
+                    "name": "Majali (rashad612)",
+                    "homepage": "https://www.drupal.org/u/rashad612",
+                    "role": "Maintainer"
+                }
+            ],
+            "description": "A charting API for Drupal that provides chart elements and integration with Views",
+            "homepage": "https://drupal.org/project/charts",
+            "support": {
+                "source": "https://git.drupalcode.org/project/charts",
+                "issues": "https://www.drupal.org/project/issues/charts?version=all_5.1.*",
+                "docs": "https://www.drupal.org/docs/contributed-modules/charts"
+            }
+        },
+        {
+            "name": "drupal/charts_chartjs",
+            "version": "5.1.10",
+            "require": {
+                "drupal/charts": "*",
+                "drupal/core": "^10.3 || ^11"
+            },
+            "type": "metapackage",
+            "extra": {
+                "drupal": {
+                    "version": "5.1.10",
+                    "datestamp": "1765584158",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "andileco",
+                    "homepage": "https://www.drupal.org/user/2054544"
+                },
+                {
+                    "name": "nikathone",
+                    "homepage": "https://www.drupal.org/user/2421800"
+                },
+                {
+                    "name": "quicksketch",
+                    "homepage": "https://www.drupal.org/user/35821"
+                }
+            ],
+            "description": "Charts module integration with Chart.js.",
+            "homepage": "https://www.drupal.org/project/charts",
+            "support": {
+                "source": "https://git.drupalcode.org/project/charts"
             }
         },
         {
@@ -3708,6 +3899,67 @@
             }
         },
         {
+            "name": "drupal/visitors",
+            "version": "2.32.0",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/visitors.git",
+                "reference": "8.x-2.32"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/visitors-8.x-2.32.zip",
+                "reference": "8.x-2.32",
+                "shasum": "a9f9acb83ae1e3b2a7a8e10cdd229203b3b9b791"
+            },
+            "require": {
+                "drupal/charts": "^5",
+                "drupal/charts_chartjs": "*",
+                "drupal/core": "^10 || ^11",
+                "geoip2/geoip2": "~2.0",
+                "matomo/device-detector": "^6.1"
+            },
+            "require-dev": {
+                "drupal/statistics": "~1",
+                "drush/drush": "^12 || ^13"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "8.x-2.32",
+                    "datestamp": "1758930428",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                },
+                "drush": {
+                    "services": {
+                        "drush.services.yml": ">=9"
+                    }
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Steven Ayers (bluegeek9)",
+                    "homepage": "https://www.drupal.org/u/bluegeek9",
+                    "role": "Maintainer"
+                }
+            ],
+            "description": "Visitors is a native drupal web analytics software.",
+            "homepage": "https://drupal.org/project/visitors",
+            "support": {
+                "source": "https://git.drupalcode.org/project/visitors",
+                "issues": "https://www.drupal.org/project/issues/visitors?version=8.x",
+                "docs": "https://www.drupal.org/docs/8/modules/visitors",
+                "forum": "https://drupal.stackexchange.com/questions/tagged/visitors"
+            }
+        },
+        {
             "name": "drush/drush",
             "version": "13.7.1",
             "source": {
@@ -4094,6 +4346,64 @@
                 "source": "https://github.com/ezyang/htmlpurifier/tree/v4.19.0"
             },
             "time": "2025-10-17T16:34:55+00:00"
+        },
+        {
+            "name": "geoip2/geoip2",
+            "version": "v2.13.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/maxmind/GeoIP2-php.git",
+                "reference": "6a41d8fbd6b90052bc34dff3b4252d0f88067b23"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/maxmind/GeoIP2-php/zipball/6a41d8fbd6b90052bc34dff3b4252d0f88067b23",
+                "reference": "6a41d8fbd6b90052bc34dff3b4252d0f88067b23",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "maxmind-db/reader": "~1.8",
+                "maxmind/web-service-common": "~0.8",
+                "php": ">=7.2"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "3.*",
+                "phpstan/phpstan": "*",
+                "phpunit/phpunit": "^8.0 || ^9.0",
+                "squizlabs/php_codesniffer": "3.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "GeoIp2\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Gregory J. Oschwald",
+                    "email": "goschwald@maxmind.com",
+                    "homepage": "https://www.maxmind.com/"
+                }
+            ],
+            "description": "MaxMind GeoIP2 PHP API",
+            "homepage": "https://github.com/maxmind/GeoIP2-php",
+            "keywords": [
+                "IP",
+                "geoip",
+                "geoip2",
+                "geolocation",
+                "maxmind"
+            ],
+            "support": {
+                "issues": "https://github.com/maxmind/GeoIP2-php/issues",
+                "source": "https://github.com/maxmind/GeoIP2-php/tree/v2.13.0"
+            },
+            "time": "2022-08-05T20:32:58+00:00"
         },
         {
             "name": "grasmash/expander",
@@ -5036,6 +5346,190 @@
             "time": "2025-07-25T09:04:22+00:00"
         },
         {
+            "name": "matomo/device-detector",
+            "version": "6.5.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/matomo-org/device-detector.git",
+                "reference": "e0fff2309dad83eb3cfb2564e524be715cfcf3cf"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/matomo-org/device-detector/zipball/e0fff2309dad83eb3cfb2564e524be715cfcf3cf",
+                "reference": "e0fff2309dad83eb3cfb2564e524be715cfcf3cf",
+                "shasum": ""
+            },
+            "require": {
+                "mustangostang/spyc": "*",
+                "php": "^7.2|^8.0"
+            },
+            "replace": {
+                "piwik/device-detector": "self.version"
+            },
+            "require-dev": {
+                "matthiasmullie/scrapbook": "^1.4.7",
+                "mayflower/mo4-coding-standard": "^v9.0.0",
+                "phpstan/phpstan": "^1.10.44",
+                "phpunit/phpunit": "^8.5.2 || ^9 || ^10 || ^11 || ^12",
+                "psr/cache": "^1.0.1 || ^2.0 || ^3.0",
+                "psr/simple-cache": "^1.0.1 || ^2.0 || ^3.0",
+                "slevomat/coding-standard": "<8.16.0",
+                "symfony/yaml": "^5.1.7"
+            },
+            "suggest": {
+                "ext-yaml": "Necessary for using the Pecl YAML parser"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "DeviceDetector\\": ""
+                },
+                "exclude-from-classmap": [
+                    "Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "The Matomo Team",
+                    "email": "hello@matomo.org",
+                    "homepage": "https://matomo.org/team/"
+                }
+            ],
+            "description": "The Universal Device Detection library, that parses User Agents and detects devices (desktop, tablet, mobile, tv, cars, console, etc.), clients (browsers, media players, mobile apps, feed readers, libraries, etc), operating systems, devices, brands and models.",
+            "homepage": "https://matomo.org",
+            "keywords": [
+                "devicedetection",
+                "parser",
+                "useragent"
+            ],
+            "support": {
+                "forum": "https://forum.matomo.org/",
+                "issues": "https://github.com/matomo-org/device-detector/issues",
+                "source": "https://github.com/matomo-org/matomo",
+                "wiki": "https://dev.matomo.org/"
+            },
+            "time": "2026-01-21T07:53:39+00:00"
+        },
+        {
+            "name": "maxmind-db/reader",
+            "version": "v1.13.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/maxmind/MaxMind-DB-Reader-php.git",
+                "reference": "2194f58d0f024ce923e685cdf92af3daf9951908"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/maxmind/MaxMind-DB-Reader-php/zipball/2194f58d0f024ce923e685cdf92af3daf9951908",
+                "reference": "2194f58d0f024ce923e685cdf92af3daf9951908",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2"
+            },
+            "conflict": {
+                "ext-maxminddb": "<1.11.1 || >=2.0.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "3.*",
+                "phpstan/phpstan": "*",
+                "phpunit/phpunit": ">=8.0.0,<10.0.0",
+                "squizlabs/php_codesniffer": "4.*"
+            },
+            "suggest": {
+                "ext-bcmath": "bcmath or gmp is required for decoding larger integers with the pure PHP decoder",
+                "ext-gmp": "bcmath or gmp is required for decoding larger integers with the pure PHP decoder",
+                "ext-maxminddb": "A C-based database decoder that provides significantly faster lookups",
+                "maxmind-db/reader-ext": "C extension for significantly faster IP lookups (install via PIE: pie install maxmind-db/reader-ext)"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "MaxMind\\Db\\": "src/MaxMind/Db"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Gregory J. Oschwald",
+                    "email": "goschwald@maxmind.com",
+                    "homepage": "https://www.maxmind.com/"
+                }
+            ],
+            "description": "MaxMind DB Reader API",
+            "homepage": "https://github.com/maxmind/MaxMind-DB-Reader-php",
+            "keywords": [
+                "database",
+                "geoip",
+                "geoip2",
+                "geolocation",
+                "maxmind"
+            ],
+            "support": {
+                "issues": "https://github.com/maxmind/MaxMind-DB-Reader-php/issues",
+                "source": "https://github.com/maxmind/MaxMind-DB-Reader-php/tree/v1.13.1"
+            },
+            "time": "2025-11-21T22:24:26+00:00"
+        },
+        {
+            "name": "maxmind/web-service-common",
+            "version": "v0.11.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/maxmind/web-service-common-php.git",
+                "reference": "c309236b5a5555b96cf560089ec3cead12d845d2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/maxmind/web-service-common-php/zipball/c309236b5a5555b96cf560089ec3cead12d845d2",
+                "reference": "c309236b5a5555b96cf560089ec3cead12d845d2",
+                "shasum": ""
+            },
+            "require": {
+                "composer/ca-bundle": "^1.0.3",
+                "ext-curl": "*",
+                "ext-json": "*",
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "3.*",
+                "phpstan/phpstan": "*",
+                "phpunit/phpunit": "^10.0",
+                "squizlabs/php_codesniffer": "4.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "MaxMind\\Exception\\": "src/Exception",
+                    "MaxMind\\WebService\\": "src/WebService"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Gregory Oschwald",
+                    "email": "goschwald@maxmind.com"
+                }
+            ],
+            "description": "Internal MaxMind Web Service API",
+            "homepage": "https://github.com/maxmind/web-service-common-php",
+            "support": {
+                "issues": "https://github.com/maxmind/web-service-common-php/issues",
+                "source": "https://github.com/maxmind/web-service-common-php/tree/v0.11.1"
+            },
+            "time": "2026-01-13T17:56:03+00:00"
+        },
+        {
             "name": "mck89/peast",
             "version": "v1.17.4",
             "source": {
@@ -5227,6 +5721,60 @@
             "time": "2016-07-25T17:07:32+00:00"
         },
         {
+            "name": "mustangostang/spyc",
+            "version": "0.6.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mustangostang/spyc.git",
+                "reference": "4627c838b16550b666d15aeae1e5289dd5b77da0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mustangostang/spyc/zipball/4627c838b16550b666d15aeae1e5289dd5b77da0",
+                "reference": "4627c838b16550b666d15aeae1e5289dd5b77da0",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.1"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "4.3.*@dev"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "0.5.x-dev"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "Spyc.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "mustangostang",
+                    "email": "vlad.andersen@gmail.com"
+                }
+            ],
+            "description": "A simple YAML loader/dumper class for PHP",
+            "homepage": "https://github.com/mustangostang/spyc/",
+            "keywords": [
+                "spyc",
+                "yaml",
+                "yml"
+            ],
+            "support": {
+                "issues": "https://github.com/mustangostang/spyc/issues",
+                "source": "https://github.com/mustangostang/spyc/tree/0.6.3"
+            },
+            "time": "2019-09-10T13:16:29+00:00"
+        },
+        {
             "name": "nikic/php-parser",
             "version": "v5.7.0",
             "source": {
@@ -5283,6 +5831,114 @@
                 "source": "https://github.com/nikic/PHP-Parser/tree/v5.7.0"
             },
             "time": "2025-12-06T11:56:16+00:00"
+        },
+        {
+            "name": "npm-asset/chart.js",
+            "version": "4.5.1",
+            "dist": {
+                "type": "tar",
+                "url": "https://registry.npmjs.org/chart.js/-/chart.js-4.5.1.tgz"
+            },
+            "require": {
+                "npm-asset/kurkle--color": ">=0.3.0,<0.4.0"
+            },
+            "type": "npm-asset",
+            "license": [
+                "MIT"
+            ]
+        },
+        {
+            "name": "npm-asset/chartjs-adapter-date-fns",
+            "version": "3.0.0",
+            "dist": {
+                "type": "tar",
+                "url": "https://registry.npmjs.org/chartjs-adapter-date-fns/-/chartjs-adapter-date-fns-3.0.0.tgz"
+            },
+            "type": "npm-asset",
+            "license": [
+                "MIT"
+            ]
+        },
+        {
+            "name": "npm-asset/chartjs-plugin-datalabels",
+            "version": "2.2.0",
+            "dist": {
+                "type": "tar",
+                "url": "https://registry.npmjs.org/chartjs-plugin-datalabels/-/chartjs-plugin-datalabels-2.2.0.tgz"
+            },
+            "type": "npm-asset",
+            "license": [
+                "MIT"
+            ]
+        },
+        {
+            "name": "npm-asset/kurkle--color",
+            "version": "0.3.4",
+            "dist": {
+                "type": "tar",
+                "url": "https://registry.npmjs.org/@kurkle/color/-/color-0.3.4.tgz"
+            },
+            "type": "npm-asset",
+            "license": [
+                "MIT"
+            ]
+        },
+        {
+            "name": "oomphinc/composer-installers-extender",
+            "version": "2.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/oomphinc/composer-installers-extender.git",
+                "reference": "cbf4b6f9a24153b785d09eee755b995ba87bd5f9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/oomphinc/composer-installers-extender/zipball/cbf4b6f9a24153b785d09eee755b995ba87bd5f9",
+                "reference": "cbf4b6f9a24153b785d09eee755b995ba87bd5f9",
+                "shasum": ""
+            },
+            "require": {
+                "composer-plugin-api": "^1.1 || ^2.0",
+                "composer/installers": "^1.0 || ^2.0",
+                "php": ">=7.1"
+            },
+            "require-dev": {
+                "composer/composer": "^2.0",
+                "phpunit/phpunit": "^7.2",
+                "squizlabs/php_codesniffer": "^3.3"
+            },
+            "type": "composer-plugin",
+            "extra": {
+                "class": "OomphInc\\ComposerInstallersExtender\\Plugin"
+            },
+            "autoload": {
+                "psr-4": {
+                    "OomphInc\\ComposerInstallersExtender\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Stephen Beemsterboer",
+                    "email": "stephen@oomphinc.com",
+                    "homepage": "https://github.com/balbuf"
+                },
+                {
+                    "name": "Nathan Dentzau",
+                    "email": "nate@oomphinc.com",
+                    "homepage": "http://oomph.is/ndentzau"
+                }
+            ],
+            "description": "Extend the composer/installers plugin to accept any arbitrary package type.",
+            "homepage": "http://www.oomphinc.com/",
+            "support": {
+                "issues": "https://github.com/oomphinc/composer-installers-extender/issues",
+                "source": "https://github.com/oomphinc/composer-installers-extender/tree/2.0.1"
+            },
+            "time": "2021-12-15T12:32:42+00:00"
         },
         {
             "name": "opensearch-project/opensearch-php",
