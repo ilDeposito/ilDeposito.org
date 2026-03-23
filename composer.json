@@ -12,6 +12,10 @@
         {
             "type": "composer",
             "url": "https://packages.drupal.org/8"
+        },
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
         }
     ],
     "require": {
@@ -46,7 +50,12 @@
         "drupal/twig_tweak": "^3.4",
         "drupal/ultimate_cron": "^2.0@alpha",
         "drupal/upgrade_status": "^4.3",
-        "drush/drush": "^13"
+        "drupal/visitors": "^2.32",
+        "drush/drush": "^13",
+        "npm-asset/chart.js": "^4.4",
+        "npm-asset/chartjs-adapter-date-fns": "^3.0",
+        "npm-asset/chartjs-plugin-datalabels": "^2.0",
+        "oomphinc/composer-installers-extender": "^2.0"
     },
     "conflict": {
         "drupal/drupal": "*"
@@ -57,11 +66,12 @@
         "platform-check": false,
         "allow-plugins": {
             "composer/installers": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true,
             "drupal/core-composer-scaffold": true,
             "drupal/core-project-message": true,
-            "phpstan/extension-installer": true,
-            "dealerdirect/phpcodesniffer-composer-installer": true,
-            "php-http/discovery": true
+            "oomphinc/composer-installers-extender": true,
+            "php-http/discovery": true,
+            "phpstan/extension-installer": true
         },
         "sort-packages": true
     },
@@ -71,12 +81,12 @@
                 "web-root": "web/"
             }
         },
+        "installer-types": [
+            "npm-asset"
+        ],
         "installer-paths": {
             "web/core": [
                 "type:drupal-core"
-            ],
-            "web/libraries/{$name}": [
-                "type:drupal-library"
             ],
             "web/modules/contrib/{$name}": [
                 "type:drupal-module"
@@ -98,6 +108,19 @@
             ],
             "web/themes/custom/{$name}": [
                 "type:drupal-custom-theme"
+            ],
+            "web/libraries/chart.js": [
+                "npm-asset/chart.js"
+            ],
+            "web/libraries/chartjs-adapter-date-fns": [
+                "npm-asset/chartjs-adapter-date-fns"
+            ],
+            "web/libraries/chartjs-plugin-datalabels": [
+                "npm-asset/chartjs-plugin-datalabels"
+            ],
+            "web/libraries/{$name}": [
+                "type:drupal-library",
+                "vendor:npm-asset"
             ]
         },
         "drupal-core-project-message": {
@@ -121,5 +144,14 @@
                 "      composer remove drupal/core-project-message"
             ]
         }
+    },
+    "scripts": {
+        "clean-chartjs": "chmod +x script/clean-chartjs.sh && ./script/clean-chartjs.sh",
+        "post-install-cmd": [
+            "@clean-chartjs"
+        ],
+        "post-update-cmd": [
+            "@clean-chartjs"
+        ]
     }
 }

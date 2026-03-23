@@ -1,9 +1,12 @@
 uuid: da55f0cd-0835-4275-9d6c-25d1e3b41073
 langcode: it
 status: true
-dependencies: {  }
+dependencies:
+  module:
+    - visitors
 id: staff
 label: Staff
 weight: 4
 is_admin: null
-permissions: {  }
+permissions:
+  - 'access visitors'
