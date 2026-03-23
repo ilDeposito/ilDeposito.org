@@ -22,6 +22,8 @@ web/sites/default/live.php
 # Node artifact files
 node_modules/
 
+mix-manifest.json
+
 # Local environment config
 web/themes/custom/ildeposito/.env.local
 /drush/sites/live.site.yml
