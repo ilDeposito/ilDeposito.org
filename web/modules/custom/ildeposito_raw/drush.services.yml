@@ -6,5 +6,6 @@ services:
       - '@config.factory'
       - '@cache.ildeposito_raw'
       - '@ildeposito_raw.manager'
+      - '@cache_tags.invalidator'
     tags:
       - { name: drush.command }

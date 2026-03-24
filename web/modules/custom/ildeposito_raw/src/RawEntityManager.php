@@ -15,6 +15,7 @@ use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
+use Drupal\Core\Url;
 use Drupal\Component\Datetime\TimeInterface;
 use Drupal\file\FileInterface;
 use Drupal\node\NodeInterface;
@@ -67,9 +68,23 @@ class RawEntityManager implements RawEntityManagerInterface {
   protected function getSettings(): array {
     if ($this->cachedSettings === NULL) {
       $config = $this->configFactory->get('ildeposito_raw.settings');
+      $raw_entities = $config->get('raw_entities') ?? [];
+
+      // Indice per lookup O(1): entity_type -> bundle -> view_mode -> TRUE
+      $index = [];
+      foreach ($raw_entities as $entry) {
+        $et = $entry['entity_type'] ?? '';
+        foreach ($entry['bundles'] ?? [] as $bundle) {
+          foreach ($entry['view_modes'] ?? [] as $vm) {
+            $index[$et][$bundle][$vm] = TRUE;
+          }
+        }
+      }
+
       $this->cachedSettings = [
-        'raw_entities' => $config->get('raw_entities') ?? [],
+        'raw_entities' => $raw_entities,
         'cache_max_age' => $config->get('cache_max_age'),
+        'index' => $index,
       ];
     }
     return $this->cachedSettings;
@@ -97,13 +112,7 @@ class RawEntityManager implements RawEntityManagerInterface {
    *   TRUE se il tipo di entità è configurato.
    */
   public function isEntityTypeConfigured(string $entity_type_id): bool {
-    $settings = $this->getSettings();
-    foreach ($settings['raw_entities'] as $raw_entity) {
-      if (($raw_entity['entity_type'] ?? '') === $entity_type_id) {
-        return TRUE;
-      }
-    }
-    return FALSE;
+    return isset($this->getSettings()['index'][$entity_type_id]);
   }
 
   /**
@@ -120,22 +129,8 @@ class RawEntityManager implements RawEntityManagerInterface {
    * Verifica se l'entità deve essere elaborata in modalità raw.
    */
   public function shouldProcessRaw(EntityInterface $entity, string $view_mode = 'default'): bool {
-    $settings = $this->getSettings();
-
-    foreach ($settings['raw_entities'] as $raw_entity) {
-      $bundles = $raw_entity['bundles'] ?? [];
-      $view_modes = $raw_entity['view_modes'] ?? [];
-      if (!is_array($bundles) || !is_array($view_modes)) {
-        continue;
-      }
-      if (($raw_entity['entity_type'] ?? '') === $entity->getEntityTypeId() &&
-          in_array($entity->bundle(), $bundles, TRUE) &&
-          in_array($view_mode, $view_modes, TRUE)) {
-        return TRUE;
-      }
-    }
-
-    return FALSE;
+    $index = $this->getSettings()['index'];
+    return isset($index[$entity->getEntityTypeId()][$entity->bundle()][$view_mode]);
   }
 
   /**
@@ -187,6 +182,17 @@ class RawEntityManager implements RawEntityManagerInterface {
     $this->cache->set($cid, $data, $expire, $this->lastCacheTags);
 
     return $data;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getRawDataWithTags(EntityInterface $entity): array {
+    $data = $this->getRawData($entity);
+    return [
+      'data' => $data,
+      'tags' => $this->lastCacheTags,
+    ];
   }
 
   /**
@@ -319,8 +325,17 @@ class RawEntityManager implements RawEntityManagerInterface {
     foreach ($field->getValue() as $delta => $value) {
       switch ($field_type) {
         case 'link':
+          // Normalizza a URL assoluto tramite Url::fromUri() che valida il
+          // protocollo, rifiutando schemi non sicuri (javascript:, data:, ecc.).
+          try {
+            $url_object = Url::fromUri($value['uri']);
+            $url_string = $url_object->toString();
+          }
+          catch (\InvalidArgumentException $e) {
+            $url_string = NULL;
+          }
           $values[$delta] = [
-            'url' => $value['uri'],
+            'url' => $url_string,
             'title' => $value['title'],
           ];
           break;

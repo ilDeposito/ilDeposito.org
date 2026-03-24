@@ -6,6 +6,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\ildeposito_raw\RawEntityManagerInterface;
 use Drush\Commands\DrushCommands;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -23,6 +24,7 @@ class IldepositoRawCommands extends DrushCommands {
     protected readonly ConfigFactoryInterface $configFactory,
     protected readonly CacheBackendInterface $cache,
     protected readonly RawEntityManagerInterface $rawManager,
+    protected readonly CacheTagsInvalidatorInterface $cacheTagsInvalidator,
   ) {
     parent::__construct();
   }
@@ -209,6 +211,26 @@ class IldepositoRawCommands extends DrushCommands {
   }
 
   /**
+   * Invalida tutti i dati raw in cache per un tipo di entità.
+   *
+   * @param string $entity_type
+   *   Il tipo di entità da invalidare (es. 'node').
+   *
+   * @command ildeposito:raw-cache-invalidate
+   * @aliases irci
+   * @usage ildeposito:raw-cache-invalidate node
+   *   Invalida tutti i dati raw in cache per i nodi.
+   */
+  public function invalidateByType(string $entity_type): void {
+    $tag = 'ildeposito_raw:entity:' . $entity_type;
+    $this->cacheTagsInvalidator->invalidateTags([$tag]);
+    $this->logger()->success(dt('Cache raw invalidata per il tipo di entità: @type (tag: @tag)', [
+      '@type' => $entity_type,
+      '@tag' => $tag,
+    ]));
+  }
+
+  /**
    * Filtra la configurazione in base alle opzioni specificate.
    *
    * @param array $options
@@ -216,6 +238,11 @@ class IldepositoRawCommands extends DrushCommands {
    *
    * @return array
    *   Le configurazioni filtrate e validate.
+   *
+   * @todo Valutare se esporre le raw_entities filtrate tramite
+   *   RawEntityManagerInterface per eliminare questa duplicazione con la
+   *   logica interna di RawEntityManager. Attualmente non è un breaking
+   *   change in quanto RawEntityManagerInterface non espone tale metodo.
    */
   protected function getFilteredConfig(array $options): array {
     $config = $this->configFactory->get('ildeposito_raw.settings');

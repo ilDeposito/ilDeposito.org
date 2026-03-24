@@ -4,7 +4,6 @@ namespace Drupal\ildeposito_raw;
 
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\FieldableEntityInterface;
 
 /**
  * Interface per il servizio di gestione dati raw delle entità.
@@ -63,19 +62,20 @@ interface RawEntityManagerInterface {
   public function getRawData(EntityInterface $entity): array;
 
   /**
-   * Raccoglie tutti i cache tags necessari, inclusi quelli delle entità referenziate.
+   * Restituisce i dati raw e i relativi cache tags in modo atomico.
    *
-   * @deprecated in ildeposito_raw:1.1.0 e verrà rimosso in ildeposito_raw:2.0.0.
-   *   I cache tags vengono ora raccolti automaticamente durante getRawData()
-   *   tramite processField(). Usare getLastCacheTags() dopo getRawData().
+   * Preferire questo metodo a getRawData() + getLastCacheTags() quando
+   * il codice chiamante potrebbe invocare getRawData() su più entità.
    *
-   * @param \Drupal\Core\Entity\FieldableEntityInterface $entity
-   *   L'entità.
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   L'entità da elaborare.
    *
    * @return array
-   *   Array di cache tags.
+   *   Array con due chiavi:
+   *   - 'data': i dati raw dell'entità.
+   *   - 'tags': i cache tags associati.
    */
-  public function collectCacheTags(FieldableEntityInterface $entity): array;
+  public function getRawDataWithTags(EntityInterface $entity): array;
 
   /**
    * Determina i cache contexts necessari per l'entità.
