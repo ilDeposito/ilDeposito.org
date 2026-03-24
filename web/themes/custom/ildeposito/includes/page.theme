@@ -89,3 +89,28 @@ function ildeposito_preprocess_page(array &$variables): void
     $variables['content_header_props']['data'] = _get_header_view($variables);
   }
 }
+
+/**
+ * Implements hook_page_attachments_alter().
+ */
+function ildeposito_page_attachments_alter(array &$attachments) {
+  // Rimuovi la favicon di default (opzionale)
+  foreach ($attachments['#attached']['html_head'] as $key => $attachment) {
+    if (isset($attachment[1]) && $attachment[1] == 'shortcut icon') {
+      unset($attachments['#attached']['html_head'][$key]);
+    }
+  }
+
+  // Aggiungi la favicon SVG
+  $attachments['#attached']['html_head'][] = [
+    [
+      '#tag' => 'link',
+      '#attributes' => [
+        'rel' => 'icon',
+        'href' => '/' . \Drupal::service('extension.list.theme')->getPath('ildeposito') . '/favicon.svg',
+        'type' => 'image/svg+xml',
+      ],
+    ],
+    'favicon_svg',
+  ];
+}
