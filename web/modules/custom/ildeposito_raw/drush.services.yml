@@ -3,8 +3,8 @@ services:
     class: Drupal\ildeposito_raw\Commands\IldepositoRawCommands
     arguments:
       - '@entity_type.manager'
-      - '@config.factory'
       - '@cache.ildeposito_raw'
       - '@ildeposito_raw.manager'
+      - '@cache_tags.invalidator'
     tags:
       - { name: drush.command }

@@ -4,7 +4,6 @@ namespace Drupal\ildeposito_raw;
 
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\FieldableEntityInterface;
 
 /**
  * Interface per il servizio di gestione dati raw delle entità.
@@ -63,19 +62,21 @@ interface RawEntityManagerInterface {
   public function getRawData(EntityInterface $entity): array;
 
   /**
-   * Raccoglie tutti i cache tags necessari, inclusi quelli delle entità referenziate.
+   * Genera i dati raw e i cache tags in modo atomico.
    *
-   * @deprecated in ildeposito_raw:1.1.0 e verrà rimosso in ildeposito_raw:2.0.0.
-   *   I cache tags vengono ora raccolti automaticamente durante getRawData()
-   *   tramite processField(). Usare getLastCacheTags() dopo getRawData().
+   * Restituisce dati e tags in un'unica chiamata, evitando race condition
+   * causate dalla property mutabile $lastCacheTags quando getRawData() viene
+   * chiamato su più entità durante la stessa request.
    *
-   * @param \Drupal\Core\Entity\FieldableEntityInterface $entity
-   *   L'entità.
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   L'entità da elaborare.
    *
    * @return array
-   *   Array di cache tags.
+   *   Array associativo con:
+   *   - 'data': i dati raw dell'entità.
+   *   - 'tags': i cache tags raccolti durante l'elaborazione.
    */
-  public function collectCacheTags(FieldableEntityInterface $entity): array;
+  public function getRawDataWithTags(EntityInterface $entity): array;
 
   /**
    * Determina i cache contexts necessari per l'entità.
@@ -87,6 +88,17 @@ interface RawEntityManagerInterface {
    *   Array di cache contexts.
    */
   public function getCacheContexts(ContentEntityInterface $entity): array;
+
+  /**
+   * Restituisce le entità configurate per l'elaborazione raw.
+   *
+   * Espone la configurazione del modulo in modo da evitare la lettura diretta
+   * del config factory in classi esterne (es. comandi Drush).
+   *
+   * @return array
+   *   Array di configurazioni raw_entities dalla config del modulo.
+   */
+  public function getConfiguredEntities(): array;
 
   /**
    * Restituisce le statistiche sulla cache per le entità configurate.

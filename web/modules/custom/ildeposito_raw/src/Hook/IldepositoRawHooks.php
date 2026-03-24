@@ -146,6 +146,22 @@ class IldepositoRawHooks {
   }
 
   /**
+   * Implements hook_entity_insert().
+   *
+   * Le nuove entità non hanno entry in cache, ma il tag custom
+   * 'ildeposito_raw:entity:{type}' (aggiunto a ogni item durante il warming)
+   * deve essere invalidato affinché le statistiche e i report vengano
+   * ricalcolati. L'invalidazione del tag triggera anche la cancellazione
+   * di tutti i cache item che includono quel tag.
+   */
+  #[Hook('entity_insert')]
+  public function entityInsert(EntityInterface $entity): void {
+    if ($this->rawManager->isEntityTypeConfigured($entity->getEntityTypeId())) {
+      $this->rawManager->invalidateCache($entity);
+    }
+  }
+
+  /**
    * Implements hook_entity_update().
    *
    * Safety net: Drupal core invalida già i cache tags delle entità durante

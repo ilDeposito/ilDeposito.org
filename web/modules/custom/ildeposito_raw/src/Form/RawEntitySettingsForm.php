@@ -266,6 +266,13 @@ class RawEntitySettingsForm extends ConfigFormBase {
     $raw_entities = $config->get('raw_entities') ?? [];
 
     if ($entity_type = $form_state->getValue('entity_type')) {
+      // Verifica server-side che il tipo esista nel sistema, come protezione
+      // contro richieste HTTP manipolate (la select lo garantisce normalmente).
+      if (!$this->entityTypeManager->hasDefinition($entity_type)) {
+        $this->messenger()->addError($this->t('Tipo di entità non valido.'));
+        return;
+      }
+
       $raw_entities[] = [
         'entity_type' => $entity_type,
         'bundles' => array_values(array_filter($form_state->getValue(['entity_type_dependent', 'bundles']))),

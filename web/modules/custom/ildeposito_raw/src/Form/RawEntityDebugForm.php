@@ -116,11 +116,19 @@ class RawEntityDebugForm extends FormBase {
       $entity = $this->entityTypeManager->getStorage($entity_type)->load($entity_id);
       if (!$entity) {
         $form_state->setErrorByName('entity_id', $this->t('Entità non trovata. Verifica il tipo e l\'ID.'));
-      }      else {
-        // Salva l'entit\u00e0 in form_state per evitare un secondo caricamento
-        // in submitForm().
-        $form_state->set('loaded_entity', $entity);
-      }    }
+        return;
+      }
+      // Verifica che l'utente abbia accesso VIEW all'entità specifica.
+      // Un admin con 'administer ildeposito raw settings' ma senza
+      // 'bypass node access' non deve vedere dati raw di nodi non accessibili.
+      if (!$entity->access('view')) {
+        $form_state->setErrorByName('entity_id', $this->t('Non hai accesso a questa entità.'));
+        return;
+      }
+      // Salva l'entità in form_state per evitare un secondo caricamento
+      // in submitForm().
+      $form_state->set('loaded_entity', $entity);
+    }
   }
 
   /**

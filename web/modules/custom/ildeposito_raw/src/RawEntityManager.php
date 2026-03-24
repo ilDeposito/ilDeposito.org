@@ -15,9 +15,9 @@ use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
+use Drupal\Core\Url;
 use Drupal\Component\Datetime\TimeInterface;
 use Drupal\file\FileInterface;
-use Drupal\node\NodeInterface;
 use Drupal\taxonomy\TermInterface;
 
 /**
@@ -67,9 +67,24 @@ class RawEntityManager implements RawEntityManagerInterface {
   protected function getSettings(): array {
     if ($this->cachedSettings === NULL) {
       $config = $this->configFactory->get('ildeposito_raw.settings');
+      $raw_entities = $config->get('raw_entities') ?? [];
+
+      // Pre-calcola un indice per lookup O(1) in shouldProcessRaw()
+      // e isEntityTypeConfigured(), evitando iterazioni lineari ad ogni render.
+      $index = [];
+      foreach ($raw_entities as $entry) {
+        $et = $entry['entity_type'] ?? '';
+        foreach ($entry['bundles'] ?? [] as $bundle) {
+          foreach ($entry['view_modes'] ?? [] as $vm) {
+            $index[$et][$bundle][$vm] = TRUE;
+          }
+        }
+      }
+
       $this->cachedSettings = [
-        'raw_entities' => $config->get('raw_entities') ?? [],
+        'raw_entities' => $raw_entities,
         'cache_max_age' => $config->get('cache_max_age'),
+        'index' => $index,
       ];
     }
     return $this->cachedSettings;
@@ -97,13 +112,7 @@ class RawEntityManager implements RawEntityManagerInterface {
    *   TRUE se il tipo di entità è configurato.
    */
   public function isEntityTypeConfigured(string $entity_type_id): bool {
-    $settings = $this->getSettings();
-    foreach ($settings['raw_entities'] as $raw_entity) {
-      if (($raw_entity['entity_type'] ?? '') === $entity_type_id) {
-        return TRUE;
-      }
-    }
-    return FALSE;
+    return isset($this->getSettings()['index'][$entity_type_id]);
   }
 
   /**
@@ -120,22 +129,8 @@ class RawEntityManager implements RawEntityManagerInterface {
    * Verifica se l'entità deve essere elaborata in modalità raw.
    */
   public function shouldProcessRaw(EntityInterface $entity, string $view_mode = 'default'): bool {
-    $settings = $this->getSettings();
-
-    foreach ($settings['raw_entities'] as $raw_entity) {
-      $bundles = $raw_entity['bundles'] ?? [];
-      $view_modes = $raw_entity['view_modes'] ?? [];
-      if (!is_array($bundles) || !is_array($view_modes)) {
-        continue;
-      }
-      if (($raw_entity['entity_type'] ?? '') === $entity->getEntityTypeId() &&
-          in_array($entity->bundle(), $bundles, TRUE) &&
-          in_array($view_mode, $view_modes, TRUE)) {
-        return TRUE;
-      }
-    }
-
-    return FALSE;
+    $index = $this->getSettings()['index'];
+    return isset($index[$entity->getEntityTypeId()][$entity->bundle()][$view_mode]);
   }
 
   /**
@@ -190,20 +185,28 @@ class RawEntityManager implements RawEntityManagerInterface {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public function getRawDataWithTags(EntityInterface $entity): array {
+    $data = $this->getRawData($entity);
+    return [
+      'data' => $data,
+      'tags' => $this->lastCacheTags,
+    ];
+  }
+
+  /**
    * Raccoglie tutti i cache tags necessari, inclusi quelli delle entità referenziate.
    *
    * @deprecated in ildeposito_raw:1.1.0 e verrà rimosso in ildeposito_raw:2.0.0.
    *   I cache tags vengono ora raccolti automaticamente durante getRawData()
-   *   tramite processField(). Usare getLastCacheTags() dopo getRawData().
+   *   tramite processField(). Usare getRawDataWithTags() per ottenere dati e
+   *   tags in modo atomico, oppure getLastCacheTags() dopo getRawData().
    *
-   * @param \Drupal\Core\Entity\FieldableEntityInterface $entity
-   *   L'entità.
-   *
-   * @return array
-   *   Array di cache tags.
+   * @internal
    */
   public function collectCacheTags(FieldableEntityInterface $entity): array {
-    @trigger_error('collectCacheTags() is deprecated in ildeposito_raw:1.1.0 and is removed from ildeposito_raw:2.0.0. Use getLastCacheTags() after getRawData() instead. See https://www.drupal.org/node/0000000', E_USER_DEPRECATED);
+    @trigger_error('collectCacheTags() is deprecated in ildeposito_raw:1.1.0 and is removed from ildeposito_raw:2.0.0. Use getRawDataWithTags() or getLastCacheTags() after getRawData() instead. See https://www.drupal.org/node/0000000', E_USER_DEPRECATED);
     $cache_tags = $entity->getCacheTags();
 
     foreach ($entity->getFields() as $field) {
@@ -239,8 +242,10 @@ class RawEntityManager implements RawEntityManagerInterface {
    * Costruisce l'array di dati raw per un'entità.
    */
   protected function buildRawData(ContentEntityInterface $entity): array {
-    $created = ($entity instanceof NodeInterface)
-      ? $this->formatDate($entity->getCreatedTime())
+    // Usa l'entity key 'created' per evitare accoppiamento con NodeInterface.
+    $created_key = $entity->getEntityType()->getKey('created');
+    $created = ($created_key && $entity->hasField($created_key) && !$entity->get($created_key)->isEmpty())
+      ? $this->formatDate((int) $entity->get($created_key)->value)
       : NULL;
     $changed = ($entity instanceof EntityChangedInterface)
       ? $this->formatDate($entity->getChangedTime())
@@ -319,8 +324,16 @@ class RawEntityManager implements RawEntityManagerInterface {
     foreach ($field->getValue() as $delta => $value) {
       switch ($field_type) {
         case 'link':
+          // Normalizza l'URI tramite Url::fromUri() che rifiuta schemi
+          // pericolosi (javascript:, data:) lanciando InvalidArgumentException.
+          try {
+            $url_string = Url::fromUri($value['uri'])->toString();
+          }
+          catch (\InvalidArgumentException $e) {
+            $url_string = NULL;
+          }
           $values[$delta] = [
-            'url' => $value['uri'],
+            'url' => $url_string,
             'title' => $value['title'],
           ];
           break;
@@ -479,6 +492,13 @@ class RawEntityManager implements RawEntityManagerInterface {
       $this->timezone = new \DateTimeZone(date_default_timezone_get());
     }
     return $this->timezone;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getConfiguredEntities(): array {
+    return $this->getSettings()['raw_entities'];
   }
 
   /**

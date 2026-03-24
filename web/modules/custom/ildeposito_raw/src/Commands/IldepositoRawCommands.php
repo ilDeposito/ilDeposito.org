@@ -2,7 +2,7 @@
 
 namespace Drupal\ildeposito_raw\Commands;
 
-use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Cache\CacheBackendInterface;
@@ -20,9 +20,9 @@ class IldepositoRawCommands extends DrushCommands {
    */
   public function __construct(
     protected readonly EntityTypeManagerInterface $entityTypeManager,
-    protected readonly ConfigFactoryInterface $configFactory,
     protected readonly CacheBackendInterface $cache,
     protected readonly RawEntityManagerInterface $rawManager,
+    protected readonly CacheTagsInvalidatorInterface $cacheTagsInvalidator,
   ) {
     parent::__construct();
   }
@@ -167,6 +167,32 @@ class IldepositoRawCommands extends DrushCommands {
   }
 
   /**
+   * Invalida i dati raw in cache per un tipo di entità specifico.
+   *
+   * Usa il tag custom 'ildeposito_raw:entity:{type}' per invalidare in bulk
+   * tutte le entry della cache bin che appartengono al tipo indicato.
+   *
+   * @param string $entity_type
+   *   Il tipo di entità (es. 'node', 'taxonomy_term').
+   *
+   * @command ildeposito:raw-cache-invalidate
+   * @aliases irci
+   * @usage ildeposito:raw-cache-invalidate node
+   *   Invalida tutti i dati raw in cache per i nodi.
+   */
+  public function invalidateByType(string $entity_type): void {
+    if (!$this->rawManager->isEntityTypeConfigured($entity_type)) {
+      $this->logger()->warning("Il tipo di entità '{$entity_type}' non è configurato nel modulo ildeposito_raw.");
+      return;
+    }
+
+    $this->cacheTagsInvalidator->invalidateTags([
+      'ildeposito_raw:entity:' . $entity_type,
+    ]);
+    $this->logger()->success("Cache raw invalidata per il tipo: {$entity_type}");
+  }
+
+  /**
    * Visualizza le statistiche sulla cache del modulo ildeposito_raw.
    *
    * @param array $options
@@ -218,8 +244,9 @@ class IldepositoRawCommands extends DrushCommands {
    *   Le configurazioni filtrate e validate.
    */
   protected function getFilteredConfig(array $options): array {
-    $config = $this->configFactory->get('ildeposito_raw.settings');
-    $raw_entities = $config->get('raw_entities') ?? [];
+    // Legge la configurazione tramite il manager per non duplicare
+    // la logica di accesso alla config e beneficiare del caching per-request.
+    $raw_entities = $this->rawManager->getConfiguredEntities();
     $filtered = [];
 
     foreach ($raw_entities as $raw_entity) {
