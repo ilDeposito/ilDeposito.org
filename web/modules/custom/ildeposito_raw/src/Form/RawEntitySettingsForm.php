@@ -139,6 +139,9 @@ class RawEntitySettingsForm extends ConfigFormBase {
       '#options' => $this->getBundleOptions($form_state->getValue('entity_type')),
       '#multiple' => TRUE,
       '#required' => TRUE,
+      // Reset del valore quando cambia l'entity type via AJAX per evitare
+      // che selezioni del tipo precedente sopravvivano al cambio.
+      '#value' => [],
     ];
 
     $form['add']['entity_type_dependent']['view_modes'] = [
@@ -147,6 +150,8 @@ class RawEntitySettingsForm extends ConfigFormBase {
       '#options' => $this->getViewModeOptions($form_state->getValue('entity_type')),
       '#multiple' => TRUE,
       '#required' => TRUE,
+      // Reset del valore quando cambia l'entity type via AJAX.
+      '#value' => [],
     ];
 
     $form['add']['submit'] = [
@@ -266,6 +271,14 @@ class RawEntitySettingsForm extends ConfigFormBase {
     $raw_entities = $config->get('raw_entities') ?? [];
 
     if ($entity_type = $form_state->getValue('entity_type')) {
+      // Verifica server-side che il tipo esista nel sistema, come protezione
+      // contro richieste con dati manipolati (la select garantisce ciò in
+      // condizioni normali, ma la validazione server-side è necessaria).
+      if (!$this->entityTypeManager->hasDefinition($entity_type)) {
+        $this->messenger()->addError($this->t('Tipo di entità non valido.'));
+        return;
+      }
+
       $raw_entities[] = [
         'entity_type' => $entity_type,
         'bundles' => array_values(array_filter($form_state->getValue(['entity_type_dependent', 'bundles']))),

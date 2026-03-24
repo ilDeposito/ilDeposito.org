@@ -146,6 +146,20 @@ class IldepositoRawHooks {
   }
 
   /**
+   * Implements hook_entity_insert().
+   *
+   * Garantisce che eventuali entry in cache con tag obsoleti per la nuova
+   * entità vengano invalidate. Utile in scenari con warming preventivo
+   * o cache condivisa tra ambienti.
+   */
+  #[Hook('entity_insert')]
+  public function entityInsert(EntityInterface $entity): void {
+    if ($this->rawManager->isEntityTypeConfigured($entity->getEntityTypeId())) {
+      $this->rawManager->invalidateCache($entity);
+    }
+  }
+
+  /**
    * Implements hook_entity_update().
    *
    * Safety net: Drupal core invalida già i cache tags delle entità durante

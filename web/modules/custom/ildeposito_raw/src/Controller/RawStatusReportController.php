@@ -63,7 +63,7 @@ class RawStatusReportController extends ControllerBase {
       '#cache' => [
         'tags' => $stats['cache_tags'],
         'contexts' => ['user.permissions'],
-        'max-age' => 60,
+        'max-age' => $this->rawManager->getCacheMaxAge(),
       ],
     ];
   }
