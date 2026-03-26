@@ -1,0 +1,29 @@
+uuid: 5faf7b81-a949-4e34-8b29-ac3b4c9142ad
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_tematiche
+    - node.type.evento
+    - taxonomy.vocabulary.tematiche
+id: node.evento.field_tematiche
+field_name: field_tematiche
+entity_type: node
+bundle: evento
+label: Tematiche
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      tematiche: tematiche
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

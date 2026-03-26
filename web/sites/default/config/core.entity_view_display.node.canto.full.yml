@@ -10,6 +10,7 @@ dependencies:
     - field.field.node.canto.field_autore_originale
     - field.field.node.canto.field_autori_musica
     - field.field.node.canto.field_autori_testo
+    - field.field.node.canto.field_canti_correlati
     - field.field.node.canto.field_canto_accordi
     - field.field.node.canto.field_canto_testo
     - field.field.node.canto.field_capoverso
@@ -21,6 +22,7 @@ dependencies:
     - field.field.node.canto.field_old_id
     - field.field.node.canto.field_periodo
     - field.field.node.canto.field_tags
+    - field.field.node.canto.field_tematiche
     - node.type.canto
   module:
     - datetime
@@ -77,6 +79,14 @@ content:
       link: true
     third_party_settings: {  }
     weight: 8
+    region: content
+  field_canti_correlati:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 101
     region: content
   field_canto_accordi:
     type: basic_string
@@ -170,5 +180,6 @@ content:
     region: content
 hidden:
   field_autore_originale: true
+  field_tematiche: true
   langcode: true
   search_api_excerpt: true

@@ -15,6 +15,7 @@ dependencies:
     - field.field.node.evento.field_old_id
     - field.field.node.evento.field_periodo
     - field.field.node.evento.field_tags
+    - field.field.node.evento.field_tematiche
     - node.type.evento
   module:
     - datetime
@@ -127,6 +128,14 @@ content:
       link: true
     third_party_settings: {  }
     weight: 112
+    region: content
+  field_tematiche:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 117
     region: content
   links:
     settings: {  }

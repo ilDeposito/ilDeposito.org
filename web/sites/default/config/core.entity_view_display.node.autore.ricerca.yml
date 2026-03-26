@@ -7,6 +7,7 @@ dependencies:
     - field.field.node.autore.field_altri_nomi
     - field.field.node.autore.field_cognome
     - field.field.node.autore.field_immagine
+    - field.field.node.autore.field_informazioni
     - field.field.node.autore.field_localizzazione
     - field.field.node.autore.field_metatag
     - field.field.node.autore.field_nome
@@ -14,6 +15,7 @@ dependencies:
     - field.field.node.autore.field_periodo
     - node.type.autore
   module:
+    - text
     - user
 id: node.autore.ricerca
 targetEntityType: node
@@ -44,6 +46,13 @@ content:
       link: false
     third_party_settings: {  }
     weight: 102
+    region: content
+  field_informazioni:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 13
     region: content
   field_localizzazione:
     type: entity_reference_label

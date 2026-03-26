@@ -1,0 +1,29 @@
+uuid: 9c4790de-050c-4275-a13d-b8336f2d141b
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_tematiche
+    - node.type.canto
+    - taxonomy.vocabulary.tematiche
+id: node.canto.field_tematiche
+field_name: field_tematiche
+entity_type: node
+bundle: canto
+label: Tematiche
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      tematiche: tematiche
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

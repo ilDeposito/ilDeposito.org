@@ -16,6 +16,7 @@ dependencies:
     - field.field.node.evento.field_old_id
     - field.field.node.evento.field_periodo
     - field.field.node.evento.field_tags
+    - field.field.node.evento.field_tematiche
     - node.type.evento
   module:
     - datetime
@@ -128,5 +129,6 @@ content:
     region: content
 hidden:
   field_metatag: true
+  field_tematiche: true
   langcode: true
   search_api_excerpt: true

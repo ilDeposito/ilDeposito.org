@@ -15,6 +15,7 @@ dependencies:
     - field.field.node.evento.field_old_id
     - field.field.node.evento.field_periodo
     - field.field.node.evento.field_tags
+    - field.field.node.evento.field_tematiche
     - node.type.evento
   module:
     - datetime
@@ -114,6 +115,16 @@ content:
   field_tags:
     type: entity_reference_autocomplete
     weight: 9
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_tematiche:
+    type: entity_reference_autocomplete
+    weight: 28
     region: content
     settings:
       match_operator: CONTAINS

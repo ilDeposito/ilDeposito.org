@@ -6,6 +6,7 @@ dependencies:
     - field.field.node.autore.field_altri_nomi
     - field.field.node.autore.field_cognome
     - field.field.node.autore.field_immagine
+    - field.field.node.autore.field_informazioni
     - field.field.node.autore.field_localizzazione
     - field.field.node.autore.field_metatag
     - field.field.node.autore.field_nome
@@ -16,6 +17,7 @@ dependencies:
     - media_library
     - metatag
     - path
+    - text
 id: node.autore.default
 targetEntityType: node
 bundle: autore
@@ -49,6 +51,16 @@ content:
     region: content
     settings:
       media_types: {  }
+    third_party_settings: {  }
+  field_informazioni:
+    type: text_textarea_with_summary
+    weight: 12
+    region: content
+    settings:
+      rows: 5
+      summary_rows: 3
+      placeholder: ''
+      show_summary: false
     third_party_settings: {  }
   field_localizzazione:
     type: options_select

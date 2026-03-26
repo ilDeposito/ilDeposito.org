@@ -1,0 +1,24 @@
+uuid: 22e69fa2-d057-4dd5-9c3a-33362948362f
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_informazioni
+    - node.type.autore
+  module:
+    - text
+id: node.autore.field_informazioni
+field_name: field_informazioni
+entity_type: node
+bundle: autore
+label: Informazioni
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  display_summary: false
+  required_summary: false
+  allowed_formats: {  }
+field_type: text_with_summary
