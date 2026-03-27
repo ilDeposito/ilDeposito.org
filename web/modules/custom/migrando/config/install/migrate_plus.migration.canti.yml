@@ -1,5 +1,5 @@
 id: canti
-label: 10. Canti
+label: Canti
 migration_group: ilDeposito
 
 source:
@@ -79,6 +79,12 @@ source:
     -
       name: autore_originale
       selector: autore_originale
+    - 
+      name: contenuti_correlati
+      selector: contenuti_correlati
+    -
+      name: tematiche
+      selector: tematiche
 
   ids:
     nid:
@@ -152,6 +158,17 @@ process:
     -
       plugin: get_migration_id
       importer: 'termini_lingue'
+  field_tematiche:
+    -
+      plugin: explode
+      delimiter: ', '
+      source: tematiche
+    -
+      plugin: multiple_values
+    -
+      plugin: get_migration_id
+      importer: 'termini_tematiche'
+
   field_tags:
     -
       plugin: skip_on_empty

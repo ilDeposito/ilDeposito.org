@@ -1,5 +1,5 @@
 id: autori
-label: 09. Autori
+label: Autori
 migration_group: ilDeposito
 
 source:
@@ -50,6 +50,9 @@ source:
     -
       name: altri_nomi
       selector: altri_nomi
+    -
+      name: informazioni
+      selector: informazioni
 
   ids:
     nid:
@@ -124,6 +127,11 @@ process:
     -
       plugin: get_migration_id
       importer: 'termini_periodi'
+
+  'field_informazioni/value': informazioni
+  'field_informazioni/format':
+    plugin: default_value
+    default_value: 'basic_html'
 
 destination:
   plugin: entity:node
