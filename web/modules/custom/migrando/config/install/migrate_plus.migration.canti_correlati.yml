@@ -1,0 +1,61 @@
+id: canti_correlati
+label: Canti correlati
+migration_group: ilDeposito
+
+source:
+  plugin: url
+  data_fetcher_plugin: file
+  data_parser_plugin: json
+  urls:
+    - modules/custom/migrando/files/canti/canti_0.json
+    - modules/custom/migrando/files/canti/canti_1.json
+    - modules/custom/migrando/files/canti/canti_2.json
+    - modules/custom/migrando/files/canti/canti_3.json
+    - modules/custom/migrando/files/canti/canti_4.json
+    - modules/custom/migrando/files/canti/canti_5.json
+    - modules/custom/migrando/files/canti/canti_6.json
+  item_selector: 'items'
+  fields:
+    -
+      name: nid
+      selector: nid
+    - 
+      name: contenuti_correlati
+      selector: contenuti_correlati
+  ids:
+    nid:
+      type: string
+
+process:
+
+  nid:
+    plugin: migration_lookup
+    migration: canti
+    source: nid
+    no_stub: true
+
+  field_canti_correlati:
+    -
+      plugin: skip_on_empty
+      method: process
+      source: contenuti_correlati
+    -
+      plugin: explode
+      delimiter: ', '
+      source: contenuti_correlati
+    -
+      plugin: multiple_values
+    -
+      plugin: get_migration_id
+      importer: 'canti'
+
+destination:
+  plugin: entity:node
+  bundle: canto
+  default_langcode: it
+  langcode: it
+
+dependencies:
+  enforced:
+    module:
+      - migrando

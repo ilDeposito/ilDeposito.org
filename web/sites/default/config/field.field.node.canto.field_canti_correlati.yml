@@ -1,0 +1,28 @@
+uuid: 098da8de-f620-4761-9400-575ed833dd04
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_canti_correlati
+    - node.type.canto
+id: node.canto.field_canti_correlati
+field_name: field_canti_correlati
+entity_type: node
+bundle: canto
+label: 'Canti correlati'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      canto: canto
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

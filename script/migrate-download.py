@@ -4,8 +4,9 @@ import getpass
 import glob
 import shutil
 from typing import List, Dict, Any, Tuple
-import requests
-from requests.auth import HTTPBasicAuth
+import urllib.request
+import urllib.error
+import base64
 # ...existing code...
 
 # Configurazione iniziale
@@ -29,7 +30,7 @@ ENDPOINTS: List[str] = [
     "/export/stats_eventi.json",
 ]
 
-FILES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'web', 'modules', 'custom', 'migrando', 'files')
+FILES_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'web', 'modules', 'custom', 'migrando', 'files')
 TIMEOUT = 10  # secondi
 
 
@@ -43,7 +44,7 @@ def ensure_dir(path: str) -> None:
     os.makedirs(path, exist_ok=True)
 
 
-def fetch_paginated_json(endpoint: str, auth: HTTPBasicAuth, timeout: int) -> Tuple[List[str], List[Dict[str, Any]]]:
+def fetch_paginated_json(endpoint: str, auth: str, timeout: int) -> Tuple[List[str], List[Dict[str, Any]]]:
     """Scarica tutte le pagine JSON da un endpoint Drupal paginato, salvando in una sottodirectory per endpoint."""
     files_created: List[str] = []
     errors: List[Dict[str, Any]] = []
@@ -64,39 +65,36 @@ def fetch_paginated_json(endpoint: str, auth: HTTPBasicAuth, timeout: int) -> Tu
     import time  # Delay tra richieste
     while True:
         url = f"{base_url}?page={page}"
+        req = urllib.request.Request(url, headers={"Authorization": f"Basic {auth}"})
         try:
-            resp = requests.get(url, auth=auth, timeout=timeout)
-            if resp.status_code != 200:
-                errors.append({
-                    "endpoint": endpoint,
-                    "page": page,
-                    "url": url,
-                    "error": f"HTTP {resp.status_code}: {resp.text[:200]}"
-                })
-                break
-            try:
-                data = resp.json()
-            except Exception as e:
-                errors.append({
-                    "endpoint": endpoint,
-                    "page": page,
-                    "url": url,
-                    "error": f"JSON decode error: {str(e)}"
-                })
-                break
-            if not data:
-                # Fine paginazione
-                break
-            file_path = os.path.join(endpoint_dir, f"{file_prefix}_{page}.json")
-            # Se la risposta è una lista, wrappala in un oggetto con chiave 'items'
-            if isinstance(data, list):
-                data = {"items": data}
-            with open(file_path, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
-            files_created.append(file_path)
-            page += 1
-            time.sleep(3)  # Aspetta 3 secondi tra una richiesta e l'altra
-        except requests.exceptions.RequestException as e:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                if resp.status != 200:
+                    errors.append({
+                        "endpoint": endpoint,
+                        "page": page,
+                        "url": url,
+                        "error": f"HTTP {resp.status}"
+                    })
+                    break
+                try:
+                    data = json.loads(resp.read().decode("utf-8"))
+                except Exception as e:
+                    errors.append({
+                        "endpoint": endpoint,
+                        "page": page,
+                        "url": url,
+                        "error": f"JSON decode error: {str(e)}"
+                    })
+                    break
+        except urllib.error.HTTPError as e:
+            errors.append({
+                "endpoint": endpoint,
+                "page": page,
+                "url": url,
+                "error": f"HTTP {e.code}: {e.reason}"
+            })
+            break
+        except urllib.error.URLError as e:
             errors.append({
                 "endpoint": endpoint,
                 "page": page,
@@ -104,13 +102,25 @@ def fetch_paginated_json(endpoint: str, auth: HTTPBasicAuth, timeout: int) -> Tu
                 "error": f"Request error: {str(e)}"
             })
             break
+        if not data:
+            # Fine paginazione
+            break
+        file_path = os.path.join(endpoint_dir, f"{file_prefix}_{page}.json")
+        # Se la risposta è una lista, wrappala in un oggetto con chiave 'items'
+        if isinstance(data, list):
+            data = {"items": data}
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        files_created.append(file_path)
+        page += 1
+        time.sleep(3)  # Aspetta 3 secondi tra una richiesta e l'altra
     return files_created, errors
 
 
 def main() -> None:
     """Funzione principale: gestisce autenticazione, pulizia, download e riepilogo."""
     # Percorso assoluto della directory files nella struttura Drupal
-    files_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'web', 'modules', 'custom', 'migrando', 'files')
+    files_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'web', 'modules', 'custom', 'migrando', 'files')
 
     # Elimina tutte le subdirectory dentro files
     if os.path.exists(files_dir):
@@ -129,7 +139,7 @@ def main() -> None:
 
     print(f"Scaricamento JSON da {BASE_DOMAIN} tramite Basic Auth...")
     password = prompt_password()
-    auth = HTTPBasicAuth(USERNAME, password)
+    auth = base64.b64encode(f"{USERNAME}:{password}".encode()).decode()
 
     all_files: List[str] = []
     all_errors: List[Dict[str, Any]] = []
