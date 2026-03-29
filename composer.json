@@ -33,6 +33,7 @@
         "drupal/facets": "^3.0",
         "drupal/focal_point": "^2.1",
         "drupal/geofield": "^10.3",
+        "drupal/matomo": "^1.26",
         "drupal/memcache": "^2.7",
         "drupal/metatag": "^2.0",
         "drupal/migrate_plus": "^6.0",
