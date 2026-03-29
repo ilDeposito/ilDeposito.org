@@ -1,0 +1,14 @@
+{% set player_title = title|default('Player YouTube') %}
+
+<span class="yt-mini-player" data-youtube-url="{{ youtube_url|e('html_attr') }}" {{ attributes }}>
+	<iframe class="yt-mini-player__frame" src="about:blank" title="{{ player_title }}" allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin" aria-hidden="true" tabindex="-1"></iframe>
+	<button type="button" class="yt-mini-player__toggle" aria-label="{{ player_title }}" aria-pressed="false">
+		{{ include('ildeposito:icon', { 
+            name: 'play',
+            class: ['text-dark', 'fs-5'],
+            type: 'fill',
+            size: '1rem',
+            }, with_context = false) }}
+	</button>
+
+</span>
