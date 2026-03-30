@@ -20,6 +20,7 @@ $theme-colors: map-merge(
   (
     "accent": $accent,
     "lighter": $lighter,
+    "less-dark": darken($dark, 50%),
   )
 );
 

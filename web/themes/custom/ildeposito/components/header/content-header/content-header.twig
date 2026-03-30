@@ -37,5 +37,12 @@
       <h5 class="page-description fst-italic fw-light">Descrizione di default!</h5>
     {% endif %}
 
+
+    {{ include('ildeposito:social-share', {
+  url: node_url,
+  title: node.label(),
+  text: 'Scopri questo canto su ilDeposito',
+}, with_context = false) }}
+
   </div>
 </div>
