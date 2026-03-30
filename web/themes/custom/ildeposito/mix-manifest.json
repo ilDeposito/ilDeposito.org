@@ -31,8 +31,6 @@
     "/components/logo/logo.css.map": "/components/logo/logo.css.map",
     "/components/icon/icon.css": "/components/icon/icon.css",
     "/components/icon/icon.css.map": "/components/icon/icon.css.map",
-    "/build/assets/icons/sprite_fill.svg": "/build/assets/icons/sprite_fill.svg",
-    "/build/assets/icons/sprite_regular.svg": "/build/assets/icons/sprite_regular.svg",
     "/build/assets/icons/arrow-left-fill.svg": "/build/assets/icons/arrow-left-fill.svg",
     "/build/assets/icons/arrow-right-fill.svg": "/build/assets/icons/arrow-right-fill.svg",
     "/build/assets/icons/books-fill.svg": "/build/assets/icons/books-fill.svg",
@@ -130,5 +128,9 @@
     "/build/fonts/source-sans-3-v19-latin_latin-ext-italic.ttf": "/build/fonts/source-sans-3-v19-latin_latin-ext-italic.ttf",
     "/build/fonts/source-sans-3-v19-latin_latin-ext-italic.woff2": "/build/fonts/source-sans-3-v19-latin_latin-ext-italic.woff2",
     "/build/fonts/source-sans-3-v19-latin_latin-ext-regular.ttf": "/build/fonts/source-sans-3-v19-latin_latin-ext-regular.ttf",
-    "/build/fonts/source-sans-3-v19-latin_latin-ext-regular.woff2": "/build/fonts/source-sans-3-v19-latin_latin-ext-regular.woff2"
+    "/build/fonts/source-sans-3-v19-latin_latin-ext-regular.woff2": "/build/fonts/source-sans-3-v19-latin_latin-ext-regular.woff2",
+    "/build/assets/icons/copy-simple.svg": "/build/assets/icons/copy-simple.svg",
+    "/build/assets/icons/copy-simple-fill.svg": "/build/assets/icons/copy-simple-fill.svg",
+    "/build/assets/icons/sprite_fill.svg": "/build/assets/icons/sprite_fill.svg",
+    "/build/assets/icons/sprite_regular.svg": "/build/assets/icons/sprite_regular.svg"
 }

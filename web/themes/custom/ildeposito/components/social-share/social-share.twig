@@ -1,4 +1,4 @@
-<span class="social-share" tabindex="0" role="button" data-bs-toggle="popover" data-bs-content="test">
+<span class="social-share" tabindex="0" role="button" data-bs-toggle="popover">
   {{ include('ildeposito:icon', {
     name: 'share-network',
     class: ['text-dark', 'fs-5'],
@@ -6,4 +6,51 @@
     size: '1rem',
   }, with_context = false) }}
   <span class="fs-5 ms-1">{{ 'Share'|t }}</span>
+  <template class="social-share__popover-content">
+
+    {% set current_url = url('<current>', {}, {'absolute': true}) %}
+    {% set share_links = [
+      {
+        name: 'WhatsApp',
+        key: 'whatsapp-logo',
+        url: 'https://wa.me/?text=' ~ current_url|url_encode
+      },
+      {
+        name: 'Telegram',
+        key: 'telegram-logo',
+        url: 'https://t.me/share/url?url=' ~ current_url|url_encode
+      },
+      {
+        name: 'Facebook',
+        key: 'facebook-logo',
+        url: 'httpswhsatsapp-l://www.facebook.com/sharer/sharer.php?u=' ~ current_url|url_encode
+      },
+      {
+        name: 'X',
+        key: 'x-logo',
+        url: 'https://twitter.com/intent/tweet?url=' ~ current_url|url_encode ~ '&text=' ~ page_title|url_encode
+      },
+    ] %}
+
+
+    {# TEST: SVG inline diretto, senza include #}
+    <div style="border:1px solid #c00;display:inline-block;padding:2px 4px;margin-bottom:4px;">
+      <svg class="icon text-success fs-2" fill="currentColor" aria-hidden="true" focusable="false" style="font-size:2rem;">
+        <use href="/themes/custom/ildeposito/build/assets/icons/sprite_fill.svg#whatsapp-logo-fill" />
+      </svg>
+      <span style="font-size:10px;color:#c00;">svg inline test</span>
+    </div>
+
+    {% for item in share_links %}
+      <a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">
+        {{ include('ildeposito:icon', {
+          name: item.key,
+          class: ['text-dark', 'fs-5'],
+          type: 'fill',
+          size: '1rem',
+        }, with_context = false) }}
+      </a>
+    {% endfor %}
+
+  </template>
 </span>

@@ -5007,11 +5007,27 @@ Drupal.behaviors.ilDepositoSocialShare = {
         // Disabilita popover su mobile
         el.removeAttribute('data-bs-toggle');
       } else {
-        // Desktop: popover
+        // Desktop: popover con contenuto HTML dal template
         if (!el._bsPopover) {
+          var tpl = el.querySelector('.social-share__popover-content');
+          var content = 'errore';
+          if (tpl) {
+            // Se <template> nativo, estrai il contenuto vero
+            if (tpl.content && tpl.content.cloneNode) {
+              var frag = tpl.content.cloneNode(true);
+              var div = document.createElement('div');
+              div.appendChild(frag);
+              content = div.innerHTML;
+            } else {
+              // Fallback: innerHTML (per compatibilità)
+              content = tpl.innerHTML;
+            }
+          }
           el._bsPopover = new (bootstrap_js_dist_popover__WEBPACK_IMPORTED_MODULE_0___default())(el, {
             trigger: 'click',
-            placement: 'bottom'
+            placement: 'bottom',
+            html: true,
+            content: content
           });
         }
       }
