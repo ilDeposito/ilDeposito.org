@@ -22,8 +22,10 @@
 <article{{ attributes.addClass(classes).setAttribute('data-view-mode', view_mode) }}>
 
   <!-- testo e accordi -->
-  <div class="testo-accordi bg-lighter p-5">
-    {{ include('ildeposito:testi', { data: data }, with_context = false) }}
+  <div class="testo-accordi bg-lighter px-3 text-center">
+    <div class="d-inline-block text-start">
+      {{ include('ildeposito:testi', { data: data }, with_context = false) }}
+    </div>
   </div>
   <!-- fine testo e accordi -->
 
