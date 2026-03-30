@@ -3,28 +3,4 @@ name: Social Share
 status: stable
 description: 'Pulsante di condivisione: share nativo su mobile, popover Bootstrap su desktop.'
 group: atoms
-props:
-  type: object
-  properties:
-    url:
-      type: string
-      title: URL da condividere
-      description: 'URL completo del contenuto da condividere.'
-    title:
-      type: string
-      title: Titolo
-      description: 'Titolo per il dialog di condivisione nativo.'
-    text:
-      type: string
-      title: Testo
-      description: 'Descrizione breve per il dialog di condivisione nativo.'
-    class:
-      type: array
-      title: Classi CSS aggiuntive
-      items:
-        type: string
-      default: []
-    attributes:
-      type: Drupal\Core\Template\Attribute
-  required:
-    - url
+

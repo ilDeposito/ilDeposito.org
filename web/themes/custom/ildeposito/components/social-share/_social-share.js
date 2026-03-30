@@ -1,35 +1,29 @@
-((Drupal, once) => {
-  'use strict';
+import Popover from 'bootstrap/js/dist/popover';
 
-  Drupal.behaviors.ilDepositoSocialShare = {
-    attach(context, settings) {
-      once('ildeposito-social-share', '[data-social-share]', context).forEach((el) => {
-        // Dispositivi touch (mobile/tablet) → Web Share API nativa
-        const isMobile = window.matchMedia('(pointer: coarse)').matches;
-
-        if (isMobile && navigator.share) {
-          el.addEventListener('click', async () => {
-            try {
-              await navigator.share({
-                title: el.dataset.shareTitle || document.title,
-                text: el.dataset.shareText || '',
-                url: el.dataset.shareUrl || window.location.href,
-              });
-            } catch {
-              // L'utente ha annullato la condivisione — nessuna azione necessaria
-            }
-          });
-        } else {
-          // Desktop → Bootstrap Popover
-          // bootstrap è disponibile come globale tramite Radix
-          new bootstrap.Popover(el, { // eslint-disable-line no-undef
-            content: 'social',
-            trigger: 'click',
-            placement: 'bottom',
-            html: false,
-          });
-        }
-      });
-    },
-  };
-})(Drupal, once);
+Drupal.behaviors.ilDepositoSocialShare = {
+	attach(context) {
+		document.querySelectorAll('.social-share[data-bs-toggle="popover"]').forEach((el) => {
+			// Mobile: usa Web Share API
+			const isMobile = window.matchMedia('(pointer: coarse)').matches && typeof navigator.share === 'function';
+			if (isMobile) {
+				el.addEventListener('click', (e) => {
+					e.preventDefault();
+					navigator.share({
+						title: document.title,
+						url: window.location.href,
+					});
+				}, { once: true });
+				// Disabilita popover su mobile
+				el.removeAttribute('data-bs-toggle');
+			} else {
+				// Desktop: popover
+				if (!el._bsPopover) {
+					el._bsPopover = new Popover(el, {
+						trigger: 'click',
+						placement: 'bottom',
+					});
+				}
+			}
+		});
+	},
+};

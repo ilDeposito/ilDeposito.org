@@ -1,21 +1,9 @@
-{#
-  Componente Social Share
-  Props:
-    - url (required): URL completo del contenuto da condividere
-    - title: titolo per il dialog nativo
-    - text: descrizione per il dialog nativo
-    - class: array di classi CSS aggiuntive
-#}
-{% set btn_classes = ['btn', 'btn-link', 'p-0', 'border-0', 'social-share'] | merge(class | default([])) %}
-
-<button
-  type="button"
-  data-social-share
-  data-share-url="{{ url }}"
-  {% if title %}data-share-title="{{ title }}"{% endif %}
-  {% if text %}data-share-text="{{ text }}"{% endif %}
-  aria-label="{{ 'Condividi'|t }}"
-  {{ attributes.addClass(btn_classes) }}
->
-  {{ include('ildeposito:icon', { name: 'play', class: ['fs-5'] }, with_context = false) }}
-</button>
+<span class="social-share" tabindex="0" role="button" data-bs-toggle="popover" data-bs-content="test">
+  {{ include('ildeposito:icon', {
+    name: 'share-network',
+    class: ['text-dark', 'fs-5'],
+    type: 'regular',
+    size: '1rem',
+  }, with_context = false) }}
+  <span class="fs-5 ms-1">{{ 'Share'|t }}</span>
+</span>

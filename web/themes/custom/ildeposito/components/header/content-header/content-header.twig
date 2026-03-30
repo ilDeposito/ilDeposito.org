@@ -33,15 +33,10 @@
 
     {% if header_component %}
       {{ include(header_component, { data: data }, with_context = false) }}
-    {% else %}
-      <h5 class="page-description fst-italic fw-light">Descrizione di default!</h5>
-    {% endif %}
+        {% endif %}
 
 
     {{ include('ildeposito:social-share', {
-  url: node_url,
-  title: node.label(),
-  text: 'Scopri questo canto su ilDeposito',
 }, with_context = false) }}
 
   </div>
