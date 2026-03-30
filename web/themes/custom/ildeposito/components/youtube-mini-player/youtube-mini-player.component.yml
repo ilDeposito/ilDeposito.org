@@ -1,0 +1,23 @@
+$schema: https://git.drupalcode.org/project/drupal/-/raw/10.1.x/core/modules/sdc/src/metadata.schema.json
+name: YouTube Mini Player
+status: stable
+description: 'Mini player YouTube con pulsante play/pause e toggle icona via componente icon.'
+group: molecules
+props:
+  type: object
+  properties:
+    youtube_url:
+      type: string
+      title: URL YouTube
+      description: 'URL del video YouTube (watch, youtu.be, shorts o embed).'
+    title:
+      type: string
+      title: Titolo video
+      description: 'Titolo opzionale per accessibilita del player.'
+      default: 'Player YouTube'
+    attributes:
+      type: Drupal\Core\Template\Attribute
+      title: Attributi HTML
+      description: 'Attributi HTML aggiuntivi per il container del componente.'
+  required:
+    - youtube_url

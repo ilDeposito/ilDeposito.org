@@ -1,3 +1,5 @@
+@import "../../src/scss/init";
+
 .testi {
   margin-bottom: 1rem;
   &__item {
@@ -5,6 +7,28 @@
     border-bottom: 1px solid #eee;
     &:last-child {
       border-bottom: none;
+    }
+  }
+}
+
+.testo-accordi {
+  ul.nav {
+    border: none;
+
+    button, button.active  {
+      background: none;
+      border: none;
+      font-family: $font-title;
+      font-size: 1.5rem;
+    }
+
+    button {
+      color: #8d8d8d;
+    }
+
+    button.active {
+      color: $dark;
+      border-bottom: 3px solid $accent
     }
   }
 }
