@@ -198,27 +198,17 @@
   --bs-form-invalid-border-color: rgb(234, 133.8, 143.4);
 }
 
-.yt-mini-player {
-  display: inline-flex;
-}
-.yt-mini-player__frame {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  -webkit-clip-path: inset(50%);
-          clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
-}
-.yt-mini-player__toggle {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
+.social-share {
   color: inherit;
-  line-height: 0;
+  line-height: 1;
+}
+.social-share:hover, .social-share:focus {
+  color: #9E1B1B;
+  text-decoration: none;
+}
+.social-share:focus-visible {
+  outline: 2px solid #9E1B1B;
+  outline-offset: 2px;
 }
 
-/*# sourceMappingURL=youtube-mini-player.css.map*/
+/*# sourceMappingURL=social-share.css.map*/
