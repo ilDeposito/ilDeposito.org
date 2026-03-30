@@ -23,7 +23,7 @@
       {
         name: 'Facebook',
         key: 'facebook-logo',
-        url: 'httpswhsatsapp-l://www.facebook.com/sharer/sharer.php?u=' ~ current_url|url_encode
+        url: 'https://www.facebook.com/sharer/sharer.php?u=' ~ current_url|url_encode
       },
       {
         name: 'X',
@@ -32,24 +32,17 @@
       },
     ] %}
 
-
-    {# TEST: SVG inline diretto, senza include #}
-    <div style="border:1px solid #c00;display:inline-block;padding:2px 4px;margin-bottom:4px;">
-      <svg class="icon text-success fs-2" fill="currentColor" aria-hidden="true" focusable="false" style="font-size:2rem;">
-        <use href="/themes/custom/ildeposito/build/assets/icons/sprite_fill.svg#whatsapp-logo-fill" />
-      </svg>
-      <span style="font-size:10px;color:#c00;">svg inline test</span>
-    </div>
-
     {% for item in share_links %}
-      <a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">
+      <a href="{{ item.url }}" target="_blank" class="d-inline-block px-3" rel="noopener noreferrer">
         {{ include('ildeposito:icon', {
           name: item.key,
           class: ['text-dark', 'fs-5'],
           type: 'fill',
           size: '1rem',
         }, with_context = false) }}
+        {{ item.name}}
       </a>
+      
     {% endfor %}
 
   </template>

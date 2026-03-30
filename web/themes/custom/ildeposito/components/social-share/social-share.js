@@ -5024,7 +5024,8 @@ Drupal.behaviors.ilDepositoSocialShare = {
             }
           }
           el._bsPopover = new (bootstrap_js_dist_popover__WEBPACK_IMPORTED_MODULE_0___default())(el, {
-            trigger: 'click',
+            trigger: 'focus',
+            // chiusura automatica quando si clicca fuori
             placement: 'bottom',
             html: true,
             content: content

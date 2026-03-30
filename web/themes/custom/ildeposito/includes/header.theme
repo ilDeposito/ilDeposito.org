@@ -14,7 +14,7 @@ function _get_page_breadcrumb($variables)
     $breadcrumb->addCacheContexts(['url.path']);
   }
   $links = $breadcrumb->getLinks();
-  // Restituisci solo il secondo elemento (il primo dopo home)
+  // Restituisci solo il secondo elemento (il primo dopo home), oppure Home se non esiste
   if (isset($links[1])) {
     $link = $links[1];
     return [
@@ -22,7 +22,11 @@ function _get_page_breadcrumb($variables)
       'url' => $link->getUrl()->toString(),
     ];
   }
-  return NULL;
+  // Se non c'è secondo elemento, restituisci Home
+  return [
+    'text' => t('Homepage'),
+    'url' => '/',
+  ];
 }
 
 function _get_content_image($variables)
