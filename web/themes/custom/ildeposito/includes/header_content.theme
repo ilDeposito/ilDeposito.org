@@ -67,7 +67,7 @@ function _get_header_periodi(array $data): array {
 }
 
 function _get_header_pagina(array $data): array {
-  $values = [];
+  $values['descrizione_header'] = $data['descrizione_header'];
   return $values;
 }
 

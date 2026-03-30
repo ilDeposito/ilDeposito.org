@@ -49,6 +49,7 @@
   --bs-dark: #2F2F2F;
   --bs-accent: #A8842C;
   --bs-lighter: #F8F5EE;
+  --bs-less-dark: black;
   --bs-primary-rgb: 158, 27, 27;
   --bs-secondary-rgb: 47, 47, 47;
   --bs-success-rgb: 25, 135, 84;
@@ -59,6 +60,7 @@
   --bs-dark-rgb: 47, 47, 47;
   --bs-accent-rgb: 168, 132, 44;
   --bs-lighter-rgb: 248, 245, 238;
+  --bs-less-dark-rgb: 0, 0, 0;
   --bs-primary-text-emphasis: rgb(63.2, 10.8, 10.8);
   --bs-secondary-text-emphasis: rgb(18.8, 18.8, 18.8);
   --bs-success-text-emphasis: rgb(10, 54, 33.6);
