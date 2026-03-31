@@ -28,6 +28,7 @@ ENDPOINTS: List[str] = [
     "/export/stats_canti.json",
     "/export/stats_autori.json",
     "/export/stats_eventi.json",
+    "/export/stats_traduzioni.json",
 ]
 
 FILES_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'web', 'modules', 'custom', 'migrando', 'files')

@@ -4,6 +4,7 @@ status: true
 dependencies:
   config:
     - field.field.node.autore.field_altri_nomi
+    - field.field.node.autore.field_autori_correlati
     - field.field.node.autore.field_cognome
     - field.field.node.autore.field_immagine
     - field.field.node.autore.field_informazioni
@@ -29,6 +30,14 @@ content:
       link_to_entity: false
     third_party_settings: {  }
     weight: 101
+    region: content
+  field_autori_correlati:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 116
     region: content
   field_cognome:
     type: string

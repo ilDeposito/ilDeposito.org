@@ -1,0 +1,54 @@
+{#
+/**
+ * @file
+ * Template per la visualizzazione di un'entità in formato raw.
+ *
+ * Variabili disponibili:
+ * - entity: L'entità che viene visualizzata.
+ * - entity_type: Il tipo di entità.
+ * - data: Array con i dati raw dell'entità.
+ * - title: Il titolo dell'entità.
+ * - view_mode: La view mode utilizzata.
+ * - node: L'oggetto nodo (se l'entità è un nodo).
+ *
+ * SICUREZZA: Non usare il filtro |raw su nessuna variabile di questo template.
+ * L'autoescaping di Twig protegge da XSS nell'output JSON.
+ */
+#}
+{% set classes = [
+  'ildeposito-raw',
+  'ildeposito-raw--' ~ entity_type,
+] %}
+<article{{ attributes.addClass(classes).setAttribute('data-view-mode', view_mode) }}>
+
+  <!-- testo e accordi -->
+  <div class="testo-accordi bg-lighter px-3 text-center">
+    <div class="d-inline-block text-start">
+      {{ include('ildeposito:testi', { data: data }, with_context = false) }}
+    </div>
+  </div>
+  <!-- fine testo e accordi -->
+
+
+  {% if data.tematica %}
+  <div class="tematica my-5">
+  <h5 class="my-6">{{ 'Topics'|t }}</h5>
+    {% for tematica in data.tematica %}
+      <span class="bg-accent text-light fw-normal d-inline-block py-1 px-2 me-2 fs-5"><a class="text-light"href="{{ tematica.url }}">{{ tematica.label }}</a></span>
+    {% endfor %}
+    </div>
+  {% endif %}
+
+  {% if data.informazioni %} 
+  <div class="informazioni my-5">
+    <h5 class="py-6">{{ 'Information'|t }}</h5>
+    {{ data.informazioni|raw }}
+    </div>
+  {% endif %}
+
+
+
+
+  
+  
+</article>

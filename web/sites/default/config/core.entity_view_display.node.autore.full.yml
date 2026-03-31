@@ -5,6 +5,7 @@ dependencies:
   config:
     - core.entity_view_mode.node.full
     - field.field.node.autore.field_altri_nomi
+    - field.field.node.autore.field_autori_correlati
     - field.field.node.autore.field_cognome
     - field.field.node.autore.field_immagine
     - field.field.node.autore.field_informazioni
@@ -101,5 +102,6 @@ content:
     weight: 100
     region: content
 hidden:
+  field_autori_correlati: true
   langcode: true
   search_api_excerpt: true
