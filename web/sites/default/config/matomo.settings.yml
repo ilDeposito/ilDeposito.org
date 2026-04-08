@@ -1,21 +1,16 @@
 _core:
   default_config_hash: mKwnhF-0ryfftZZP6jyqW8q9MEo9glyRkvRzSddrc0k
-site_id: ''
-url_http: ''
-url_https: ''
+site_id: '1'
+url_http: 'http://matomo.ildeposito.org/'
+url_https: 'https://matomo.ildeposito.org/'
 domain_mode: 0
 visibility:
   request_path_mode: 0
-  request_path_pages: |-
-    /admin
-    /admin/*
-    /batch
-    /node/add*
-    /node/*/*
-    /user/*/*
+  request_path_pages: "/admin\r\n/admin/*\r\n/batch\r\n/node/add*\r\n/node/*/*\r\n/user/*/*"
   user_role_mode: 0
-  user_role_roles: {  }
-  user_account_mode: 1
+  user_role_roles:
+    anonymous: anonymous
+  user_account_mode: 2
 track:
   mailto: true
   files: true
@@ -28,13 +23,40 @@ privacy:
   donottrack: true
   disablecookies: false
 custom:
-  variable: {  }
+  variable:
+    1:
+      slot: 1
+      name: ''
+      value: ''
+      scope: visit
+    2:
+      slot: 2
+      name: ''
+      value: ''
+      scope: visit
+    3:
+      slot: 3
+      name: ''
+      value: ''
+      scope: visit
+    4:
+      slot: 4
+      name: ''
+      value: ''
+      scope: visit
+    5:
+      slot: 5
+      name: ''
+      value: ''
+      scope: visit
 codesnippet:
-  before: ''
+  before: "(function () {\r\n  function getCookie(name) {\r\n    const match = document.cookie.match(\r\n      new RegExp('(?:^|;)\\\\s*' + name + '=([^;]+)')\r\n    );\r\n    return match ? decodeURIComponent(match[1]) : null;\r\n  }\r\n\r\n  const varnishStatus = getCookie('varnish_cache');\r\n\r\n  if (window._paq && varnishStatus) {\r\n    _paq.push(['setCustomDimension', 4, varnishStatus]); \r\n  }\r\n\r\n  _paq.push(['trackPageView']);\r\n  _paq.push(['enableLinkTracking']);\r\n})();"
   after: ''
 translation_set: false
-disable_tracking: false
+disable_tracking: true
 cache: false
 page_title_hierarchy: false
 page_title_hierarchy_exclude_home: true
-status_codes_disabled: {  }
+status_codes_disabled:
+  - '404'
+  - '403'
