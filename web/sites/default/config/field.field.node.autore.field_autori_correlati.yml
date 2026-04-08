@@ -1,0 +1,28 @@
+uuid: 3684d5f5-f549-4dd8-aa6e-3e5c89ff42b5
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_autori_correlati
+    - node.type.autore
+id: node.autore.field_autori_correlati
+field_name: field_autori_correlati
+entity_type: node
+bundle: autore
+label: 'Autori correlati'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      autore: autore
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

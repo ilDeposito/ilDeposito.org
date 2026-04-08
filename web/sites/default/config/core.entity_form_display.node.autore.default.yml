@@ -4,6 +4,7 @@ status: true
 dependencies:
   config:
     - field.field.node.autore.field_altri_nomi
+    - field.field.node.autore.field_autori_correlati
     - field.field.node.autore.field_cognome
     - field.field.node.autore.field_immagine
     - field.field.node.autore.field_informazioni
@@ -34,6 +35,16 @@ content:
     weight: 3
     region: content
     settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_autori_correlati:
+    type: entity_reference_autocomplete
+    weight: 27
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
       size: 60
       placeholder: ''
     third_party_settings: {  }

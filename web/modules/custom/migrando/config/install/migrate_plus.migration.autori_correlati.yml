@@ -1,0 +1,57 @@
+id: autori_correlati
+label: Autori correlati
+migration_group: ilDeposito
+
+source:
+  plugin: url
+  data_fetcher_plugin: file
+  data_parser_plugin: json
+  urls:
+    - modules/custom/migrando/files/autori/autori_0.json
+    - modules/custom/migrando/files/autori/autori_1.json
+  item_selector: 'items'
+  fields:
+    -
+      name: nid
+      selector: nid
+    -
+      name: autori_correlati
+      selector: autori_correlati
+
+  ids:
+    nid:
+      type: string
+
+process:
+  nid:
+    plugin: migration_lookup
+    migration: autori
+    source: nid
+    no_stub: true
+  
+  field_autori_correlati:
+  -
+    plugin: skip_on_empty
+    method: process
+    source: autori_correlati
+  -
+    plugin: explode
+    delimiter: ', '
+    source: autori_correlati
+  -
+    plugin: multiple_values
+  -
+    plugin: get_migration_id
+    importer: 'autori'
+
+
+destination:
+  plugin: entity:node
+  bundle: autore
+  default_langcode: it
+  langcode: it
+
+dependencies:
+  enforced:
+    module:
+      - migrando
