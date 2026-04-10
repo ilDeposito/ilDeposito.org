@@ -18,7 +18,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: web/themes/custom/ildeposito/.nvmrc
+          node-version: 'lts/jod'
 
       - name: Install theme dependencies
         working-directory: /home/ubuntu/sergej/websites/ildeposito_stage/code_stage/web/themes/custom/ildeposito
