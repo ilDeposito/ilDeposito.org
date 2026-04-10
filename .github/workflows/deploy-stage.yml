@@ -14,11 +14,36 @@ jobs:
     steps:
       - name: Pull latest code
         run: git pull origin main
-      - name: Install dependencies
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: web/themes/custom/ildeposito/.nvmrc
+
+      - name: Install theme dependencies
+        working-directory: /home/ubuntu/sergej/websites/ildeposito_stage/code_stage/web/themes/custom/ildeposito
+        run: npm ci
+
+      - name: Build theme assets
+        working-directory: /home/ubuntu/sergej/websites/ildeposito_stage/code_stage/web/themes/custom/ildeposito
+        run: npm run production
+
+      - name: Install PHP dependencies
         run: composer install --ignore-platform-reqs
+
       - name: Run database updates
         run: drush stage updb -y
+
       - name: Import configuration
         run: drush stage cim -y
+
       - name: Clear cache
         run: drush stage cr
+
+      - name: Smoke test — verify compiled assets exist
+        working-directory: /home/ubuntu/sergej/websites/ildeposito_stage/code_stage/web/themes/custom/ildeposito
+        run: |
+          test -f build/css/main.style.css || (echo "❌ build/css/main.style.css mancante" && exit 1)
+          test -f build/js/main.script.js  || (echo "❌ build/js/main.script.js mancante"  && exit 1)
+          test -f mix-manifest.json        || (echo "❌ mix-manifest.json mancante"         && exit 1)
+          echo "✅ Asset compilati presenti"
