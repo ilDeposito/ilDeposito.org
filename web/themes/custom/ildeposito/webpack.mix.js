@@ -23,6 +23,14 @@ mix
   .sourceMaps()
   .webpackConfig({
     devtool: 'source-map',
+    optimization: {
+      minimizer: [
+        new (require('terser-webpack-plugin'))({
+          // Evita la creazione di *.LICENSE.txt a fianco dei bundle compilati
+          extractComments: false,
+        }),
+      ],
+    },
   })
   .disableNotifications()
   .options({
