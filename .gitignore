@@ -23,7 +23,6 @@ web/sites/default/live.php
 node_modules/
 
 mix-manifest.json
-web/themes/custom/ildeposito/mix-manifest.json
 
 # Local environment config
 web/themes/custom/ildeposito/.env.local

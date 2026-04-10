@@ -9,3 +9,14 @@ node_modules
 # local env files
 .env.local
 .env.test.local
+
+# Build output (compilato da Laravel Mix — generato dalla CI)
+build/
+mix-manifest.json
+
+# Asset compilati in-place dentro i components
+# Le sorgenti JS iniziano con _ (es. _name.js), i compilati no
+components/**/*.css
+components/**/*.css.map
+components/**/[!_]*.js
+components/**/*.js.map
