@@ -39,3 +39,11 @@ jobs:
 
       - name: Clear cache
         run: drush stage cr
+
+      - name: Smoke test — verify compiled assets exist
+        working-directory: /home/ubuntu/sergej/websites/ildeposito_stage/code_stage/web/themes/custom/ildeposito
+        run: |
+          test -f build/css/main.style.css || (echo "❌ build/css/main.style.css mancante" && exit 1)
+          test -f build/js/main.script.js  || (echo "❌ build/js/main.script.js mancante"  && exit 1)
+          test -f mix-manifest.json        || (echo "❌ mix-manifest.json mancante"         && exit 1)
+          echo "✅ Asset compilati presenti"
