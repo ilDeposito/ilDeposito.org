@@ -20,3 +20,4 @@ components/**/*.css
 components/**/*.css.map
 components/**/[!_]*.js
 components/**/*.js.map
+components/**/*.LICENSE.txt
