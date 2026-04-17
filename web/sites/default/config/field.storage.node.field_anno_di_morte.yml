@@ -1,0 +1,20 @@
+uuid: 0e272a4c-b24d-4d28-a485-8333a084e5a4
+langcode: it
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_anno_di_morte
+field_name: field_anno_di_morte
+entity_type: node
+type: integer
+settings:
+  unsigned: false
+  size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

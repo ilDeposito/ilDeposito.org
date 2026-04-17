@@ -21,21 +21,38 @@
 ] %}
 <article{{ attributes.addClass(classes).setAttribute('data-view-mode', view_mode) }}>
 
-  <!-- testo e accordi -->
-  <div class="testo-accordi bg-lighter px-3 text-center">
-    <div class="d-inline-block text-start">
-      {{ include('ildeposito:testi', { data: data }, with_context = false) }}
-    </div>
-  </div>
-  <!-- fine testo e accordi -->
+
+<div class"text-center d-inline-block">
+<h3 class="border-bottom-2 p-3 d-inline-block">{{ 'Main songs'|t }}</h3>
+</div>
+
+{{ drupal_view('autore_canti', 'autore_canti_top') }}
 
 
-  {% if data.tematica %}
-  <div class="tematica my-5">
-  <h5 class="my-6">{{ 'Topics'|t }}</h5>
-    {% for tematica in data.tematica %}
-      <span class="bg-accent text-light fw-normal d-inline-block py-1 px-2 me-2 fs-5"><a class="text-light"href="{{ tematica.url }}">{{ tematica.label }}</a></span>
-    {% endfor %}
+<div class="text-center">
+<a href="#" class="p-2 text-white bg-primary text-white font-title d-inline-block" >
+<span style="transform: scaleX(-1); display: inline-block;">
+{{ include('ildeposito:icon', {
+          name: 'arrow-left',
+          class: ['text-white'],
+          type: 'regular',
+          size: '1rem',
+        }, with_context = false) }}
+       
+</span>
+ {{ 'All songs'|t }}
+</a>
+</div>
+
+
+  {% if data.autori_correlati %} 
+    <div class="autori-correlati my-5">
+      <h5 class="py-6">{{ 'Related Authors'|t }}</h5>
+      <div>
+        {%- for autore in data.autori_correlati %}
+          <a href="{{ autore.url }}">{{ autore.label }}</a>{% if not loop.last %} &middot; {% endif %}
+        {%- endfor %}
+      </div>
     </div>
   {% endif %}
 

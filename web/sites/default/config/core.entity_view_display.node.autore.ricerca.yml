@@ -5,6 +5,8 @@ dependencies:
   config:
     - core.entity_view_mode.node.ricerca
     - field.field.node.autore.field_altri_nomi
+    - field.field.node.autore.field_anno_di_morte
+    - field.field.node.autore.field_anno_di_nascita
     - field.field.node.autore.field_autori_correlati
     - field.field.node.autore.field_cognome
     - field.field.node.autore.field_immagine
@@ -94,6 +96,8 @@ content:
     weight: 100
     region: content
 hidden:
+  field_anno_di_morte: true
+  field_anno_di_nascita: true
   field_autori_correlati: true
   field_metatag: true
   langcode: true

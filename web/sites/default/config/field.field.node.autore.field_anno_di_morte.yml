@@ -1,0 +1,23 @@
+uuid: c02f78bb-c7d5-41f1-8f32-d16f4033b8c2
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_anno_di_morte
+    - node.type.autore
+id: node.autore.field_anno_di_morte
+field_name: field_anno_di_morte
+entity_type: node
+bundle: autore
+label: 'Anno di morte'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

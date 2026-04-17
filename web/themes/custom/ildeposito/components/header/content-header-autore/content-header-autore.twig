@@ -1,3 +1,21 @@
-<div class="content-header-autore">
-  <pre class="small bg-light p-2 border rounded">{{ dump(data) }}</pre>
+
+  <img src="{{ data.immagine_url }}" class="float-start border rounded-circle" alt="{{ data.immagine_alt }}" />
+
+<div class="d-inline-block font-title fs-4 fw-semibold">
+  {{ data.titolo }}
+  <a class="fst-italic text-lessdark" href="{{ data.localizzazione.url }}">{{ data.localizzazione.label }}</a>
+
+  {% if data.anno_nascita  %}
+    <span class="text-lessdark">· {{ data.anno_nascita }} - {{ data.anno_morte }}</span>
+  {% endif %}
+
+  <div class="social-share d-block mt-2">
+  {{ include('ildeposito:icon', {
+        name: 'share-network',
+        class: ['text-dark', 'fs-5'],
+        type: 'regular',
+        size: '1rem',
+      }, with_context = false) }}
+     <span class="fs-5">{{ 'Share'|t }}</span>
+     </div>
 </div>
