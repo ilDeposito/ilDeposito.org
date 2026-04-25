@@ -4,6 +4,8 @@ status: true
 dependencies:
   config:
     - field.field.node.autore.field_altri_nomi
+    - field.field.node.autore.field_anno_di_morte
+    - field.field.node.autore.field_anno_di_nascita
     - field.field.node.autore.field_autori_correlati
     - field.field.node.autore.field_cognome
     - field.field.node.autore.field_immagine
@@ -30,6 +32,24 @@ content:
       link_to_entity: false
     third_party_settings: {  }
     weight: 101
+    region: content
+  field_anno_di_morte:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 118
+    region: content
+  field_anno_di_nascita:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 117
     region: content
   field_autori_correlati:
     type: entity_reference_label

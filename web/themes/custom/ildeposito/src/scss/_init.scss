@@ -19,8 +19,8 @@ $theme-colors: map-merge(
   $theme-colors,
   (
     "accent": $accent,
-    "lighter": $lighter,
-    "less-dark": darken($dark, 50%),
+    "lighter": $lighter, //comment
+    "lessdark": lighten($dark, 20%), 
   )
 );
 

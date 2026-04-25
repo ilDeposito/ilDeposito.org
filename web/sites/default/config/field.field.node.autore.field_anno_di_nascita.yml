@@ -1,0 +1,23 @@
+uuid: b336f4fb-e5cb-4ce0-8cad-a73ec7d61fd9
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_anno_di_nascita
+    - node.type.autore
+id: node.autore.field_anno_di_nascita
+field_name: field_anno_di_nascita
+entity_type: node
+bundle: autore
+label: 'Anno di nascita'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

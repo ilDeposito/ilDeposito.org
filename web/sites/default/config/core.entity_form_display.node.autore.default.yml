@@ -4,6 +4,8 @@ status: true
 dependencies:
   config:
     - field.field.node.autore.field_altri_nomi
+    - field.field.node.autore.field_anno_di_morte
+    - field.field.node.autore.field_anno_di_nascita
     - field.field.node.autore.field_autori_correlati
     - field.field.node.autore.field_cognome
     - field.field.node.autore.field_immagine
@@ -36,6 +38,20 @@ content:
     region: content
     settings:
       size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_anno_di_morte:
+    type: number
+    weight: 29
+    region: content
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
+  field_anno_di_nascita:
+    type: number
+    weight: 28
+    region: content
+    settings:
       placeholder: ''
     third_party_settings: {  }
   field_autori_correlati:
