@@ -29,7 +29,6 @@ function _get_header_canto(array $data): array
     ];
   }
 
-
   $values['anno'] = substr($data['anno'] ?? '', 0, 4);
 
   foreach ($data['autori_testo'] ?? [] as $autore) {
@@ -42,7 +41,6 @@ function _get_header_canto(array $data): array
   if (!empty($data['audio'])) {
     $values['audio'] = $data['audio'];
   }
-
 
   return $values;
 }
@@ -64,7 +62,36 @@ function _get_header_autore(array $data): array
 function _get_header_evento(array $data): array
 {
   $values = [];
+  $values['localizzazione'] = [
+    'label' => $data['localizzazione'][0]['label'],
+    'url' => $data['localizzazione'][0]['url'],
+  ];
+
+  // Data evento
+  $date = new DateTime($data['data_evento']);
+  $timestamp = $date->getTimestamp();
+  $date_formatted = \Drupal::service('date.formatter')->format(
+    $timestamp,
+    'custom',
+    'j F Y',
+    $date->getTimezone()->getName(),
+    'it'
+  );
+  $values['data_evento'] = $date_formatted;
+
+
+  // Tematiche
+  if (!empty($data['tematiche'])) {
+    foreach ($data['tematiche'] ?? [] as $tematica) {
+    $values['tematiche'][] = [
+      'label' => $tematica['label'] ?? '',
+      'url' => $tematica['url'] ?? '',
+    ];
+  }
+  }
+
   return $values;
+
 }
 
 function _get_header_traduzione(array $data): array

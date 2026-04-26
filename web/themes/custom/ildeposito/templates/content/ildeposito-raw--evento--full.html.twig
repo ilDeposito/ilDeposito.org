@@ -1,0 +1,51 @@
+{#
+/**
+ * @file
+ * Template per la visualizzazione di un'entità in formato raw.
+ *
+ * Variabili disponibili:
+ * - entity: L'entità che viene visualizzata.
+ * - entity_type: Il tipo di entità.
+ * - data: Array con i dati raw dell'entità.
+ * - title: Il titolo dell'entità.
+ * - view_mode: La view mode utilizzata.
+ * - node: L'oggetto nodo (se l'entità è un nodo).
+ *
+ * SICUREZZA: Non usare il filtro |raw su nessuna variabile di questo template.
+ * L'autoescaping di Twig protegge da XSS nell'output JSON.
+ */
+#}
+{% set classes = [
+  'ildeposito-raw',
+  'ildeposito-raw--' ~ entity_type,
+] %}
+<article{{ attributes.addClass(classes).setAttribute('data-view-mode', view_mode) }}>
+
+<div class="text-center">
+  <h3 class="border-bottom border-accent border-3 px-4 d-inline-block pb-2">{{ 'Related songs'|t }}</h3>
+</div>
+
+{% for canto in data.canti_correlati %}
+  {{ drupal_entity('node', canto.id, 'ricerca') }}
+{% endfor %}
+
+
+  {% if data.informazioni %} 
+  <div class="informazioni my-5">
+    {{ data.informazioni|raw }}
+    </div>
+  {% endif %}  
+
+
+<div class="border border-2 border-accent">
+
+{{ include('ildeposito:leaflet-map', {
+  lat: 41.9028,
+  lon: 12.4964,
+  zoom: 8,
+  label: 'Roma',
+}, with_context = false) }}
+</div>
+
+  
+</article>
