@@ -1,8 +1,23 @@
 <?php
 
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\path_alias\Entity\PathAlias;
 use Drupal\simple_sitemap\Entity\SimpleSitemapInterface;
 use Drupal\Core\Url;
+
+/**
+ * Implements hook_field_widget_single_element_form_alter().
+ *
+ * Estende il range anni del widget datetime per field_anno (canto), che può
+ * contenere date storiche precedenti al 1900 (default Drupal: 1900:2050).
+ */
+function ildeposito_utils_field_widget_single_element_form_alter(array &$element, FormStateInterface $form_state, array $context): void {
+  if (isset($element['value']['#type']) && $element['value']['#type'] === 'datetime') {
+    // Estende il range anni a tutti i campi datetime: il default Drupal (1900:2050)
+    // blocca il salvataggio di date storiche importate via migrate.
+    $element['value']['#date_year_range'] = '1700:2050';
+  }
+}
 
 /**
  * Implements hook_entity_insert().

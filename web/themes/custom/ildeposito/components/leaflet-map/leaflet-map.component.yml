@@ -1,0 +1,32 @@
+$schema: https://git.drupalcode.org/project/drupal/-/raw/10.1.x/core/modules/sdc/src/metadata.schema.json
+name: Leaflet Map
+status: stable
+description: 'Mappa interattiva Leaflet/OpenStreetMap centrata su coordinate lat/lon.'
+group: molecules
+libraryOverrides:
+  dependencies:
+    - ildeposito/leaflet
+    - core/once
+props:
+  type: object
+  properties:
+    lat:
+      type: number
+      title: Latitudine
+      description: 'Latitudine del centro della mappa.'
+    lon:
+      type: number
+      title: Longitudine
+      description: 'Longitudine del centro della mappa.'
+    zoom:
+      type: integer
+      title: Livello di zoom
+      description: 'Livello di zoom iniziale (0–18). Default: 13.'
+      default: 13
+    attributes:
+      type: Drupal\Core\Template\Attribute
+      title: Attributi HTML
+      description: 'Attributi HTML aggiuntivi per il container della mappa.'
+  required:
+    - lat
+    - lon

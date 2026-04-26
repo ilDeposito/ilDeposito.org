@@ -1,3 +1,37 @@
 <div class="content-header-evento">
-  <pre class="small bg-light p-2 border rounded">{{ dump(data) }}</pre>
+    <div class="d-inline-block font-title fs-4 fw-semibold fst-italic text-lessdark">
+  <a class="fst-italic text-lessdark" href="{{ data.localizzazione.url }}">{{ data.localizzazione.label }}</a>
+   · {{ data.data_evento }}
+  </div>
+
+
+{% if data.tematiche|length > 0 %}
+<div class="tematiche my-3">
+    {% for tematica in data.tematiche %}
+    <a class="bg-accent text-white p-1 px-2 me-2 d-inline-block" href="{{ tematica.url }}">{{ tematica.label }}</a>
+    {% endfor %}
+
+</div>
+{% endif %}
+
+  <div class="storia-cantata mt-3">
+
+{{ include('ildeposito:icon', {
+        name: 'calendar-star',
+        class: ['text-primary', 'fs-3'],
+        type: 'regular',
+        size: '1rem',
+      }, with_context = false) }}
+    <span class="fst-italic text-primary fs-3"><a href="#">{{ 'LA STORIA CANTATA'|t }}</a></span>
+  </div>
+
+  <div class="social-share d-block mt-2">
+  {{ include('ildeposito:icon', {
+        name: 'share-network',
+        class: ['text-dark', 'fs-5'],
+        type: 'regular',
+        size: '1rem',
+      }, with_context = false) }}
+     <span class="fs-5">{{ 'Share'|t }}</span>
+     </div>
 </div>

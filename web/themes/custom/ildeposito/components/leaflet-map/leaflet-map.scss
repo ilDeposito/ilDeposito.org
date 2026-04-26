@@ -1,0 +1,7 @@
+@import '../../src/scss/init';
+
+.leaflet-map {
+  width: 100%;
+  // Altezza minima di default; sovrascrivibile tramite attributi inline o classi BS5
+  min-height: 350px;
+}
