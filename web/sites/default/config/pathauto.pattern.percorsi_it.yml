@@ -8,12 +8,11 @@ dependencies:
 id: percorsi_it
 label: 'Percorsi IT'
 type: 'canonical_entities:taxonomy_term'
-pattern: 'percorsi/[term:name]'
+pattern: '/percorsi/[term:name]'
 selection_criteria:
   ba564442-f1b2-4da9-b4bb-3d8a71b9510b:
     id: 'entity_bundle:taxonomy_term'
     negate: false
-    uuid: ba564442-f1b2-4da9-b4bb-3d8a71b9510b
     context_mapping:
       taxonomy_term: taxonomy_term
     bundles:
@@ -21,7 +20,6 @@ selection_criteria:
   ed7bff3b-2072-4217-a319-4d21e2d61458:
     id: language
     negate: false
-    uuid: ed7bff3b-2072-4217-a319-4d21e2d61458
     context_mapping:
       language: 'taxonomy_term:langcode:language'
     langcodes:
