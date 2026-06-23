@@ -1,7 +1,7 @@
 {
   "name": "ilDeposito.org - Drupal 11",
   "dockerComposeFile": [
-    "../docker-compose.yml",
+    "../backend/docker-compose.yml",
     "docker-compose.codespace.yml"
   ],
   "service": "php",
