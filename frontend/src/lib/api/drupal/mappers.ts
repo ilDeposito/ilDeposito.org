@@ -25,6 +25,11 @@ function textValue(field: any): string | null {
   return field.processed ?? field.value ?? null;
 }
 
+function plainText(field: string | null | undefined): string {
+  if (!field) return '';
+  return field.replace(/<br\s*\/?>/gi, '\n');
+}
+
 // ── Canti ──────────────────────────────────────────────
 
 export function mapCantoRecente(raw: any): CantoRecente {
@@ -47,7 +52,7 @@ export function mapCantoCard(raw: any, included: IncludedMap): CantoCard {
     anno: parseYear(a.field_anno),
     capoverso: a.field_capoverso ?? null,
     videoUrl: extractVideoUrl(a.field_audio),
-    accordi: a.field_canto_accordi ?? null,
+    accordi: plainText(a.field_canto_accordi) || null,
     visualizzazioni: a.field_visualizzazioni ?? 0,
     autoriTesto: resolveRefs(r.field_autori_testo, included),
     autoriMusica: resolveRefs(r.field_autori_musica, included),
@@ -59,7 +64,7 @@ export function mapCantoDetail(raw: any, included: IncludedMap): CantoDetail {
   const r = raw.relationships;
   return {
     ...mapCantoCard(raw, included),
-    testo: a.field_canto_testo ?? '',
+    testo: plainText(a.field_canto_testo),
     audio: null,
     fonte: textValue(a.field_fonte),
     informazioni: textValue(a.field_informazioni),
@@ -79,7 +84,7 @@ export function mapCantoInAutore(raw: any): CantoInAutore {
     anno: parseYear(a.field_anno),
     capoverso: a.field_capoverso ?? null,
     videoUrl: extractVideoUrl(a.field_audio),
-    accordi: a.field_canto_accordi ?? null,
+    accordi: plainText(a.field_canto_accordi) || null,
     visualizzazioni: a.field_visualizzazioni ?? 0,
   };
 }
@@ -92,7 +97,7 @@ export function mapCantoCollegato(raw: any): CantoCollegato {
     anno: parseYear(a.field_anno),
     capoverso: a.field_capoverso ?? null,
     videoUrl: extractVideoUrl(a.field_audio),
-    accordi: a.field_canto_accordi ?? null,
+    accordi: plainText(a.field_canto_accordi) || null,
   };
 }
 
@@ -246,7 +251,7 @@ export function mapTraduzioneDetail(raw: any, included: IncludedMap): Traduzione
     id: a.drupal_internal__nid,
     titolo: a.title,
     slug: extractSlug(a.path?.alias),
-    testo: a.field_canto_testo ?? '',
+    testo: plainText(a.field_canto_testo),
     informazioni: textValue(a.field_informazioni),
     lingue: resolveRefs(r.field_lingua, included),
     cantoOriginale,
