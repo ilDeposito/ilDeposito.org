@@ -2,36 +2,97 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-async function fetchDirectus(collection, params = {}) {
-  const baseUrl = process.env.DIRECTUS_URL || process.env.PUBLIC_DIRECTUS_URL;
-  const token = process.env.DIRECTUS_TOKEN;
-  if (!baseUrl || !token) throw new Error('DIRECTUS_URL e DIRECTUS_TOKEN devono essere definiti');
+async function fetchAllDrupalJsonApi(path, params = {}) {
+  const baseUrl = process.env.DRUPAL_API_URL;
+  if (!baseUrl) throw new Error('DRUPAL_API_URL deve essere definito');
 
-  const url = new URL(`/items/${collection}`, baseUrl);
+  const allData = [];
+  const allIncluded = [];
+  const seenIncluded = new Set();
+
+  const url = new URL(path, baseUrl);
   for (const [key, value] of Object.entries(params)) {
     url.searchParams.set(key, value);
   }
 
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-  });
-  if (!res.ok) throw new Error(`Directus fetch fallito per "${collection}": ${res.status}`);
-  const { data } = await res.json();
-  return data;
+  let nextUrl = url.toString();
+
+  while (nextUrl) {
+    const res = await fetch(nextUrl, {
+      headers: { Accept: 'application/vnd.api+json' },
+    });
+    if (!res.ok) throw new Error(`Drupal JSON:API fetch fallito: ${res.status}`);
+
+    const json = await res.json();
+    const items = Array.isArray(json.data) ? json.data : [json.data];
+    allData.push(...items);
+
+    if (json.included) {
+      for (const item of json.included) {
+        const key = `${item.type}:${item.id}`;
+        if (!seenIncluded.has(key)) {
+          seenIncluded.add(key);
+          allIncluded.push(item);
+        }
+      }
+    }
+
+    nextUrl = json.links?.next?.href || null;
+  }
+
+  return { data: allData, included: allIncluded };
+}
+
+function buildIncludedMap(included = []) {
+  const map = new Map();
+  for (const item of included) {
+    map.set(`${item.type}:${item.id}`, item);
+  }
+  return map;
+}
+
+function resolveNames(rel, includedMap) {
+  const refs = Array.isArray(rel?.data) ? rel.data : rel?.data ? [rel.data] : [];
+  return refs
+    .map((ref) => includedMap.get(`${ref.type}:${ref.id}`))
+    .filter(Boolean)
+    .map((item) => item.attributes.title ?? item.attributes.name);
+}
+
+function extractSlug(alias) {
+  if (!alias) return '';
+  return alias.split('/').pop() ?? '';
 }
 
 async function getAllCantiFull() {
-  return fetchDirectus('canti', {
-    fields: [
-      'id', 'titolo', 'slug', 'anno', 'testo', 'informazioni',
-      'autori_testo.autori_id.titolo',
-      'lingue.lingue_id.titolo',
-      'periodi.periodi_id.titolo',
-      'tags.tags_id.titolo',
-    ].join(','),
-    'filter[status][_eq]': 'published',
-    limit: '-1',
-    sort: 'titolo',
+  const { data, included } = await fetchAllDrupalJsonApi('/jsonapi/node/canto', {
+    'filter[status]': '1',
+    'fields[node--canto]': 'title,path,field_anno,field_canto_testo,field_informazioni,field_autori_testo,field_lingua,field_periodo,field_tags',
+    'fields[node--autore]': 'title',
+    'fields[taxonomy_term--lingue]': 'name',
+    'fields[taxonomy_term--periodi]': 'name',
+    'fields[taxonomy_term--tags]': 'name',
+    'include': 'field_autori_testo,field_lingua,field_periodo,field_tags',
+    'sort': 'title',
+    'page[limit]': '50',
+  });
+
+  const includedMap = buildIncludedMap(included);
+
+  return data.map((item) => {
+    const a = item.attributes;
+    const r = item.relationships;
+    return {
+      titolo: a.title,
+      slug: extractSlug(a.path?.alias),
+      anno: a.field_anno,
+      testo: a.field_canto_testo ?? '',
+      informazioni: a.field_informazioni?.processed ?? a.field_informazioni?.value ?? null,
+      autoriTesto: resolveNames(r.field_autori_testo, includedMap),
+      periodo: resolveNames(r.field_periodo, includedMap)[0] || '',
+      lingue: resolveNames(r.field_lingua, includedMap),
+      tags: resolveNames(r.field_tags, includedMap),
+    };
   });
 }
 
@@ -42,7 +103,7 @@ export default function pdfGeneratorIntegration() {
       'astro:build:done': async ({ dir, logger }) => {
         const { generateCantoPdf } = await import('../lib/generate-pdf.js');
 
-        logger.info('Recupero canti da Directus...');
+        logger.info('Recupero canti da Drupal...');
         const canti = await getAllCantiFull();
         logger.info(`${canti.length} canti trovati. Generazione PDF...`);
 
@@ -51,21 +112,13 @@ export default function pdfGeneratorIntegration() {
 
         let count = 0;
         for (const canto of canti) {
-          const autoriTesto = (canto.autori_testo ?? [])
-            .map((j) => j.autori_id?.titolo)
-            .filter(Boolean);
-          const periodo = (canto.periodi ?? [])
-            .map((j) => j.periodi_id?.titolo)
-            .filter(Boolean)[0] || '';
-          const lingue = (canto.lingue ?? [])
-            .map((j) => j.lingue_id?.titolo)
-            .filter(Boolean);
-          const tags = (canto.tags ?? [])
-            .map((j) => j.tags_id?.titolo)
-            .filter(Boolean);
-
           try {
-            const pdfBuffer = await generateCantoPdf(canto, { autoriTesto, periodo, lingue, tags });
+            const pdfBuffer = await generateCantoPdf(canto, {
+              autoriTesto: canto.autoriTesto,
+              periodo: canto.periodo,
+              lingue: canto.lingue,
+              tags: canto.tags,
+            });
             writeFileSync(join(outDir, `${canto.slug}.pdf`), pdfBuffer);
             count++;
           } catch (err) {

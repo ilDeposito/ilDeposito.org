@@ -1,6 +1,4 @@
 // Interfacce frontend pulite — backend-agnostic.
-// Quando si cambia backend (Directus → Drupal), questi tipi NON cambiano.
-// Cambia solo l'adapter in directus/ (o drupal/) e i relativi mapper.
 
 export interface Ref {
   titolo: string;

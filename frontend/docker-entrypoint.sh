@@ -12,7 +12,7 @@ mkdir -p "$BUILD_DIR"
 echo "→ Building to $BUILD_DIR ..."
 npx astro build --outDir "$BUILD_DIR"
 
-# Le immagini vengono scaricate da Directus in public/uploads/ durante la build,
+# Le immagini vengono scaricate da Drupal in public/uploads/ durante la build,
 # ma DOPO che Astro ha già copiato public/ nell'outDir. Vanno copiate manualmente.
 if [ -d /app/public/uploads ]; then
   echo "→ Copying uploads to build dir ..."

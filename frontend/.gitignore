@@ -2,7 +2,7 @@
 dist/
 # generated types
 .astro/
-# immagini scaricate da Directus a build-time
+# immagini scaricate da Drupal a build-time
 public/uploads/
 
 # dependencies
