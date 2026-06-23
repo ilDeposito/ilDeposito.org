@@ -1,0 +1,27 @@
+{#
+/**
+ * @file
+ * Template per la visualizzazione di un'entità in formato raw.
+ *
+ * Variabili disponibili:
+ * - entity: L'entità che viene visualizzata.
+ * - entity_type: Il tipo di entità.
+ * - data: Array con i dati raw dell'entità.
+ * - title: Il titolo dell'entità.
+ * - view_mode: La view mode utilizzata.
+ * - node: L'oggetto nodo (se l'entità è un nodo).
+ *
+ * SICUREZZA: Non usare il filtro |raw su nessuna variabile di questo template.
+ * L'autoescaping di Twig protegge da XSS nell'output JSON.
+ */
+#}
+{% set classes = [
+  'ildeposito-raw',
+  'ildeposito-raw--' ~ entity_type,
+] %}
+<article{{ attributes.addClass(classes).setAttribute('data-view-mode', view_mode) }}>
+  {% if title %}
+    <h2>{{ title }}</h2>
+  {% endif %}
+  <pre class="ildeposito-raw-data">{{ data|json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_UNICODE')) }}</pre>
+</article>
