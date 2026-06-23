@@ -35,6 +35,7 @@ COMPOSE="docker compose --project-directory ${PROJECT_ROOT}"
 
 cmd_up() {
     info "Avvio ambiente ${ENV} (${PROJECT_NAME})..."
+    ${COMPOSE} pull --quiet
     ${COMPOSE} up -d
     ok "Ambiente ${ENV} avviato"
     info "Backend:  https://admin-${ENV}.ildeposito.org"
@@ -85,6 +86,12 @@ cmd_composer() {
     ${COMPOSE} exec php composer --working-dir=/var/www/html "$@"
 }
 
+cmd_exec() {
+    local service="$1"
+    shift
+    ${COMPOSE} exec "${service}" "$@"
+}
+
 cmd_shell() {
     local service="${1:-php}"
     ${COMPOSE} exec "${service}" sh
@@ -112,6 +119,7 @@ ${BOLD}Comandi:${NC}
   build-frontend    Build Astro + deploy zero-downtime
   drush <args>      Esegui comando drush
   composer <args>   Esegui comando composer
+  exec <srv> <cmd>  Esegui comando in un container
   shell [servizio]  Shell nel container (default: php)
   logs [servizio]   Visualizza i log
   ps                Lista dei container attivi
@@ -126,6 +134,7 @@ case "${1:-}" in
     build-frontend)  shift; cmd_build_frontend ;;
     drush)           shift; cmd_drush "$@" ;;
     composer)        shift; cmd_composer "$@" ;;
+    exec)            shift; cmd_exec "$@" ;;
     shell)           shift; cmd_shell "$@" ;;
     logs)            shift; cmd_logs "$@" ;;
     ps)              cmd_ps ;;

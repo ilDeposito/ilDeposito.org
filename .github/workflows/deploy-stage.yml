@@ -1,0 +1,42 @@
+name: Deploy Stage
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-stage
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    defaults:
+      run:
+        working-directory: /home/ubuntu/sergej/websites/ildeposito/stage
+
+    steps:
+      - name: Backup database
+        run: |
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          ./ildeposito.sh drush sql:dump --result-file=/var/backup_migrate/pre-deploy-${TIMESTAMP}.sql
+          ./ildeposito.sh exec php bzip2 /var/backup_migrate/pre-deploy-${TIMESTAMP}.sql
+
+      - name: Pull latest code
+        run: git pull origin main
+
+      - name: Update containers
+        run: ./ildeposito.sh up
+
+      - name: Install Composer dependencies
+        run: ./ildeposito.sh composer install --no-dev --optimize-autoloader
+
+      - name: Run Drupal updates
+        run: |
+          ./ildeposito.sh drush updatedb -y
+          ./ildeposito.sh drush config:import -y
+          ./ildeposito.sh drush cache:rebuild
+
+      - name: Build frontend
+        run: ./ildeposito.sh build-frontend

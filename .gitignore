@@ -15,3 +15,7 @@ Thumbs.db
 
 # Env
 .env
+
+# Backup
+backup/*
+!backup/.gitkeep

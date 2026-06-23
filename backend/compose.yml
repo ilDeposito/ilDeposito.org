@@ -23,9 +23,10 @@ services:
       PHP_APCU_SHM_SIZE: 64M
       PHP_SESSION_COOKIE_SAMESITE: Strict
     volumes:
-    - ./:/var/www/html:cached  
+    - ./:/var/www/html:cached
+    - ../backup:/var/backup_migrate
     networks:
-      - internal      
+      - internal
 
   crond:
     init: true
