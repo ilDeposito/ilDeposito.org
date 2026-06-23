@@ -1,5 +1,5 @@
 import { fetchAllJsonApi } from './client.js';
-import { extractSlug } from './resolvers.js';
+import { extractSlug, buildIncludedMap, resolveImageUrl } from './resolvers.js';
 import type {
   Tassonomia, Periodo,
   ContenutiLingua, ContenutiLocalizzazione, ContenutiPeriodo, ContenutiTag,
@@ -114,18 +114,23 @@ export async function getContenutiByLocalizzazioneMap(): Promise<Map<number | st
 // ── Periodi ────────────────────────────────────────────
 
 export async function getPeriodi(): Promise<Periodo[]> {
-  const { data } = await fetchAllJsonApi('/jsonapi/taxonomy_term/periodi', new URLSearchParams({
+  const { data, included } = await fetchAllJsonApi('/jsonapi/taxonomy_term/periodi', new URLSearchParams({
     'fields[taxonomy_term--periodi]': 'name,path,weight,field_immagine',
+    'fields[media--image]': 'field_media_image',
+    'fields[file--file]': 'uri',
+    'include': 'field_immagine,field_immagine.field_media_image',
     'sort': 'weight',
     'page[limit]': '50',
   }));
+
+  const map = buildIncludedMap(included);
 
   return data.map((item: any) => ({
     id: item.attributes.drupal_internal__tid,
     titolo: item.attributes.name,
     slug: extractSlug(item.attributes.path?.alias),
     sort: item.attributes.weight ?? 0,
-    immagine: null,
+    immagine: resolveImageUrl(item.relationships?.field_immagine, map),
   }));
 }
 

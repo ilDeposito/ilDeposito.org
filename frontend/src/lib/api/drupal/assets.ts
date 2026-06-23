@@ -1,20 +1,27 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { basename, dirname, extname, join } from 'node:path';
 import { DRUPAL_API_URL } from './client.js';
 
 const PUBLIC_DIR = join(process.cwd(), 'public');
 const DIST_DIR = join(process.cwd(), 'dist');
 
-async function downloadAsset(fileUrl: string, category: string, fileId: string): Promise<string | null> {
-  if (!fileUrl) return null;
+function slugify(name: string): string {
+  return name.replace(/[/\\]/g, '-').replace(/[^a-zA-Z0-9._-]/g, '');
+}
 
-  const relPath = `uploads/${category}/${fileId}.jpg`;
+async function downloadAsset(relativeUrl: string, category: string): Promise<string | null> {
+  const fileName = slugify(basename(relativeUrl));
+  const ext = extname(fileName) || '.jpg';
+  const nameWithoutExt = fileName.replace(ext, '');
+  const relPath = `uploads/${category}/${nameWithoutExt}${ext}`;
   const publicPath = join(PUBLIC_DIR, relPath);
 
   if (!existsSync(publicPath)) {
-    const res = await fetch(fileUrl);
+    const fullUrl = new URL(relativeUrl, DRUPAL_API_URL).toString();
+    const res = await fetch(fullUrl);
     if (!res.ok) {
-      throw new Error(`Download immagine ${category} fallito (${fileId}): ${res.status} ${res.statusText}`);
+      console.warn(`Download immagine ${category} fallito (${relativeUrl}): ${res.status}`);
+      return null;
     }
 
     const buffer = Buffer.from(await res.arrayBuffer());
@@ -31,20 +38,18 @@ async function downloadAsset(fileUrl: string, category: string, fileId: string):
   return `/${relPath}`;
 }
 
-export async function getAutoreImageUrl(fileId: string | null | undefined): Promise<string | null> {
-  if (!fileId) return null;
-  const url = new URL(`/sites/default/files/styles/thumbnail/public/${fileId}`, DRUPAL_API_URL);
-  return downloadAsset(url.toString(), 'autori', fileId.replace(/[/\\]/g, '-'));
+// relativeUrl è il path dal JSON:API, es. "/sites/default/files/immagini/2018/09/foto.png"
+export async function getAutoreImageUrl(relativeUrl: string | null | undefined): Promise<string | null> {
+  if (!relativeUrl) return null;
+  return downloadAsset(relativeUrl, 'autori');
 }
 
-export async function getEventoImageUrl(fileId: string | null | undefined): Promise<string | null> {
-  if (!fileId) return null;
-  const url = new URL(`/sites/default/files/styles/medium/public/${fileId}`, DRUPAL_API_URL);
-  return downloadAsset(url.toString(), 'eventi', fileId.replace(/[/\\]/g, '-'));
+export async function getEventoImageUrl(relativeUrl: string | null | undefined): Promise<string | null> {
+  if (!relativeUrl) return null;
+  return downloadAsset(relativeUrl, 'eventi');
 }
 
-export async function getPeriodoImageUrl(fileId: string | null | undefined): Promise<string | null> {
-  if (!fileId) return null;
-  const url = new URL(`/sites/default/files/styles/medium/public/${fileId}`, DRUPAL_API_URL);
-  return downloadAsset(url.toString(), 'periodi', fileId.replace(/[/\\]/g, '-'));
+export async function getPeriodoImageUrl(relativeUrl: string | null | undefined): Promise<string | null> {
+  if (!relativeUrl) return null;
+  return downloadAsset(relativeUrl, 'periodi');
 }

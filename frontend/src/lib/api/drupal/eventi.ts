@@ -64,7 +64,9 @@ export async function getEventiDelMese(month: number): Promise<EventoMese[]> {
     'filter[field_data_evento][condition][path]': 'field_data_evento',
     'fields[node--evento]': 'title,path,field_data_evento,field_immagine,field_localizzazione',
     'fields[taxonomy_term--localizzazioni]': 'name,path',
-    'include': 'field_localizzazione',
+    'fields[media--image]': 'field_media_image',
+    'fields[file--file]': 'uri',
+    'include': 'field_localizzazione,field_immagine,field_immagine.field_media_image',
     'page[limit]': '50',
   }));
 

@@ -43,3 +43,12 @@ export function extractSlug(alias: string | null | undefined, fieldSlug?: string
   if (!alias) return '';
   return alias.split('/').pop() ?? '';
 }
+
+// Risolve node → media--image → file--file e restituisce l'URL relativo del file
+export function resolveImageUrl(rel: any, included: IncludedMap): string | null {
+  const media = resolveRef(rel, included);
+  if (!media) return null;
+  const file = resolveRef(media.relationships?.field_media_image, included);
+  if (!file) return null;
+  return file.attributes?.uri?.url ?? null;
+}

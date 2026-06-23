@@ -45,7 +45,9 @@ export async function getAutoriPiuVisti(limit = 20): Promise<AutoreCard[]> {
     'filter[status]': '1',
     'fields[node--autore]': 'title,path,field_immagine,field_localizzazione',
     'fields[taxonomy_term--localizzazioni]': 'name,path',
-    'include': 'field_localizzazione',
+    'fields[media--image]': 'field_media_image',
+    'fields[file--file]': 'uri',
+    'include': 'field_localizzazione,field_immagine,field_immagine.field_media_image',
     'sort': 'title',
     'page[limit]': String(Math.min(limit, 50)),
   }));
@@ -62,7 +64,9 @@ export async function getAutore(slug: string): Promise<AutoreDetail | null> {
     'fields[node--autore]': 'title,path,field_informazioni,field_immagine,field_localizzazione,field_periodo,field_anno_di_nascita,field_anno_di_morte',
     'fields[taxonomy_term--localizzazioni]': 'name,path',
     'fields[taxonomy_term--periodi]': 'name,path',
-    'include': 'field_localizzazione,field_periodo',
+    'fields[media--image]': 'field_media_image',
+    'fields[file--file]': 'uri',
+    'include': 'field_localizzazione,field_periodo,field_immagine,field_immagine.field_media_image',
   }));
 
   const item = Array.isArray(response.data) ? response.data[0] : response.data;

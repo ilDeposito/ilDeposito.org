@@ -5,7 +5,7 @@ import type {
   EventoForCanto, EventoDelGiorno, EventoMese, EventoCard, EventoCalendario, EventoGeo, EventoDetail,
   TraduzioneDetail,
 } from '../types.js';
-import { type IncludedMap, resolveRefs, resolveMany, extractSlug } from './resolvers.js';
+import { type IncludedMap, resolveRefs, resolveMany, resolveImageUrl, extractSlug } from './resolvers.js';
 
 // ── Helpers ────────────────────────────────────────────
 
@@ -105,7 +105,7 @@ export function mapAutoreCard(raw: any, included: IncludedMap): AutoreCard {
     id: a.drupal_internal__nid,
     titolo: a.title,
     slug: extractSlug(a.path?.alias),
-    immagine: null,
+    immagine: resolveImageUrl(r.field_immagine, included),
     visualizzazioni: a.field_visualizzazioni ?? 0,
     localizzazioni: resolveRefs(r.field_localizzazione, included),
   };
@@ -119,7 +119,7 @@ export function mapAutoreDetail(raw: any, included: IncludedMap): AutoreDetail {
     titolo: a.title,
     slug: extractSlug(a.path?.alias),
     informazioni: textValue(a.field_informazioni),
-    immagine: null,
+    immagine: resolveImageUrl(r.field_immagine, included),
     localizzazioni: resolveRefs(r.field_localizzazione, included),
     periodi: resolveRefs(r.field_periodo, included),
     annoNascita: a.field_anno_di_nascita ?? null,
@@ -156,7 +156,7 @@ export function mapEventoMese(raw: any, included: IncludedMap): EventoMese {
     titolo: a.title,
     slug: extractSlug(a.path?.alias),
     dataEvento: a.field_data_evento,
-    immagine: null,
+    immagine: resolveImageUrl(r.field_immagine, included),
     localizzazioni: resolveRefs(r.field_localizzazione, included),
   };
 }
