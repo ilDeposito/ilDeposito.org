@@ -1,0 +1,203 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/ui/Breadcrumb.astro';
+import ShareModal from '../../components/ui/ShareModal.astro';
+import EventCard from '../../components/ui/EventCard.astro';
+import {
+  getEventiDelMese,
+  getEventiPiuVisti,
+  getEventiGeo,
+  getEventoImageUrl,
+} from '../../lib/api/index.js';
+
+const now   = new Date();
+const month = now.getUTCMonth() + 1;
+
+const [eventiMese, eventiPiuVisti, eventiGeo] = await Promise.all([
+  getEventiDelMese(month),
+  getEventiPiuVisti(10),
+  getEventiGeo(),
+]);
+
+const imgUrls = await Promise.all(
+  eventiMese.map((e) => getEventoImageUrl(e.immagine))
+);
+
+const todayDay = now.getUTCDate();
+const startIndex = (() => {
+  const i = eventiMese.findIndex((e) => new Date(e.dataEvento).getUTCDate() >= todayDay);
+  return i === -1 ? 0 : i;
+})();
+
+const mesiIT = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+const meseNome = mesiIT[month - 1];
+
+const formatData = (data: string) =>
+  new Date(data).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+
+const eventiGeoJson = JSON.stringify(
+  eventiGeo.map((e) => ({
+    titolo:      e.titolo,
+    slug:        e.slug,
+    data_evento: e.dataEvento,
+    latitude:    e.latitude,
+    longitude:   e.longitude,
+  }))
+);
+---
+<BaseLayout title="Gli eventi dell'archivio" description="La dashboard degli eventi dell'archivio">
+
+  <header class="bg-base-200 border-b-2 border-secondary">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
+      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Eventi' }]} />
+
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">Gli eventi dell'archivio</h1>
+      <p class="font-serif italic text-base text-base-content/60">La dashboard degli eventi</p>
+
+      <a href="/eventi/elenco" class="btn btn-primary btn-sm gap-2 w-fit border-0">
+        Tutti gli eventi
+        <i class="ph ph-arrow-right"></i>
+      </a>
+
+      <share-button data-title="Gli eventi dell'archivio" class="contents">
+        <button type="button" class="inline-flex items-center gap-1 cursor-pointer w-fit" aria-label="Condividi questa pagina">
+          <i class="ph ph-share-network"></i>
+          Condividi
+        </button>
+        <ShareModal />
+      </share-button>
+    </div>
+  </header>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+  <article class="flex flex-col gap-8 mt-6">
+
+    <!-- Carousel eventi del mese -->
+    {eventiMese.length > 0 && (
+      <section class="flex flex-col gap-3">
+        <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
+          Gli eventi di {meseNome}
+        </h2>
+
+        <image-carousel
+          data-initial={String(startIndex)}
+          class="block relative"
+        >
+          <!-- Viewport -->
+          <div data-viewport class="overflow-hidden relative">
+            <!-- Track -->
+            <div data-track class="flex">
+              {eventiMese.map((evento, i) => {
+                const loc = evento.localizzazioni[0];
+                return (
+                  <div data-item class="min-w-full">
+                    <a href={`/eventi/${evento.slug}`} class="block relative h-64">
+                      {imgUrls[i] ? (
+                        <img
+                          src={imgUrls[i]}
+                          alt={"Immagine dell'evento: " + evento.titolo}
+                          width="800"
+                          height="450"
+                          class="w-full h-full object-cover grayscale"
+                          loading={i === startIndex ? 'eager' : 'lazy'}
+                        />
+                      ) : (
+                        <div class="w-full h-full bg-base-300 flex items-center justify-center">
+                          <i class="ph ph-image-broken text-4xl text-base-content/30"></i>
+                        </div>
+                      )}
+                      <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"></div>
+                      <div class="absolute bottom-0 left-0 right-0 p-4 text-white">
+                        {loc && evento.dataEvento && (
+                          <p class="font-sans text-sm text-white/80 mb-1">
+                            {loc.titolo} · {formatData(evento.dataEvento)}
+                          </p>
+                        )}
+                        <p class="font-serif font-bold text-base leading-tight line-clamp-2">{evento.titolo}</p>
+                      </div>
+                    </a>
+                  </div>
+                );
+              })}
+            </div>
+
+            <!-- Frecce -->
+            {eventiMese.length > 1 && (
+              <>
+                <button
+                  data-prev
+                  type="button"
+                  aria-label="Evento precedente"
+                  class="absolute left-2 top-1/2 -translate-y-1/2 z-10 btn btn-circle btn-sm bg-black/50 border-0 text-white hover:bg-black/70"
+                >
+                  <i class="ph ph-arrow-left text-base"></i>
+                </button>
+                <button
+                  data-next
+                  type="button"
+                  aria-label="Evento successivo"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 z-10 btn btn-circle btn-sm bg-black/50 border-0 text-white hover:bg-black/70"
+                >
+                  <i class="ph ph-arrow-right text-base"></i>
+                </button>
+              </>
+            )}
+          </div>
+
+          <!-- Dots -->
+          {eventiMese.length > 1 && (
+            <div class="flex justify-center gap-2 mt-3 px-4">
+              {eventiMese.map((_, i) => (
+                <button
+                  data-dot
+                  type="button"
+                  aria-label={`Vai all'evento ${i + 1}`}
+                  class={`w-2 h-2 rounded-full bg-primary transition-opacity ${i === startIndex ? 'opacity-100' : 'opacity-30'}`}
+                ></button>
+              ))}
+            </div>
+          )}
+        </image-carousel>
+      </section>
+    )}
+
+    <!-- Eventi più visti -->
+    <section class="flex flex-col gap-2">
+      <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
+        Gli eventi più visti
+      </h2>
+
+      <div class="flex flex-col divide-y divide-secondary/30">
+        {eventiPiuVisti.map((evento) => (
+          <EventCard evento={evento} />
+        ))}
+      </div>
+
+      <a href="/eventi/elenco" class="btn btn-primary self-center mt-4 gap-2">
+        Tutti gli eventi
+        <i class="ph ph-arrow-right"></i>
+      </a>
+    </section>
+
+    <!-- Mappa degli eventi -->
+    {eventiGeo.length > 0 && (
+      <section class="flex flex-col gap-3">
+        <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
+          Mappa degli eventi
+        </h2>
+        <events-map
+          data-eventi={eventiGeoJson}
+          class="block h-96 w-full rounded-lg overflow-hidden border border-base-300"
+        ></events-map>
+      </section>
+    )}
+
+  </article>
+
+  <script>
+    import '../../scripts/share-button.js';
+    import '../../scripts/image-carousel.js';
+    import '../../scripts/events-map.js';
+  </script>
+  </div>
+</BaseLayout>

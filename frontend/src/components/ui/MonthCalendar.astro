@@ -1,0 +1,49 @@
+---
+interface Props {
+  month: number;
+  year: number;
+  highlightedDays: number[];
+  basePath?: string;
+}
+
+const { month, year, highlightedDays, basePath = '/calendario-cantato' } = Astro.props;
+
+const mesiIT = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+const giorniSettimana = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
+
+const meseNome = mesiIT[month - 1];
+const daysInMonth = new Date(year, month, 0).getDate();
+
+const firstDayRaw = new Date(year, month - 1, 1).getDay();
+const startOffset = firstDayRaw === 0 ? 6 : firstDayRaw - 1;
+
+const highlightSet = new Set(highlightedDays);
+
+const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+const emptyCells = Array.from({ length: startOffset });
+---
+
+<div class="flex flex-col gap-1">
+  <h3 class="font-serif font-bold text-center text-primary capitalize text-base py-1">
+    {meseNome}
+  </h3>
+  <div class="grid grid-cols-7 text-center text-sm gap-y-0.5">
+    {giorniSettimana.map((g) => (
+      <span class="font-sans font-semibold text-base-content/50 text-xs py-1">{g}</span>
+    ))}
+    {emptyCells.map(() => <span></span>)}
+    {days.map((day) => {
+      const hasEvent = highlightSet.has(day);
+      return hasEvent ? (
+        <a
+          href={`${basePath}/${day}-${meseNome}`}
+          class="py-1 font-bold text-primary hover:bg-primary hover:text-primary-content rounded-full transition-colors leading-tight"
+        >
+          {day}
+        </a>
+      ) : (
+        <span class="py-1 text-base-content/30 leading-tight">{day}</span>
+      );
+    })}
+  </div>
+</div>

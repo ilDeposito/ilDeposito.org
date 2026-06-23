@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/ui/Breadcrumb.astro';
+import PagefindList from '../../components/ui/PagefindList.astro';
+---
+<BaseLayout title="I canti dell'archivio" description="Tutti i canti dell'archivio in ordine alfabetico">
+
+  <header class="bg-base-200 border-b-2 border-secondary">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">
+      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Canti', href: '/canti' }, { label: 'Elenco' }]} />
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">I canti dell'archivio</h1>
+      <p class="font-serif italic text-base text-base-content/60">Elenco completo in ordine alfabetico</p>
+    </div>
+  </header>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+  <div class="mt-6">
+    <PagefindList
+      type="canti"
+      filterKeys={["periodi", "tags", "lingue", "accordi", "audio"]}
+      pageSize={15}
+    />
+  </div>
+
+  </div>
+</BaseLayout>

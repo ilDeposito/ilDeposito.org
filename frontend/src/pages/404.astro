@@ -1,0 +1,40 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Pagina non trovata" description="La pagina richiesta non esiste" noindex={true}>
+
+  <header class="bg-base-200 border-b-2 border-secondary">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">
+      <h1 class="font-serif font-bold text-2xl md:text-3xl text-base-content">Pagina non trovata</h1>
+      <p class="font-serif italic text-base text-base-content/60">La pagina che stai cercando non esiste o è stata spostata</p>
+    </div>
+  </header>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+  <div class="flex flex-col gap-4 max-w-2xl mx-auto mt-6">
+    <p class="text-base text-base-content/80">Ecco alcuni suggerimenti:</p>
+
+    <ul class="flex flex-col gap-2">
+      <li>
+        <a href="/" class="inline-flex items-center gap-2 text-primary hover:underline">
+          <i class="ph ph-house"></i>
+          Torna alla homepage
+        </a>
+      </li>
+      <li>
+        <a href="/cerca" class="inline-flex items-center gap-2 text-primary hover:underline">
+          <i class="ph ph-magnifying-glass"></i>
+          Cerca nell'archivio
+        </a>
+      </li>
+      <li>
+        <a href="/canti" class="inline-flex items-center gap-2 text-primary hover:underline">
+          <i class="ph ph-music-notes"></i>
+          Esplora i canti
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  </div>
+</BaseLayout>

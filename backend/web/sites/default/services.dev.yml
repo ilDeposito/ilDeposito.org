@@ -159,18 +159,15 @@ parameters:
    # for more information about the topic in general.
    # Note: By default the configuration is disabled.
   cors.config:
-    enabled: false
-    # Specify allowed headers, like 'x-allowed-header'.
-    allowedHeaders: []
-    # Specify allowed request methods, specify ['*'] to allow all possible ones.
-    allowedMethods: []
-    # Configure requests allowed from specific origins.
+    enabled: true
+    # Permette qualsiasi header (es. Content-Type, Authorization) nelle richieste
+    allowedHeaders: ['*']
+    # Specifica i metodi supportati da JSON:API
+    allowedMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS']
+    # Permette le richieste da qualsiasi origine in locale (incluso il tuo Astro su DDEV)
     allowedOrigins: ['*']
-    # Sets the Access-Control-Expose-Headers header.
     exposedHeaders: false
-    # Sets the Access-Control-Max-Age header.
     maxAge: false
-    # Sets the Access-Control-Allow-Credentials header.
     supportsCredentials: false
 services:
   cache.backend.null:

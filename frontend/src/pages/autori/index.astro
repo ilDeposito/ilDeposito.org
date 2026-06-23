@@ -1,0 +1,92 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/ui/Breadcrumb.astro';
+import { getAutoriPiuVisti, getCantiByAutoreMap, getAutoreImageUrl } from '../../lib/api/index.js';
+
+const autori = await getAutoriPiuVisti(20);
+const cantiMap = await getCantiByAutoreMap();
+
+const autoriConDati = await Promise.all(
+  autori.map(async (autore) => {
+    const canti = cantiMap.get(autore.id) ?? [];
+    const immagineUrl = autore.immagine ? await getAutoreImageUrl(autore.immagine) : null;
+    return { autore, numCanti: canti.length, immagineUrl };
+  })
+);
+---
+<BaseLayout title="Gli autori dell'archivio" description="I compositori e autori dei canti dell'archivio">
+
+  <header class="bg-base-200 border-b-2 border-secondary">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
+      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Autori' }]} />
+
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">Gli autori dell'archivio</h1>
+
+      <p class="font-serif italic text-base text-base-content/60">I compositori e autori dei canti</p>
+
+      <a href="/autori/elenco" class="btn btn-primary btn-sm gap-2 w-fit border-0">
+        Tutti gli autori dell'archivio
+        <i class="ph ph-arrow-right"></i>
+      </a>
+    </div>
+  </header>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+  <article class="flex flex-col gap-6 max-w-2xl mx-auto mt-6">
+
+    <section class="flex flex-col gap-2">
+      <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
+        Gli autori più visitati
+      </h2>
+
+      <div class="flex flex-col divide-y divide-secondary/30">
+        {autoriConDati.map(({ autore, numCanti, immagineUrl }, i) => (
+          <div class="flex items-center gap-4 py-3 hover:bg-base-200 transition-colors rounded-lg">
+            {immagineUrl ? (
+              <img
+                src={immagineUrl}
+                alt={"Foto di " + autore.titolo}
+                width="80"
+                height="80"
+                loading={i < 4 ? 'eager' : 'lazy'}
+                class="w-20 h-20 rounded-full object-cover shrink-0 border-2 border-base-300"
+              />
+            ) : (
+              <div class="w-20 h-20 rounded-full bg-base-300 flex items-center justify-center shrink-0">
+                <i class="ph ph-user text-base-content/40 text-2xl"></i>
+              </div>
+            )}
+
+            <div class="flex flex-col gap-0.5 min-w-0">
+              <h3 class="font-serif font-semibold text-primary">
+                <a href={`/autori/${autore.slug}`} class="hover:underline">{autore.titolo}</a>
+              </h3>
+
+              {autore.localizzazioni.length > 0 && (
+                <p class="text-base text-base-content/60">
+                  {autore.localizzazioni.map((l, i) => (
+                    <>{i > 0 && ', '}<a href={`/localizzazioni/${l.slug}`} class="hover:underline hover:text-primary">{l.titolo}</a></>
+                  ))}
+                </p>
+              )}
+
+              {numCanti > 0 && (
+                <p class="text-sm text-base-content/40">
+                  {numCanti} {numCanti === 1 ? 'canto' : 'canti'}
+                </p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <a href="/autori/elenco" class="btn btn-primary self-center mt-4 gap-2">
+        Tutti gli autori dell'archivio
+        <i class="ph ph-arrow-right"></i>
+      </a>
+    </section>
+
+  </article>
+
+  </div>
+</BaseLayout>

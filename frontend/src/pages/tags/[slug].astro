@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/ui/Breadcrumb.astro';
+import PagefindList from '../../components/ui/PagefindList.astro';
+import { getTags } from '../../lib/api/index.js';
+import type { Tassonomia } from '../../lib/api/types.js';
+
+export async function getStaticPaths() {
+  const tags = await getTags();
+  return tags.map((tag) => ({
+    params: { slug: tag.slug },
+    props: { tag },
+  }));
+}
+
+const { tag } = Astro.props as { tag: Tassonomia };
+const titolo = tag.titolo.charAt(0).toUpperCase() + tag.titolo.slice(1);
+---
+<BaseLayout title={titolo} description={`I contenuti catalogati con ${titolo}`}>
+
+  <header class="bg-base-200 border-b-2 border-secondary">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">
+      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Tags', href: '/tags' }, { label: titolo }]} />
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{titolo}</h1>
+      <p class="font-serif italic text-base text-base-content/60">I contenuti catalogati con {titolo}</p>
+    </div>
+  </header>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+  <div class="mt-6">
+    <PagefindList
+      presetFilter={{ tags: tag.titolo }}
+      filterKeys={["type", "periodi"]}
+      pageSize={15}
+    />
+  </div>
+
+  </div>
+</BaseLayout>

@@ -1,0 +1,79 @@
+---
+import '../styles/main.css';
+import Header from '../components/base/Header.astro';
+import EventBar from '../components/base/EventBar.astro';
+import Footer from '../components/base/Footer.astro';
+import SEO from '../components/base/SEO.astro';
+import { buildTitle, buildDescription, buildCanonical, resolveOgImage } from '../lib/seo.js';
+
+interface Props {
+  title: string;
+  description?: string;
+  pagefindType?: string;
+  canonical?: string;
+  ogType?: string;
+  ogImage?: string;
+  ogImageAlt?: string;
+  noindex?: boolean;
+  publishedTime?: string;
+  jsonLd?: object | object[];
+  preloadImage?: string;
+}
+
+const {
+  title,
+  description = '',
+  pagefindType,
+  canonical,
+  ogType,
+  ogImage,
+  ogImageAlt,
+  noindex = false,
+  publishedTime,
+  jsonLd,
+  preloadImage,
+} = Astro.props;
+
+const seoTitle = buildTitle(title);
+const seoDescription = buildDescription(description);
+const seoCanonical = canonical || buildCanonical(Astro);
+const seoOgImage = resolveOgImage(ogImage || '/og-default.jpg', Astro.site);
+---
+<!DOCTYPE html>
+<html lang="it" data-theme="ildeposito">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="alternate" type="application/rss+xml" title="ilDeposito.org — Nuovi canti" href="/rss.xml" />
+    <link rel="dns-prefetch" href="https://tile.openstreetmap.org" />
+    {preloadImage && <link rel="preload" as="image" href={preloadImage} />}
+    <SEO
+      title={seoTitle}
+      description={seoDescription}
+      canonical={seoCanonical}
+      ogType={ogType}
+      ogImage={seoOgImage}
+      ogImageAlt={ogImageAlt}
+      noindex={noindex}
+      publishedTime={publishedTime}
+      jsonLd={jsonLd}
+    />
+  </head>
+  <body class="font-sans bg-base-100 text-base-content">
+    <Header />
+    <EventBar />
+    <main>
+      {pagefindType && (
+        <span aria-hidden="true" class="sr-only">
+          <span data-pagefind-meta="title">{title}</span>
+          <span data-pagefind-meta={`type:${pagefindType}`}></span>
+          <span data-pagefind-filter={`type:${pagefindType}`}></span>
+        </span>
+      )}
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

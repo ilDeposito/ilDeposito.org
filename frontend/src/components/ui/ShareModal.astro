@@ -1,0 +1,96 @@
+---
+import { generateQrSvg } from '../../lib/generate-qrcode.js';
+
+const site = import.meta.env.SITE || 'https://www.ildeposito.org';
+const pageUrl = new URL(Astro.url.pathname, site).href;
+const qrSvg = await generateQrSvg(pageUrl);
+---
+
+<dialog class="modal">
+  <div class="modal-box max-w-lg" style="background-color: #ece8d9;">
+    <form method="dialog">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" aria-label="Chiudi">
+        <i class="ph ph-x"></i>
+      </button>
+    </form>
+
+    <h3 class="font-serif font-semibold text-lg text-primary mb-4 text-center">Condividi!</h3>
+
+    <div class="flex flex-col md:flex-row gap-4">
+      <div class="grid grid-cols-2 gap-4 flex-1">
+        <button
+          type="button"
+          data-share="copy"
+          class="flex flex-col items-center gap-1 cursor-pointer transition-all duration-200 hover:text-primary hover:scale-110"
+        >
+          <i class="ph ph-copy text-2xl"></i>
+          <span class="text-sm" data-copy-label>Copia URL</span>
+        </button>
+
+        <a
+          data-share="facebook"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex flex-col items-center gap-1 transition-all duration-200 hover:text-primary hover:scale-110"
+        >
+          <i class="ph ph-facebook-logo text-2xl"></i>
+          <span class="text-sm">Facebook</span>
+        </a>
+
+        <a
+          data-share="whatsapp"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex flex-col items-center gap-1 transition-all duration-200 hover:text-primary hover:scale-110"
+        >
+          <i class="ph ph-whatsapp-logo text-2xl"></i>
+          <span class="text-sm">WhatsApp</span>
+        </a>
+
+        <a
+          data-share="email"
+          class="flex flex-col items-center gap-1 transition-all duration-200 hover:text-primary hover:scale-110"
+        >
+          <i class="ph ph-envelope text-2xl"></i>
+          <span class="text-sm">Email</span>
+        </a>
+
+        <a
+          data-share="telegram"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex flex-col items-center gap-1 transition-all duration-200 hover:text-primary hover:scale-110"
+        >
+          <i class="ph ph-telegram-logo text-2xl"></i>
+          <span class="text-sm">Telegram</span>
+        </a>
+
+        <a
+          data-share="x"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex flex-col items-center gap-1 transition-all duration-200 hover:text-primary hover:scale-110"
+        >
+          <i class="ph ph-x-logo text-2xl"></i>
+          <span class="text-sm">X</span>
+        </a>
+      </div>
+
+      <div class="divider md:divider-horizontal m-0 before:bg-secondary after:bg-secondary"></div>
+
+      <div class="flex flex-col items-center gap-3 flex-1">
+        <div class="qr-code-container" set:html={qrSvg} />
+        <button
+          type="button"
+          data-action="download-qr"
+          class="text-sm text-primary hover:underline cursor-pointer"
+        >
+          Scarica QR Code
+        </button>
+      </div>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>chiudi</button>
+  </form>
+</dialog>

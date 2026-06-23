@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/ui/Breadcrumb.astro';
+import { getPeriodi } from '../../lib/api/index.js';
+import type { Periodo } from '../../lib/api/types.js';
+
+export async function getStaticPaths() {
+  const periodi = await getPeriodi();
+  return periodi.map((periodo) => ({
+    params: { slug: periodo.slug },
+    props: { periodo },
+  }));
+}
+
+const { periodo } = Astro.props as { periodo: Periodo };
+---
+<BaseLayout title={periodo.titolo} description={`I contenuti del periodo ${periodo.titolo}`} pagefindType="periodi">
+
+  <header class="bg-base-200 border-b-2 border-secondary">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">
+      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Periodi', href: '/periodi' }, { label: periodo.titolo }]} />
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{periodo.titolo}</h1>
+      <p class="font-serif italic text-base text-base-content/60">I contenuti del periodo {periodo.titolo}</p>
+    </div>
+  </header>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+  <div class="mt-6">
+    <p class="font-serif text-base-content/60 italic">Ecco la pagina del periodo</p>
+  </div>
+
+  </div>
+</BaseLayout>

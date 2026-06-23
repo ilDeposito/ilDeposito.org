@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/ui/Breadcrumb.astro';
+import ShareModal from '../../components/ui/ShareModal.astro';
+import { getLocalizzazioni, getContenutiByLocalizzazioneMap } from '../../lib/api/index.js';
+
+const localizzazioni = await getLocalizzazioni();
+const contenutiMap = await getContenutiByLocalizzazioneMap();
+---
+<BaseLayout title="Localizzazioni" description="Le localizzazioni per gli autori e gli eventi dell'archivio">
+
+  <!-- Titolo + info: attaccato all'header e ai bordi laterali -->
+  <header class="bg-base-200 border-b-2 border-secondary">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
+      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Localizzazioni' }]} />
+
+      <h1 class="font-serif font-bold text-2xl md:text-3xl text-base-content">Localizzazioni</h1>
+
+      <p class="font-serif italic text-base text-base-content/60">Le localizzazioni per gli autori e gli eventi dell'archivio</p>
+
+      <share-button data-title="Localizzazioni" class="contents">
+        <button type="button" class="inline-flex items-center gap-1 cursor-pointer w-fit" aria-label="Condividi questa pagina">
+          <i class="ph ph-share-network"></i>
+          Condividi
+        </button>
+        <ShareModal />
+      </share-button>
+    </div>
+  </header>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+  <article class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto mt-6">
+    {localizzazioni.map((localizzazione) => {
+      const { autori = 0, eventi = 0 } = contenutiMap.get(localizzazione.id) ?? {};
+      const parti = [
+        autori > 0 && `${autori} ${autori === 1 ? 'autore' : 'autori'}`,
+        eventi > 0 && `${eventi} ${eventi === 1 ? 'evento' : 'eventi'}`,
+      ].filter(Boolean);
+
+      return (
+        <div class="flex flex-col gap-0.5 py-2">
+          <a href={`/localizzazioni/${localizzazione.slug}`} class="font-serif font-semibold text-primary hover:underline">
+            {localizzazione.titolo}
+          </a>
+          {parti.length > 0 && (
+            <p class="font-serif italic text-base text-base-content/60">{parti.join(' · ')}</p>
+          )}
+        </div>
+      );
+    })}
+  </article>
+
+  <script>
+    import '../../scripts/share-button.js';
+  </script>
+  </div>
+</BaseLayout>

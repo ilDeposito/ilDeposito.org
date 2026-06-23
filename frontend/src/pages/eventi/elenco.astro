@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/ui/Breadcrumb.astro';
+import ShareModal from '../../components/ui/ShareModal.astro';
+import PagefindList from '../../components/ui/PagefindList.astro';
+---
+<BaseLayout title="Gli eventi dell'archivio" description="Elenco completo degli eventi dell'archivio in ordine alfabetico">
+
+  <header class="bg-base-200 border-b-2 border-secondary">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">
+      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Eventi', href: '/eventi' }, { label: 'Elenco' }]} />
+
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">Gli eventi dell'archivio</h1>
+      <p class="font-serif italic text-base text-base-content/60">L'elenco completo degli eventi dell'archivio</p>
+
+      <a href="/storia-cantata" class="inline-flex items-center gap-2 text-primary w-fit">
+        <span class="border border-primary rounded p-1 inline-flex">
+          <i class="ph ph-calendar-star"></i>
+        </span>
+        <span class="font-serif italic font-bold uppercase text-sm">La Storia Cantata</span>
+      </a>
+
+      <div class="flex items-center gap-4 text-sm text-base-content mt-1">
+        <share-button data-title="Gli eventi dell'archivio" class="contents">
+          <button type="button" class="inline-flex items-center gap-1 cursor-pointer" aria-label="Condividi questa pagina">
+            <i class="ph ph-share-network"></i>
+            Condividi
+          </button>
+          <ShareModal />
+        </share-button>
+      </div>
+    </div>
+  </header>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+  <div class="mt-6">
+    <PagefindList
+      type="eventi"
+      filterKeys={["localizzazioni", "tags", "periodi"]}
+      pageSize={15}
+      sortOptions={[
+        { field: 'titolo', label: 'A–Z', dir: 'asc' },
+        { field: 'data_evento', label: 'Cronologico', dir: 'asc' },
+      ]}
+    />
+  </div>
+
+  <script>
+    import '../../scripts/share-button.js';
+  </script>
+  </div>
+</BaseLayout>

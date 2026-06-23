@@ -1,0 +1,48 @@
+---
+import { getEventiDelGiorno } from '../../lib/api/index.js';
+
+// const eventi = await getEventiDelGiorno();
+const eventi = [
+  { slug: 'la-presa-della-bastiglia', titolo: 'La presa della Bastiglia', dataEvento: '1789-07-14' },
+  { slug: 'l-attentato-a-palmiro-togliatti', titolo: "L'attentato a Palmiro Togliatti", dataEvento: '1948-07-14' },
+];
+
+function formatDate(dateStr: string) {
+  const d = new Date(dateStr);
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const year = d.getUTCFullYear();
+  return `${day}.${month}.${year}`;
+}
+---
+{eventi.length > 0 && (
+  <div class="w-full bg-neutral">
+    <event-carousel class="max-w-6xl mx-auto px-4 py-2 flex items-center justify-center gap-2 text-neutral-content">
+      <span class="hidden md:inline shrink-0 font-serif font-bold text-sm uppercase tracking-wide">Evento del giorno &mdash;</span>
+      <div class="grid">
+        {eventi.map((evento, i) => (
+          <a
+            href={`/eventi/${evento.slug}`}
+            data-event-slide
+            class:list={[
+              "col-start-1 row-start-1 flex items-center gap-2 text-neutral-content hover:underline transition-opacity duration-500",
+              i === 0 ? "opacity-100" : "opacity-0 pointer-events-none"
+            ]}
+          >
+            <span class="shrink-0 font-sans font-semibold text-sm">{formatDate(evento.dataEvento)}</span>
+            <span class="font-serif text-sm">{evento.titolo}</span>
+          </a>
+        ))}
+      </div>
+      {eventi.length > 1 && (
+        <span class="shrink-0 text-neutral-content/60 text-xs">
+          <span data-event-counter>1</span>/{eventi.length}
+        </span>
+      )}
+    </event-carousel>
+  </div>
+)}
+
+<script>
+  import '../../scripts/event-carousel.js';
+</script>

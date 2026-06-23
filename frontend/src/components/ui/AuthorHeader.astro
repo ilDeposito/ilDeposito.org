@@ -1,0 +1,64 @@
+---
+import type { AutoreDetail } from '../../lib/api/types.js';
+import { getAutoreImageUrl } from '../../lib/api/index.js';
+import Breadcrumb from './Breadcrumb.astro';
+import ShareModal from './ShareModal.astro';
+
+interface Props {
+  autore: AutoreDetail;
+  breadcrumbItems?: Array<{ label: string; href?: string }>;
+}
+
+const { autore, breadcrumbItems } = Astro.props;
+
+let anni: string | null = null;
+if (autore.annoNascita && autore.annoMorte) anni = `${autore.annoNascita} - ${autore.annoMorte}`;
+else if (autore.annoNascita) anni = `${autore.annoNascita}`;
+else if (autore.annoMorte) anni = `${autore.annoMorte}`;
+
+const immagineUrl = autore.immagine ? await getAutoreImageUrl(autore.immagine) : null;
+---
+<header class="bg-base-200 border-b-2 border-secondary">
+  <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
+    {breadcrumbItems && <Breadcrumb items={breadcrumbItems} />}
+
+    <div class="flex items-center gap-4">
+      {immagineUrl && (
+        <img
+          src={immagineUrl}
+          alt={"Foto di " + autore.titolo}
+          width="80"
+          height="80"
+          loading="eager"
+          class="w-20 h-20 rounded-full object-cover shrink-0 border-2 border-base-300"
+        />
+      )}
+      <div class="flex flex-col gap-1">
+        <h1 class="font-serif font-bold text-2xl md:text-3xl text-base-content">{autore.titolo}</h1>
+        {(autore.localizzazioni.length > 0 || anni) && (
+          <p class="font-serif italic text-base text-base-content/60">
+            {autore.localizzazioni.map((l, i) => (
+              <>
+                {i > 0 && ', '}
+                <a href={`/localizzazioni/${l.slug}`} class="hover:underline hover:text-primary">{l.titolo}</a>
+              </>
+            ))}
+            {anni && <> · {anni}</>}
+          </p>
+        )}
+      </div>
+    </div>
+
+    <share-button data-title={autore.titolo} class="contents">
+      <button type="button" class="inline-flex items-center gap-1 cursor-pointer w-fit" aria-label="Condividi questo autore">
+        <i class="ph ph-share-network"></i>
+        Condividi
+      </button>
+      <ShareModal />
+    </share-button>
+  </div>
+</header>
+
+<script>
+  import '../../scripts/share-button.js';
+</script>

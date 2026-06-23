@@ -1,0 +1,84 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumb from '../components/ui/Breadcrumb.astro';
+import PagefindList from '../components/ui/PagefindList.astro';
+---
+<BaseLayout title="Cerca nell'archivio" description="Cerca tra i canti, gli autori, gli eventi, le traduzioni e i periodi dell'archivio" noindex={true}>
+
+  <header class="bg-base-200 border-b-2 border-secondary">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
+      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Cerca' }]} />
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">Cerca nell'archivio</h1>
+      <form action="/cerca" method="get" class="flex items-center gap-2">
+        <input
+          type="search"
+          name="q"
+          data-cerca-input
+          placeholder="Cerca canti, autori, eventi…"
+          autocomplete="off"
+          class="input input-bordered flex-1 font-sans text-base"
+        />
+        <button type="submit" class="btn btn-primary">
+          <i class="ph ph-magnifying-glass"></i>
+        </button>
+      </form>
+      <p data-cerca-label class="font-serif italic text-sm text-base-content/60 hidden"></p>
+    </div>
+  </header>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+  <div class="mt-6">
+    <PagefindList
+      filterKeys={["type", "periodi", "tags"]}
+      pageSize={15}
+    />
+  </div>
+
+  <script is:inline>
+  (function () {
+    const q = new URLSearchParams(window.location.search).get('q') ?? '';
+    const input  = document.querySelector('[data-cerca-input]');
+    const label  = document.querySelector('[data-cerca-label]');
+    const pfList = document.querySelector('pagefind-list');
+
+    if (input) input.value = q;
+
+    if (label && q) {
+      label.textContent = 'Risultati per "' + q + '"';
+      label.classList.remove('hidden');
+    }
+
+    // Imposta la query iniziale PRIMA che _init() la legga (l'import async
+    // di pagefind garantisce che questo script abbia già girato quando _init()
+    // accede a dataset.initialQuery).
+    if (pfList) pfList.dataset.initialQuery = q;
+
+    // Ricerca live mentre l'utente digita (aggiorna risultati + URL)
+    let debounce;
+    input?.addEventListener('input', function () {
+      clearTimeout(debounce);
+      debounce = setTimeout(function () {
+        var newQ = input.value.trim();
+
+        if (label) {
+          if (newQ) {
+            label.textContent = 'Risultati per "' + newQ + '"';
+            label.classList.remove('hidden');
+          } else {
+            label.classList.add('hidden');
+          }
+        }
+
+        var url = new URL(window.location.href);
+        if (newQ) url.searchParams.set('q', newQ);
+        else url.searchParams.delete('q');
+        history.replaceState(null, '', url);
+
+        pfList?.setQuery?.(newQ);
+      }, 300);
+    });
+  })();
+  </script>
+
+  </div>
+</BaseLayout>

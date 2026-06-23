@@ -1,0 +1,91 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "ilDeposito - home" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img [ref=e5]
+      - generic [ref=e8]:
+        - searchbox "Cerca canti o autori" [ref=e9]
+        - generic [ref=e10] [cursor=pointer]: 
+      - button "Apri menu" [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: 
+  - main [ref=e14]:
+    - generic [ref=e15]: Il maggiore dei decorati
+    - generic [ref=e17]:
+      - link " Traduzioni" [ref=e18] [cursor=pointer]:
+        - /url: /traduzioni
+        - generic [ref=e19]: 
+        - text: Traduzioni
+      - heading "Il maggiore dei decorati" [level=1] [ref=e20]
+      - paragraph [ref=e21]:
+        - text: "Lingua:"
+        - link "italiano" [ref=e23] [cursor=pointer]:
+          - /url: /lingue/italiano
+      - paragraph [ref=e24]:
+        - text: "Canto originale:"
+        - link "El mayor de los dorados" [ref=e25] [cursor=pointer]:
+          - /url: /canti/el-mayor-de-los-dorados
+        - text: (spagnolo/castigliano)
+      - button "Condividi questa traduzione" [ref=e28] [cursor=pointer]:
+        - generic [ref=e29]: 
+        - text: Condividi
+    - article [ref=e30]:
+      - generic [ref=e32]: Fui soldato di Francisco Villa di quell’ uomo di fama immortale che anche se andava montando una sella non invidiava la poltrona presidenziale (*) Ora vivo laggiù sulla riva ricordando quel tempo immortale, ora vivo laggiù sulla riva ricordando Villa laggiù a Parral. Io fui uno di quei decorati che con il tempo divenne maggiore nella lotta restammo feriti difendendo patria ed onore. Oggi ricordo i tempi andati in cui combattemmo contro l’invasore, oggi ricordo i tempi andati di quei decorati di cui fui maggiore. Il cavallo che tante volte cavalcai a Jimenez raggiunse la morte, una pallottola destinata a me il suo corpo attraversò. Nitriva morendo dal dolore e per la patria dette la vita, nitriva morendo dal dolore quanto piansi quando morì. Pancho Villa ti porto impresso nella mia mente e nel mio cuore e anche se a volte mi vidi sconfitto dalle forze di Alvaro Obregón sempre fui fedele soldato fino alla fine della rivoluzione, sempre fui fedele soldato che tanto lottò vicino al cannone.
+      - generic [ref=e33]:
+        - heading "Informazioni" [level=2] [ref=e34]
+        - generic [ref=e35]:
+          - paragraph [ref=e36]: traduzione di Annalisa Melandri
+          - paragraph [ref=e37]:
+            - link "http://win.annalisamelandri.it/dblog/articolo.asp?articolo=322" [ref=e38] [cursor=pointer]:
+              - /url: http://win.annalisamelandri.it/dblog/articolo.asp?articolo=322
+  - contentinfo [ref=e39]:
+    - generic [ref=e41]:
+      - generic [ref=e42]:
+        - generic [ref=e43]:
+          - img [ref=e45]
+          - generic [ref=e47]: ilDeposito
+        - paragraph [ref=e48]: canti di protesta politica e sociale
+      - separator [ref=e49]
+      - navigation "Archivio" [ref=e50]:
+        - paragraph [ref=e51]: ARCHIVIO
+        - generic [ref=e52]:
+          - generic [ref=e53]:
+            - link "Canti" [ref=e54] [cursor=pointer]:
+              - /url: /canti
+            - link "Autori" [ref=e55] [cursor=pointer]:
+              - /url: /autori
+            - link "Periodi storici" [ref=e56] [cursor=pointer]:
+              - /url: /periodi
+          - generic [ref=e57]:
+            - link "Eventi" [ref=e58] [cursor=pointer]:
+              - /url: /eventi
+            - link "Tag" [ref=e59] [cursor=pointer]:
+              - /url: /tag
+            - link "Storia cantata" [ref=e60] [cursor=pointer]:
+              - /url: /storia-cantata
+      - separator [ref=e61]
+      - navigation "Progetto" [ref=e62]:
+        - paragraph [ref=e63]: PROGETTO
+        - generic [ref=e64]:
+          - generic [ref=e65]:
+            - link "Informazioni" [ref=e66] [cursor=pointer]:
+              - /url: /informazioni
+            - link "Collabora" [ref=e67] [cursor=pointer]:
+              - /url: /collabora
+          - generic [ref=e68]:
+            - link "Staff" [ref=e69] [cursor=pointer]:
+              - /url: /staff
+            - link "Contatti" [ref=e70] [cursor=pointer]:
+              - /url: /contatti
+      - separator [ref=e71]
+      - generic [ref=e72]:
+        - paragraph [ref=e73]: Seguici
+        - generic [ref=e74]:
+          - link "ilDeposito su Facebook" [ref=e75] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e76]: 
+          - link "ilDeposito su YouTube" [ref=e77] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e78]: 
+      - separator [ref=e79]
+      - paragraph [ref=e80]: ilDeposito.org è un progetto collettivo. I contenuti sono rilasciati sotto licenza CC BY-NC-SA 4.0. I diritti dei testi e degli accordi sono dei rispettivi autori.

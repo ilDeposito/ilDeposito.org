@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumb from '../components/ui/Breadcrumb.astro';
+import { getInformazioni, getInformazione } from '../lib/api/index.js';
+
+export async function getStaticPaths() {
+  const items = await getInformazioni();
+  return items.map((item) => ({ params: { percorso: item.percorso } }));
+}
+
+const { percorso } = Astro.params;
+const pagina = (await getInformazione(percorso))!;
+---
+<BaseLayout title={pagina.titolo} description={pagina.testo || ''}>
+
+  <header class="bg-base-200 border-b-2 border-secondary">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">
+      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: pagina.titolo }]} />
+      <h1 class="font-serif font-bold text-2xl md:text-3xl text-base-content">{pagina.titolo}</h1>
+    </div>
+  </header>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+  <article class="max-w-2xl mx-auto mt-6 text-base text-base-content/80 leading-relaxed [&_a]:text-primary [&_a]:underline" set:html={pagina.testo} />
+
+  </div>
+</BaseLayout>

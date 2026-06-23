@@ -1,0 +1,74 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/ui/Breadcrumb.astro';
+import ShareModal from '../../components/ui/ShareModal.astro';
+import EventCard from '../../components/ui/EventCard.astro';
+import { getEventiCalendario } from '../../lib/api/index.js';
+import type { EventoCalendario } from '../../lib/api/types.js';
+
+export async function getStaticPaths() {
+  const allEventi = await getEventiCalendario();
+  const mesi = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+  const dayMap = new Map<string, EventoCalendario[]>();
+
+  for (const evento of allEventi) {
+    const d = new Date(evento.dataEvento);
+    const day = d.getUTCDate();
+    const month = d.getUTCMonth();
+    const slug = `${day}-${mesi[month]}`;
+
+    if (!dayMap.has(slug)) dayMap.set(slug, []);
+    dayMap.get(slug)!.push(evento);
+  }
+
+  return Array.from(dayMap.entries()).map(([giorno, eventiGiorno]) => ({
+    params: { giorno },
+    props: { eventiGiorno },
+  }));
+}
+
+const { giorno } = Astro.params;
+const { eventiGiorno } = Astro.props as { eventiGiorno: EventoCalendario[] };
+
+const parts = giorno!.split('-');
+const dayNum = parts[0];
+const monthName = parts.slice(1).join('-');
+
+const eventiOrdinati = [...eventiGiorno].sort((a, b) =>
+  new Date(a.dataEvento).getUTCFullYear() - new Date(b.dataEvento).getUTCFullYear()
+);
+
+const titolo = `Calendario cantato: ${dayNum} ${monthName}`;
+const descrizione = `Gli eventi storici del ${dayNum} ${monthName}`;
+---
+<BaseLayout title={titolo} description={descrizione}>
+
+  <header class="bg-base-200 border-b-2 border-secondary">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
+      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Eventi', href: '/eventi' }, { label: 'Calendario cantato', href: '/calendario-cantato' }, { label: `${dayNum} ${monthName}` }]} />
+
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{titolo}</h1>
+      <p class="font-serif italic text-base text-base-content/60">{descrizione}</p>
+
+      <share-button data-title={titolo} class="contents">
+        <button type="button" class="inline-flex items-center gap-1 cursor-pointer w-fit" aria-label="Condividi questa pagina">
+          <i class="ph ph-share-network"></i>
+          Condividi
+        </button>
+        <ShareModal />
+      </share-button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="flex flex-col divide-y divide-secondary/30">
+      {eventiOrdinati.map((evento) => (
+        <EventCard evento={evento} />
+      ))}
+    </div>
+  </div>
+
+  <script>
+    import '../../scripts/share-button.js';
+  </script>
+</BaseLayout>

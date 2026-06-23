@@ -1,0 +1,104 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/ui/Breadcrumb.astro';
+import ShareModal from '../../components/ui/ShareModal.astro';
+import { getTraduzioni, getTraduzione } from '../../lib/api/index.js';
+
+export async function getStaticPaths() {
+  const traduzioni = await getTraduzioni();
+  return traduzioni.map((traduzione) => ({ params: { slug: traduzione.slug } }));
+}
+
+const { slug } = Astro.params;
+const traduzione = (await getTraduzione(slug))!;
+
+const cantoOriginale = traduzione.cantoOriginale;
+const breadcrumbItems = [
+  { label: 'Home', href: '/' },
+  { label: 'Traduzioni', href: '/traduzioni' },
+  { label: traduzione.titolo },
+];
+---
+<BaseLayout
+  title={traduzione.titolo}
+  description={traduzione.informazioni || `Traduzione di ${traduzione.titolo} nell'archivio di ilDeposito.org`}
+  pagefindType="traduzioni"
+  ogType="article"
+>
+
+  <header class="bg-base-200 border-b-2 border-secondary">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">
+      <Breadcrumb items={breadcrumbItems} />
+
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{traduzione.titolo}</h1>
+
+      {traduzione.lingue.length > 0 && (
+        <p class="font-serif italic font-bold text-base">
+          <span class="text-base-content">Lingua: </span>
+          <span class="text-primary">
+            {traduzione.lingue.map((l, i) => (
+              <>{i > 0 && ', '}<a href={`/lingue/${l.slug}`} class="hover:underline">{l.titolo}</a></>
+            ))}
+          </span>
+        </p>
+      )}
+
+      {cantoOriginale && (
+        <p class="font-serif italic font-bold text-base">
+          <span class="text-base-content">Canto originale: </span>
+          <a href={`/canti/${cantoOriginale.slug}`} class="text-primary hover:underline">{cantoOriginale.titolo}</a>
+          {cantoOriginale.lingue.length > 0 && (
+            <span class="text-base-content/60">
+              ({cantoOriginale.lingue.map((l) => l.titolo).join(', ')})
+            </span>
+          )}
+        </p>
+      )}
+
+      <div class="flex items-center gap-4 text-base text-base-content mt-1">
+        <share-button data-title={traduzione.titolo} class="contents">
+          <button type="button" class="inline-flex items-center gap-1 cursor-pointer" aria-label="Condividi questa traduzione">
+            <i class="ph ph-share-network"></i>
+            Condividi
+          </button>
+          <ShareModal />
+        </share-button>
+      </div>
+    </div>
+  </header>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+  <article data-pagefind-body class="flex flex-col gap-6 max-w-2xl mx-auto mt-6">
+
+    <!-- Metadati Pagefind (nascosti, per facet e card elenco) -->
+    <span class="sr-only" data-pagefind-weight="10">{traduzione.titolo}</span>
+    <span class="sr-only" data-pagefind-sort="titolo">{traduzione.titolo}</span>
+    {traduzione.lingue.map(l => <span class="sr-only" data-pagefind-filter={`lingue:${l.titolo}`}></span>)}
+    {cantoOriginale && (
+      <>
+        <span class="sr-only" data-pagefind-meta={`canto_originale_titolo:${cantoOriginale.titolo}`}></span>
+        <span class="sr-only" data-pagefind-meta={`canto_originale_slug:${cantoOriginale.slug}`}></span>
+        <span class="sr-only" data-pagefind-weight="5">{cantoOriginale.titolo}</span>
+      </>
+    )}
+
+    <!-- Testo -->
+    <section>
+      <pre class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{traduzione.testo}</pre>
+    </section>
+
+    <!-- Informazioni -->
+    {traduzione.informazioni && (
+      <section class="flex flex-col gap-2">
+        <h2 class="font-serif font-bold text-lg md:text-xl text-base-content">Informazioni</h2>
+        <div class="text-base text-base-content/80 leading-relaxed [&_a]:text-primary [&_a]:underline" set:html={traduzione.informazioni} />
+      </section>
+    )}
+
+  </article>
+
+  <script>
+    import '../../scripts/share-button.js';
+  </script>
+  </div>
+</BaseLayout>

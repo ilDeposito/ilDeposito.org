@@ -1,0 +1,95 @@
+---
+import logoRaw from '../../assets/images/ildeposito-logo.svg?raw';
+---
+
+<footer class="w-full font-sans">
+
+  <!-- Linea decorativa rossa superiore -->
+  <div class="h-[2px] w-full bg-primary"></div>
+
+  <!-- Corpo footer -->
+  <div class="bg-neutral text-neutral-content py-6">
+  <div class="max-w-6xl mx-auto px-4 flex flex-col gap-5">
+
+    <!-- Identità -->
+    <div class="flex flex-col gap-1">
+      <div class="flex items-center gap-2">
+        <span class="shrink-0 inline-flex items-center [&>svg]:h-8 [&>svg]:w-auto">
+          <Fragment set:html={logoRaw} />
+        </span>
+        <span class="font-serif font-bold text-2xl tracking-wide">ilDeposito</span>
+      </div>
+      <p class="font-serif italic text-sm">
+        canti di protesta politica e sociale
+      </p>
+    </div>
+
+    <hr class="border-none h-px bg-neutral-content/20" />
+
+    <!-- ARCHIVIO -->
+    <nav aria-label="Archivio">
+      <p class="font-serif font-bold tracking-widest text-sm uppercase mb-2">
+        ARCHIVIO
+      </p>
+      <div class="grid grid-cols-2 text-base leading-[2.4]">
+        <div class="flex flex-col">
+          <a href="/canti">Canti</a>
+          <a href="/autori">Autori</a>
+          <a href="/periodi">Periodi storici</a>
+        </div>
+        <div class="flex flex-col">
+          <a href="/eventi">Eventi</a>
+          <a href="/tags">Tag</a>
+          <a href="/storia-cantata">Storia cantata</a>
+        </div>
+      </div>
+    </nav>
+
+    <hr class="border-none h-px bg-neutral-content/20" />
+
+    <!-- PROGETTO -->
+    <nav aria-label="Progetto">
+      <p class="font-serif font-bold tracking-widest text-sm uppercase mb-2">
+        PROGETTO
+      </p>
+      <div class="grid grid-cols-2 text-base leading-[2.4]">
+        <div class="flex flex-col">
+          <a href="/informazioni">Informazioni</a>
+          <a href="/collabora">Collabora</a>
+        </div>
+        <div class="flex flex-col">
+          <a href="/staff">Staff</a>
+          <a href="/contatti">Contatti</a>
+        </div>
+      </div>
+    </nav>
+
+    <hr class="border-none h-px bg-neutral-content/20" />
+
+    <!-- Seguici -->
+    <div class="flex flex-col gap-2">
+      <p class="text-sm">Seguici</p>
+      <div class="flex items-center gap-4">
+        <a href="#" aria-label="ilDeposito su Facebook">
+          <i class="ph-fill ph-facebook-logo text-5xl"></i>
+        </a>
+        <a href="#" aria-label="ilDeposito su YouTube">
+          <i class="ph-fill ph-youtube-logo text-5xl"></i>
+        </a>
+      </div>
+    </div>
+
+    <hr class="border-none h-px bg-neutral-content/20" />
+
+    <!-- Copyright -->
+    <p class="text-neutral-content/60 text-sm leading-relaxed">
+      ilDeposito.org è un progetto collettivo.
+      I contenuti sono rilasciati sotto licenza CC BY-NC-SA 4.0.
+      I diritti dei testi e degli accordi sono dei rispettivi autori.
+    </p>
+
+    <p class="text-neutral-content/30 text-xs text-right">build dev</p>
+
+  </div>
+  </div>
+</footer>

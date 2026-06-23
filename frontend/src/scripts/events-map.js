@@ -1,0 +1,63 @@
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+import markerIcon from 'leaflet/dist/images/marker-icon.png?url';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png?url';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png?url';
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+});
+
+class EventsMap extends HTMLElement {
+  connectedCallback() {
+    const raw = this.dataset.eventi;
+    if (!raw) return;
+
+    let eventi;
+    try { eventi = JSON.parse(raw); } catch { return; }
+    if (!eventi.length) return;
+
+    const map = L.map(this, { scrollWheelZoom: false });
+
+    // Rimuove il grigio Leaflet visibile quando i tile non coprono tutta l'area
+    this.style.backgroundColor = '#a8c8d8';
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 19,
+    }).addTo(map);
+
+    // Mobile: 1 dito scorre la pagina, 2 dita muovono la mappa
+    if (L.Browser.touch) {
+      map.dragging.disable();
+      this.addEventListener('touchstart', (e) => {
+        if (e.touches.length >= 2) map.dragging.enable();
+      }, { passive: true });
+      this.addEventListener('touchend', () => map.dragging.disable(), { passive: true });
+    }
+
+    const cluster = L.markerClusterGroup({ chunkedLoading: true });
+
+    for (const ev of eventi) {
+      const d = new Date(ev.data_evento);
+      const dateStr = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
+      L.marker([ev.latitude, ev.longitude])
+        .bindPopup(
+          `<a href="/eventi/${ev.slug}" style="font-weight:bold;color:#9E1B1B;text-decoration:none">${ev.titolo}</a>` +
+          `<br><span style="font-size:0.85em">${dateStr}</span>`
+        )
+        .addTo(cluster);
+    }
+
+    map.addLayer(cluster);
+    map.fitBounds(cluster.getBounds(), { padding: [20, 20] });
+  }
+}
+
+customElements.define('events-map', EventsMap);

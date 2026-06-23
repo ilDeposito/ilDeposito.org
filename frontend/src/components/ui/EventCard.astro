@@ -1,0 +1,42 @@
+---
+import type { Ref } from '../../lib/api/types.js';
+
+interface Props {
+  evento: {
+    titolo: string;
+    slug: string;
+    dataEvento?: string | null;
+    localizzazioni?: Ref[];
+    periodi?: Ref[];
+  };
+}
+
+const { evento } = Astro.props;
+
+const loc = evento.localizzazioni?.[0];
+const periodo = evento.periodi?.[0];
+
+const formatData = (data: string) =>
+  new Date(data).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+<div class="flex flex-col gap-1 py-3 hover:bg-base-200 transition-colors rounded-lg px-1">
+  <h3 class="font-serif font-semibold text-primary">
+    <a href={`/eventi/${evento.slug}`} class="hover:underline">{evento.titolo}</a>
+  </h3>
+  {(loc || evento.dataEvento) && (
+    <p class="font-serif italic text-base text-base-content/60">
+      {loc && (
+        <a href={`/localizzazioni/${loc.slug}`} class="hover:underline">
+          {loc.titolo}
+        </a>
+      )}
+      {loc && evento.dataEvento && <span> · </span>}
+      {evento.dataEvento && formatData(evento.dataEvento)}
+    </p>
+  )}
+  {periodo && (
+    <p class="font-serif italic text-base text-base-content/60">
+      <a href={`/periodi/${periodo.slug}`} class="hover:underline">{periodo.titolo}</a>
+    </p>
+  )}
+</div>

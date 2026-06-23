@@ -1,0 +1,250 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/ui/Breadcrumb.astro';
+import ShareModal from '../../components/ui/ShareModal.astro';
+import { getCanti, getCanto, getEventiForCanto } from '../../lib/api/index.js';
+import { buildCreativeWorkSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+
+export async function getStaticPaths() {
+  const canti = await getCanti();
+  return canti.map((canto) => ({ params: { slug: canto.slug } }));
+}
+
+const { slug } = Astro.params;
+const canto = (await getCanto(slug))!;
+const eventi = await getEventiForCanto(canto.id);
+
+const autoriUnici = [...canto.autoriTesto, ...canto.autoriMusica].filter(
+  (autore, index, arr) => arr.findIndex((a) => a.slug === autore.slug) === index
+);
+
+const periodo = canto.periodi[0];
+
+const formatData = (data) =>
+  new Date(data).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const breadcrumbItems = [
+  { label: 'Home', href: '/' },
+  { label: 'Canti', href: '/canti' },
+  { label: canto.titolo },
+];
+const jsonLd = [
+  buildCreativeWorkSchema(canto, siteUrl),
+  buildBreadcrumbSchema(breadcrumbItems.map((item) => ({ name: item.label, url: item.href ? `${siteUrl}${item.href}` : undefined }))),
+];
+---
+<BaseLayout
+  title={canto.titolo}
+  description={canto.capoverso || canto.informazioni || ''}
+  pagefindType="canti"
+  ogType="article"
+  jsonLd={jsonLd}
+>
+
+  <header class="bg-base-200 border-b-2 border-secondary">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">
+      <Breadcrumb items={breadcrumbItems} />
+
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{canto.titolo}</h1>
+
+      {autoriUnici.length > 0 && (
+        <p class="font-serif italic font-bold text-base">
+          <span class="text-base-content">Autori: </span>
+          <span class="text-primary">
+            {autoriUnici.map((a, i) => (
+              <>{i > 0 && ', '}<a href={`/autori/${a.slug}`} class="hover:underline">{a.titolo}</a></>
+            ))}
+          </span>
+        </p>
+      )}
+
+      {canto.anno && <p class="font-serif italic font-bold text-base text-base-content">Anno: {canto.anno}</p>}
+
+      <div class="flex items-center gap-4 text-base text-base-content mt-1">
+        {canto.audio && (
+          <span class="inline-flex items-center gap-1">
+            <i class="ph ph-play"></i>
+            2:56
+          </span>
+        )}
+
+        <share-button data-title={canto.titolo} class="contents">
+          <button type="button" class="inline-flex items-center gap-1 cursor-pointer" aria-label="Condividi questo canto">
+            <i class="ph ph-share-network"></i>
+            Condividi
+          </button>
+          <ShareModal />
+        </share-button>
+
+        <a href="#scheda-canto" class="inline-flex items-center gap-1">
+          <i class="ph ph-arrow-down"></i>
+          Scheda
+        </a>
+      </div>
+
+      {eventi.length > 0 && (
+        <div class="mt-2">
+          <p class="font-serif font-bold text-base md:text-lg text-base-content">Storia cantata</p>
+          {eventi.map((evento) => (
+            <a href={`/eventi/${evento.slug}`} class="block text-base text-primary">
+              {formatData(evento.dataEvento)} – {evento.titolo}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  </header>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+  <article data-pagefind-body class="flex flex-col gap-6 max-w-2xl mx-auto mt-6">
+
+    <!-- Metadati Pagefind (nascosti, per ricerca e facet) -->
+    <span class="sr-only" data-pagefind-weight="10">{canto.titolo}</span>
+    <span class="sr-only" data-pagefind-meta="capoverso" data-pagefind-weight="7">{canto.capoverso}</span>
+    {canto.anno && <span class="sr-only" data-pagefind-meta="anno">{canto.anno}</span>}
+    {autoriUnici.length > 0 && <span class="sr-only" data-pagefind-meta="autori" data-pagefind-weight="5">{autoriUnici.map(a => a.titolo).join(', ')}</span>}
+    {autoriUnici.map(a => <span class="sr-only" data-pagefind-filter={`autori:${a.titolo}`}></span>)}
+    <span class="sr-only" data-pagefind-sort="titolo">{canto.titolo}</span>
+    {periodo && <span class="sr-only" data-pagefind-filter={`periodi:${periodo.titolo}`}></span>}
+    {canto.tags.map(t => <span class="sr-only" data-pagefind-filter={`tags:${t.titolo}`}></span>)}
+    {canto.lingue.map(l => <span class="sr-only" data-pagefind-filter={`lingue:${l.titolo}`}></span>)}
+    <span class="sr-only" data-pagefind-filter={`accordi:${canto.accordi ? 'sì' : 'no'}`} data-pagefind-meta={`accordi:${canto.accordi ? 'sì' : 'no'}`}></span>
+    <span class="sr-only" data-pagefind-filter={`audio:${canto.videoUrl ? 'sì' : 'no'}`} data-pagefind-meta={`audio:${canto.videoUrl ? 'sì' : 'no'}`}></span>
+
+    <!-- Testo / Accordi -->
+    <section>
+      {canto.accordi ? (
+        <song-lyrics class="block">
+          <div data-pagefind-ignore class="flex justify-center gap-4 border-b border-base-300 mb-3" role="tablist">
+            <button type="button" data-tab="testo" role="tab" aria-selected="true" class="font-serif font-bold text-base pb-2 border-b-2 border-secondary text-base-content">Testo</button>
+            <button type="button" data-tab="accordi" role="tab" aria-selected="false" class="font-serif font-bold text-base pb-2 border-b-2 border-transparent text-base-content/40">Accordi</button>
+          </div>
+          <pre data-panel="testo" class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{canto.testo}</pre>
+          <pre data-panel="accordi" class="hidden font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{canto.accordi}</pre>
+        </song-lyrics>
+      ) : (
+        <div>
+          <p data-pagefind-ignore class="font-serif font-bold text-base text-base-content text-center border-b border-base-300 mb-3 pb-2">Testo</p>
+          <pre class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{canto.testo}</pre>
+        </div>
+      )}
+      <div data-pagefind-ignore class="flex justify-end mt-2">
+        <a href={`/pdf/canti/${slug}.pdf`} download class="inline-flex items-center gap-1 text-base text-base-content">
+          <i class="ph ph-file-pdf"></i>
+          Scarica PDF
+        </a>
+      </div>
+    </section>
+
+    <!-- Tematiche -->
+    {canto.tematiche.length > 0 && (
+      <section class="flex flex-col gap-2">
+        <h2 class="font-serif font-bold text-base md:text-lg text-base-content">Tematiche</h2>
+        <div class="flex flex-wrap gap-2">
+          {canto.tematiche.map((t) => <span class="badge badge-secondary">{t.titolo}</span>)}
+        </div>
+      </section>
+    )}
+
+    <!-- Fonte -->
+    {canto.fonte && (
+      <section class="flex flex-col gap-2">
+        <h2 class="font-serif font-bold text-base md:text-lg text-base-content">Fonte</h2>
+        <div class="text-base text-base-content/80 leading-relaxed [&_a]:text-primary [&_a]:underline" set:html={canto.fonte} />
+      </section>
+    )}
+
+    <!-- Informazioni -->
+    {canto.informazioni && (
+      <section class="flex flex-col gap-2">
+        <h2 class="font-serif font-bold text-base md:text-lg text-base-content">Informazioni</h2>
+        <div class="text-base text-base-content/80 leading-relaxed [&_a]:text-primary [&_a]:underline" set:html={canto.informazioni} />
+      </section>
+    )}
+
+    <!-- Scheda canto -->
+    <section id="scheda-canto" data-pagefind-ignore class="flex flex-col gap-1 scroll-mt-16">
+      <h2 class="font-serif font-bold text-lg md:text-xl text-base-content mb-2">Scheda canto</h2>
+
+      {canto.autoriTesto.length > 0 && (
+        <p class="text-base">
+          <span class="text-base-content">Autori testo: </span>
+          <span class="text-primary">
+            {canto.autoriTesto.map((a, i) => (
+              <>{i > 0 && ', '}<a href={`/autori/${a.slug}`} class="hover:underline">{a.titolo}</a></>
+            ))}
+          </span>
+        </p>
+      )}
+
+      {canto.autoriMusica.length > 0 && (
+        <p class="text-base">
+          <span class="text-base-content">Autori musica: </span>
+          <span class="text-primary">
+            {canto.autoriMusica.map((a, i) => (
+              <>{i > 0 && ', '}<a href={`/autori/${a.slug}`} class="hover:underline">{a.titolo}</a></>
+            ))}
+          </span>
+        </p>
+      )}
+
+      {canto.anno && (
+        <p class="text-base">
+          <span class="text-base-content">Anno: </span>
+          <span class="text-primary">{canto.anno}</span>
+        </p>
+      )}
+
+      {canto.lingue.length > 0 && (
+        <p class="text-base">
+          <span class="text-base-content">Lingua: </span>
+          <span class="text-primary">
+            {canto.lingue.map((l, i) => (
+              <>{i > 0 && ', '}<a href={`/lingue/${l.slug}`} class="hover:underline">{l.titolo}</a></>
+            ))}
+          </span>
+        </p>
+      )}
+
+      {periodo && (
+        <p class="text-base">
+          <span class="text-base-content">Periodo: </span>
+          <a href={`/periodi/${periodo.slug}`} class="text-primary hover:underline">{periodo.titolo}</a>
+        </p>
+      )}
+
+      {canto.tags.length > 0 && (
+        <p class="text-base">
+          <span class="text-base-content">Tags: </span>
+          <span class="text-primary">
+            {canto.tags.map((t, i) => (
+              <>{i > 0 && ', '}<a href={`/tags/${t.slug}`} class="hover:underline">{t.titolo}</a></>
+            ))}
+          </span>
+        </p>
+      )}
+
+      {canto.audio && (
+        <p class="text-base">
+          <span class="text-base-content">Audio: </span>
+          <a href={canto.audio} target="_blank" rel="noopener noreferrer" class="text-primary underline break-all">{canto.audio}</a>
+        </p>
+      )}
+
+      {canto.videoUrl && (
+        <p class="text-base">
+          <span class="text-base-content">Video: </span>
+          <a href={canto.videoUrl} target="_blank" rel="noopener noreferrer" class="text-primary underline break-all">{canto.videoUrl}</a>
+        </p>
+      )}
+    </section>
+
+  </article>
+
+  <script>
+    import '../../scripts/song-lyrics.js';
+    import '../../scripts/share-button.js';
+  </script>
+  </div>
+</BaseLayout>

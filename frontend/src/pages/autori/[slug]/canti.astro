@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import AuthorHeader from '../../../components/ui/AuthorHeader.astro';
+import PagefindList from '../../../components/ui/PagefindList.astro';
+import { getAutori, getAutore, getCantiByAutoreMap } from '../../../lib/api/index.js';
+
+export async function getStaticPaths() {
+  const autori = await getAutori();
+  const cantiMap = await getCantiByAutoreMap();
+
+  return autori
+    .filter((autore) => (cantiMap.get(autore.id)?.length ?? 0) > 10)
+    .map((autore) => ({ params: { slug: autore.slug } }));
+}
+
+const { slug } = Astro.params;
+const autore = (await getAutore(slug))!;
+
+const breadcrumbItems = [
+  { label: 'Home', href: '/' },
+  { label: 'Autori', href: '/autori' },
+  { label: autore.titolo, href: `/autori/${autore.slug}` },
+  { label: 'Canti' },
+];
+---
+<BaseLayout title={`Canti di ${autore.titolo}`} description={autore.informazioni ?? ''}>
+
+  <AuthorHeader autore={autore} breadcrumbItems={breadcrumbItems} />
+
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <PagefindList
+      type="canti"
+      presetFilter={{ autori: autore.titolo }}
+      filterKeys={["accordi", "audio", "tags"]}
+      pageSize={15}
+    />
+  </div>
+
+</BaseLayout>

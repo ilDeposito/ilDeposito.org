@@ -1,0 +1,234 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "ilDeposito - home" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img [ref=e5]
+      - generic [ref=e8]:
+        - searchbox "Cerca canti o autori" [ref=e9]
+        - generic [ref=e10] [cursor=pointer]: 
+      - button "Apri menu" [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: 
+  - main [ref=e14]:
+    - generic [ref=e16]:
+      - heading "Lingue dell'archivio" [level=1] [ref=e17]
+      - paragraph [ref=e18]: L'elenco delle lingue dell'archivio di ilDeposito.org
+      - button "Condividi questa pagina" [ref=e20] [cursor=pointer]:
+        - generic [ref=e21]: 
+        - text: Condividi
+    - article [ref=e22]:
+      - generic [ref=e24]:
+        - link "abruzzese" [ref=e25] [cursor=pointer]:
+          - /url: /lingue/abruzzese
+        - paragraph [ref=e26]: 6 canti, 0 traduzioni
+      - generic [ref=e28]:
+        - link "basco" [ref=e29] [cursor=pointer]:
+          - /url: /lingue/basco
+        - paragraph [ref=e30]: 1 canto, 0 traduzioni
+      - generic [ref=e32]:
+        - link "calabrese" [ref=e33] [cursor=pointer]:
+          - /url: /lingue/calabrese
+        - paragraph [ref=e34]: 5 canti, 0 traduzioni
+      - generic [ref=e36]:
+        - link "campano" [ref=e37] [cursor=pointer]:
+          - /url: /lingue/campano
+        - paragraph [ref=e38]: 3 canti, 0 traduzioni
+      - generic [ref=e40]:
+        - link "catalano" [ref=e41] [cursor=pointer]:
+          - /url: /lingue/catalano
+        - paragraph [ref=e42]: 6 canti, 0 traduzioni
+      - generic [ref=e44]:
+        - link "cinese" [ref=e45] [cursor=pointer]:
+          - /url: /lingue/cinese
+        - paragraph [ref=e46]: 1 canto, 0 traduzioni
+      - generic [ref=e48]:
+        - link "emiliano-romagnolo" [ref=e49] [cursor=pointer]:
+          - /url: /lingue/emiliano-romagnolo
+        - paragraph [ref=e50]: 11 canti, 0 traduzioni
+      - generic [ref=e52]:
+        - link "francese" [ref=e53] [cursor=pointer]:
+          - /url: /lingue/francese
+        - paragraph [ref=e54]: 59 canti, 0 traduzioni
+      - generic [ref=e56]:
+        - link "genovese" [ref=e57] [cursor=pointer]:
+          - /url: /lingue/genovese
+        - paragraph [ref=e58]: 1 canto, 0 traduzioni
+      - generic [ref=e60]:
+        - link "grecanico" [ref=e61] [cursor=pointer]:
+          - /url: /lingue/grecanico
+        - paragraph [ref=e62]: 1 canto, 0 traduzioni
+      - generic [ref=e64]:
+        - link "greco" [ref=e65] [cursor=pointer]:
+          - /url: /lingue/greco
+        - paragraph [ref=e66]: 5 canti, 0 traduzioni
+      - generic [ref=e68]:
+        - link "inglese" [ref=e69] [cursor=pointer]:
+          - /url: /lingue/inglese
+        - paragraph [ref=e70]: 47 canti, 0 traduzioni
+      - generic [ref=e72]:
+        - link "italiano" [ref=e73] [cursor=pointer]:
+          - /url: /lingue/italiano
+        - paragraph [ref=e74]: 1408 canti, 259 traduzioni
+      - generic [ref=e76]:
+        - link "ligure" [ref=e77] [cursor=pointer]:
+          - /url: /lingue/ligure
+        - paragraph [ref=e78]: 1 canto, 0 traduzioni
+      - generic [ref=e80]:
+        - link "lombardo" [ref=e81] [cursor=pointer]:
+          - /url: /lingue/lombardo
+        - paragraph [ref=e82]: 40 canti, 0 traduzioni
+      - generic [ref=e84]:
+        - link "lucano" [ref=e85] [cursor=pointer]:
+          - /url: /lingue/lucano
+        - paragraph [ref=e86]: 1 canto, 0 traduzioni
+      - generic [ref=e88]:
+        - link "Macedone" [ref=e89] [cursor=pointer]:
+          - /url: /lingue/macedone
+        - paragraph [ref=e90]: 1 canto, 0 traduzioni
+      - generic [ref=e92]:
+        - link "marchigiano" [ref=e93] [cursor=pointer]:
+          - /url: /lingue/marchigiano
+        - paragraph [ref=e94]: 1 canto, 0 traduzioni
+      - generic [ref=e96]:
+        - link "milanese" [ref=e97] [cursor=pointer]:
+          - /url: /lingue/milanese
+        - paragraph [ref=e98]: 23 canti, 0 traduzioni
+      - generic [ref=e100]:
+        - link "napoletano" [ref=e101] [cursor=pointer]:
+          - /url: /lingue/napoletano
+        - paragraph [ref=e102]: 4 canti, 0 traduzioni
+      - generic [ref=e104]:
+        - link "occitano" [ref=e105] [cursor=pointer]:
+          - /url: /lingue/occitano
+        - paragraph [ref=e106]: 4 canti, 0 traduzioni
+      - generic [ref=e108]:
+        - link "piemontese" [ref=e109] [cursor=pointer]:
+          - /url: /lingue/piemontese
+        - paragraph [ref=e110]: 14 canti, 2 traduzioni
+      - generic [ref=e112]:
+        - link "polacco" [ref=e113] [cursor=pointer]:
+          - /url: /lingue/polacco
+        - paragraph [ref=e114]: 0 canti, 0 traduzioni
+      - generic [ref=e116]:
+        - link "portoghese" [ref=e117] [cursor=pointer]:
+          - /url: /lingue/portoghese
+        - paragraph [ref=e118]: 4 canti, 0 traduzioni
+      - generic [ref=e120]:
+        - link "pugliese" [ref=e121] [cursor=pointer]:
+          - /url: /lingue/pugliese
+        - paragraph [ref=e122]: 14 canti, 0 traduzioni
+      - generic [ref=e124]:
+        - link "romanesco" [ref=e125] [cursor=pointer]:
+          - /url: /lingue/romanesco
+        - paragraph [ref=e126]: 36 canti, 0 traduzioni
+      - generic [ref=e128]:
+        - link "romanì" [ref=e129] [cursor=pointer]:
+          - /url: /lingue/romani
+        - paragraph [ref=e130]: 1 canto, 0 traduzioni
+      - generic [ref=e132]:
+        - link "russo" [ref=e133] [cursor=pointer]:
+          - /url: /lingue/russo
+        - paragraph [ref=e134]: 4 canti, 0 traduzioni
+      - generic [ref=e136]:
+        - link "salentino" [ref=e137] [cursor=pointer]:
+          - /url: /lingue/salentino
+        - paragraph [ref=e138]: 8 canti, 0 traduzioni
+      - generic [ref=e140]:
+        - link "sardo" [ref=e141] [cursor=pointer]:
+          - /url: /lingue/sardo
+        - paragraph [ref=e142]: 33 canti, 0 traduzioni
+      - generic [ref=e144]:
+        - link "serbo" [ref=e145] [cursor=pointer]:
+          - /url: /lingue/serbo
+        - paragraph [ref=e146]: 1 canto, 0 traduzioni
+      - generic [ref=e148]:
+        - link "siciliano" [ref=e149] [cursor=pointer]:
+          - /url: /lingue/siciliano
+        - paragraph [ref=e150]: 31 canti, 0 traduzioni
+      - generic [ref=e152]:
+        - link "Sloveno" [ref=e153] [cursor=pointer]:
+          - /url: /lingue/sloveno
+        - paragraph [ref=e154]: 1 canto, 0 traduzioni
+      - generic [ref=e156]:
+        - link "spagnolo/castigliano" [ref=e157] [cursor=pointer]:
+          - /url: /lingue/spagnolo-castigliano
+        - paragraph [ref=e158]: 103 canti, 0 traduzioni
+      - generic [ref=e160]:
+        - link "tedesco" [ref=e161] [cursor=pointer]:
+          - /url: /lingue/tedesco
+        - paragraph [ref=e162]: 14 canti, 0 traduzioni
+      - generic [ref=e164]:
+        - link "toscano" [ref=e165] [cursor=pointer]:
+          - /url: /lingue/toscano
+        - paragraph [ref=e166]: 25 canti, 0 traduzioni
+      - generic [ref=e168]:
+        - link "Triestino" [ref=e169] [cursor=pointer]:
+          - /url: /lingue/triestino
+        - paragraph [ref=e170]: 1 canto, 0 traduzioni
+      - generic [ref=e172]:
+        - link "Turco" [ref=e173] [cursor=pointer]:
+          - /url: /lingue/turco
+        - paragraph [ref=e174]: 1 canto, 0 traduzioni
+      - generic [ref=e176]:
+        - link "umbro" [ref=e177] [cursor=pointer]:
+          - /url: /lingue/umbro
+        - paragraph [ref=e178]: 2 canti, 0 traduzioni
+      - generic [ref=e180]:
+        - link "veneto" [ref=e181] [cursor=pointer]:
+          - /url: /lingue/veneto
+        - paragraph [ref=e182]: 47 canti, 0 traduzioni
+      - generic [ref=e184]:
+        - link "yiddish" [ref=e185] [cursor=pointer]:
+          - /url: /lingue/yiddish
+        - paragraph [ref=e186]: 3 canti, 0 traduzioni
+  - contentinfo [ref=e187]:
+    - generic [ref=e189]:
+      - generic [ref=e190]:
+        - generic [ref=e191]:
+          - img [ref=e193]
+          - generic [ref=e195]: ilDeposito
+        - paragraph [ref=e196]: canti di protesta politica e sociale
+      - separator [ref=e197]
+      - navigation "Archivio" [ref=e198]:
+        - paragraph [ref=e199]: ARCHIVIO
+        - generic [ref=e200]:
+          - generic [ref=e201]:
+            - link "Canti" [ref=e202] [cursor=pointer]:
+              - /url: /canti
+            - link "Autori" [ref=e203] [cursor=pointer]:
+              - /url: /autori
+            - link "Periodi storici" [ref=e204] [cursor=pointer]:
+              - /url: /periodi
+          - generic [ref=e205]:
+            - link "Eventi" [ref=e206] [cursor=pointer]:
+              - /url: /eventi
+            - link "Tag" [ref=e207] [cursor=pointer]:
+              - /url: /tag
+            - link "Storia cantata" [ref=e208] [cursor=pointer]:
+              - /url: /storia-cantata
+      - separator [ref=e209]
+      - navigation "Progetto" [ref=e210]:
+        - paragraph [ref=e211]: PROGETTO
+        - generic [ref=e212]:
+          - generic [ref=e213]:
+            - link "Informazioni" [ref=e214] [cursor=pointer]:
+              - /url: /informazioni
+            - link "Collabora" [ref=e215] [cursor=pointer]:
+              - /url: /collabora
+          - generic [ref=e216]:
+            - link "Staff" [ref=e217] [cursor=pointer]:
+              - /url: /staff
+            - link "Contatti" [ref=e218] [cursor=pointer]:
+              - /url: /contatti
+      - separator [ref=e219]
+      - generic [ref=e220]:
+        - paragraph [ref=e221]: Seguici
+        - generic [ref=e222]:
+          - link "ilDeposito su Facebook" [ref=e223] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e224]: 
+          - link "ilDeposito su YouTube" [ref=e225] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e226]: 
+      - separator [ref=e227]
+      - paragraph [ref=e228]: ilDeposito.org è un progetto collettivo. I contenuti sono rilasciati sotto licenza CC BY-NC-SA 4.0. I diritti dei testi e degli accordi sono dei rispettivi autori.

@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { buildWebSiteSchema, buildOrganizationSchema } from '../lib/schema.js';
+
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const jsonLd = [
+  buildWebSiteSchema(siteUrl),
+  buildOrganizationSchema(siteUrl),
+];
+---
+<BaseLayout
+  title="Home"
+  description="Archivio di canti di protesta politica e sociale: testi, accordi, informazioni storiche, traduzioni e autori"
+  jsonLd={jsonLd}
+>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <h1 class="font-serif text-4xl md:text-5xl">Il Deposito</h1>
+  </div>
+</BaseLayout>

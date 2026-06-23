@@ -1,0 +1,745 @@
+---
+interface Props {
+  type?: string;
+  presetFilter?: Record<string, string>;
+  filterKeys?: string[];
+  filterLabels?: Record<string, string>;
+  pageSize?: number;
+  sortOptions?: Array<{ field: string; label: string; dir: string }>;
+  initialQuery?: string;
+}
+
+const {
+  type = '',
+  presetFilter = {},
+  filterKeys = [],
+  filterLabels = {},
+  pageSize = 15,
+  sortOptions = [],
+  initialQuery = '',
+} = Astro.props;
+
+const defaultLabels: Record<string, string> = {
+  type: 'Tipo',
+  periodi: 'Periodo storico',
+  tags: 'Tag',
+  lingue: 'Lingua',
+  localizzazioni: 'Localizzazione',
+  accordi: 'Accordi',
+  audio: 'Audio',
+};
+
+const mergedLabels = { ...defaultLabels, ...filterLabels };
+---
+
+<pagefind-list
+  data-type={type}
+  data-preset-filter={JSON.stringify(presetFilter)}
+  data-page-size={String(pageSize)}
+  data-filter-keys={filterKeys.join(',')}
+  data-filter-labels={JSON.stringify(mergedLabels)}
+  data-sort-options={JSON.stringify(sortOptions)}
+  data-initial-query={initialQuery}
+  class="block"
+>
+  <!-- Desktop: riga di dropdown button + contatore -->
+  <div class="hidden sm:flex items-center justify-between gap-4 mb-5">
+    <div data-filter-panel class="flex flex-wrap gap-2">
+      <p class="text-sm text-base-content/40 italic">Caricamento filtri…</p>
+    </div>
+    <div class="flex items-center gap-3 shrink-0">
+      <button type="button" data-reset-filters class="btn btn-ghost btn-xs hidden">
+        Rimuovi filtri
+      </button>
+      <div data-sort-panel-desktop></div>
+      <p data-result-count class="text-xs text-base-content/40 whitespace-nowrap"></p>
+    </div>
+  </div>
+
+  <!-- Mobile: bottone filtri + contatore -->
+  <div class="sm:hidden mb-4 flex items-center justify-between">
+    <button type="button" data-filter-toggle class="btn btn-ghost btn-sm gap-2 border border-base-300">
+      <i class="ph ph-funnel"></i>
+      Filtra l'elenco
+      <span data-filter-count class="badge badge-secondary badge-sm hidden"></span>
+    </button>
+    <p data-result-count class="text-xs text-base-content/40"></p>
+  </div>
+
+  <!-- Drawer filtri (mobile) -->
+  <div
+    data-filter-drawer
+    class="hidden fixed inset-0 z-50 sm:hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Filtri"
+  >
+    <div data-drawer-backdrop class="absolute inset-0 bg-base-content/30"></div>
+    <div class="absolute inset-y-0 left-0 w-72 max-w-full bg-base-100 shadow-xl flex flex-col">
+      <div class="flex items-center justify-between p-4 border-b border-base-300">
+        <h2 class="font-serif font-bold text-base">Filtra l'elenco</h2>
+        <button
+          type="button"
+          data-drawer-close
+          class="btn btn-ghost btn-sm btn-circle"
+          aria-label="Chiudi"
+        ><i class="ph ph-x"></i></button>
+      </div>
+      <div data-filter-panel-mobile class="flex-1 overflow-y-auto p-4">
+        <p class="text-sm text-base-content/40 italic">Caricamento filtri…</p>
+      </div>
+      <div class="p-4 border-t border-base-300 flex gap-2">
+        <button type="button" data-reset-filters class="btn btn-ghost btn-sm flex-1">Rimuovi filtri</button>
+        <button type="button" data-drawer-close class="btn btn-primary btn-sm flex-1">Applica</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtri attivi (badges) -->
+  <div data-active-filters class="hidden flex-wrap gap-2 mb-4"></div>
+
+  <!-- Lista risultati -->
+  <div data-results class="flex flex-col divide-y divide-secondary/30">
+    <div class="py-12 flex justify-center">
+      <span class="loading loading-spinner loading-md text-primary"></span>
+    </div>
+  </div>
+
+  <!-- Paginazione -->
+  <nav data-pagination aria-label="Paginazione" class="flex justify-center flex-wrap gap-1 mt-6"></nav>
+</pagefind-list>
+
+<script is:inline>
+  // is:inline obbligatorio: dipende da /pagefind/pagefind.js generato a build-time,
+  // non risolvibile da Vite/Rollup (stessa ragione di search-modal in Header.astro).
+  (function () {
+    const VIEW_MORE_THRESHOLD = 10;
+
+    const DEFAULT_LABELS = {
+      type: 'Tipo',
+      periodi: 'Periodo storico',
+      tags: 'Tag',
+      lingue: 'Lingua',
+      localizzazioni: 'Localizzazione',
+      accordi: 'Accordi',
+      audio: 'Audio',
+    };
+
+    class PagefindList extends HTMLElement {
+      connectedCallback() {
+        this._pf          = null;
+        this._allFilters  = {};
+        this._results     = [];
+        this._page        = 0;
+        this._filters     = {};
+        this._query       = '';
+        this._pageSize    = parseInt(this.dataset.pageSize   || '15', 10);
+        this._type        = this.dataset.type                || '';
+        this._filterKeys  = (this.dataset.filterKeys || '').split(',').filter(Boolean);
+        this._filterLabels = { ...DEFAULT_LABELS, ...JSON.parse(this.dataset.filterLabels || '{}') };
+        this._sortOptions = JSON.parse(this.dataset.sortOptions || '[]');
+        this._sortField   = this._sortOptions[0]?.field ?? 'titolo';
+        this._sortDir     = this._sortOptions[0]?.dir   ?? 'asc';
+
+        this._presetFilter = JSON.parse(this.dataset.presetFilter || '{}');
+
+        // Espone setQuery() per chiamate esterne (es. pagina cerca)
+        this.setQuery = async (q) => {
+          this._query = q;
+          this._page  = 0;
+          await this._search();
+        };
+
+        this._setupDrawer();
+        this._init();
+      }
+
+      // ── Init ────────────────────────────────────────────────────────────────
+
+      async _init() {
+        try {
+          this._pf = await import('/pagefind/pagefind.js');
+          await this._pf.init();
+          // Leggi la query iniziale DOPO l'import asincrono: gli script della
+          // pagina (es. cerca.astro) hanno già avuto modo di impostare il dataset.
+          this._query = this.dataset.initialQuery || '';
+          await this._pf.filters(); // preload filter data into memory
+          const baseFilters = { ...(this._type ? { type: this._type } : {}), ...this._presetFilter };
+          const preSearch = await this._pf.search(this._query || null, { filters: baseFilters });
+          const rawFilters = preSearch.filters ?? {};
+          // Remove always-active preset keys from user-selectable facets
+          for (const key of Object.keys(this._presetFilter)) {
+            delete rawFilters[key];
+          }
+          this._allFilters = rawFilters;
+          this._renderFilterPanels();
+          this._renderSortControls();
+          await this._search();
+        } catch (e) {
+          console.error('[pagefind-list]', e);
+          this._showError();
+        }
+      }
+
+      // ── Search ──────────────────────────────────────────────────────────────
+
+      async _search() {
+        const baseFilters = { ...(this._type ? { type: this._type } : {}), ...this._presetFilter };
+        const opts = { filters: { ...baseFilters, ...this._filters } };
+        if (!this._query) opts.sort = { [this._sortField]: this._sortDir };
+        const search = await this._pf.search(this._query || null, opts);
+        this._results = search.results;
+        this._page    = 0;
+        await this._renderPage();
+        this._renderActiveFilters();
+        this._updateResultCount();
+      }
+
+      // ── Results ─────────────────────────────────────────────────────────────
+
+      async _renderPage() {
+        const start = this._page * this._pageSize;
+        const items = await Promise.all(
+          this._results.slice(start, start + this._pageSize).map((r) => r.data())
+        );
+        const el = this.querySelector('[data-results]');
+        el.innerHTML = items.length === 0
+          ? '<p class="py-10 text-center font-serif italic text-base-content/50">Nessun risultato.</p>'
+          : items.map((item) => this._renderCard(item)).join('');
+        this._renderPagination();
+      }
+
+      _renderCard(item) {
+        const meta = item.meta || {};
+        const cardType = this._type || (meta.type ?? '');
+
+        if (cardType === 'periodi') {
+          return `
+            <div class="flex flex-col gap-1 py-3 hover:bg-base-200 transition-colors rounded-lg px-1">
+              <h3 class="font-serif font-semibold text-primary">
+                <a href="${item.url}" class="hover:underline">${meta.title ?? ''}</a>
+              </h3>
+              <p class="text-xs text-base-content/40 uppercase tracking-wide font-sans">Periodo storico</p>
+            </div>
+          `;
+        }
+
+        if (cardType === 'traduzioni') {
+          const cantoLink = meta.canto_originale_titolo
+            ? (meta.canto_originale_slug
+                ? `<a href="/canti/${meta.canto_originale_slug}" class="hover:underline">${meta.canto_originale_titolo}</a>`
+                : meta.canto_originale_titolo)
+            : '';
+          return `
+            <div class="flex flex-col gap-1 py-3 hover:bg-base-200 transition-colors rounded-lg px-1">
+              <h3 class="font-serif font-semibold text-primary">
+                <a href="${item.url}" class="hover:underline">${meta.title ?? ''}</a>
+              </h3>
+              ${cantoLink ? `<p class="font-serif italic text-sm text-base-content/60">${cantoLink}</p>` : ''}
+            </div>
+          `;
+        }
+
+        if (cardType === 'autori') {
+          const numCanti = meta.num_canti ? parseInt(meta.num_canti, 10) : 0;
+          return `
+            <div class="flex flex-col gap-1 py-3 hover:bg-base-200 transition-colors rounded-lg px-1">
+              <h3 class="font-serif font-semibold text-primary">
+                <a href="${item.url}" class="hover:underline">${meta.title ?? ''}</a>
+              </h3>
+              ${meta.localizzazioni ? `<p class="font-serif italic text-sm text-base-content/60">${meta.localizzazioni}</p>` : ''}
+              ${numCanti > 0 ? `<p class="text-xs text-base-content/40">${numCanti} ${numCanti === 1 ? 'canto' : 'canti'}</p>` : ''}
+            </div>
+          `;
+        }
+
+        if (cardType === 'eventi') {
+          const loc     = meta.localizzazioni ?? '';
+          const locSlug = meta.localizzazioni_slug ?? '';
+          const locHtml = loc
+            ? (locSlug ? `<a href="/localizzazioni/${locSlug}" class="hover:underline">${loc}</a>` : loc)
+            : '';
+          const periodoHtml = meta.periodi
+            ? (meta.periodi_slug
+                ? `<a href="/periodi/${meta.periodi_slug}" class="hover:underline">${meta.periodi}</a>`
+                : meta.periodi)
+            : '';
+          const dateStr    = meta.data_display ?? '';
+          const metaLine1  = [locHtml, dateStr].filter(Boolean).join(' · ');
+          return `
+            <div class="flex flex-col gap-1 py-3 hover:bg-base-200 transition-colors rounded-lg px-1">
+              <h3 class="font-serif font-semibold text-primary">
+                <a href="${item.url}" class="hover:underline">${meta.title ?? ''}</a>
+              </h3>
+              ${metaLine1   ? `<p class="font-serif italic text-sm text-base-content/60">${metaLine1}</p>`   : ''}
+              ${periodoHtml ? `<p class="font-serif italic text-sm text-base-content/60">${periodoHtml}</p>` : ''}
+            </div>
+          `;
+        }
+
+        const accordi = meta.accordi === 'sì';
+        const audio   = meta.audio   === 'sì';
+        return `
+          <div class="flex flex-col gap-1 py-3 hover:bg-base-200 transition-colors rounded-lg px-1">
+            <p class="text-xs text-base-content/40 flex items-center gap-2">
+              ${meta.anno ? `<span class="italic">${meta.anno}</span><span aria-hidden="true">·</span>` : ''}
+              <i class="ph ph-headphones ${audio   ? 'text-primary' : 'text-base-content/20'}"></i>
+              <i class="ph ph-guitar     ${accordi ? 'text-primary' : 'text-base-content/20'}"></i>
+            </p>
+            <h3 class="font-serif font-semibold text-primary">
+              <a href="${item.url}" class="hover:underline">${meta.title ?? ''}</a>
+            </h3>
+            ${meta.autori    ? `<p class="text-sm text-base-content/60">${meta.autori}</p>`    : ''}
+            ${meta.capoverso ? `<p class="italic text-sm text-base-content/60">${meta.capoverso}</p>` : ''}
+          </div>
+        `;
+      }
+
+      // ── Pagination ──────────────────────────────────────────────────────────
+
+      _renderPagination() {
+        const el    = this.querySelector('[data-pagination]');
+        const total = Math.ceil(this._results.length / this._pageSize);
+        if (!el || total <= 1) { if (el) el.innerHTML = ''; return; }
+
+        const cur   = this._page;
+        const parts = [];
+        const btn   = (n) => {
+          const active = n === cur;
+          return `<button type="button" data-page="${n}" class="btn btn-xs ${active ? 'btn-primary' : 'btn-ghost'}" aria-current="${active}">${n + 1}</button>`;
+        };
+        const dots  = () => '<span class="px-1 self-center text-base-content/30 text-sm">…</span>';
+
+        parts.push(btn(0));
+        if (cur > 2) parts.push(dots());
+        for (let i = Math.max(1, cur - 1); i <= Math.min(total - 2, cur + 1); i++) parts.push(btn(i));
+        if (cur < total - 3) parts.push(dots());
+        if (total > 1) parts.push(btn(total - 1));
+
+        el.innerHTML = parts.join('');
+        el.querySelectorAll('[data-page]').forEach((b) =>
+          b.addEventListener('click', async () => {
+            this._page = parseInt(b.dataset.page, 10);
+            await this._renderPage();
+            this.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          })
+        );
+      }
+
+      // ── Filter panels ────────────────────────────────────────────────────────
+
+      _renderFilterPanels() {
+        const keys = this._filterKeys.filter(
+          (k) => this._allFilters[k] && Object.keys(this._allFilters[k]).length > 0
+        );
+
+        // Desktop: dropdown button per ogni gruppo
+        const desktopPanel = this.querySelector('[data-filter-panel]');
+        if (desktopPanel) {
+          desktopPanel.innerHTML = keys.length > 0
+            ? keys.map((k) => this._dropdownButtonHtml(k)).join('')
+            : '<p class="text-sm text-base-content/40 italic">Nessun filtro disponibile.</p>';
+          this._setupDropdowns();
+        }
+
+        // Mobile: gruppi verticali con checkbox (nel drawer)
+        const mobilePanel = this.querySelector('[data-filter-panel-mobile]');
+        if (mobilePanel) {
+          mobilePanel.innerHTML = keys.length > 0
+            ? `<div class="flex flex-col gap-5">${keys.map((k) => this._checkboxGroupHtml(k)).join('')}</div>`
+            : '<p class="text-sm text-base-content/40 italic">Nessun filtro disponibile.</p>';
+        }
+
+        this._attachFilterEvents();
+      }
+
+      // HTML di un singolo dropdown button con il suo pannello flottante
+      _dropdownButtonHtml(key) {
+        const label   = this._filterLabels[key] ?? key;
+        const entries = Object.entries(this._allFilters[key])
+          .filter(([, count]) => count > 0)
+          .sort(([, a], [, b]) => b - a);
+        const visible = entries.slice(0, VIEW_MORE_THRESHOLD);
+        const extra   = entries.slice(VIEW_MORE_THRESHOLD);
+
+        const itemHtml = ([val, count]) => `
+          <label class="flex items-center gap-2 px-3 py-1.5 cursor-pointer hover:bg-base-200 text-sm">
+            <input
+              type="checkbox"
+              class="checkbox checkbox-xs checkbox-primary"
+              data-filter-key="${key}"
+              data-filter-val="${val}"
+            />
+            <span class="flex-1">${val}</span>
+            <span class="text-xs text-base-content/30">${count}</span>
+          </label>
+        `;
+
+        return `
+          <div class="relative" data-dropdown-group="${key}">
+            <button
+              type="button"
+              data-dropdown-toggle="${key}"
+              class="btn btn-sm btn-ghost border border-base-300 gap-1"
+            >
+              ${label}
+              <i class="ph ph-caret-down text-xs"></i>
+            </button>
+            <div
+              data-dropdown-panel="${key}"
+              class="hidden absolute left-0 top-[calc(100%+4px)] z-50
+                     bg-base-100 border border-base-300 rounded-box shadow-lg
+                     min-w-48 max-h-72 overflow-y-auto py-1"
+            >
+              ${visible.map(itemHtml).join('')}
+              ${extra.length > 0 ? `
+                <div data-extra-items="${key}" class="hidden">
+                  ${extra.map(itemHtml).join('')}
+                </div>
+                <button
+                  type="button"
+                  data-show-more="${key}"
+                  class="w-full text-left px-3 py-1.5 text-xs text-primary hover:underline"
+                >
+                  + ${extra.length} altri…
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }
+
+      // HTML di un gruppo con label + checkbox (usato nel drawer mobile)
+      _checkboxGroupHtml(key) {
+        const label   = this._filterLabels[key] ?? key;
+        const entries = Object.entries(this._allFilters[key])
+          .filter(([, count]) => count > 0)
+          .sort(([, a], [, b]) => b - a);
+        const visible = entries.slice(0, VIEW_MORE_THRESHOLD);
+        const extra   = entries.slice(VIEW_MORE_THRESHOLD);
+
+        const itemHtml = ([val, count]) => `
+          <li>
+            <label class="flex items-center gap-2 cursor-pointer py-1 text-sm group">
+              <input
+                type="checkbox"
+                class="checkbox checkbox-xs checkbox-primary"
+                data-filter-key="${key}"
+                data-filter-val="${val}"
+              />
+              <span class="flex-1 group-hover:text-primary transition-colors">${val}</span>
+              <span class="text-xs text-base-content/30">${count}</span>
+            </label>
+          </li>
+        `;
+
+        return `
+          <div class="flex flex-col gap-1.5">
+            <h3 class="font-serif font-bold text-xs uppercase tracking-wide text-base-content/50">${label}</h3>
+            <ul class="flex flex-col gap-0">
+              ${visible.map(itemHtml).join('')}
+              ${extra.length > 0 ? `
+                <ul data-extra-items="${key}" class="hidden flex flex-col gap-0">
+                  ${extra.map(itemHtml).join('')}
+                </ul>
+                <button
+                  type="button"
+                  data-show-more="${key}"
+                  class="text-left py-1 text-xs text-primary hover:underline"
+                >
+                  + ${extra.length} altri…
+                </button>
+              ` : ''}
+            </ul>
+          </div>
+        `;
+      }
+
+      // ── Dropdown toggle (desktop) ────────────────────────────────────────────
+
+      _setupDropdowns() {
+        const panel = this.querySelector('[data-filter-panel]');
+        if (!panel) return;
+
+        // Apri/chiudi al click sul bottone
+        panel.querySelectorAll('[data-dropdown-toggle]').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const key      = btn.dataset.dropdownToggle;
+            const dropPanel = panel.querySelector(`[data-dropdown-panel="${key}"]`);
+            const isOpen   = !dropPanel.classList.contains('hidden');
+            this._closeAllDropdowns();
+            if (!isOpen) dropPanel.classList.remove('hidden');
+          });
+        });
+
+        // "Mostra altri" — espande gli item nascosti nel pannello flottante
+        panel.querySelectorAll('[data-show-more]').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const key   = btn.dataset.showMore;
+            const extra = panel.querySelector(`[data-dropdown-panel="${key}"] [data-extra-items="${key}"]`);
+            if (extra) extra.classList.remove('hidden');
+            btn.remove();
+          });
+        });
+
+        // Chiudi cliccando fuori
+        document.addEventListener('click', (e) => {
+          if (!this.contains(e.target)) this._closeAllDropdowns();
+        });
+
+        // Chiudi con Escape
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') this._closeAllDropdowns();
+        });
+      }
+
+      _closeAllDropdowns() {
+        this.querySelectorAll('[data-dropdown-panel]').forEach((p) => p.classList.add('hidden'));
+      }
+
+      // Aggiorna label e stile dei bottoni dropdown in base ai filtri attivi
+      _updateDropdownButtons() {
+        this.querySelectorAll('[data-dropdown-group]').forEach((group) => {
+          const key      = group.dataset.dropdownGroup;
+          const btn      = group.querySelector(`[data-dropdown-toggle="${key}"]`);
+          if (!btn) return;
+          const label    = this._filterLabels[key] ?? key;
+          const activeVal = this._filters[key];
+          if (activeVal) {
+            btn.className = 'btn btn-sm btn-primary gap-1';
+            btn.innerHTML = `${label}: <strong>${activeVal}</strong> <i class="ph ph-caret-down text-xs"></i>`;
+          } else {
+            btn.className = 'btn btn-sm btn-ghost border border-base-300 gap-1';
+            btn.innerHTML = `${label} <i class="ph ph-caret-down text-xs"></i>`;
+          }
+        });
+      }
+
+      // ── Filter events ────────────────────────────────────────────────────────
+
+      _attachFilterEvents() {
+        this.querySelectorAll('[data-filter-key]').forEach((input) => {
+          input.addEventListener('change', async () => {
+            const { filterKey: key, filterVal: val } = input.dataset;
+
+            if (input.checked) {
+              // Single-select per gruppo: deseleziona il valore precedente
+              this.querySelectorAll(`[data-filter-key="${key}"]`).forEach((cb) => {
+                if (cb !== input) cb.checked = false;
+              });
+              this._filters[key] = val;
+            } else {
+              delete this._filters[key];
+            }
+
+            // Chiudi il dropdown dopo la selezione
+            this._closeAllDropdowns();
+
+            await this._search();
+          });
+        });
+
+        // "Mostra altri" nel drawer mobile
+        this.querySelector('[data-filter-panel-mobile]')
+          ?.querySelectorAll('[data-show-more]')
+          .forEach((btn) => {
+            btn.addEventListener('click', () => {
+              const extra = btn.previousElementSibling;
+              if (extra) extra.classList.remove('hidden');
+              btn.remove();
+            });
+          });
+
+        // Reset
+        this.querySelectorAll('[data-reset-filters]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            this._filters = {};
+            this.querySelectorAll('[data-filter-key]').forEach((cb) => { cb.checked = false; });
+            await this._search();
+          });
+        });
+      }
+
+      // ── Active filters (badges) ──────────────────────────────────────────────
+
+      _renderActiveFilters() {
+        const el      = this.querySelector('[data-active-filters]');
+        if (!el) return;
+        const entries = Object.entries(this._filters);
+
+        el.classList.toggle('hidden', entries.length === 0);
+        el.classList.toggle('flex',   entries.length > 0);
+
+        el.innerHTML = entries.map(([key, val]) => `
+          <button
+            type="button"
+            data-remove-filter="${key}"
+            class="badge badge-secondary gap-1 cursor-pointer hover:badge-error transition-colors"
+            aria-label="Rimuovi filtro ${val}"
+          >
+            ${val} <i class="ph ph-x text-xs"></i>
+          </button>
+        `).join('');
+
+        el.querySelectorAll('[data-remove-filter]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const key = btn.dataset.removeFilter;
+            delete this._filters[key];
+            this.querySelectorAll(`[data-filter-key="${key}"]`).forEach((cb) => { cb.checked = false; });
+            await this._search();
+          });
+        });
+
+        // Badge count sul bottone mobile
+        const countBadge = this.querySelector('[data-filter-count]');
+        if (countBadge) {
+          countBadge.textContent = String(entries.length);
+          countBadge.classList.toggle('hidden', entries.length === 0);
+        }
+
+        // Bottone reset desktop
+        const resetBtn = this.querySelector('[data-filter-panel] ~ div [data-reset-filters]');
+        if (resetBtn) resetBtn.classList.toggle('hidden', entries.length === 0);
+
+        // Aggiorna label bottoni dropdown
+        this._updateDropdownButtons();
+      }
+
+      _updateResultCount() {
+        const n    = this._results.length;
+        const text = n === 0 ? 'Nessun risultato' : `${n} risultat${n === 1 ? 'o' : 'i'}`;
+        this.querySelectorAll('[data-result-count]').forEach((el) => { el.textContent = text; });
+      }
+
+      // ── Drawer (mobile) ──────────────────────────────────────────────────────
+
+      _setupDrawer() {
+        const toggle   = this.querySelector('[data-filter-toggle]');
+        const drawer   = this.querySelector('[data-filter-drawer]');
+        const backdrop = this.querySelector('[data-drawer-backdrop]');
+        if (!toggle || !drawer) return;
+
+        const open  = () => { drawer.classList.remove('hidden'); document.body.style.overflow = 'hidden'; };
+        const close = () => { drawer.classList.add('hidden');    document.body.style.overflow = '';       };
+
+        toggle.addEventListener('click', open);
+        backdrop?.addEventListener('click', close);
+        drawer.querySelectorAll('[data-drawer-close]').forEach((b) => b.addEventListener('click', close));
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+      }
+
+      // ── Sort controls ────────────────────────────────────────────────────────
+
+      _renderSortControls() {
+        if (this._sortOptions.length === 0) return;
+
+        // Desktop: dropdown button
+        const desktopContainer = this.querySelector('[data-sort-panel-desktop]');
+        if (desktopContainer) {
+          const activeLabel = this._sortOptions.find((o) => o.field === this._sortField)?.label ?? 'Ordina';
+          desktopContainer.innerHTML = `
+            <div class="relative" data-sort-dropdown>
+              <button type="button" data-sort-toggle class="btn btn-sm btn-ghost border border-base-300 gap-1">
+                ${activeLabel} <i class="ph ph-caret-down text-xs"></i>
+              </button>
+              <div data-sort-dropdown-panel class="hidden absolute right-0 top-[calc(100%+4px)] z-50
+                   bg-base-100 border border-base-300 rounded-box shadow-lg min-w-40 py-1">
+                ${this._sortOptions.map((o) => `
+                  <button type="button" data-sort-select="${o.field}" data-sort-dir="${o.dir}"
+                    class="flex items-center gap-2 w-full px-3 py-1.5 text-sm hover:bg-base-200 text-left
+                           ${o.field === this._sortField ? 'text-primary font-semibold' : ''}">
+                    <i class="ph ph-check text-xs ${o.field === this._sortField ? '' : 'invisible'}"></i>
+                    ${o.label}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+          `;
+
+          const dropdown = desktopContainer.querySelector('[data-sort-dropdown]');
+          const toggle   = dropdown.querySelector('[data-sort-toggle]');
+          const panel    = dropdown.querySelector('[data-sort-dropdown-panel]');
+
+          toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            panel.classList.toggle('hidden');
+          });
+
+          dropdown.querySelectorAll('[data-sort-select]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+              this._sortField = btn.dataset.sortSelect;
+              this._sortDir   = btn.dataset.sortDir;
+              panel.classList.add('hidden');
+              this._updateSortUI();
+              await this._search();
+            });
+          });
+
+          document.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target)) panel.classList.add('hidden');
+          });
+        }
+
+        // Mobile: prepend sort section to the filter drawer
+        const mobilePanel = this.querySelector('[data-filter-panel-mobile]');
+        if (mobilePanel && !mobilePanel.querySelector('[data-sort-section-mobile]')) {
+          mobilePanel.insertAdjacentHTML('afterbegin', `
+            <div data-sort-section-mobile class="flex flex-col gap-1.5 pb-5 mb-5 border-b border-base-300">
+              <h3 class="font-serif font-bold text-xs uppercase tracking-wide text-base-content/50">Ordina</h3>
+              <div class="flex flex-col gap-0">
+                ${this._sortOptions.map((o) => `
+                  <label class="flex items-center gap-2 cursor-pointer py-1 text-sm group">
+                    <input type="radio" name="sort-mobile" class="radio radio-xs radio-primary"
+                      data-sort-select="${o.field}" data-sort-dir="${o.dir}"
+                      ${o.field === this._sortField ? 'checked' : ''} />
+                    <span class="flex-1 group-hover:text-primary transition-colors">${o.label}</span>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+          `);
+
+          mobilePanel.querySelectorAll('[data-sort-select]').forEach((input) => {
+            input.addEventListener('change', async () => {
+              this._sortField = input.dataset.sortSelect;
+              this._sortDir   = input.dataset.sortDir;
+              this._updateSortUI();
+              await this._search();
+            });
+          });
+        }
+      }
+
+      _updateSortUI() {
+        // Update desktop button label
+        const toggle = this.querySelector('[data-sort-toggle]');
+        if (toggle) {
+          const activeLabel = this._sortOptions.find((o) => o.field === this._sortField)?.label ?? 'Ordina';
+          toggle.innerHTML = `${activeLabel} <i class="ph ph-caret-down text-xs"></i>`;
+        }
+        // Update desktop check marks + active styles
+        this.querySelector('[data-sort-dropdown-panel]')?.querySelectorAll('[data-sort-select]').forEach((btn) => {
+          const isActive = btn.dataset.sortSelect === this._sortField;
+          btn.querySelector('.ph-check')?.classList.toggle('invisible', !isActive);
+          btn.classList.toggle('text-primary', isActive);
+          btn.classList.toggle('font-semibold', isActive);
+        });
+        // Sync mobile radio states
+        this.querySelectorAll('[data-sort-section-mobile] [data-sort-select]').forEach((input) => {
+          input.checked = input.dataset.sortSelect === this._sortField;
+        });
+      }
+
+      _showError() {
+        const el = this.querySelector('[data-results]');
+        if (el) el.innerHTML = '<p class="py-10 text-center text-base-content/50">Errore nel caricamento.</p>';
+      }
+    }
+
+    if (!customElements.get('pagefind-list')) {
+      customElements.define('pagefind-list', PagefindList);
+    }
+  })();
+</script>

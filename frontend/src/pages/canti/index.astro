@@ -1,0 +1,68 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/ui/Breadcrumb.astro';
+import ShareModal from '../../components/ui/ShareModal.astro';
+import CantoCard from '../../components/ui/CantoCard.astro';
+import { getCantiPiuVisti } from '../../lib/api/index.js';
+
+const canti = await getCantiPiuVisti(10);
+
+const cantiConAutori = canti.map((canto) => {
+  const autori = [...canto.autoriTesto, ...canto.autoriMusica].filter(
+    (a, i, arr) => arr.findIndex((x) => x.slug === a.slug) === i
+  );
+  return { canto, autori };
+});
+---
+<BaseLayout title="I canti dell'archivio" description="La pagina di accesso all'archivio dei canti">
+
+  <header class="bg-base-200 border-b-2 border-secondary">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
+      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Canti' }]} />
+
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">I canti dell'archivio</h1>
+
+      <p class="font-serif italic text-base text-base-content/60">La pagina di accesso all'archivio dei canti</p>
+
+      <a href="/canti/elenco" class="btn btn-primary btn-sm gap-2 w-fit border-0">
+        Tutti i canti dell'archivio
+        <i class="ph ph-arrow-right"></i>
+      </a>
+
+      <share-button data-title="I canti dell'archivio" class="contents">
+        <button type="button" class="inline-flex items-center gap-1 cursor-pointer w-fit" aria-label="Condividi questa pagina">
+          <i class="ph ph-share-network"></i>
+          Condividi
+        </button>
+        <ShareModal />
+      </share-button>
+    </div>
+  </header>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+  <article class="flex flex-col gap-6 max-w-2xl mx-auto mt-6">
+
+    <section class="flex flex-col gap-2">
+      <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
+        I canti più visti
+      </h2>
+
+      <div class="flex flex-col divide-y divide-secondary/30">
+        {cantiConAutori.map(({ canto, autori }) => (
+          <CantoCard canto={canto} autori={autori} />
+        ))}
+      </div>
+
+      <a href="/canti/elenco" class="btn btn-primary self-center mt-4 gap-2">
+        Tutti i canti dell'archivio
+        <i class="ph ph-arrow-right"></i>
+      </a>
+    </section>
+
+  </article>
+
+  <script>
+    import '../../scripts/share-button.js';
+  </script>
+  </div>
+</BaseLayout>

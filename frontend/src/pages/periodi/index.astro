@@ -1,0 +1,74 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/ui/Breadcrumb.astro';
+import ShareModal from '../../components/ui/ShareModal.astro';
+import { getPeriodi, getPeriodoImageUrl, getContenutiByPeriodoMap } from '../../lib/api/index.js';
+
+const periodi = await getPeriodi();
+const contenutiMap = await getContenutiByPeriodoMap();
+
+const imgUrls = await Promise.all(periodi.map((p) => getPeriodoImageUrl(p.immagine)));
+---
+<BaseLayout title="Periodi" description="L'elenco dei periodi storici in cui sono divisi i contenuti">
+
+  <header class="bg-base-200 border-b-2 border-secondary">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
+      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Periodi' }]} />
+
+      <h1 class="font-serif font-bold text-2xl md:text-3xl text-base-content">Periodi</h1>
+
+      <p class="font-serif italic text-base text-base-content/60">L'elenco dei periodi storici in cui sono divisi i contenuti</p>
+
+      <share-button data-title="Periodi" class="contents">
+        <button type="button" class="inline-flex items-center gap-1 cursor-pointer w-fit" aria-label="Condividi questa pagina">
+          <i class="ph ph-share-network"></i>
+          Condividi
+        </button>
+        <ShareModal />
+      </share-button>
+    </div>
+  </header>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+  <article class="flex flex-col gap-6 mt-6">
+    {periodi.map((periodo, i) => {
+      const { canti = 0, autori = 0, eventi = 0 } = contenutiMap.get(periodo.id) ?? {};
+      const parti = [
+        canti > 0 && `${canti} ${canti === 1 ? 'canto' : 'canti'}`,
+        autori > 0 && `${autori} ${autori === 1 ? 'autore' : 'autori'}`,
+        eventi > 0 && `${eventi} ${eventi === 1 ? 'evento' : 'eventi'}`,
+      ].filter(Boolean);
+
+      return (
+        <a href={`/periodi/${periodo.slug}`} class="block relative h-32">
+          {imgUrls[i] ? (
+            <img
+              src={imgUrls[i]}
+              alt={"Immagine del periodo: " + periodo.titolo}
+              width="800"
+              height="450"
+              class="w-full h-full object-cover grayscale"
+              loading={i === 0 ? 'eager' : 'lazy'}
+            />
+          ) : (
+            <div class="w-full h-full bg-base-300 flex items-center justify-center">
+              <i class="ph ph-image-broken text-4xl text-base-content/30"></i>
+            </div>
+          )}
+          <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 right-0 p-4 text-white">
+            {parti.length > 0 && (
+              <p class="font-sans text-sm text-white/80 mb-1">{parti.join(' · ')}</p>
+            )}
+            <p class="font-serif font-bold text-base leading-tight line-clamp-2">{periodo.titolo}</p>
+          </div>
+        </a>
+      );
+    })}
+  </article>
+
+  <script>
+    import '../../scripts/share-button.js';
+  </script>
+  </div>
+</BaseLayout>
