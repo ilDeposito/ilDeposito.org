@@ -1,0 +1,17 @@
+services:
+  mariadb:
+    container_name: ildeposito_stage_backend_mariadb
+
+  php:
+    container_name: ildeposito_stage_backend_php
+    environment:
+      ILDEPOSITO_ENV: stage
+
+  crond:
+    container_name: ildeposito_stage_backend_crond
+
+  nginx:
+    container_name: ildeposito_stage_backend_nginx
+    labels:
+      caddy: admin-stage.ildeposito.org
+      caddy.reverse_proxy: "{{upstreams 80}}"

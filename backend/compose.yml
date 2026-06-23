@@ -23,8 +23,7 @@ services:
       PHP_APCU_SHM_SIZE: 64M
       PHP_SESSION_COOKIE_SAMESITE: Strict
     volumes:
-    - ./:/var/www/html:cached
-    - ../backup:/var/backup_migrate  
+    - ./:/var/www/html:cached  
     networks:
       - internal      
 
@@ -36,7 +35,7 @@ services:
       CRONTAB: "0 * * * * drush -r /var/www/html/web cron"
     command: sudo -E crond -f -d 0
     volumes:
-    - ./:/var/www/html:cached
+      - ./:/var/www/html:cached
     networks:
       - internal      
 
@@ -44,7 +43,7 @@ services:
     image: wodby/nginx:$NGINX_TAG
     restart: unless-stopped
     depends_on:
-    - php
+      - php
     environment:
       NGINX_BACKEND_HOST: php
       NGINX_SERVER_ROOT: /var/www/html/web
@@ -57,31 +56,6 @@ services:
     networks:
       - internal  
       - caddy    
-
-  memcached:
-    restart: unless-stopped
-    image: wodby/memcached:$MEMCACHED_TAG
-    networks:
-      - internal  
-
-  solr:
-    image: wodby/solr:$SOLR_TAG
-    restart: unless-stopped
-    environment:
-      SOLR_OPTS: "-Dsolr.config.lib.enabled=true"
-      SOLR_MODULES: extraction,langid,ltr,analysis-extras
-      ZK_HOST: zookeeper:2181
-      SOLR_HEAP: 1024m
-    depends_on:
-    - zookeeper
-    networks:
-      - internal
-
-  zookeeper:
-    image: wodby/zookeeper:$ZOOKEEPER_TAG
-    restart: unless-stopped
-    networks:
-      - internal 
 
 networks:
   internal:

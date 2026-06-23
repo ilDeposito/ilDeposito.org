@@ -1,0 +1,36 @@
+services:
+  astro-builder:
+    container_name: ildeposito_stage_frontend_builder
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DRUPAL_API_URL: http://nginx:80
+    volumes:
+      - frontend_output:/app/output
+    networks:
+      - internal
+    profiles:
+      - build
+
+  frontend-web:
+    container_name: ildeposito_stage_frontend_nginx
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    volumes:
+      - frontend_output:/usr/share/nginx/html:ro
+      - ./nginx.stage.conf:/etc/nginx/conf.d/default.conf:ro
+    labels:
+      caddy: stage.ildeposito.org
+      caddy.reverse_proxy: "{{upstreams 80}}"
+    networks:
+      - caddy
+
+volumes:
+  frontend_output:
+
+networks:
+  internal:
+    driver: bridge
+  caddy:
+    external: true

@@ -1,0 +1,6 @@
+include:
+  - path:
+      - backend/compose.yml
+      - backend/compose.${ENV}.yml
+    env_file: backend/.env
+  - path: frontend/compose.${ENV}.yml

@@ -12,3 +12,6 @@ Thumbs.db
 
 # DevContainer
 .devcontainer/
+
+# Env
+.env
