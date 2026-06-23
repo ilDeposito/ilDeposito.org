@@ -10,6 +10,11 @@ NC='\033[0m'
 
 PROJECT_ROOT="$(cd "$(dirname "$0")" && pwd)"
 
+info()  { printf "${CYAN}▸${NC} %s\n" "$*"; }
+ok()    { printf "${GREEN}✓${NC} %s\n" "$*"; }
+warn()  { printf "${YELLOW}⚠${NC} %s\n" "$*"; }
+error() { printf "${RED}✗${NC} %s\n" "$*" >&2; }
+
 # Carica .env
 if [[ ! -f "${PROJECT_ROOT}/.env" ]]; then
     error ".env non trovato. Copia .env.example in .env e configuralo."
@@ -27,11 +32,6 @@ fi
 PROJECT_NAME="ildeposito-${ENV}"
 export COMPOSE_PROJECT_NAME="${PROJECT_NAME}"
 COMPOSE="docker compose --project-directory ${PROJECT_ROOT}"
-
-info()  { printf "${CYAN}▸${NC} %s\n" "$*"; }
-ok()    { printf "${GREEN}✓${NC} %s\n" "$*"; }
-warn()  { printf "${YELLOW}⚠${NC} %s\n" "$*"; }
-error() { printf "${RED}✗${NC} %s\n" "$*" >&2; }
 
 cmd_up() {
     info "Avvio ambiente ${ENV} (${PROJECT_NAME})..."
