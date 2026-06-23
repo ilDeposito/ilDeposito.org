@@ -3,24 +3,13 @@ langcode: it
 status: true
 dependencies:
   config:
-    - field.field.taxonomy_term.lingue.field_metatag
     - field.field.taxonomy_term.lingue.field_old_id
     - taxonomy.vocabulary.lingue
-  module:
-    - metatag
 id: taxonomy_term.lingue.default
 targetEntityType: taxonomy_term
 bundle: lingue
 mode: default
 content:
-  field_metatag:
-    type: metatag_firehose
-    weight: 26
-    region: content
-    settings:
-      sidebar: true
-      use_details: true
-    third_party_settings: {  }
   langcode:
     type: language_select
     weight: 1

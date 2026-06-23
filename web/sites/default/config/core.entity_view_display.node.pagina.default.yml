@@ -5,10 +5,8 @@ dependencies:
   config:
     - field.field.node.pagina.field_descrizione_header
     - field.field.node.pagina.field_immagine
-    - field.field.node.pagina.field_metatag
     - node.type.pagina
   module:
-    - metatag
     - user
 id: node.pagina.default
 targetEntityType: node
@@ -31,13 +29,6 @@ content:
       link: false
     third_party_settings: {  }
     weight: 102
-    region: content
-  field_metatag:
-    type: metatag_empty_formatter
-    label: above
-    settings: {  }
-    third_party_settings: {  }
-    weight: 115
     region: content
   links:
     settings: {  }

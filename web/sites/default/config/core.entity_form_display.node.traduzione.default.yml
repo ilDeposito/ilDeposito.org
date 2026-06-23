@@ -7,11 +7,9 @@ dependencies:
     - field.field.node.traduzione.field_canto_testo
     - field.field.node.traduzione.field_informazioni
     - field.field.node.traduzione.field_lingua
-    - field.field.node.traduzione.field_metatag
     - field.field.node.traduzione.field_old_id
     - node.type.traduzione
   module:
-    - metatag
     - path
     - text
 id: node.traduzione.default
@@ -58,14 +56,6 @@ content:
     weight: 2
     region: content
     settings: {  }
-    third_party_settings: {  }
-  field_metatag:
-    type: metatag_firehose
-    weight: 26
-    region: content
-    settings:
-      sidebar: true
-      use_details: true
     third_party_settings: {  }
   langcode:
     type: language_select

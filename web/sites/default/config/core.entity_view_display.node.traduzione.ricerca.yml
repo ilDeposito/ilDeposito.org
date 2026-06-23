@@ -8,7 +8,6 @@ dependencies:
     - field.field.node.traduzione.field_canto_testo
     - field.field.node.traduzione.field_informazioni
     - field.field.node.traduzione.field_lingua
-    - field.field.node.traduzione.field_metatag
     - field.field.node.traduzione.field_old_id
     - node.type.traduzione
   module:
@@ -64,6 +63,5 @@ content:
     weight: 100
     region: content
 hidden:
-  field_metatag: true
   langcode: true
   search_api_excerpt: true

@@ -12,7 +12,6 @@ dependencies:
     - field.field.node.autore.field_immagine
     - field.field.node.autore.field_informazioni
     - field.field.node.autore.field_localizzazione
-    - field.field.node.autore.field_metatag
     - field.field.node.autore.field_nome
     - field.field.node.autore.field_old_id
     - field.field.node.autore.field_periodo
@@ -99,6 +98,5 @@ hidden:
   field_anno_di_morte: true
   field_anno_di_nascita: true
   field_autori_correlati: true
-  field_metatag: true
   langcode: true
   search_api_excerpt: true

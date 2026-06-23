@@ -11,14 +11,12 @@ dependencies:
     - field.field.node.autore.field_immagine
     - field.field.node.autore.field_informazioni
     - field.field.node.autore.field_localizzazione
-    - field.field.node.autore.field_metatag
     - field.field.node.autore.field_nome
     - field.field.node.autore.field_old_id
     - field.field.node.autore.field_periodo
     - node.type.autore
   module:
     - media_library
-    - metatag
     - path
     - text
 id: node.autore.default
@@ -94,14 +92,6 @@ content:
     weight: 5
     region: content
     settings: {  }
-    third_party_settings: {  }
-  field_metatag:
-    type: metatag_firehose
-    weight: 26
-    region: content
-    settings:
-      sidebar: true
-      use_details: true
     third_party_settings: {  }
   field_nome:
     type: string_textfield

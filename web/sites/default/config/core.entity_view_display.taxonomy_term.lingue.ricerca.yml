@@ -4,7 +4,6 @@ status: true
 dependencies:
   config:
     - core.entity_view_mode.taxonomy_term.ricerca
-    - field.field.taxonomy_term.lingue.field_metatag
     - field.field.taxonomy_term.lingue.field_old_id
     - taxonomy.vocabulary.lingue
   module:
@@ -31,6 +30,5 @@ content:
     weight: 3
     region: content
 hidden:
-  field_metatag: true
   langcode: true
   search_api_excerpt: true

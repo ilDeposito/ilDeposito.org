@@ -11,7 +11,6 @@ dependencies:
     - field.field.node.evento.field_informazioni
     - field.field.node.evento.field_links
     - field.field.node.evento.field_localizzazione
-    - field.field.node.evento.field_metatag
     - field.field.node.evento.field_old_id
     - field.field.node.evento.field_periodo
     - field.field.node.evento.field_tags
@@ -21,7 +20,6 @@ dependencies:
     - datetime
     - geofield
     - link
-    - metatag
     - text
     - user
 id: node.evento.default
@@ -96,13 +94,6 @@ content:
       link: true
     third_party_settings: {  }
     weight: 103
-    region: content
-  field_metatag:
-    type: metatag_empty_formatter
-    label: above
-    settings: {  }
-    third_party_settings: {  }
-    weight: 115
     region: content
   field_old_id:
     type: number_integer

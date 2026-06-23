@@ -4,12 +4,10 @@ status: true
 dependencies:
   config:
     - field.field.taxonomy_term.tags.field_immagine
-    - field.field.taxonomy_term.tags.field_metatag
     - field.field.taxonomy_term.tags.field_old_id
     - taxonomy.vocabulary.tags
   module:
     - media_library
-    - metatag
     - text
 id: taxonomy_term.tags.default
 targetEntityType: taxonomy_term
@@ -30,14 +28,6 @@ content:
     region: content
     settings:
       media_types: {  }
-    third_party_settings: {  }
-  field_metatag:
-    type: metatag_firehose
-    weight: 26
-    region: content
-    settings:
-      sidebar: true
-      use_details: true
     third_party_settings: {  }
   langcode:
     type: language_select

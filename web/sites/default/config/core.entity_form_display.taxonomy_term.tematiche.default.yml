@@ -4,12 +4,10 @@ status: true
 dependencies:
   config:
     - field.field.taxonomy_term.tematiche.field_immagine
-    - field.field.taxonomy_term.tematiche.field_metatag
     - field.field.taxonomy_term.tematiche.field_old_id
     - taxonomy.vocabulary.tematiche
   module:
     - media_library
-    - metatag
     - path
     - text
 id: taxonomy_term.tematiche.default
@@ -31,14 +29,6 @@ content:
     region: content
     settings:
       media_types: {  }
-    third_party_settings: {  }
-  field_metatag:
-    type: metatag_firehose
-    weight: 26
-    region: content
-    settings:
-      sidebar: true
-      use_details: true
     third_party_settings: {  }
   field_old_id:
     type: number

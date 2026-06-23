@@ -12,7 +12,6 @@ dependencies:
     - field.field.node.evento.field_informazioni
     - field.field.node.evento.field_links
     - field.field.node.evento.field_localizzazione
-    - field.field.node.evento.field_metatag
     - field.field.node.evento.field_old_id
     - field.field.node.evento.field_periodo
     - field.field.node.evento.field_tags
@@ -128,7 +127,6 @@ content:
     weight: 100
     region: content
 hidden:
-  field_metatag: true
   field_tematiche: true
   langcode: true
   search_api_excerpt: true

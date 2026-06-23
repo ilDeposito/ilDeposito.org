@@ -17,7 +17,6 @@ dependencies:
     - field.field.node.canto.field_immagine
     - field.field.node.canto.field_informazioni
     - field.field.node.canto.field_lingua
-    - field.field.node.canto.field_metatag
     - field.field.node.canto.field_old_id
     - field.field.node.canto.field_periodo
     - field.field.node.canto.field_tags
@@ -26,7 +25,6 @@ dependencies:
   module:
     - datetime
     - link
-    - metatag
     - text
     - user
 id: node.canto.default
@@ -147,13 +145,6 @@ content:
       link: true
     third_party_settings: {  }
     weight: 14
-    region: content
-  field_metatag:
-    type: metatag_empty_formatter
-    label: above
-    settings: {  }
-    third_party_settings: {  }
-    weight: 115
     region: content
   field_old_id:
     type: number_integer

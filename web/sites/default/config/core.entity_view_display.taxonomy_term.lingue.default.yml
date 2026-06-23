@@ -3,11 +3,9 @@ langcode: it
 status: true
 dependencies:
   config:
-    - field.field.taxonomy_term.lingue.field_metatag
     - field.field.taxonomy_term.lingue.field_old_id
     - taxonomy.vocabulary.lingue
   module:
-    - metatag
     - text
 id: taxonomy_term.lingue.default
 targetEntityType: taxonomy_term
@@ -20,13 +18,6 @@ content:
     settings: {  }
     third_party_settings: {  }
     weight: 0
-    region: content
-  field_metatag:
-    type: metatag_empty_formatter
-    label: above
-    settings: {  }
-    third_party_settings: {  }
-    weight: 4
     region: content
   field_old_id:
     type: number_integer
