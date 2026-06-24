@@ -20,12 +20,12 @@ $databases['default']['default'] = [
 
 $settings['container_yamls'][] = DRUPAL_ROOT . '/sites/default/services.prod.yml';
 
-$config['reroute_email.settings']['enable'] = FALSE;
 $config['system.logging']['error_level'] = 'hide';
 $config['system.performance']['css']['preprocess'] = TRUE;
 $config['system.performance']['css']['gzip'] = TRUE;
 $config['system.performance']['js']['preprocess'] = TRUE;
 $config['system.performance']['js']['gzip'] = TRUE;
 $config['system.performance']['response']['gzip'] = TRUE;
+$config['system.performance']['cache']['page']['max_age'] = 3600;
 $config['views.settings']['ui']['show']['sql_query']['enabled'] = FALSE;
 $config['views.settings']['ui']['show']['performance_statistics'] = FALSE;

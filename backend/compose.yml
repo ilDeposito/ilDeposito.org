@@ -27,6 +27,9 @@ services:
       DB_USER: $DB_USER
       DB_PASSWORD: $DB_PASSWORD
       DB_HOST: $DB_HOST
+      DRUPAL_HASH_SALT: ${DRUPAL_HASH_SALT:-}
+      GITHUB_APP_ID: ${GITHUB_APP_ID:-}
+      GITHUB_APP_INSTALLATION_ID: ${GITHUB_APP_INSTALLATION_ID:-}
       PHP_FPM_CLEAR_ENV: "no"
     volumes:
     - ./:/var/www/html:cached

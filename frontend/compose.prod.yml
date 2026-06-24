@@ -21,6 +21,7 @@ services:
     volumes:
       - frontend_output:/usr/share/nginx/html:ro
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx-ratelimit.conf:/etc/nginx/conf.d/ratelimit.conf:ro
     labels:
       caddy: www.ildeposito.org
       caddy.basicauth: "/*"

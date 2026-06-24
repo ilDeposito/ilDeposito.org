@@ -3,7 +3,7 @@
 /**
  * Configurazioni da NON toccare
  */
-$settings['hash_salt'] = 'aZQI_jJDgRpolN1-WgTtHsHW-_9NZXcxWezGVtSvPesRio9hLlD1b_iyFB6T04eSmLKaePwCIw';
+$settings['hash_salt'] = getenv('DRUPAL_HASH_SALT') ?: '';
 $settings['update_free_access'] = FALSE;
 
 $settings['config_sync_directory'] = 'sites/default/config';
@@ -15,12 +15,11 @@ $settings['file_scan_ignore_directories'] = [
 $settings['entity_update_batch_size'] = 50;
 $settings['entity_update_backup'] = TRUE;
 $settings['migrate_node_migrate_type_classic'] = FALSE;
-ini_set('memory_limit', '1024M');
+ini_set('memory_limit', PHP_SAPI === 'cli' ? '1024M' : '256M');
 
 // GitHub App per il modulo ildeposito_build (trigger workflow_dispatch).
-// Chiave privata (.pem) in backend/private/github-app.pem (gitignored).
-$settings['ildeposito_build_github_app_id'] = '4133735';
-$settings['ildeposito_build_github_installation_id'] = '142354537';
+$settings['ildeposito_build_github_app_id'] = getenv('GITHUB_APP_ID') ?: '';
+$settings['ildeposito_build_github_installation_id'] = getenv('GITHUB_APP_INSTALLATION_ID') ?: '';
 
 $settings['trusted_host_patterns'] = [
   '^ildeposito-nginx$',

@@ -160,12 +160,12 @@ parameters:
    # Note: By default the configuration is disabled.
   cors.config:
     enabled: true
-    # Permette qualsiasi header (es. Content-Type, Authorization) nelle richieste
-    allowedHeaders: ['*']
-    # Specifica i metodi supportati da JSON:API
-    allowedMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS']
-    # Permette le richieste da qualsiasi origine in locale (incluso il tuo Astro su DDEV)
-    allowedOrigins: ['*']
+    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedMethods: ['GET', 'OPTIONS']
+    allowedOrigins:
+      - 'https://ildeposito11.ddev.site'
+      - 'https://ildeposito11.ddev.site:4322'
+      - 'https://frontend.ildeposito11.ddev.site'
     exposedHeaders: false
     maxAge: false
     supportsCredentials: false

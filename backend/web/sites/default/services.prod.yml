@@ -163,6 +163,7 @@ parameters:
     allowedHeaders: ['Content-Type', 'Authorization']
     allowedMethods: ['GET', 'OPTIONS']
     allowedOrigins:
+      - 'https://www.ildeposito.org'
       - 'https://ildeposito.org'
       - 'https://admin.ildeposito.org'
       - 'https://stage.ildeposito.org'
