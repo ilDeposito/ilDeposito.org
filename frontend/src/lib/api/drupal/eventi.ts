@@ -110,11 +110,11 @@ export async function getEventiDelGiorno(): Promise<EventoDelGiorno[]> {
 export async function getEventiPiuVisti(limit = 10): Promise<EventoCard[]> {
   const { data, included } = await fetchJsonApi('/jsonapi/node/evento', new URLSearchParams({
     'filter[status]': '1',
-    'fields[node--evento]': 'title,path,field_data_evento,field_localizzazione,field_periodo',
+    'fields[node--evento]': 'title,path,field_data_evento,field_localizzazione,field_periodo,field_visualizzazioni',
     'fields[taxonomy_term--localizzazioni]': 'name,path',
     'fields[taxonomy_term--periodi]': 'name,path',
     'include': 'field_localizzazione,field_periodo',
-    'sort': 'title',
+    'sort': '-field_visualizzazioni',
     'page[limit]': String(Math.min(limit, 50)),
   }));
 

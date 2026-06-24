@@ -43,12 +43,12 @@ export async function getAutori(): Promise<AutorePath[]> {
 export async function getAutoriPiuVisti(limit = 20): Promise<AutoreCard[]> {
   const { data, included } = await fetchJsonApi('/jsonapi/node/autore', new URLSearchParams({
     'filter[status]': '1',
-    'fields[node--autore]': 'title,path,field_immagine,field_localizzazione',
+    'fields[node--autore]': 'title,path,field_immagine,field_localizzazione,field_visualizzazioni',
     'fields[taxonomy_term--localizzazioni]': 'name,path',
     'fields[media--image]': 'field_media_image',
     'fields[file--file]': 'uri',
     'include': 'field_localizzazione,field_immagine,field_immagine.field_media_image',
-    'sort': 'title',
+    'sort': '-field_visualizzazioni',
     'page[limit]': String(Math.min(limit, 50)),
   }));
 
@@ -86,7 +86,7 @@ export async function getCantiByAutoreMap(): Promise<Map<number | string, CantoI
 async function buildCantiByAutoreMap(): Promise<Map<number | string, CantoInAutore[]>> {
   const { data, included } = await fetchAllJsonApi('/jsonapi/node/canto', new URLSearchParams({
     'filter[status]': '1',
-    'fields[node--canto]': 'title,path,field_anno,field_capoverso,field_audio,field_canto_accordi,field_autori_testo,field_autori_musica',
+    'fields[node--canto]': 'title,path,field_anno,field_capoverso,field_audio,field_canto_accordi,field_autori_testo,field_autori_musica,field_visualizzazioni',
     'fields[node--autore]': 'title,path',
     'include': 'field_autori_testo,field_autori_musica',
     'page[limit]': '50',
