@@ -1,4 +1,5 @@
 ---
+import { Image } from 'astro:assets';
 import type { AutoreDetail } from '../../lib/api/types.js';
 import { getAutoreImageUrl } from '../../lib/api/index.js';
 import Breadcrumb from './Breadcrumb.astro';
@@ -24,11 +25,11 @@ const immagineUrl = autore.immagine ? await getAutoreImageUrl(autore.immagine) :
 
     <div class="flex items-center gap-4">
       {immagineUrl && (
-        <img
+        <Image
           src={immagineUrl}
           alt={"Foto di " + autore.titolo}
-          width="80"
-          height="80"
+          width={80}
+          height={80}
           loading="eager"
           class="w-20 h-20 rounded-full object-cover shrink-0 border-2 border-base-300"
         />

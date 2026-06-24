@@ -1,6 +1,10 @@
 import { defineConfig } from 'astro/config';
+import { loadEnv } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
+
+const { DRUPAL_API_URL } = loadEnv(process.env.NODE_ENV ?? 'production', process.cwd(), '');
+const drupalHost = new URL(DRUPAL_API_URL || 'http://localhost').hostname;
 import pdfGenerator from './src/integrations/pdf-generator.js';
 import { createReadStream, existsSync } from 'node:fs';
 import { join, normalize } from 'node:path';
@@ -29,6 +33,10 @@ export default defineConfig({
   site: 'https://www.ildeposito.org',
   output: 'static',
   trailingSlash: 'never',
+
+  image: {
+    domains: [drupalHost],
+  },
 
   integrations: [
     sitemap({

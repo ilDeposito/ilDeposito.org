@@ -9,7 +9,7 @@ async function resolveAutoreUuid(slug: string): Promise<string | null> {
   if (!slugToUuidCache) {
     const { data } = await fetchAllJsonApi('/jsonapi/node/autore', new URLSearchParams({
       'filter[status]': '1',
-      'fields[node--autore]': 'path',
+      'fields[node--autore]': 'drupal_internal__nid,path',
       'page[limit]': '50',
     }));
     slugToUuidCache = new Map();
@@ -23,7 +23,7 @@ async function resolveAutoreUuid(slug: string): Promise<string | null> {
 export async function getAutori(): Promise<AutorePath[]> {
   const { data } = await fetchAllJsonApi('/jsonapi/node/autore', new URLSearchParams({
     'filter[status]': '1',
-    'fields[node--autore]': 'path',
+    'fields[node--autore]': 'drupal_internal__nid,path',
     'page[limit]': '50',
   }));
 

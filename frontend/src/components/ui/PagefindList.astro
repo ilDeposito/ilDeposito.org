@@ -211,6 +211,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
 
       _renderCard(item) {
         const meta = item.meta || {};
+        item.url = item.url.replace(/\/$/, '') || '/';
         const cardType = this._type || (meta.type ?? '');
 
         if (cardType === 'periodi') {

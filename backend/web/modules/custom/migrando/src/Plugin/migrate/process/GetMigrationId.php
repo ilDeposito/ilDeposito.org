@@ -37,7 +37,7 @@ class GetMigrationId extends ProcessPluginBase {
       $entity_id = reset($result);
       return $entity_id;
     } else {
-      return TRUE;
+      return NULL;
     }
   }
 }

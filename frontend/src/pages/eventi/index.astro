@@ -1,4 +1,5 @@
 ---
+import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
@@ -93,11 +94,11 @@ const eventiGeoJson = JSON.stringify(
                   <div data-item class="min-w-full">
                     <a href={`/eventi/${evento.slug}`} class="block relative h-64">
                       {imgUrls[i] ? (
-                        <img
+                        <Image
                           src={imgUrls[i]}
                           alt={"Immagine dell'evento: " + evento.titolo}
-                          width="800"
-                          height="450"
+                          width={800}
+                          height={450}
                           class="w-full h-full object-cover grayscale"
                           loading={i === startIndex ? 'eager' : 'lazy'}
                         />
