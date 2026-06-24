@@ -6,12 +6,16 @@ namespace Drupal\ildeposito_build\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\ildeposito_build\Service\GitHubWorkflowClient;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 final class BuildFrontendForm extends FormBase {
 
-  private const WORKFLOW = 'build-frontend-stage.yml';
+  private const WORKFLOWS = [
+    'stage' => 'build-frontend-stage.yml',
+    'prod' => 'build-frontend-prod.yml',
+  ];
   private const MAX_POLLS = 120;
   private const POLL_INTERVAL = 3;
   private const ESTIMATED_DURATION = 180;
@@ -24,6 +28,15 @@ final class BuildFrontendForm extends FormBase {
     return new static(
       $container->get('ildeposito_build.github_workflow'),
     );
+  }
+
+  private static function getEnvironment(): string {
+    $env = $_SERVER['ILDEPOSITO_ENV'] ?? '';
+    return in_array($env, ['stage', 'prod'], TRUE) ? $env : '';
+  }
+
+  private static function getWorkflow(): string {
+    return self::WORKFLOWS[self::getEnvironment()] ?? '';
   }
 
   public function getFormId(): string {
@@ -63,7 +76,7 @@ final class BuildFrontendForm extends FormBase {
     $batch = [
       'title' => $this->t('Pubblicazione contenuti in corso…'),
       'operations' => [
-        [[static::class, 'processBuild'], [self::WORKFLOW]],
+        [[static::class, 'processBuild'], [self::getWorkflow()]],
       ],
       'finished' => [static::class, 'buildFinished'],
       'progress_message' => '',
@@ -80,15 +93,16 @@ final class BuildFrontendForm extends FormBase {
       $result = $client->triggerWorkflow($workflow);
       if (!$result) {
         $context['results']['error'] = TRUE;
-        $context['results']['error_message'] = t('Impossibile avviare la build. Verifica il token GitHub e riprova.');
+        $context['results']['error_message'] = new TranslatableMarkup('Impossibile avviare la build. Verifica la configurazione GitHub App e riprova.');
         $context['finished'] = 1;
         return;
       }
 
+      \Drupal::logger('ildeposito_build')->info('Build frontend avviata: @workflow', ['@workflow' => $workflow]);
       $context['sandbox']['step'] = 'waiting';
       $context['sandbox']['trigger_time'] = time();
       $context['sandbox']['polls'] = 0;
-      $context['message'] = t('Build avviata, in attesa di GitHub…');
+      $context['message'] = new TranslatableMarkup('Build avviata, in attesa di GitHub…');
       $context['finished'] = 0.05;
       return;
     }
@@ -98,7 +112,8 @@ final class BuildFrontendForm extends FormBase {
 
     if ($context['sandbox']['polls'] >= self::MAX_POLLS) {
       $context['results']['error'] = TRUE;
-      $context['results']['error_message'] = t('Timeout: la build non è terminata entro il tempo previsto.');
+      $context['results']['error_message'] = new TranslatableMarkup('Timeout: la build non è terminata entro il tempo previsto.');
+      \Drupal::logger('ildeposito_build')->error('Build frontend in timeout dopo @polls tentativi.', ['@polls' => $context['sandbox']['polls']]);
       $context['finished'] = 1;
       return;
     }
@@ -109,11 +124,11 @@ final class BuildFrontendForm extends FormBase {
       if ($run) {
         $context['sandbox']['step'] = 'polling';
         $context['sandbox']['run_id'] = $run['id'];
-        $context['message'] = t('Build in esecuzione…');
+        $context['message'] = new TranslatableMarkup('Build in esecuzione…');
         $context['finished'] = 0.2;
       }
       else {
-        $context['message'] = t('In attesa di avvio…');
+        $context['message'] = new TranslatableMarkup('In attesa di avvio…');
         $context['finished'] = 0.1;
       }
       return;
@@ -124,7 +139,7 @@ final class BuildFrontendForm extends FormBase {
 
       if (!$run) {
         $context['results']['error'] = TRUE;
-        $context['results']['error_message'] = t('Errore durante il monitoraggio della build.');
+        $context['results']['error_message'] = new TranslatableMarkup('Errore durante il monitoraggio della build.');
         $context['finished'] = 1;
         return;
       }
@@ -142,14 +157,14 @@ final class BuildFrontendForm extends FormBase {
       $minutes = intdiv($elapsed, 60);
       $seconds = $elapsed % 60;
       $context['message'] = $minutes > 0
-        ? t('Build in esecuzione… @min min @sec sec', ['@min' => $minutes, '@sec' => $seconds])
-        : t('Build in esecuzione… @sec secondi', ['@sec' => $seconds]);
+        ? new TranslatableMarkup('Build in esecuzione… @min min @sec sec', ['@min' => $minutes, '@sec' => $seconds])
+        : new TranslatableMarkup('Build in esecuzione… @sec secondi', ['@sec' => $seconds]);
     }
   }
 
   public static function buildFinished(bool $success, array $results, array $operations): void {
     if (!$success || !empty($results['error'])) {
-      $message = $results['error_message'] ?? t('Errore durante la pubblicazione.');
+      $message = $results['error_message'] ?? new TranslatableMarkup('Errore durante la pubblicazione.');
       \Drupal::messenger()->addError($message);
       return;
     }
@@ -157,10 +172,19 @@ final class BuildFrontendForm extends FormBase {
     $conclusion = $results['conclusion'] ?? 'unknown';
 
     match ($conclusion) {
-      'success' => \Drupal::messenger()->addStatus(t('Contenuti pubblicati con successo!')),
-      'failure' => \Drupal::messenger()->addError(t('La build è fallita. Controlla i log su GitHub.')),
-      'cancelled' => \Drupal::messenger()->addWarning(t('La build è stata annullata.')),
-      default => \Drupal::messenger()->addWarning(t('La build è terminata con esito: @conclusion', ['@conclusion' => $conclusion])),
+      'success' => self::logAndMessage('status', new TranslatableMarkup('Contenuti pubblicati con successo!')),
+      'failure' => self::logAndMessage('error', new TranslatableMarkup('La build è fallita. Controlla i log su GitHub.')),
+      'cancelled' => self::logAndMessage('warning', new TranslatableMarkup('La build è stata annullata.')),
+      default => self::logAndMessage('warning', new TranslatableMarkup('La build è terminata con esito: @conclusion', ['@conclusion' => $conclusion])),
+    };
+  }
+
+  private static function logAndMessage(string $level, TranslatableMarkup $message): void {
+    \Drupal::logger('ildeposito_build')->log($level, (string) $message);
+    match ($level) {
+      'error' => \Drupal::messenger()->addError($message),
+      'warning' => \Drupal::messenger()->addWarning($message),
+      default => \Drupal::messenger()->addStatus($message),
     };
   }
 

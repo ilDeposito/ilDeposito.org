@@ -5,3 +5,4 @@ ildeposito_build.build_frontend:
     _title: 'Pubblica contenuti'
   requirements:
     _permission: 'trigger frontend build'
+    _custom_access: '\Drupal\ildeposito_build\Access\BuildAccessCheck::access'

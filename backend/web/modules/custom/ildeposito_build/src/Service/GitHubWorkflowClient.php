@@ -12,6 +12,7 @@ final class GitHubWorkflowClient {
 
   private const REPO = 'ilDeposito/ilDeposito.org';
   private const API_BASE = 'https://api.github.com';
+  private const REQUEST_TIMEOUT = 30;
 
   public function __construct(
     private readonly ClientInterface $httpClient,
@@ -49,10 +50,13 @@ final class GitHubWorkflowClient {
       $threshold = $triggeredAfter - 60;
 
       foreach ($data['workflow_runs'] ?? [] as $run) {
+        if (!isset($run['id'], $run['status'], $run['created_at'])) {
+          continue;
+        }
         $createdAt = strtotime($run['created_at']);
         if ($createdAt >= $threshold && $run['status'] !== 'completed') {
           return [
-            'id' => $run['id'],
+            'id' => (int) $run['id'],
             'status' => $run['status'],
           ];
         }
@@ -70,10 +74,14 @@ final class GitHubWorkflowClient {
       $response = $this->apiRequest('GET', "/repos/" . self::REPO . "/actions/runs/{$runId}");
       $data = json_decode((string) $response->getBody(), TRUE);
 
+      if (!isset($data['id'], $data['status'])) {
+        return NULL;
+      }
+
       return [
-        'id' => $data['id'],
+        'id' => (int) $data['id'],
         'status' => $data['status'],
-        'conclusion' => $data['conclusion'],
+        'conclusion' => $data['conclusion'] ?? NULL,
       ];
     }
     catch (\Throwable) {
@@ -89,6 +97,8 @@ final class GitHubWorkflowClient {
       'Accept' => 'application/vnd.github+json',
       'X-GitHub-Api-Version' => '2022-11-28',
     ]);
+    $options['timeout'] = self::REQUEST_TIMEOUT;
+    $options['connect_timeout'] = self::REQUEST_TIMEOUT;
 
     return $this->httpClient->request($method, self::API_BASE . $path, $options);
   }
@@ -103,9 +113,15 @@ final class GitHubWorkflowClient {
         'Accept' => 'application/vnd.github+json',
         'X-GitHub-Api-Version' => '2022-11-28',
       ],
+      'timeout' => self::REQUEST_TIMEOUT,
+      'connect_timeout' => self::REQUEST_TIMEOUT,
     ]);
 
     $data = json_decode((string) $response->getBody(), TRUE);
+    if (!isset($data['token'])) {
+      throw new \RuntimeException('Token di installazione non ricevuto da GitHub.');
+    }
+
     return $data['token'];
   }
 
@@ -115,15 +131,17 @@ final class GitHubWorkflowClient {
       throw new \RuntimeException('Impossibile leggere la chiave privata GitHub App.');
     }
 
-    $header = $this->base64UrlEncode(json_encode(['alg' => 'RS256', 'typ' => 'JWT']));
-    $payload = $this->base64UrlEncode(json_encode([
+    $header = $this->base64UrlEncode((string) json_encode(['alg' => 'RS256', 'typ' => 'JWT']));
+    $payload = $this->base64UrlEncode((string) json_encode([
       'iss' => Settings::get('ildeposito_build_github_app_id'),
       'iat' => time() - 60,
       'exp' => time() + 600,
     ]));
 
     $data = "{$header}.{$payload}";
-    openssl_sign($data, $signature, $privateKey, OPENSSL_ALGO_SHA256);
+    if (!openssl_sign($data, $signature, $privateKey, OPENSSL_ALGO_SHA256)) {
+      throw new \RuntimeException('Impossibile firmare il JWT: chiave privata non valida.');
+    }
 
     return "{$data}.{$this->base64UrlEncode($signature)}";
   }
