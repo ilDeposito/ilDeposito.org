@@ -6,11 +6,11 @@
  */
 
 $databases['default']['default'] = [
-  'database' => $_SERVER['DB_NAME'] ?? 'drupal',
-  'username' => $_SERVER['DB_USER'] ?? 'drupal',
-  'password' => $_SERVER['DB_PASSWORD'] ?? 'drupal',
+  'database' => getenv('DB_NAME') ?: 'drupal',
+  'username' => getenv('DB_USER') ?: 'drupal',
+  'password' => getenv('DB_PASSWORD') ?: 'drupal',
   'prefix' => '',
-  'host' => $_SERVER['DB_HOST'] ?? 'mariadb',
+  'host' => getenv('DB_HOST') ?: 'mariadb',
   'port' => '3306',
   'isolation_level' => 'READ COMMITTED',
   'driver' => 'mysql',
