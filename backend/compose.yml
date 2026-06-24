@@ -18,6 +18,10 @@ services:
     image: wodby/drupal-php:$PHP_TAG
     restart: unless-stopped
     environment:
+      DB_NAME: $DB_NAME
+      DB_USER: $DB_USER
+      DB_PASSWORD: $DB_PASSWORD
+      DB_HOST: $DB_HOST
       PHP_EXTENSIONS_DISABLE: xhprof,spx
       PHP_MAIL_MIXED_LF_AND_CRLF: On
       PHP_APCU_SHM_SIZE: 64M
@@ -33,6 +37,10 @@ services:
     image: wodby/drupal-php:$PHP_TAG
     restart: unless-stopped
     environment:
+      DB_NAME: $DB_NAME
+      DB_USER: $DB_USER
+      DB_PASSWORD: $DB_PASSWORD
+      DB_HOST: $DB_HOST
       CRONTAB: "0 * * * * drush -r /var/www/html/web cron"
     command: sudo -E crond -f -d 0
     volumes:
