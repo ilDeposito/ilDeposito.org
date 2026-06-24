@@ -19,3 +19,6 @@ Thumbs.db
 # Backup
 backup/*
 !backup/.gitkeep
+
+# GitHub App private key
+backend/private/

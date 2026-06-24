@@ -1,0 +1,4 @@
+services:
+  ildeposito_build.github_workflow:
+    class: Drupal\ildeposito_build\Service\GitHubWorkflowClient
+    arguments: ['@http_client']

@@ -17,6 +17,11 @@ $settings['entity_update_backup'] = TRUE;
 $settings['migrate_node_migrate_type_classic'] = FALSE;
 ini_set('memory_limit', '1024M');
 
+// GitHub App per il modulo ildeposito_build (trigger workflow_dispatch).
+// Chiave privata (.pem) in backend/private/github-app.pem (gitignored).
+$settings['ildeposito_build_github_app_id'] = '4133735';
+$settings['ildeposito_build_github_installation_id'] = '142354537';
+
 $settings['trusted_host_patterns'] = [
   '^ildeposito-nginx$',
   '^ildeposito\.org$',

@@ -1,0 +1,7 @@
+ildeposito_build.build_frontend:
+  path: '/admin/pubblica-contenuti'
+  defaults:
+    _form: '\Drupal\ildeposito_build\Form\BuildFrontendForm'
+    _title: 'Pubblica contenuti'
+  requirements:
+    _permission: 'trigger frontend build'

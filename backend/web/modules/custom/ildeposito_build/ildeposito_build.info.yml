@@ -1,0 +1,7 @@
+name: ilDeposito Build
+description: Pubblica i contenuti sul sito tramite GitHub Actions.
+package: ilDeposito
+core_version_requirement: ^11
+type: module
+dependencies:
+  - drupal:toolbar

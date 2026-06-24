@@ -1,0 +1,3 @@
+trigger frontend build:
+  title: 'Pubblica contenuti sul sito'
+  description: 'Consente di avviare la rigenerazione del sito pubblico.'
