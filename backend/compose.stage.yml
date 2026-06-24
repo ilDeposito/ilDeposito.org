@@ -7,6 +7,7 @@ services:
     environment:
       ILDEPOSITO_ENV: stage
       FILES_DIR_PERMISSIONS_FIX: 0
+      DRUPAL_SITE_DIR_PERMISSIONS_FIX: 0
 
   crond:
     container_name: ildeposito_stage_backend_crond
