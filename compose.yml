@@ -2,5 +2,8 @@ include:
   - path:
       - backend/compose.yml
       - backend/compose.${ENV}.yml
-    env_file: backend/.env
+    env_file:
+      - .env
+      - backend/.env
   - path: frontend/compose.${ENV}.yml
+    env_file: .env

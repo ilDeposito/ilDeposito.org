@@ -52,11 +52,16 @@ services:
     volumes:
     - ./:/var/www/html:cached
     networks:
-      - internal  
-      - caddy    
+      internal:
+      caddy:
+      ildeposito-internal:
+        aliases:
+          - drupal-api
 
 networks:
   internal:
     driver: bridge
   caddy:
+    external: true
+  ildeposito-internal:
     external: true
