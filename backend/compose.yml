@@ -10,9 +10,10 @@ services:
       MYSQL_PASSWORD: $DB_PASSWORD
       MYSQL_TRANSACTION_ISOLATION: READ-COMMITTED
     volumes:
-      - ./mariadb-init:/docker-entrypoint-initdb.d # Place init .sql file(s) here.
+      - mariadb_data:/var/lib/mysql
+      - ./mariadb-init:/docker-entrypoint-initdb.d
     networks:
-      - internal  
+      - internal
 
   php:
     image: wodby/drupal-php:$PHP_TAG
@@ -65,6 +66,9 @@ services:
       app-internal:
         aliases:
           - drupal-api
+
+volumes:
+  mariadb_data:
 
 networks:
   internal:
