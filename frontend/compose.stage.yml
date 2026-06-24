@@ -24,7 +24,7 @@ services:
     labels:
       caddy: stage.ildeposito.org
       caddy.basicauth: "/*"
-      caddy.basicauth.${BASIC_AUTH_USER}: "${BASIC_AUTH_HASH}"
+      caddy.basicauth.ildeposito: "${BASIC_AUTH_HASH}"
       caddy.reverse_proxy: "{{upstreams 80}}"
     networks:
       - caddy
