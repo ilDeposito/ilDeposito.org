@@ -179,9 +179,14 @@ final class BuildFrontendForm extends FormBase {
     };
   }
 
-  private static function logAndMessage(string $level, TranslatableMarkup $message): void {
-    \Drupal::logger('ildeposito_build')->log($level, (string) $message);
-    match ($level) {
+  private static function logAndMessage(string $messengerLevel, TranslatableMarkup $message): void {
+    $logLevel = match ($messengerLevel) {
+      'error' => 'error',
+      'warning' => 'warning',
+      default => 'info',
+    };
+    \Drupal::logger('ildeposito_build')->log($logLevel, (string) $message);
+    match ($messengerLevel) {
       'error' => \Drupal::messenger()->addError($message),
       'warning' => \Drupal::messenger()->addWarning($message),
       default => \Drupal::messenger()->addStatus($message),
