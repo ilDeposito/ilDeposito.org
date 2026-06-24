@@ -1,20 +1,20 @@
 services:
   mariadb:
-    container_name: ildeposito_stage_backend_mariadb
+    container_name: ildeposito_prod_backend_mariadb
 
   php:
-    container_name: ildeposito_stage_backend_php
+    container_name: ildeposito_prod_backend_php
     environment:
-      ILDEPOSITO_ENV: stage
+      ILDEPOSITO_ENV: prod
       FILES_DIR_PERMISSIONS_FIX: 0
 
   crond:
-    container_name: ildeposito_stage_backend_crond
+    container_name: ildeposito_prod_backend_crond
 
   nginx:
-    container_name: ildeposito_stage_backend_nginx
+    container_name: ildeposito_prod_backend_nginx
     labels:
-      caddy: admin-stage.ildeposito.org
+      caddy: admin.ildeposito.org
       caddy.basicauth: "/*"
       caddy.basicauth.ildeposito: "${BASIC_AUTH_HASH}"
       caddy.@jsonapi.path: /jsonapi/*
