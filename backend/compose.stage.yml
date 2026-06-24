@@ -18,6 +18,4 @@ services:
       caddy: admin-stage.ildeposito.org
       caddy.basicauth: "/*"
       caddy.basicauth.ildeposito: "${BASIC_AUTH_HASH}"
-      caddy.@jsonapi.path: /jsonapi/*
-      caddy.respond: "@jsonapi 403"
       caddy.reverse_proxy: "{{upstreams 80}}"
