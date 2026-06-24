@@ -1,0 +1,23 @@
+uuid: 332c73a1-3891-4d79-b24d-436c52ed92fe
+langcode: it
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.lingue
+  module:
+    - taxonomy
+id: taxonomy_lingue
+label: Lingue
+type: 'canonical_entities:taxonomy_term'
+pattern: '/lingue/[term:name]'
+selection_criteria:
+  7b82a782-6973-41cd-b871-a882694b8aa6:
+    id: 'entity_bundle:taxonomy_term'
+    negate: false
+    context_mapping:
+      taxonomy_term: taxonomy_term
+    bundles:
+      lingue: lingue
+selection_logic: and
+weight: 0
+relationships: {  }

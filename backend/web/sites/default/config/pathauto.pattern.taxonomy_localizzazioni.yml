@@ -1,0 +1,23 @@
+uuid: 69402b2f-0604-4ca7-b6e7-8da856f28e5f
+langcode: it
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.localizzazioni
+  module:
+    - taxonomy
+id: taxonomy_localizzazioni
+label: Localizzazioni
+type: 'canonical_entities:taxonomy_term'
+pattern: '/localizzazioni/[term:name]'
+selection_criteria:
+  7e191b25-b0ea-4480-8997-0b85d6033fa7:
+    id: 'entity_bundle:taxonomy_term'
+    negate: false
+    context_mapping:
+      taxonomy_term: taxonomy_term
+    bundles:
+      localizzazioni: localizzazioni
+selection_logic: and
+weight: 0
+relationships: {  }

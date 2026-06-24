@@ -1,0 +1,23 @@
+uuid: 0d512da1-f6d7-4769-9038-c718f031254b
+langcode: it
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.tags
+  module:
+    - taxonomy
+id: taxonomy_tags
+label: Tags
+type: 'canonical_entities:taxonomy_term'
+pattern: '/tags/[term:name]'
+selection_criteria:
+  ef954de1-499c-4de5-919c-d4169c61e436:
+    id: 'entity_bundle:taxonomy_term'
+    negate: false
+    context_mapping:
+      taxonomy_term: taxonomy_term
+    bundles:
+      tags: tags
+selection_logic: and
+weight: 0
+relationships: {  }

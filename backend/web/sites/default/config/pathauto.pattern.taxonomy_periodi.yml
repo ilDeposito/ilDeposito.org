@@ -1,0 +1,23 @@
+uuid: 73b65c4f-d228-43f4-bc5b-38ebd53c852b
+langcode: it
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.periodi
+  module:
+    - taxonomy
+id: taxonomy_periodi
+label: Periodi
+type: 'canonical_entities:taxonomy_term'
+pattern: '/periodi/[term:name]'
+selection_criteria:
+  41b4961e-9835-4924-839b-b7e9656017d0:
+    id: 'entity_bundle:taxonomy_term'
+    negate: false
+    context_mapping:
+      taxonomy_term: taxonomy_term
+    bundles:
+      periodi: periodi
+selection_logic: and
+weight: 0
+relationships: {  }

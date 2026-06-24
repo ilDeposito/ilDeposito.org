@@ -149,7 +149,7 @@ for c in conflicts:
     echo "$conflicts"
 }
 
-cmd_check_upgrade() {
+cmd_outdated() {
     local drupal_count=0 npm_count=0 drupal_security=0 npm_security=0
 
     printf "\n${BOLD}═══ Backend (Drupal/Composer) ═══${NC}\n\n"
@@ -379,7 +379,7 @@ cmd_upgrade_frontend() {
         error "Aggiornamento bloccato — major bump su dipendenze di build"
         info "Aggiorna i pacchetti singolarmente per evitare conflitti:"
         info "  cd frontend && npm install <pacchetto>@<versione>"
-        info "Usa ./local.sh check-upgrade per la lista completa"
+        info "Usa ./local.sh outdated per la lista completa"
         exit 1
     fi
 
@@ -433,7 +433,7 @@ usage() {
     printf "  %b%-22s%b %s\n" "$CYAN"   "stop"             "$NC" "Arresta l'ambiente locale"
     printf "  %b%-22s%b %s\n" "$CYAN"   "restart"          "$NC" "Riavvia l'ambiente locale"
     printf "  %b%-22s%b %s\n" "$CYAN"   "build"            "$NC" "Build statica del frontend Astro (con progresso)"
-    printf "  %b%-22s%b %s\n" "$CYAN"   "check-upgrade"    "$NC" "Verifica aggiornamenti backend e frontend"
+    printf "  %b%-22s%b %s\n" "$CYAN"   "outdated"    "$NC" "Verifica aggiornamenti backend e frontend"
     printf "  %b%-22s%b %s\n" "$CYAN"   "upgrade <target>" "$NC" "Aggiorna pacchetti (target: backend | frontend)"
     printf "  %b%-22s%b %s\n" "$YELLOW" "allinea"          "$NC" "Allinea il DB da produzione (non ancora implementato)"
 }
@@ -446,7 +446,7 @@ _local_sh() {
         'stop:Arresta l'\''ambiente locale'
         'restart:Riavvia l'\''ambiente locale'
         'build:Build statica del frontend Astro'
-        'check-upgrade:Verifica aggiornamenti backend e frontend'
+        'outdated:Verifica aggiornamenti backend e frontend'
         'upgrade:Aggiorna pacchetti (backend | frontend)'
         'allinea:Allinea il DB da produzione'
         'help:Mostra l'\''aiuto'
@@ -469,7 +469,7 @@ case "${1:-}" in
     stop)              cmd_stop ;;
     restart)           cmd_restart ;;
     build)             cmd_build ;;
-    check-upgrade)     cmd_check_upgrade ;;
+    outdated)     cmd_outdated ;;
     upgrade)           cmd_upgrade "${2:-}" ;;
     allinea)           cmd_allinea ;;
     completions)       cmd_completions ;;

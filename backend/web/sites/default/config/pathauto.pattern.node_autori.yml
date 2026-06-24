@@ -1,0 +1,23 @@
+uuid: 9bf4e196-3c52-4bbd-a7fc-a273a367fa19
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.autore
+  module:
+    - node
+id: node_autori
+label: Autore
+type: 'canonical_entities:node'
+pattern: '/autori/[node:title]'
+selection_criteria:
+  5ef67863-7f4d-4bed-9844-dd2ce01ed014:
+    id: 'entity_bundle:node'
+    negate: false
+    context_mapping:
+      node: node
+    bundles:
+      autore: autore
+selection_logic: and
+weight: 0
+relationships: {  }

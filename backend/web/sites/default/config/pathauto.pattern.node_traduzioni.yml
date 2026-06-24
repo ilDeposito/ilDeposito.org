@@ -1,0 +1,23 @@
+uuid: 13accaca-7550-428c-b49a-bec2322b2b3c
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.traduzione
+  module:
+    - node
+id: node_traduzioni
+label: Traduzione
+type: 'canonical_entities:node'
+pattern: '/traduzioni/[node:title]'
+selection_criteria:
+  72a4a66f-d7ab-426f-929f-9b3d9091fd69:
+    id: 'entity_bundle:node'
+    negate: false
+    context_mapping:
+      node: node
+    bundles:
+      traduzione: traduzione
+selection_logic: and
+weight: 0
+relationships: {  }

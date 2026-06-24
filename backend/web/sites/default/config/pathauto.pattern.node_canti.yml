@@ -1,0 +1,23 @@
+uuid: f59acddf-c9af-4972-a24d-f8f5d94918d5
+langcode: it
+status: true
+dependencies:
+  config:
+    - node.type.canto
+  module:
+    - node
+id: node_canti
+label: Canto
+type: 'canonical_entities:node'
+pattern: '/canti/[node:title]'
+selection_criteria:
+  a5fa6239-d9d4-4e4b-9bab-0a3993bcedad:
+    id: 'entity_bundle:node'
+    negate: false
+    context_mapping:
+      node: node
+    bundles:
+      canto: canto
+selection_logic: and
+weight: 0
+relationships: {  }

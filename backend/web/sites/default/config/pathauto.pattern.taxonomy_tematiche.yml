@@ -1,0 +1,23 @@
+uuid: bdc58eef-6927-4584-ac13-1e7f024b9127
+langcode: it
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.tematiche
+  module:
+    - taxonomy
+id: taxonomy_tematiche
+label: Tematiche
+type: 'canonical_entities:taxonomy_term'
+pattern: '/tematiche/[term:name]'
+selection_criteria:
+  f1813455-0342-454e-82ac-f09970996dc8:
+    id: 'entity_bundle:taxonomy_term'
+    negate: false
+    context_mapping:
+      taxonomy_term: taxonomy_term
+    bundles:
+      tematiche: tematiche
+selection_logic: and
+weight: 0
+relationships: {  }
