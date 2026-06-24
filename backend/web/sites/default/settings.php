@@ -19,10 +19,13 @@ ini_set('memory_limit', '1024M');
 
 $settings['trusted_host_patterns'] = [
   '^ildeposito-nginx$',
-  '^ildeposito.org$',
+  '^ildeposito\.org$',
   '^www\.ildeposito\.org$',
   '^new\.ildeposito\.org$',
-  '^backend\.ildeposito\.org$',  
+  '^backend\.ildeposito\.org$',
+  '^admin-stage\.ildeposito\.org$',
+  '^admin\.ildeposito\.org$',
+  '^drupal-api$',
   '^localhost$',
 ];
 

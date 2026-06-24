@@ -6,6 +6,7 @@ services:
     container_name: ildeposito_stage_backend_php
     environment:
       ILDEPOSITO_ENV: stage
+      FILES_DIR_PERMISSIONS_FIX: 0
 
   crond:
     container_name: ildeposito_stage_backend_crond
