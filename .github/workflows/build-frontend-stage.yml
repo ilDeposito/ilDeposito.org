@@ -17,4 +17,3 @@ jobs:
     steps:
       - name: Build frontend
         run: ./ildeposito.sh build-frontend
-a
