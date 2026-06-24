@@ -17,34 +17,37 @@ final class IldepositoBuildHooks {
     private readonly AccountProxyInterface $currentUser,
   ) {}
 
-  private function isServerEnvironment(): bool {
-    $env = $_SERVER['ILDEPOSITO_ENV'] ?? '';
-    return in_array($env, ['stage', 'prod'], TRUE);
-  }
-
   #[Hook('toolbar')]
   public function toolbar(): array {
-    $items = [];
+    $env = $_SERVER['ILDEPOSITO_ENV'] ?? '';
+    if (!in_array($env, ['stage', 'prod'], TRUE)) {
+      return [];
+    }
 
-    $items['ildeposito_build'] = [
-      '#type' => 'toolbar_item',
-      '#access' => $this->isServerEnvironment()
-        && $this->currentUser->hasPermission('trigger frontend build'),
-      'tab' => [
-        '#type' => 'link',
-        '#title' => $this->t('Pubblica contenuti'),
-        '#url' => Url::fromRoute('ildeposito_build.build_frontend'),
-        '#attributes' => [
-          'class' => ['toolbar-icon', 'toolbar-icon-system-admin-reports'],
+    if (!$this->currentUser->hasPermission('trigger frontend build')) {
+      return [];
+    }
+
+    return [
+      'ildeposito_build' => [
+        '#type' => 'toolbar_item',
+        'tab' => [
+          '#type' => 'link',
+          '#title' => $this->t('Pubblica contenuti'),
+          '#url' => Url::fromRoute('ildeposito_build.build_frontend'),
+          '#attributes' => [
+            'class' => ['toolbar-icon', 'toolbar-icon-ildeposito-build'],
+          ],
+        ],
+        '#attached' => [
+          'library' => ['ildeposito_build/toolbar'],
+        ],
+        '#weight' => -5,
+        '#cache' => [
+          'contexts' => ['user.permissions'],
         ],
       ],
-      '#weight' => -5,
-      '#cache' => [
-        'contexts' => ['user.permissions'],
-      ],
     ];
-
-    return $items;
   }
 
 }
