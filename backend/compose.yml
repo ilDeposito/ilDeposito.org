@@ -54,7 +54,7 @@ services:
     networks:
       internal:
       caddy:
-      ildeposito-internal:
+      app-internal:
         aliases:
           - drupal-api
 
@@ -63,5 +63,6 @@ networks:
     driver: bridge
   caddy:
     external: true
-  ildeposito-internal:
+  app-internal:
+    name: ildeposito-${ENV}-internal
     external: true

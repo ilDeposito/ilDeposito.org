@@ -10,7 +10,7 @@ services:
       - frontend_output:/app/output
     networks:
       - internal
-      - ildeposito-internal
+      - app-internal
     profiles:
       - build
 
@@ -37,5 +37,6 @@ networks:
     driver: bridge
   caddy:
     external: true
-  ildeposito-internal:
+  app-internal:
+    name: ildeposito-${ENV}-internal
     external: true
