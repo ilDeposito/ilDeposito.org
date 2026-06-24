@@ -25,7 +25,6 @@ $settings['trusted_host_patterns'] = [
   '^backend\.ildeposito\.org$',
   '^admin-stage\.ildeposito\.org$',
   '^admin\.ildeposito\.org$',
-  '^drupal-api$',
   '^localhost$',
 ];
 

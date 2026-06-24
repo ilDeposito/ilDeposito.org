@@ -17,6 +17,7 @@ $settings['trusted_host_patterns'] = [
   '^ildeposito$',
   '^admin-stage\.ildeposito\.org$',
   '^ildeposito-drupal-nginx$',
+  '^drupal-api$',
   '^localhost$',
 ];
 
