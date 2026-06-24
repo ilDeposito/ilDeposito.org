@@ -27,6 +27,7 @@
         "drupal/geofield": "^10.3",
         "drupal/migrate_plus": "^6.0",
         "drupal/migrate_tools": "^6.0",
+        "drupal/paragraphs": "^1.20",
         "drupal/pathauto": "^1.15",
         "drupal/radix": "^6.0",
         "drupal/security_review": "^3.0",
