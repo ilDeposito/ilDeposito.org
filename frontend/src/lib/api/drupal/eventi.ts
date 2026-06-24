@@ -50,7 +50,7 @@ export async function getEventiForCanto(cantoId: number | string): Promise<Event
   const { data } = await fetchAllJsonApi('/jsonapi/node/evento', new URLSearchParams({
     'filter[status]': '1',
     'filter[field_canti_correlati.drupal_internal__nid]': String(cantoId),
-    'fields[node--evento]': 'title,path,field_data_evento',
+    'fields[node--evento]': 'drupal_internal__nid,title,path,field_data_evento',
     'page[limit]': '50',
   }));
 
@@ -62,7 +62,7 @@ export async function getEventiDelMese(month: number): Promise<EventoMese[]> {
     'filter[status]': '1',
     'filter[field_data_evento][condition][operator]': 'IS NOT NULL',
     'filter[field_data_evento][condition][path]': 'field_data_evento',
-    'fields[node--evento]': 'title,path,field_data_evento,field_immagine,field_localizzazione',
+    'fields[node--evento]': 'drupal_internal__nid,title,path,field_data_evento,field_immagine,field_localizzazione',
     'fields[taxonomy_term--localizzazioni]': 'name,path',
     'fields[media--image]': 'field_media_image',
     'fields[file--file]': 'uri',
@@ -92,7 +92,7 @@ export async function getEventiDelGiorno(): Promise<EventoDelGiorno[]> {
     'filter[status]': '1',
     'filter[field_data_evento][condition][operator]': 'IS NOT NULL',
     'filter[field_data_evento][condition][path]': 'field_data_evento',
-    'fields[node--evento]': 'title,path,field_data_evento',
+    'fields[node--evento]': 'drupal_internal__nid,title,path,field_data_evento',
     'page[limit]': '50',
   }));
 
@@ -110,7 +110,7 @@ export async function getEventiDelGiorno(): Promise<EventoDelGiorno[]> {
 export async function getEventiPiuVisti(limit = 10): Promise<EventoCard[]> {
   const { data, included } = await fetchJsonApi('/jsonapi/node/evento', new URLSearchParams({
     'filter[status]': '1',
-    'fields[node--evento]': 'title,path,field_data_evento,field_localizzazione,field_periodo,field_visualizzazioni',
+    'fields[node--evento]': 'drupal_internal__nid,title,path,field_data_evento,field_localizzazione,field_periodo,field_visualizzazioni',
     'fields[taxonomy_term--localizzazioni]': 'name,path',
     'fields[taxonomy_term--periodi]': 'name,path',
     'include': 'field_localizzazione,field_periodo',
@@ -127,7 +127,7 @@ export async function getEventiCalendario(): Promise<EventoCalendario[]> {
     'filter[status]': '1',
     'filter[field_data_evento][condition][operator]': 'IS NOT NULL',
     'filter[field_data_evento][condition][path]': 'field_data_evento',
-    'fields[node--evento]': 'title,path,field_data_evento,field_localizzazione,field_periodo',
+    'fields[node--evento]': 'drupal_internal__nid,title,path,field_data_evento,field_localizzazione,field_periodo',
     'fields[taxonomy_term--localizzazioni]': 'name,path',
     'fields[taxonomy_term--periodi]': 'name,path',
     'include': 'field_localizzazione,field_periodo',
@@ -143,7 +143,7 @@ export async function getEventiGeo(): Promise<EventoGeo[]> {
     'filter[status]': '1',
     'filter[geo][condition][path]': 'field_geofield.lat',
     'filter[geo][condition][operator]': 'IS NOT NULL',
-    'fields[node--evento]': 'title,path,field_data_evento,field_geofield',
+    'fields[node--evento]': 'drupal_internal__nid,title,path,field_data_evento,field_geofield',
     'page[limit]': '50',
   }));
 
@@ -155,8 +155,8 @@ export async function getEvento(slug: string): Promise<EventoDetail | null> {
   if (!uuid) return null;
 
   const response = await fetchJsonApi(`/jsonapi/node/evento/${uuid}`, new URLSearchParams({
-    'fields[node--evento]': 'title,path,field_data_evento,field_informazioni,field_geofield,field_localizzazione,field_periodo,field_tags,field_tematiche,field_canti_correlati',
-    'fields[node--canto]': 'title,path,field_anno,field_capoverso,field_audio,field_canto_accordi,status',
+    'fields[node--evento]': 'drupal_internal__nid,title,path,field_data_evento,field_informazioni,field_geofield,field_localizzazione,field_periodo,field_tags,field_tematiche,field_canti_correlati',
+    'fields[node--canto]': 'drupal_internal__nid,title,path,field_anno,field_capoverso,field_audio,field_canto_accordi,status',
     'fields[taxonomy_term--localizzazioni]': 'name,path',
     'fields[taxonomy_term--periodi]': 'name,path',
     'fields[taxonomy_term--tags]': 'name,path',

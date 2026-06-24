@@ -1,11 +1,16 @@
 uuid: f13b92d4-b4ec-4273-bd4b-b6a947758dc5
 langcode: it
 status: true
-dependencies: {  }
+dependencies:
+  module:
+    - media
+    - system
 _core:
   default_config_hash: 6WavjUYXIegP9AAg2zXGx54MWIVoomC3SZhNiqe-Dyk
 id: anonymous
 label: 'Utente anonimo'
 weight: 0
 is_admin: false
-permissions: {  }
+permissions:
+  - 'access content'
+  - 'view media'
