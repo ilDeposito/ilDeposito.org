@@ -1,0 +1,23 @@
+uuid: 69ebf858-c4c7-4013-91a5-6c9aef291747
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_visualizzazioni
+    - node.type.evento
+id: node.evento.field_visualizzazioni
+field_name: field_visualizzazioni
+entity_type: node
+bundle: evento
+label: Visualizzazioni
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

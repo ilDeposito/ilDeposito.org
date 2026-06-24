@@ -53,6 +53,9 @@ source:
     -
       name: informazioni
       selector: informazioni
+    -
+      name: visualizzazioni
+      selector: totalcount
 
   ids:
     nid:
@@ -104,6 +107,7 @@ process:
     -
       plugin: get_migration_id
       importer: 'termini_localizzazioni'
+  field_visualizzazioni: visualizzazioni
   field_nome:
     plugin: encode
     source: nome

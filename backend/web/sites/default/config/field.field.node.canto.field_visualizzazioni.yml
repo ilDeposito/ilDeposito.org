@@ -1,0 +1,23 @@
+uuid: ff177c2a-3173-431f-b5f7-76f6ba933a23
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_visualizzazioni
+    - node.type.canto
+id: node.canto.field_visualizzazioni
+field_name: field_visualizzazioni
+entity_type: node
+bundle: canto
+label: Visualizzazioni
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

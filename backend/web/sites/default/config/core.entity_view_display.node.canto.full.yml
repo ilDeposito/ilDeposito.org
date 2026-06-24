@@ -22,6 +22,7 @@ dependencies:
     - field.field.node.canto.field_periodo
     - field.field.node.canto.field_tags
     - field.field.node.canto.field_tematiche
+    - field.field.node.canto.field_visualizzazioni
     - node.type.canto
   module:
     - datetime
@@ -172,5 +173,6 @@ content:
 hidden:
   field_autore_originale: true
   field_tematiche: true
+  field_visualizzazioni: true
   langcode: true
   search_api_excerpt: true

@@ -8,6 +8,7 @@ dependencies:
     - field.field.node.traduzione.field_informazioni
     - field.field.node.traduzione.field_lingua
     - field.field.node.traduzione.field_old_id
+    - field.field.node.traduzione.field_visualizzazioni
     - node.type.traduzione
   module:
     - path
@@ -56,6 +57,13 @@ content:
     weight: 2
     region: content
     settings: {  }
+    third_party_settings: {  }
+  field_visualizzazioni:
+    type: number
+    weight: 30
+    region: content
+    settings:
+      placeholder: ''
     third_party_settings: {  }
   langcode:
     type: language_select

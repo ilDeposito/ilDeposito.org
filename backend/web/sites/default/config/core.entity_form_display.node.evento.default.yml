@@ -15,6 +15,7 @@ dependencies:
     - field.field.node.evento.field_periodo
     - field.field.node.evento.field_tags
     - field.field.node.evento.field_tematiche
+    - field.field.node.evento.field_visualizzazioni
     - node.type.evento
   module:
     - datetime
@@ -120,6 +121,13 @@ content:
       match_operator: CONTAINS
       match_limit: 10
       size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_visualizzazioni:
+    type: number
+    weight: 30
+    region: content
+    settings:
       placeholder: ''
     third_party_settings: {  }
   langcode:

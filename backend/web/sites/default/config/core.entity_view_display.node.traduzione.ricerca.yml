@@ -9,6 +9,7 @@ dependencies:
     - field.field.node.traduzione.field_informazioni
     - field.field.node.traduzione.field_lingua
     - field.field.node.traduzione.field_old_id
+    - field.field.node.traduzione.field_visualizzazioni
     - node.type.traduzione
   module:
     - text
@@ -63,5 +64,6 @@ content:
     weight: 100
     region: content
 hidden:
+  field_visualizzazioni: true
   langcode: true
   search_api_excerpt: true

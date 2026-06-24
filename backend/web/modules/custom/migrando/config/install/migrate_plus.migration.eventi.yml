@@ -70,6 +70,9 @@ source:
     -
       name: tematiche
       selector: tematiche
+    -
+      name: visualizzazioni
+      selector: totalcount      
 
   ids:
     nid:
@@ -208,6 +211,8 @@ process:
     source:
       - 'latitude'
       - 'longitude'
+  field_visualizzazioni: visualizzazioni
+
 
 destination:
   plugin: entity:node

@@ -40,6 +40,9 @@ source:
     -
       name: testo
       selector: testo
+    -
+      name: visualizzazioni
+      selector: totalcount  
 
   ids:
     nid:
@@ -72,6 +75,7 @@ process:
   field_canto_testo:
     plugin: encode
     source: testo
+  field_visualizzazioni: visualizzazioni
   'field_informazioni/value': informazioni
   'field_informazioni/format':
     plugin: default_value

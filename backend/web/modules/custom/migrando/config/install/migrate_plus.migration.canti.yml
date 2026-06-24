@@ -85,6 +85,9 @@ source:
     -
       name: tematiche
       selector: tematiche
+    -
+      name: visualizzazioni
+      selector: totalcount      
 
   ids:
     nid:
@@ -143,6 +146,7 @@ process:
     plugin: encode
     source: altri_titoli
   field_audio/uri: video_url
+  field_visualizzazioni: visualizzazioni
 
   field_autore_originale:
     plugin: encode

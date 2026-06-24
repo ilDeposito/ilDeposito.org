@@ -1,0 +1,23 @@
+uuid: 11606f3a-bedf-495f-b537-47154dde4267
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_visualizzazioni
+    - node.type.autore
+id: node.autore.field_visualizzazioni
+field_name: field_visualizzazioni
+entity_type: node
+bundle: autore
+label: Visualizzazioni
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

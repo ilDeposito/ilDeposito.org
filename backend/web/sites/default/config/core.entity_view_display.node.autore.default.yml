@@ -14,6 +14,7 @@ dependencies:
     - field.field.node.autore.field_nome
     - field.field.node.autore.field_old_id
     - field.field.node.autore.field_periodo
+    - field.field.node.autore.field_visualizzazioni
     - node.type.autore
   module:
     - text
@@ -113,6 +114,15 @@ content:
       link: true
     third_party_settings: {  }
     weight: 104
+    region: content
+  field_visualizzazioni:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 119
     region: content
   links:
     settings: {  }
