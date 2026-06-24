@@ -19,14 +19,15 @@ services:
     image: wodby/drupal-php:$PHP_TAG
     restart: unless-stopped
     environment:
-      DB_NAME: $DB_NAME
-      DB_USER: $DB_USER
-      DB_PASSWORD: $DB_PASSWORD
-      DB_HOST: $DB_HOST
       PHP_EXTENSIONS_DISABLE: xhprof,spx
       PHP_MAIL_MIXED_LF_AND_CRLF: On
       PHP_APCU_SHM_SIZE: 64M
       PHP_SESSION_COOKIE_SAMESITE: Strict
+      DB_NAME: $DB_NAME
+      DB_USER: $DB_USER
+      DB_PASSWORD: $DB_PASSWORD
+      DB_HOST: $DB_HOST
+      PHP_FPM_CLEAR_ENV: "no"
     volumes:
     - ./:/var/www/html:cached
     - ../backup:/var/backup_migrate
