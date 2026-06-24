@@ -15,7 +15,7 @@ $databases['default']['default'] = array(
 
 $settings['trusted_host_patterns'] = [
   '^ildeposito$',
-  '^stage\.ildeposito\.org$',
+  '^admin-stage\.ildeposito\.org$',
   '^ildeposito-drupal-nginx$',
   '^localhost$',
 ];
