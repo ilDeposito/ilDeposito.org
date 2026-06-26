@@ -1,3 +1,5 @@
+import { linguaToIso, stripHtml } from './seo.js';
+
 export function buildWebSiteSchema(siteUrl) {
   return {
     '@context': 'https://schema.org',
@@ -50,10 +52,29 @@ export function buildCreativeWorkSchema(canto, siteUrl) {
     '@type': 'MusicComposition',
     name: canto.titolo,
     url: `${siteUrl}/canti/${canto.slug}`,
+    inLanguage: linguaToIso(canto.lingue?.[0]?.titolo),
+    isPartOf: {
+      '@type': 'CreativeWork',
+      name: 'ilDeposito.org — Archivio canti di protesta',
+      url: siteUrl,
+    },
   };
 
   if (canto.capoverso) {
     schema.description = canto.capoverso;
+  }
+
+  if (canto.testo) {
+    let lyricsText = canto.testo;
+    if (lyricsText.length > 500) {
+      const cutAt = lyricsText.lastIndexOf('\n', 500);
+      lyricsText = (cutAt > 100 ? lyricsText.substring(0, cutAt) : lyricsText.substring(0, 500)).trimEnd() + '…';
+    }
+    schema.lyrics = {
+      '@type': 'CreativeWork',
+      text: lyricsText,
+      inLanguage: linguaToIso(canto.lingue?.[0]?.titolo),
+    };
   }
 
   const autori = [...(canto.autoriTesto ?? []), ...(canto.autoriMusica ?? [])].filter(
@@ -66,20 +87,45 @@ export function buildCreativeWorkSchema(canto, siteUrl) {
       name: a.titolo,
       url: `${siteUrl}/autori/${a.slug}`,
     }));
-  }
 
-  if (canto.lingue?.length > 0) {
-    schema.inLanguage = canto.lingue[0].titolo;
+    if (canto.autoriTesto?.length > 0) {
+      schema.lyricist = canto.autoriTesto.map((a) => ({
+        '@type': 'Person',
+        name: a.titolo,
+        url: `${siteUrl}/autori/${a.slug}`,
+      }));
+    }
+    if (canto.autoriMusica?.length > 0) {
+      schema.composer = canto.autoriMusica.map((a) => ({
+        '@type': 'Person',
+        name: a.titolo,
+        url: `${siteUrl}/autori/${a.slug}`,
+      }));
+    }
   }
 
   if (canto.anno) {
     schema.dateCreated = String(canto.anno);
   }
 
+  if (canto.tematiche?.length > 0) {
+    schema.genre = canto.tematiche.map((t) => t.titolo);
+  }
+
+  if (canto.videoUrl) {
+    schema.subjectOf = {
+      '@type': 'VideoObject',
+      url: canto.videoUrl,
+      name: canto.titolo,
+    };
+  }
+
   return schema;
 }
 
-export function buildPersonSchema(autore, siteUrl) {
+export function buildPersonSchema(autore, siteUrl, ogImagePath) {
+  const isPersona = Boolean(autore.nome);
+
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Person',
@@ -87,8 +133,27 @@ export function buildPersonSchema(autore, siteUrl) {
     url: `${siteUrl}/autori/${autore.slug}`,
   };
 
-  if (autore.immagine) {
-    schema.image = `${siteUrl}/uploads/autori/${autore.slug}.jpg`;
+  if (isPersona) {
+    schema.givenName = autore.nome;
+    schema.familyName = autore.cognome;
+  }
+
+  if (ogImagePath) {
+    schema.image = `${siteUrl}${ogImagePath}`;
+  }
+
+  if (autore.informazioni) {
+    schema.description = stripHtml(autore.informazioni).substring(0, 200);
+  }
+
+  if (autore.annoNascita) schema.birthDate = String(autore.annoNascita);
+  if (autore.annoMorte) schema.deathDate = String(autore.annoMorte);
+
+  if (autore.localizzazioni?.length > 0) {
+    schema.birthPlace = {
+      '@type': 'Place',
+      name: autore.localizzazioni[0].titolo,
+    };
   }
 
   return schema;
@@ -100,7 +165,12 @@ export function buildEventSchema(evento, siteUrl) {
     '@type': 'Event',
     name: evento.titolo,
     url: `${siteUrl}/eventi/${evento.slug}`,
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
   };
+
+  if (evento.informazioni) {
+    schema.description = stripHtml(evento.informazioni).substring(0, 200);
+  }
 
   if (evento.dataEvento) {
     schema.startDate = new Date(evento.dataEvento).toISOString().split('T')[0];
@@ -118,7 +188,37 @@ export function buildEventSchema(evento, siteUrl) {
         latitude: evento.latitude,
         longitude: evento.longitude,
       };
+      schema.location.address = loc.titolo;
     }
+  }
+
+  if (evento.cantiCollegati?.length > 0) {
+    schema.about = evento.cantiCollegati.map((c) => ({
+      '@type': 'MusicComposition',
+      name: c.titolo,
+      url: `${siteUrl}/canti/${c.slug}`,
+    }));
+  }
+
+  return schema;
+}
+
+export function buildTranslationSchema(traduzione, siteUrl) {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork',
+    name: traduzione.titolo,
+    url: `${siteUrl}/traduzioni/${traduzione.slug}`,
+    inLanguage: linguaToIso(traduzione.lingue?.[0]?.titolo),
+  };
+
+  if (traduzione.cantoOriginale) {
+    schema.translationOfWork = {
+      '@type': 'MusicComposition',
+      name: traduzione.cantoOriginale.titolo,
+      url: `${siteUrl}/canti/${traduzione.cantoOriginale.slug}`,
+      inLanguage: linguaToIso(traduzione.cantoOriginale.lingue?.[0]?.titolo),
+    };
   }
 
   return schema;

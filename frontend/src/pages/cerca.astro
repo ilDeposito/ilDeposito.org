@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Breadcrumb from '../components/ui/Breadcrumb.astro';
 import PagefindList from '../components/ui/PagefindList.astro';
+import Icon from '../components/base/Icon.astro';
 ---
 <BaseLayout title="Cerca nell'archivio" description="Cerca tra i canti, gli autori, gli eventi, le traduzioni e i periodi dell'archivio" noindex={true}>
 
@@ -19,7 +20,7 @@ import PagefindList from '../components/ui/PagefindList.astro';
           class="input input-bordered flex-1 font-sans text-base"
         />
         <button type="submit" class="btn btn-primary">
-          <i class="ph ph-magnifying-glass"></i>
+          <Icon name="magnifying-glass" />
         </button>
       </form>
       <p data-cerca-label class="font-serif italic text-sm text-base-content/60 hidden"></p>

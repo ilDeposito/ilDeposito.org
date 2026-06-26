@@ -2,8 +2,11 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
+import Icon from '../../components/base/Icon.astro';
 import { getEventi, getEvento } from '../../lib/api/index.js';
 import { buildEventSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildEventoTitle, buildEventoDescription } from '../../lib/seo.js';
+import { getOgImageForEvento } from '../../lib/og-image.js';
 
 export async function getStaticPaths() {
   const eventi = await getEventi();
@@ -30,14 +33,20 @@ const jsonLd = [
   buildBreadcrumbSchema(breadcrumbItems.map((item) => ({ name: item.label, url: item.href ? `${siteUrl}${item.href}` : undefined }))),
 ];
 const publishedTime = evento.dataEvento ? new Date(evento.dataEvento).toISOString().split('T')[0] : undefined;
+const ogImage = await getOgImageForEvento(evento);
 ---
 <BaseLayout
-  title={evento.titolo}
-  description={evento.informazioni || `${evento.titolo} — evento storico nell'archivio di ilDeposito.org`}
+  title={buildEventoTitle(evento)}
+  description={buildEventoDescription(evento)}
   pagefindType="eventi"
   ogType="article"
+  ogImage={ogImage}
+  ogImageAlt={ogImage ? `Immagine per ${evento.titolo}` : undefined}
   publishedTime={publishedTime}
+  articleSection="Eventi storici"
+  articleTags={evento.tags.map((t) => t.titolo)}
   jsonLd={jsonLd}
+  dnsPrefetch={hasCoordinate ? ['https://tile.openstreetmap.org'] : undefined}
 >
 
   <header class="bg-base-200 border-b-2 border-secondary">
@@ -58,7 +67,7 @@ const publishedTime = evento.dataEvento ? new Date(evento.dataEvento).toISOStrin
 
       <a href="/storia-cantata" class="inline-flex items-center gap-2 text-primary w-fit">
         <span class="border border-primary rounded p-1 inline-flex">
-          <i class="ph ph-calendar-star"></i>
+          <Icon name="calendar-star" />
         </span>
         <span class="font-serif italic font-bold uppercase text-sm">La storia cantata</span>
       </a>
@@ -66,14 +75,14 @@ const publishedTime = evento.dataEvento ? new Date(evento.dataEvento).toISOStrin
       <div class="flex items-center gap-4 text-base text-base-content">
         <share-button data-title={evento.titolo} class="contents">
           <button type="button" class="inline-flex items-center gap-1 cursor-pointer" aria-label="Condividi questo evento">
-            <i class="ph ph-share-network"></i>
+            <Icon name="share-network" />
             Condividi
           </button>
           <ShareModal />
         </share-button>
 
         <a href="#scheda-evento" class="inline-flex items-center gap-1">
-          <i class="ph ph-arrow-down"></i>
+          <Icon name="arrow-down" />
           Scheda
         </a>
       </div>
@@ -110,8 +119,8 @@ const publishedTime = evento.dataEvento ? new Date(evento.dataEvento).toISOStrin
               <p class="text-sm text-base-content/50 flex items-center gap-2">
                 {canto.anno && <span class="italic">{canto.anno}</span>}
                 {canto.anno && <span>·</span>}
-                <i class={`ph ph-headphones ${canto.videoUrl ? 'text-primary' : 'text-base-content/30'}`}></i>
-                <i class={`ph ph-guitar ${canto.accordi ? 'text-primary' : 'text-base-content/30'}`}></i>
+                <Icon name="headphones" class={canto.videoUrl ? 'text-primary' : 'text-base-content/30'} />
+                <Icon name="guitar" class={canto.accordi ? 'text-primary' : 'text-base-content/30'} />
               </p>
               <h3 class="font-serif font-bold text-primary">
                 <a href={`/canti/${canto.slug}`} class="hover:underline">{canto.titolo}</a>

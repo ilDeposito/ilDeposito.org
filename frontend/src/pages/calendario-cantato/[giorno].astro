@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
+import Icon from '../../components/base/Icon.astro';
 import EventCard from '../../components/ui/EventCard.astro';
 import { getEventiCalendario } from '../../lib/api/index.js';
 import type { EventoCalendario } from '../../lib/api/types.js';
@@ -38,8 +39,8 @@ const eventiOrdinati = [...eventiGiorno].sort((a, b) =>
   new Date(a.dataEvento).getUTCFullYear() - new Date(b.dataEvento).getUTCFullYear()
 );
 
-const titolo = `Calendario cantato: ${dayNum} ${monthName}`;
-const descrizione = `Gli eventi storici del ${dayNum} ${monthName}`;
+const titolo = `${dayNum} ${monthName} — Calendario cantato`;
+const descrizione = `Gli eventi storici del ${dayNum} ${monthName} nell'archivio di ilDeposito.org: anniversari, ricorrenze e canti collegati.`;
 ---
 <BaseLayout title={titolo} description={descrizione}>
 
@@ -52,7 +53,7 @@ const descrizione = `Gli eventi storici del ${dayNum} ${monthName}`;
 
       <share-button data-title={titolo} class="contents">
         <button type="button" class="inline-flex items-center gap-1 cursor-pointer w-fit" aria-label="Condividi questa pagina">
-          <i class="ph ph-share-network"></i>
+          <Icon name="share-network" />
           Condividi
         </button>
         <ShareModal />

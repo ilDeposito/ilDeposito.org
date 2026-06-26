@@ -11,25 +11,19 @@
    2. Font locali (@fontsource, zero CDN)
    ═══════════════════════════════════════════════ */
 
-/* Bitter – Serif per titoli e heading */
-@import "@fontsource/bitter/400.css";
-@import "@fontsource/bitter/400-italic.css";
-@import "@fontsource/bitter/700.css";
+/* Bitter – Serif per titoli e heading (solo latin, font-display: swap) */
+@import "@fontsource/bitter/latin-400.css";
+@import "@fontsource/bitter/latin-400-italic.css";
+@import "@fontsource/bitter/latin-700.css";
 
-/* Source Sans 3 – Sans-serif per body e UI */
-@import "@fontsource/source-sans-3/400.css";
-@import "@fontsource/source-sans-3/400-italic.css";
-@import "@fontsource/source-sans-3/600.css";
+/* Source Sans 3 – Sans-serif per body e UI (solo latin, font-display: swap) */
+@import "@fontsource/source-sans-3/latin-400.css";
+@import "@fontsource/source-sans-3/latin-400-italic.css";
+@import "@fontsource/source-sans-3/latin-600.css";
 
-/* IBM Plex Mono – Monospace per codice e label tecnici */
-@import "@fontsource/ibm-plex-mono/400.css";
-@import "@fontsource/ibm-plex-mono/500.css";
+/* IBM Plex Mono – Monospace per testi canti (solo latin, font-display: swap) */
+@import "@fontsource/ibm-plex-mono/latin-400.css";
 
-/* ═══════════════════════════════════════════════
-   3. Icone Phosphor (font-based, zero CDN)
-   ═══════════════════════════════════════════════ */
-@import "@phosphor-icons/web/regular";
-@import "@phosphor-icons/web/fill";
 
 /* ═══════════════════════════════════════════════
    4. Design tokens — @theme (Tailwind v4)

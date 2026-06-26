@@ -1,4 +1,6 @@
 ---
+import Icon from '../base/Icon.astro';
+
 interface BreadcrumbItem {
   label: string;
   href?: string;
@@ -14,7 +16,7 @@ const { items } = Astro.props;
   <ol class="flex items-center gap-1 flex-wrap">
     {items.map((item, i) => (
       <li class="flex items-center gap-1">
-        {i > 0 && <i class="ph ph-caret-right text-[10px]"></i>}
+        {i > 0 && <Icon name="caret-right" class="text-[10px]" />}
         {item.href && i < items.length - 1 ? (
           <a href={item.href} class="hover:text-primary hover:underline">{item.label}</a>
         ) : (

@@ -6,6 +6,9 @@ import Footer from '../components/base/Footer.astro';
 import SEO from '../components/base/SEO.astro';
 import { buildTitle, buildDescription, buildCanonical, resolveOgImage } from '../lib/seo.js';
 
+import sourceSansLatin400 from '@fontsource/source-sans-3/files/source-sans-3-latin-400-normal.woff2?url';
+import bitterLatin400 from '@fontsource/bitter/files/bitter-latin-400-normal.woff2?url';
+
 interface Props {
   title: string;
   description?: string;
@@ -16,8 +19,13 @@ interface Props {
   ogImageAlt?: string;
   noindex?: boolean;
   publishedTime?: string;
+  articleSection?: string;
+  articleTags?: string[];
+  profileFirstName?: string;
+  profileLastName?: string;
   jsonLd?: object | object[];
   preloadImage?: string;
+  dnsPrefetch?: string[];
 }
 
 const {
@@ -30,8 +38,13 @@ const {
   ogImageAlt,
   noindex = false,
   publishedTime,
+  articleSection,
+  articleTags,
+  profileFirstName,
+  profileLastName,
   jsonLd,
   preloadImage,
+  dnsPrefetch,
 } = Astro.props;
 
 const seoTitle = buildTitle(title);
@@ -44,10 +57,14 @@ const seoOgImage = resolveOgImage(ogImage || '/og-default.jpg', Astro.site);
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#9E1B1B" />
+    <link rel="preload" as="font" type="font/woff2" href={sourceSansLatin400} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={bitterLatin400} crossorigin />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="alternate" type="application/rss+xml" title="ilDeposito.org — Nuovi canti" href="/rss.xml" />
-    <link rel="dns-prefetch" href="https://tile.openstreetmap.org" />
+    {dnsPrefetch?.map((url) => <link rel="dns-prefetch" href={url} />)}
     {preloadImage && <link rel="preload" as="image" href={preloadImage} />}
     <SEO
       title={seoTitle}
@@ -58,6 +75,10 @@ const seoOgImage = resolveOgImage(ogImage || '/og-default.jpg', Astro.site);
       ogImageAlt={ogImageAlt}
       noindex={noindex}
       publishedTime={publishedTime}
+      articleSection={articleSection}
+      articleTags={articleTags}
+      profileFirstName={profileFirstName}
+      profileLastName={profileLastName}
       jsonLd={jsonLd}
     />
   </head>

@@ -40,7 +40,7 @@ export default defineConfig({
 
   integrations: [
     sitemap({
-      filter: (page) => !page.includes('/cerca'),
+      filter: (page) => !page.includes('/cerca') && !page.includes('/404'),
     }),
     pdfGenerator(),
   ],

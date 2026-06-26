@@ -12,4 +12,4 @@ export {
   getTags, getContenutiByTagMap,
 } from './tassonomie.js';
 export { getInformazioni, getInformazione } from './informazioni.js';
-export { getAutoreImageUrl, getEventoImageUrl, getPeriodoImageUrl } from './assets.js';
+export { getAutoreImageUrl, getEventoImageUrl, getPeriodoImageUrl, getImageUrl } from './assets.js';

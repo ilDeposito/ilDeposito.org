@@ -4,6 +4,9 @@ import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import PagefindList from '../../components/ui/PagefindList.astro';
 import { getLocalizzazioni } from '../../lib/api/index.js';
 import type { Tassonomia } from '../../lib/api/types.js';
+import { buildWebPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildCanonical } from '../../lib/seo.js';
+import { getOgImageFallback } from '../../lib/og-image.js';
 
 export async function getStaticPaths() {
   const localizzazioni = await getLocalizzazioni();
@@ -15,8 +18,19 @@ export async function getStaticPaths() {
 
 const { localizzazione } = Astro.props as { localizzazione: Tassonomia };
 const titolo = localizzazione.titolo.charAt(0).toUpperCase() + localizzazione.titolo.slice(1);
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const seoDescription = `Gli autori e gli eventi storici legati a ${titolo} nell'archivio di ilDeposito.org.`;
+const jsonLd = [
+  buildWebPageSchema(`${titolo} — Autori e eventi`, seoDescription, buildCanonical(Astro)),
+  buildBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Localizzazioni', url: `${siteUrl}/localizzazioni` },
+    { name: titolo },
+  ]),
+];
+const ogImage = await getOgImageFallback();
 ---
-<BaseLayout title={titolo} description={`I contenuti dell'archivio localizzati in ${titolo}`}>
+<BaseLayout title={`${titolo} — Autori e eventi`} description={seoDescription} jsonLd={jsonLd} ogImage={ogImage}>
 
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">

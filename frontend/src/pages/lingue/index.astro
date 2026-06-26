@@ -2,12 +2,25 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
+import Icon from '../../components/base/Icon.astro';
 import { getLingue, getContenutiByLinguaMap } from '../../lib/api/index.js';
+import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildCanonical } from '../../lib/seo.js';
 
 const lingue = await getLingue();
 const contenutiMap = await getContenutiByLinguaMap();
+
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const seoDescription = 'Esplora i canti di protesta per lingua: italiano, francese, inglese, spagnolo e altre lingue nell\'archivio.';
+const jsonLd = [
+  buildCollectionPageSchema('Canti per lingua', seoDescription, buildCanonical(Astro)),
+  buildBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Lingue' },
+  ]),
+];
 ---
-<BaseLayout title="Lingue" description="Le lingue dei canti e delle traduzioni dell'archivio">
+<BaseLayout title="Canti per lingua" description={seoDescription} jsonLd={jsonLd}>
 
   <!-- Titolo + info: attaccato all'header e ai bordi laterali -->
   <header class="bg-base-200 border-b-2 border-secondary">
@@ -20,7 +33,7 @@ const contenutiMap = await getContenutiByLinguaMap();
 
       <share-button data-title="Lingue" class="contents">
         <button type="button" class="inline-flex items-center gap-1 cursor-pointer w-fit" aria-label="Condividi questa pagina">
-          <i class="ph ph-share-network"></i>
+          <Icon name="share-network" />
           Condividi
         </button>
         <ShareModal />

@@ -2,8 +2,11 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
-import { getCanti, getCanto, getEventiForCanto } from '../../lib/api/index.js';
+import Icon from '../../components/base/Icon.astro';
+import { getCanti, getCanto, getEventiForCanto, getAutore } from '../../lib/api/index.js';
 import { buildCreativeWorkSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildCantoTitle, buildCantoDescription, linguaToIso } from '../../lib/seo.js';
+import { getOgImageForCanto } from '../../lib/og-image.js';
 
 export async function getStaticPaths() {
   const canti = await getCanti();
@@ -20,6 +23,9 @@ const autoriUnici = [...canto.autoriTesto, ...canto.autoriMusica].filter(
 
 const periodo = canto.periodi[0];
 
+const primoAutore = autoriUnici[0] ? await getAutore(autoriUnici[0].slug) : null;
+const ogImage = await getOgImageForCanto(canto, primoAutore?.immagine);
+
 const formatData = (data) =>
   new Date(data).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -35,10 +41,14 @@ const jsonLd = [
 ];
 ---
 <BaseLayout
-  title={canto.titolo}
-  description={canto.capoverso || canto.informazioni || ''}
+  title={buildCantoTitle(canto)}
+  description={buildCantoDescription(canto)}
   pagefindType="canti"
   ogType="article"
+  ogImage={ogImage}
+  ogImageAlt={ogImage ? `Immagine per ${canto.titolo}` : undefined}
+  articleSection="Canti di protesta"
+  articleTags={canto.tags.map((t) => t.titolo)}
   jsonLd={jsonLd}
 >
 
@@ -64,21 +74,21 @@ const jsonLd = [
       <div class="flex items-center gap-4 text-base text-base-content mt-1">
         {canto.audio && (
           <span class="inline-flex items-center gap-1">
-            <i class="ph ph-play"></i>
+            <Icon name="play" />
             2:56
           </span>
         )}
 
         <share-button data-title={canto.titolo} class="contents">
           <button type="button" class="inline-flex items-center gap-1 cursor-pointer" aria-label="Condividi questo canto">
-            <i class="ph ph-share-network"></i>
+            <Icon name="share-network" />
             Condividi
           </button>
           <ShareModal />
         </share-button>
 
         <a href="#scheda-canto" class="inline-flex items-center gap-1">
-          <i class="ph ph-arrow-down"></i>
+          <Icon name="arrow-down" />
           Scheda
         </a>
       </div>
@@ -120,18 +130,18 @@ const jsonLd = [
             <button type="button" data-tab="testo" role="tab" aria-selected="true" class="font-serif font-bold text-base pb-2 border-b-2 border-secondary text-base-content">Testo</button>
             <button type="button" data-tab="accordi" role="tab" aria-selected="false" class="font-serif font-bold text-base pb-2 border-b-2 border-transparent text-base-content/40">Accordi</button>
           </div>
-          <pre data-panel="testo" class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{canto.testo}</pre>
+          <pre data-panel="testo" lang={linguaToIso(canto.lingue?.[0]?.titolo)} class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{canto.testo}</pre>
           <pre data-panel="accordi" class="hidden font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{canto.accordi}</pre>
         </song-lyrics>
       ) : (
         <div>
           <p data-pagefind-ignore class="font-serif font-bold text-base text-base-content text-center border-b border-base-300 mb-3 pb-2">Testo</p>
-          <pre class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{canto.testo}</pre>
+          <pre lang={linguaToIso(canto.lingue?.[0]?.titolo)} class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{canto.testo}</pre>
         </div>
       )}
       <div data-pagefind-ignore class="flex justify-end mt-2">
         <a href={`/pdf/canti/${slug}.pdf`} download class="inline-flex items-center gap-1 text-base text-base-content">
-          <i class="ph ph-file-pdf"></i>
+          <Icon name="file-pdf" />
           Scarica PDF
         </a>
       </div>
@@ -164,7 +174,7 @@ const jsonLd = [
     )}
 
     <!-- Scheda canto -->
-    <section id="scheda-canto" data-pagefind-ignore class="flex flex-col gap-1 scroll-mt-16">
+    <section id="scheda-canto" data-pagefind-ignore class="flex flex-col gap-1 scroll-mt-16" style="content-visibility:auto;contain-intrinsic-size:auto 300px">
       <h2 class="font-serif font-bold text-lg md:text-xl text-base-content mb-2">Scheda canto</h2>
 
       {canto.autoriTesto.length > 0 && (

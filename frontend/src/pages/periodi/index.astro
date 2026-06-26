@@ -3,14 +3,27 @@ import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
-import { getPeriodi, getPeriodoImageUrl, getContenutiByPeriodoMap } from '../../lib/api/index.js';
+import Icon from '../../components/base/Icon.astro';
+import { getPeriodi, getImageUrl, getContenutiByPeriodoMap } from '../../lib/api/index.js';
+import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildCanonical } from '../../lib/seo.js';
 
 const periodi = await getPeriodi();
 const contenutiMap = await getContenutiByPeriodoMap();
 
-const imgUrls = await Promise.all(periodi.map((p) => getPeriodoImageUrl(p.immagine)));
+const imgUrls = periodi.map((p) => getImageUrl(p.immagine));
+
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const seoDescription = 'Esplora i canti di protesta per periodo storico: Risorgimento, Grande Guerra, Resistenza, anni \'60-\'70 e oltre.';
+const jsonLd = [
+  buildCollectionPageSchema('Periodi storici — Archivio per epoca', seoDescription, buildCanonical(Astro)),
+  buildBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Periodi' },
+  ]),
+];
 ---
-<BaseLayout title="Periodi" description="L'elenco dei periodi storici in cui sono divisi i contenuti">
+<BaseLayout title="Periodi storici — Archivio per epoca" description={seoDescription} jsonLd={jsonLd}>
 
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
@@ -22,7 +35,7 @@ const imgUrls = await Promise.all(periodi.map((p) => getPeriodoImageUrl(p.immagi
 
       <share-button data-title="Periodi" class="contents">
         <button type="button" class="inline-flex items-center gap-1 cursor-pointer w-fit" aria-label="Condividi questa pagina">
-          <i class="ph ph-share-network"></i>
+          <Icon name="share-network" />
           Condividi
         </button>
         <ShareModal />
@@ -48,12 +61,14 @@ const imgUrls = await Promise.all(periodi.map((p) => getPeriodoImageUrl(p.immagi
               alt={"Immagine del periodo: " + periodo.titolo}
               width={800}
               height={450}
+              format="webp"
+              quality={75}
               class="w-full h-full object-cover grayscale"
               loading={i === 0 ? 'eager' : 'lazy'}
             />
           ) : (
             <div class="w-full h-full bg-base-300 flex items-center justify-center">
-              <i class="ph ph-image-broken text-4xl text-base-content/30"></i>
+              <Icon name="image-broken" class="text-4xl text-base-content/30" />
             </div>
           )}
           <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"></div>

@@ -61,7 +61,7 @@ export async function getAutore(slug: string): Promise<AutoreDetail | null> {
   if (!uuid) return null;
 
   const response = await fetchJsonApi(`/jsonapi/node/autore/${uuid}`, new URLSearchParams({
-    'fields[node--autore]': 'drupal_internal__nid,title,path,field_informazioni,field_immagine,field_localizzazione,field_periodo,field_anno_di_nascita,field_anno_di_morte',
+    'fields[node--autore]': 'drupal_internal__nid,title,path,field_nome,field_cognome,field_informazioni,field_immagine,field_localizzazione,field_periodo,field_anno_di_nascita,field_anno_di_morte',
     'fields[taxonomy_term--localizzazioni]': 'name,path',
     'fields[taxonomy_term--periodi]': 'name,path',
     'fields[media--image]': 'field_media_image',

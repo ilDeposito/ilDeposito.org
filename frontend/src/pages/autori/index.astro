@@ -1,21 +1,32 @@
 ---
 import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import Icon from '../../components/base/Icon.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
-import { getAutoriPiuVisti, getCantiByAutoreMap, getAutoreImageUrl } from '../../lib/api/index.js';
+import { getAutoriPiuVisti, getCantiByAutoreMap, getImageUrl } from '../../lib/api/index.js';
+import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildCanonical } from '../../lib/seo.js';
 
 const autori = await getAutoriPiuVisti(20);
 const cantiMap = await getCantiByAutoreMap();
 
-const autoriConDati = await Promise.all(
-  autori.map(async (autore) => {
-    const canti = cantiMap.get(autore.id) ?? [];
-    const immagineUrl = autore.immagine ? await getAutoreImageUrl(autore.immagine) : null;
-    return { autore, numCanti: canti.length, immagineUrl };
-  })
-);
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const seoDescription = 'Gli autori e compositori dei canti di protesta dell\'archivio: biografie, discografie e opere.';
+const jsonLd = [
+  buildCollectionPageSchema('Autori e compositori — Archivio', seoDescription, buildCanonical(Astro)),
+  buildBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Autori' },
+  ]),
+];
+
+const autoriConDati = autori.map((autore) => {
+  const canti = cantiMap.get(autore.id) ?? [];
+  const immagineUrl = getImageUrl(autore.immagine);
+  return { autore, numCanti: canti.length, immagineUrl };
+});
 ---
-<BaseLayout title="Gli autori dell'archivio" description="I compositori e autori dei canti dell'archivio">
+<BaseLayout title="Autori e compositori — Archivio" description={seoDescription} jsonLd={jsonLd}>
 
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
@@ -27,7 +38,7 @@ const autoriConDati = await Promise.all(
 
       <a href="/autori/elenco" class="btn btn-primary btn-sm gap-2 w-fit border-0">
         Tutti gli autori dell'archivio
-        <i class="ph ph-arrow-right"></i>
+        <Icon name="arrow-right" />
       </a>
     </div>
   </header>
@@ -47,14 +58,16 @@ const autoriConDati = await Promise.all(
               <Image
                 src={immagineUrl}
                 alt={"Foto di " + autore.titolo}
-                width={80}
-                height={80}
+                width={160}
+                height={160}
+                format="webp"
+                quality={80}
                 loading={i < 4 ? 'eager' : 'lazy'}
                 class="w-20 h-20 rounded-full object-cover shrink-0 border-2 border-base-300"
               />
             ) : (
               <div class="w-20 h-20 rounded-full bg-base-300 flex items-center justify-center shrink-0">
-                <i class="ph ph-user text-base-content/40 text-2xl"></i>
+                <Icon name="user" class="text-base-content/40 text-2xl" />
               </div>
             )}
 
@@ -83,7 +96,7 @@ const autoriConDati = await Promise.all(
 
       <a href="/autori/elenco" class="btn btn-primary self-center mt-4 gap-2">
         Tutti gli autori dell'archivio
-        <i class="ph ph-arrow-right"></i>
+        <Icon name="arrow-right" />
       </a>
     </section>
 

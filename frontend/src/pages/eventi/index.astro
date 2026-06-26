@@ -4,12 +4,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
 import EventCard from '../../components/ui/EventCard.astro';
+import Icon from '../../components/base/Icon.astro';
 import {
   getEventiDelMese,
   getEventiPiuVisti,
   getEventiGeo,
-  getEventoImageUrl,
+  getImageUrl,
 } from '../../lib/api/index.js';
+import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildCanonical } from '../../lib/seo.js';
 
 const now   = new Date();
 const month = now.getUTCMonth() + 1;
@@ -20,9 +23,7 @@ const [eventiMese, eventiPiuVisti, eventiGeo] = await Promise.all([
   getEventiGeo(),
 ]);
 
-const imgUrls = await Promise.all(
-  eventiMese.map((e) => getEventoImageUrl(e.immagine))
-);
+const imgUrls = eventiMese.map((e) => getImageUrl(e.immagine));
 
 const todayDay = now.getUTCDate();
 const startIndex = (() => {
@@ -36,6 +37,16 @@ const meseNome = mesiIT[month - 1];
 const formatData = (data: string) =>
   new Date(data).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
 
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const seoDescription = 'Gli eventi storici legati ai canti di protesta: date, luoghi e canti collegati nell\'archivio di ilDeposito.org.';
+const jsonLd = [
+  buildCollectionPageSchema('Eventi storici — Archivio', seoDescription, buildCanonical(Astro)),
+  buildBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Eventi' },
+  ]),
+];
+
 const eventiGeoJson = JSON.stringify(
   eventiGeo.map((e) => ({
     titolo:      e.titolo,
@@ -46,7 +57,7 @@ const eventiGeoJson = JSON.stringify(
   }))
 );
 ---
-<BaseLayout title="Gli eventi dell'archivio" description="La dashboard degli eventi dell'archivio">
+<BaseLayout title="Eventi storici — Archivio" description={seoDescription} jsonLd={jsonLd} dnsPrefetch={['https://tile.openstreetmap.org']}>
 
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
@@ -57,12 +68,12 @@ const eventiGeoJson = JSON.stringify(
 
       <a href="/eventi/elenco" class="btn btn-primary btn-sm gap-2 w-fit border-0">
         Tutti gli eventi
-        <i class="ph ph-arrow-right"></i>
+        <Icon name="arrow-right" />
       </a>
 
       <share-button data-title="Gli eventi dell'archivio" class="contents">
         <button type="button" class="inline-flex items-center gap-1 cursor-pointer w-fit" aria-label="Condividi questa pagina">
-          <i class="ph ph-share-network"></i>
+          <Icon name="share-network" />
           Condividi
         </button>
         <ShareModal />
@@ -99,12 +110,14 @@ const eventiGeoJson = JSON.stringify(
                           alt={"Immagine dell'evento: " + evento.titolo}
                           width={800}
                           height={450}
+                          format="webp"
+                          quality={75}
                           class="w-full h-full object-cover grayscale"
                           loading={i === startIndex ? 'eager' : 'lazy'}
                         />
                       ) : (
                         <div class="w-full h-full bg-base-300 flex items-center justify-center">
-                          <i class="ph ph-image-broken text-4xl text-base-content/30"></i>
+                          <Icon name="image-broken" class="text-4xl text-base-content/30" />
                         </div>
                       )}
                       <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"></div>
@@ -131,7 +144,7 @@ const eventiGeoJson = JSON.stringify(
                   aria-label="Evento precedente"
                   class="absolute left-2 top-1/2 -translate-y-1/2 z-10 btn btn-circle btn-sm bg-black/50 border-0 text-white hover:bg-black/70"
                 >
-                  <i class="ph ph-arrow-left text-base"></i>
+                  <Icon name="arrow-left" class="text-base" />
                 </button>
                 <button
                   data-next
@@ -139,7 +152,7 @@ const eventiGeoJson = JSON.stringify(
                   aria-label="Evento successivo"
                   class="absolute right-2 top-1/2 -translate-y-1/2 z-10 btn btn-circle btn-sm bg-black/50 border-0 text-white hover:bg-black/70"
                 >
-                  <i class="ph ph-arrow-right text-base"></i>
+                  <Icon name="arrow-right" class="text-base" />
                 </button>
               </>
             )}
@@ -176,7 +189,7 @@ const eventiGeoJson = JSON.stringify(
 
       <a href="/eventi/elenco" class="btn btn-primary self-center mt-4 gap-2">
         Tutti gli eventi
-        <i class="ph ph-arrow-right"></i>
+        <Icon name="arrow-right" />
       </a>
     </section>
 

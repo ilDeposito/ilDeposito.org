@@ -1,23 +1,35 @@
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import markerIcon from 'leaflet/dist/images/marker-icon.png?url';
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png?url';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png?url';
-
-// Vite/Rollup non risolvono il path automatico delle icone di Leaflet:
-// si forniscono esplicitamente gli asset bundlati.
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
-});
-
 class EventMap extends HTMLElement {
   connectedCallback() {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        observer.disconnect();
+        this._initMap();
+      },
+      { rootMargin: '200px' }
+    );
+    observer.observe(this);
+  }
+
+  async _initMap() {
     const lat = parseFloat(this.dataset.lat);
     const lng = parseFloat(this.dataset.lng);
     if (Number.isNaN(lat) || Number.isNaN(lng)) return;
+
+    const [{ default: L }, { default: markerIcon }, { default: markerIcon2x }, { default: markerShadow }] = await Promise.all([
+      import('leaflet'),
+      import('leaflet/dist/images/marker-icon.png?url'),
+      import('leaflet/dist/images/marker-icon-2x.png?url'),
+      import('leaflet/dist/images/marker-shadow.png?url'),
+    ]);
+    await import('leaflet/dist/leaflet.css');
+
+    delete L.Icon.Default.prototype._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconUrl: markerIcon,
+      iconRetinaUrl: markerIcon2x,
+      shadowUrl: markerShadow,
+    });
 
     const map = L.map(this, { scrollWheelZoom: false }).setView([lat, lng], 11);
 

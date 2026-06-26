@@ -3,6 +3,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 import AuthorHeader from '../../../components/ui/AuthorHeader.astro';
 import PagefindList from '../../../components/ui/PagefindList.astro';
 import { getAutori, getAutore, getCantiByAutoreMap } from '../../../lib/api/index.js';
+import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../../lib/schema.js';
+import { buildCanonical } from '../../../lib/seo.js';
+import { getOgImageForAutore } from '../../../lib/og-image.js';
 
 export async function getStaticPaths() {
   const autori = await getAutori();
@@ -16,14 +19,28 @@ export async function getStaticPaths() {
 const { slug } = Astro.params;
 const autore = (await getAutore(slug))!;
 
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const seoTitle = `Tutti i canti di ${autore.titolo}`;
+const seoDescription = `L'elenco completo dei canti di ${autore.titolo} nell'archivio di ilDeposito.org: testi, accordi e informazioni.`;
+const ogImage = await getOgImageForAutore(autore);
 const breadcrumbItems = [
   { label: 'Home', href: '/' },
   { label: 'Autori', href: '/autori' },
   { label: autore.titolo, href: `/autori/${autore.slug}` },
   { label: 'Canti' },
 ];
+const jsonLd = [
+  buildCollectionPageSchema(seoTitle, seoDescription, buildCanonical(Astro)),
+  buildBreadcrumbSchema(breadcrumbItems.map((item) => ({ name: item.label, url: item.href ? `${siteUrl}${item.href}` : undefined }))),
+];
 ---
-<BaseLayout title={`Canti di ${autore.titolo}`} description={autore.informazioni ?? ''}>
+<BaseLayout
+  title={seoTitle}
+  description={seoDescription}
+  ogImage={ogImage}
+  ogImageAlt={ogImage ? `Foto di ${autore.titolo}` : undefined}
+  jsonLd={jsonLd}
+>
 
   <AuthorHeader autore={autore} breadcrumbItems={breadcrumbItems} />
 

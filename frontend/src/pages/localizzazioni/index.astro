@@ -2,12 +2,25 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
+import Icon from '../../components/base/Icon.astro';
 import { getLocalizzazioni, getContenutiByLocalizzazioneMap } from '../../lib/api/index.js';
+import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildCanonical } from '../../lib/seo.js';
 
 const localizzazioni = await getLocalizzazioni();
 const contenutiMap = await getContenutiByLocalizzazioneMap();
+
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const seoDescription = 'Autori e eventi storici per luogo di origine: esplora l\'archivio di ilDeposito.org per località.';
+const jsonLd = [
+  buildCollectionPageSchema('Luoghi — Autori e eventi per luogo', seoDescription, buildCanonical(Astro)),
+  buildBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Localizzazioni' },
+  ]),
+];
 ---
-<BaseLayout title="Localizzazioni" description="Le localizzazioni per gli autori e gli eventi dell'archivio">
+<BaseLayout title="Luoghi — Autori e eventi per luogo" description={seoDescription} jsonLd={jsonLd}>
 
   <!-- Titolo + info: attaccato all'header e ai bordi laterali -->
   <header class="bg-base-200 border-b-2 border-secondary">
@@ -20,7 +33,7 @@ const contenutiMap = await getContenutiByLocalizzazioneMap();
 
       <share-button data-title="Localizzazioni" class="contents">
         <button type="button" class="inline-flex items-center gap-1 cursor-pointer w-fit" aria-label="Condividi questa pagina">
-          <i class="ph ph-share-network"></i>
+          <Icon name="share-network" />
           Condividi
         </button>
         <ShareModal />

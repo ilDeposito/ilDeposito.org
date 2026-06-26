@@ -1,4 +1,6 @@
 ---
+import Icon from '../base/Icon.astro';
+
 interface Props {
   type?: string;
   presetFilter?: Record<string, string>;
@@ -59,7 +61,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
   <!-- Mobile: bottone filtri + contatore -->
   <div class="sm:hidden mb-4 flex items-center justify-between">
     <button type="button" data-filter-toggle class="btn btn-ghost btn-sm gap-2 border border-base-300">
-      <i class="ph ph-funnel"></i>
+      <Icon name="funnel" />
       Filtra l'elenco
       <span data-filter-count class="badge badge-secondary badge-sm hidden"></span>
     </button>
@@ -83,7 +85,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
           data-drawer-close
           class="btn btn-ghost btn-sm btn-circle"
           aria-label="Chiudi"
-        ><i class="ph ph-x"></i></button>
+        ><Icon name="x" /></button>
       </div>
       <div data-filter-panel-mobile class="flex-1 overflow-y-auto p-4">
         <p class="text-sm text-base-content/40 italic">Caricamento filtri…</p>
@@ -113,6 +115,14 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
   // is:inline obbligatorio: dipende da /pagefind/pagefind.js generato a build-time,
   // non risolvibile da Vite/Rollup (stessa ragione di search-modal in Header.astro).
   (function () {
+    const _svg = (d) => `<span class="inline-flex items-center justify-center shrink-0 [&>svg]:w-[1em] [&>svg]:h-[1em]"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor">${d}</svg></span>`;
+    const ICO = {
+      headphones: (cls) => `<span class="${cls}">${_svg('<path d="M201.89,54.66A103.43,103.43,0,0,0,128.79,24H128A104,104,0,0,0,24,128v56a24,24,0,0,0,24,24H64a24,24,0,0,0,24-24V144a24,24,0,0,0-24-24H40.36A88,88,0,0,1,128,40h.67a87.71,87.71,0,0,1,87,80H192a24,24,0,0,0-24,24v40a24,24,0,0,0,24,24h16a24,24,0,0,0,24-24V128A103.41,103.41,0,0,0,201.89,54.66ZM64,136a8,8,0,0,1,8,8v40a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V136Zm152,48a8,8,0,0,1-8,8H192a8,8,0,0,1-8-8V144a8,8,0,0,1,8-8h24Z"/>')}</span>`,
+      guitar: (cls) => `<span class="${cls}">${_svg('<path d="M249.66,46.34l-40-40a8,8,0,0,0-11.31,11.32L200.69,20,140.52,80.16C117.73,68.3,92.21,69.29,76.75,84.74a42.27,42.27,0,0,0-9.39,14.37A8.24,8.24,0,0,1,59.81,104c-14.59.49-27.26,5.72-36.65,15.11C11.08,131.22,6,148.6,8.74,168.07,11.4,186.7,21.07,205.15,36,220s33.34,24.56,52,27.22A71.13,71.13,0,0,0,98.1,248c15.32,0,28.83-5.23,38.76-15.16,9.39-9.39,14.62-22.06,15.11-36.65a8.24,8.24,0,0,1,4.92-7.55,42.12,42.12,0,0,0,14.37-9.39c15.45-15.46,16.44-41,4.58-63.77L236,55.31l2.34,2.34a8,8,0,1,0,11.32-11.31ZM160,167.93a26.12,26.12,0,0,1-8.95,5.83,24.24,24.24,0,0,0-15,21.89c-.36,10.46-4,19.41-10.43,25.88-8.44,8.43-21,11.95-35.36,9.89C75,229.25,59.73,221.19,47.27,208.73S26.75,181,24.58,165.81c-2-14.37,1.46-26.92,9.89-35.36C40.94,124,49.89,120.37,60.35,120h0a24.22,24.22,0,0,0,21.89-15,26.12,26.12,0,0,1,5.83-9c5.49-5.49,13-8.13,21.38-8.13a49.38,49.38,0,0,1,19.13,4.19L108.5,112.19a32,32,0,1,0,35.31,35.31l20.08-20.08C170.41,142.71,169.47,158.41,160,167.93Zm-10.4-61.48a72.9,72.9,0,0,1,5.93,6.75l-15.42,15.42a32.22,32.22,0,0,0-12.68-12.68l15.42-15.43A73,73,0,0,1,149.55,106.45ZM112,128a16,16,0,0,1,16,16h0a16,16,0,1,1-16-16Zm48.85-32.85a86.94,86.94,0,0,0-6.68-6L176,67.31,188.69,80l-21.83,21.82A86.94,86.94,0,0,0,160.86,95.14ZM200,68.68,187.32,56,212,31.31,224.69,44ZM93.66,194.33a8,8,0,0,1-11.31,11.32l-32-32a8,8,0,0,1,11.32-11.31Z"/>')}</span>`,
+      caretDown: _svg('<path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/>'),
+      x: _svg('<path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/>'),
+      check: _svg('<path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"/>'),
+    };
     const VIEW_MORE_THRESHOLD = 10;
 
     const DEFAULT_LABELS = {
@@ -284,8 +294,8 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
           <div class="flex flex-col gap-1 py-3 hover:bg-base-200 transition-colors rounded-lg px-1">
             <p class="text-xs text-base-content/40 flex items-center gap-2">
               ${meta.anno ? `<span class="italic">${meta.anno}</span><span aria-hidden="true">·</span>` : ''}
-              <i class="ph ph-headphones ${audio   ? 'text-primary' : 'text-base-content/20'}"></i>
-              <i class="ph ph-guitar     ${accordi ? 'text-primary' : 'text-base-content/20'}"></i>
+              ${ICO.headphones(audio ? 'text-primary' : 'text-base-content/20')}
+              ${ICO.guitar(accordi ? 'text-primary' : 'text-base-content/20')}
             </p>
             <h3 class="font-serif font-semibold text-primary">
               <a href="${item.url}" class="hover:underline">${meta.title ?? ''}</a>
@@ -384,7 +394,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
               class="btn btn-sm btn-ghost border border-base-300 gap-1"
             >
               ${label}
-              <i class="ph ph-caret-down text-xs"></i>
+              <span class="text-xs">${ICO.caretDown}</span>
             </button>
             <div
               data-dropdown-panel="${key}"
@@ -510,10 +520,10 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
           const activeVal = this._filters[key];
           if (activeVal) {
             btn.className = 'btn btn-sm btn-primary gap-1';
-            btn.innerHTML = `${label}: <strong>${activeVal}</strong> <i class="ph ph-caret-down text-xs"></i>`;
+            btn.innerHTML = `${label}: <strong>${activeVal}</strong> <span class="text-xs">${ICO.caretDown}</span>`;
           } else {
             btn.className = 'btn btn-sm btn-ghost border border-base-300 gap-1';
-            btn.innerHTML = `${label} <i class="ph ph-caret-down text-xs"></i>`;
+            btn.innerHTML = `${label} <span class="text-xs">${ICO.caretDown}</span>`;
           }
         });
       }
@@ -580,7 +590,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
             class="badge badge-secondary gap-1 cursor-pointer hover:badge-error transition-colors"
             aria-label="Rimuovi filtro ${val}"
           >
-            ${val} <i class="ph ph-x text-xs"></i>
+            ${val} <span class="text-xs">${ICO.x}</span>
           </button>
         `).join('');
 
@@ -643,7 +653,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
           desktopContainer.innerHTML = `
             <div class="relative" data-sort-dropdown>
               <button type="button" data-sort-toggle class="btn btn-sm btn-ghost border border-base-300 gap-1">
-                ${activeLabel} <i class="ph ph-caret-down text-xs"></i>
+                ${activeLabel} <span class="text-xs">${ICO.caretDown}</span>
               </button>
               <div data-sort-dropdown-panel class="hidden absolute right-0 top-[calc(100%+4px)] z-50
                    bg-base-100 border border-base-300 rounded-box shadow-lg min-w-40 py-1">
@@ -651,7 +661,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
                   <button type="button" data-sort-select="${o.field}" data-sort-dir="${o.dir}"
                     class="flex items-center gap-2 w-full px-3 py-1.5 text-sm hover:bg-base-200 text-left
                            ${o.field === this._sortField ? 'text-primary font-semibold' : ''}">
-                    <i class="ph ph-check text-xs ${o.field === this._sortField ? '' : 'invisible'}"></i>
+                    <span class="text-xs ${o.field === this._sortField ? '' : 'invisible'}">${ICO.check}</span>
                     ${o.label}
                   </button>
                 `).join('')}
@@ -718,7 +728,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
         const toggle = this.querySelector('[data-sort-toggle]');
         if (toggle) {
           const activeLabel = this._sortOptions.find((o) => o.field === this._sortField)?.label ?? 'Ordina';
-          toggle.innerHTML = `${activeLabel} <i class="ph ph-caret-down text-xs"></i>`;
+          toggle.innerHTML = `${activeLabel} <span class="text-xs">${ICO.caretDown}</span>`;
         }
         // Update desktop check marks + active styles
         this.querySelector('[data-sort-dropdown-panel]')?.querySelectorAll('[data-sort-select]').forEach((btn) => {

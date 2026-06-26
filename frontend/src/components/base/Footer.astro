@@ -1,8 +1,9 @@
 ---
 import logoRaw from '../../assets/images/ildeposito-logo.svg?raw';
+import Icon from './Icon.astro';
 ---
 
-<footer class="w-full font-sans">
+<footer class="w-full font-sans" style="content-visibility:auto;contain-intrinsic-size:auto 400px">
 
   <!-- Linea decorativa rossa superiore -->
   <div class="h-[2px] w-full bg-primary"></div>
@@ -71,10 +72,10 @@ import logoRaw from '../../assets/images/ildeposito-logo.svg?raw';
       <p class="text-sm">Seguici</p>
       <div class="flex items-center gap-4">
         <a href="#" aria-label="ilDeposito su Facebook">
-          <i class="ph-fill ph-facebook-logo text-5xl"></i>
+          <Icon name="facebook-logo-fill" class="text-5xl" />
         </a>
         <a href="#" aria-label="ilDeposito su YouTube">
-          <i class="ph-fill ph-youtube-logo text-5xl"></i>
+          <Icon name="youtube-logo-fill" class="text-5xl" />
         </a>
       </div>
     </div>

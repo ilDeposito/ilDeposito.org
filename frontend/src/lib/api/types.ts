@@ -83,6 +83,8 @@ export interface AutoreDetail {
   id: number | string;
   titolo: string;
   slug: string;
+  nome: string | null;
+  cognome: string | null;
   informazioni: string | null;
   immagine: string | null;
   localizzazioni: Ref[];
@@ -154,6 +156,7 @@ export interface EventoDetail {
   slug: string;
   dataEvento: string | null;
   informazioni: string | null;
+  immagine: string | null;
   latitude: number | null;
   longitude: number | null;
   localizzazioni: Ref[];

@@ -1,5 +1,6 @@
 ---
 import logoRaw from '../../assets/images/ildeposito-logo.svg?raw';
+import Icon from './Icon.astro';
 ---
 <header class="sticky top-0 z-50 w-full bg-primary">
   <div class="max-w-6xl mx-auto flex items-center gap-3 px-4 h-14 md:h-16">
@@ -49,7 +50,7 @@ import logoRaw from '../../assets/images/ildeposito-logo.svg?raw';
             aria-label="Cerca"
             class="shrink-0 text-primary-content cursor-pointer bg-transparent border-0 p-0 m-0 inline-flex items-center focus:outline-none"
           >
-            <i class="ph ph-magnifying-glass"></i>
+            <Icon name="magnifying-glass" />
           </button>
         </div>
       </form>
@@ -69,7 +70,7 @@ import logoRaw from '../../assets/images/ildeposito-logo.svg?raw';
         aria-controls="mobile-menu-panel"
         class="shrink-0 text-primary-content cursor-pointer"
       >
-        <i class="ph ph-list text-2xl"></i>
+        <Icon name="list" class="text-2xl" />
       </button>
 
       <div
@@ -92,7 +93,7 @@ import logoRaw from '../../assets/images/ildeposito-logo.svg?raw';
             aria-label="Chiudi menu"
             class="cursor-pointer"
           >
-            <i class="ph ph-x text-2xl"></i>
+            <Icon name="x" class="text-2xl" />
           </button>
         </div>
         <!-- TODO: contenuto menu di navigazione -->
@@ -107,63 +108,5 @@ import logoRaw from '../../assets/images/ildeposito-logo.svg?raw';
 </script>
 
 <script is:inline>
-  // is:inline obbligatorio: importa /pagefind/pagefind.js, generato da
-  // `pagefind --site dist` dopo la build e quindi non risolvibile da Vite/Rollup
-  // (vedi astro/src/scripts/search-modal.js).
-  class SearchModal extends HTMLElement {
-    connectedCallback() {
-      const input = this.querySelector('[data-search-input]');
-      const results = this.querySelector('[data-search-results]');
-      const form = this.querySelector('[data-search-form]');
-      let pagefind;
-      let debounceTimer;
-
-      const close = () => {
-        results.classList.add('hidden');
-        results.innerHTML = '';
-      };
-
-      form?.addEventListener('submit', (e) => {
-        if (!input.value.trim()) e.preventDefault();
-      });
-
-      input.addEventListener('input', () => {
-        clearTimeout(debounceTimer);
-        const query = input.value.trim();
-
-        if (!query) {
-          close();
-          return;
-        }
-
-        debounceTimer = setTimeout(async () => {
-          if (!pagefind) {
-            pagefind = await import('/pagefind/pagefind.js');
-            await pagefind.init();
-          }
-
-          const search = await pagefind.search(query);
-          const items = await Promise.all(search.results.slice(0, 8).map((r) => r.data()));
-
-          results.innerHTML = items.length
-            ? items.map((item) => `
-                <li>
-                  <a href="${item.url}">${item.meta.title ?? ''} <span class="text-base-content/50">[${item.meta.type ?? ''}]</span></a>
-                </li>
-              `).join('')
-            : '<li><span class="text-base-content/60">Nessun risultato</span></li>';
-
-          results.classList.remove('hidden');
-        }, 200);
-      });
-
-      document.addEventListener('click', (event) => {
-        if (!this.contains(event.target)) close();
-      });
-    }
-  }
-
-  if (!customElements.get('search-modal')) {
-    customElements.define('search-modal', SearchModal);
-  }
+if(!customElements.get('search-modal')){class S extends HTMLElement{connectedCallback(){const i=this.querySelector('[data-search-input]'),r=this.querySelector('[data-search-results]'),f=this.querySelector('[data-search-form]');let p,t;const c=()=>{r.classList.add('hidden');r.innerHTML=''};f?.addEventListener('submit',e=>{if(!i.value.trim())e.preventDefault()});i.addEventListener('input',()=>{clearTimeout(t);const q=i.value.trim();if(!q){c();return}t=setTimeout(async()=>{if(!p){p=await import('/pagefind/pagefind.js');await p.init()}const s=await p.search(q),d=await Promise.all(s.results.slice(0,8).map(x=>x.data()));r.innerHTML=d.length?d.map(x=>`<li><a href="${x.url}">${x.meta.title??''} <span class="text-base-content/50">[${x.meta.type??''}]</span></a></li>`).join(''):'<li><span class="text-base-content/60">Nessun risultato</span></li>';r.classList.remove('hidden')},200)});document.addEventListener('click',e=>{if(!this.contains(e.target))c()})}}customElements.define('search-modal',S)}
 </script>

@@ -1,8 +1,9 @@
 class ShareButton extends HTMLElement {
   connectedCallback() {
     const button = this.querySelector('button:not([data-share]):not([data-action])');
-    const dialog = this.querySelector('dialog');
+    const template = this.querySelector('template[data-share-template]');
     const title = this.dataset.title ?? document.title;
+    let dialog = null;
 
     button.addEventListener('click', () => {
       const url = window.location.href;
@@ -10,6 +11,13 @@ class ShareButton extends HTMLElement {
       if (navigator.share) {
         navigator.share({ title, url }).catch(() => {});
         return;
+      }
+
+      if (!dialog) {
+        const clone = template.content.cloneNode(true);
+        this.appendChild(clone);
+        dialog = this.querySelector('dialog');
+        this._bindDialog(dialog, title);
       }
 
       const facebook = dialog.querySelector('[data-share="facebook"]');
@@ -26,7 +34,9 @@ class ShareButton extends HTMLElement {
 
       dialog.showModal();
     });
+  }
 
+  _bindDialog(dialog) {
     const copyBtn = dialog.querySelector('[data-share="copy"]');
     if (copyBtn) {
       copyBtn.addEventListener('click', () => {

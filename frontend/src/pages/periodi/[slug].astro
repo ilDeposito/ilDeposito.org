@@ -3,6 +3,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import { getPeriodi } from '../../lib/api/index.js';
 import type { Periodo } from '../../lib/api/types.js';
+import { buildWebPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildCanonical } from '../../lib/seo.js';
+import { getOgImageForPeriodo } from '../../lib/og-image.js';
 
 export async function getStaticPaths() {
   const periodi = await getPeriodi();
@@ -13,8 +16,19 @@ export async function getStaticPaths() {
 }
 
 const { periodo } = Astro.props as { periodo: Periodo };
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const seoDescription = `I canti, gli autori e gli eventi storici del periodo "${periodo.titolo}" nell'archivio di ilDeposito.org.`;
+const jsonLd = [
+  buildWebPageSchema(`${periodo.titolo} — Canti, autori e eventi`, seoDescription, buildCanonical(Astro)),
+  buildBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Periodi', url: `${siteUrl}/periodi` },
+    { name: periodo.titolo },
+  ]),
+];
+const ogImage = await getOgImageForPeriodo(periodo);
 ---
-<BaseLayout title={periodo.titolo} description={`I contenuti del periodo ${periodo.titolo}`} pagefindType="periodi">
+<BaseLayout title={`${periodo.titolo} — Canti, autori e eventi`} description={seoDescription} pagefindType="periodi" jsonLd={jsonLd} ogImage={ogImage} ogImageAlt={ogImage ? `Immagine del periodo ${periodo.titolo}` : undefined}>
 
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">

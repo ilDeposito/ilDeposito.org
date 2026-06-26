@@ -2,8 +2,20 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import PagefindList from '../../components/ui/PagefindList.astro';
+import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildCanonical } from '../../lib/seo.js';
+
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const seoDescription = 'Le traduzioni dei canti di protesta in tutte le lingue: testi tradotti, lingue originali e versioni alternative.';
+const jsonLd = [
+  buildCollectionPageSchema('Traduzioni dei canti — Archivio', seoDescription, buildCanonical(Astro)),
+  buildBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Traduzioni' },
+  ]),
+];
 ---
-<BaseLayout title="Le traduzioni dell'archivio" description="L'elenco completo delle traduzioni dell'archivio">
+<BaseLayout title="Traduzioni dei canti — Archivio" description={seoDescription} jsonLd={jsonLd}>
 
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">

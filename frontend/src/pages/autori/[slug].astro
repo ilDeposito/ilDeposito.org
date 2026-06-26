@@ -1,8 +1,11 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import AuthorHeader from '../../components/ui/AuthorHeader.astro';
+import Icon from '../../components/base/Icon.astro';
 import { getAutori, getAutore, getCantiByAutoreMap } from '../../lib/api/index.js';
 import { buildPersonSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildAutoreTitle, buildAutoreDescription } from '../../lib/seo.js';
+import { getOgImageForAutore } from '../../lib/og-image.js';
 
 export async function getStaticPaths() {
   const autori = await getAutori();
@@ -28,16 +31,21 @@ const breadcrumbItems = [
   { label: 'Autori', href: '/autori' },
   { label: autore.titolo },
 ];
+const ogImage = await getOgImageForAutore(autore);
 const jsonLd = [
-  buildPersonSchema(autore, siteUrl),
+  buildPersonSchema(autore, siteUrl, ogImage),
   buildBreadcrumbSchema(breadcrumbItems.map((item) => ({ name: item.label, url: item.href ? `${siteUrl}${item.href}` : undefined }))),
 ];
 ---
 <BaseLayout
-  title={autore.titolo}
-  description={autore.informazioni || `${autore.titolo} — autore nell'archivio di ilDeposito.org`}
+  title={buildAutoreTitle(autore)}
+  description={buildAutoreDescription(autore, tuttiCanti.length)}
   pagefindType="autori"
   ogType="profile"
+  ogImage={ogImage}
+  ogImageAlt={ogImage ? `Foto di ${autore.titolo}` : undefined}
+  profileFirstName={autore.nome || undefined}
+  profileLastName={autore.cognome || undefined}
   jsonLd={jsonLd}
 >
 
@@ -73,8 +81,8 @@ const jsonLd = [
               <p class="text-sm text-base-content/50 flex items-center gap-2">
                 {canto.anno && <span class="italic">{canto.anno}</span>}
                 {canto.anno && <span>·</span>}
-                <i class={`ph ph-headphones ${canto.videoUrl ? 'text-primary' : 'text-base-content/30'}`}></i>
-                <i class={`ph ph-guitar ${canto.accordi ? 'text-primary' : 'text-base-content/30'}`}></i>
+                <Icon name="headphones" class={canto.videoUrl ? 'text-primary' : 'text-base-content/30'} />
+                <Icon name="guitar" class={canto.accordi ? 'text-primary' : 'text-base-content/30'} />
               </p>
               <h3 class="font-serif font-bold text-primary">
                 <a href={`/canti/${canto.slug}`} class="hover:underline">{canto.titolo}</a>
@@ -88,7 +96,7 @@ const jsonLd = [
 
         {haPiuDiDieci && (
           <a href={`/autori/${autore.slug}/canti`} class="btn btn-primary self-center mt-2">
-            <i class="ph ph-arrow-right"></i>
+            <Icon name="arrow-right" />
             Tutti i canti
           </a>
         )}
@@ -97,7 +105,7 @@ const jsonLd = [
 
     <!-- Informazioni -->
     {autore.informazioni && (
-      <section class="flex flex-col gap-2">
+      <section class="flex flex-col gap-2" style="content-visibility:auto;contain-intrinsic-size:auto 200px">
         <h2 class="font-serif font-bold text-lg md:text-xl text-base-content">Informazioni</h2>
         <div class="text-base text-base-content/80 leading-relaxed [&_a]:text-primary [&_a]:underline" set:html={autore.informazioni} />
       </section>

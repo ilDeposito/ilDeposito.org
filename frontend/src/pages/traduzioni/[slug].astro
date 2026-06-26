@@ -2,7 +2,10 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
+import Icon from '../../components/base/Icon.astro';
 import { getTraduzioni, getTraduzione } from '../../lib/api/index.js';
+import { buildTranslationSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildTraduzioneTitle, buildTraduzioneDescription, linguaToIso } from '../../lib/seo.js';
 
 export async function getStaticPaths() {
   const traduzioni = await getTraduzioni();
@@ -13,17 +16,23 @@ const { slug } = Astro.params;
 const traduzione = (await getTraduzione(slug))!;
 
 const cantoOriginale = traduzione.cantoOriginale;
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
 const breadcrumbItems = [
   { label: 'Home', href: '/' },
   { label: 'Traduzioni', href: '/traduzioni' },
   { label: traduzione.titolo },
 ];
+const jsonLd = [
+  buildTranslationSchema(traduzione, siteUrl),
+  buildBreadcrumbSchema(breadcrumbItems.map((item) => ({ name: item.label, url: item.href ? `${siteUrl}${item.href}` : undefined }))),
+];
 ---
 <BaseLayout
-  title={traduzione.titolo}
-  description={traduzione.informazioni || `Traduzione di ${traduzione.titolo} nell'archivio di ilDeposito.org`}
+  title={buildTraduzioneTitle(traduzione)}
+  description={buildTraduzioneDescription(traduzione)}
   pagefindType="traduzioni"
   ogType="article"
+  jsonLd={jsonLd}
 >
 
   <header class="bg-base-200 border-b-2 border-secondary">
@@ -58,7 +67,7 @@ const breadcrumbItems = [
       <div class="flex items-center gap-4 text-base text-base-content mt-1">
         <share-button data-title={traduzione.titolo} class="contents">
           <button type="button" class="inline-flex items-center gap-1 cursor-pointer" aria-label="Condividi questa traduzione">
-            <i class="ph ph-share-network"></i>
+            <Icon name="share-network" />
             Condividi
           </button>
           <ShareModal />
@@ -84,7 +93,7 @@ const breadcrumbItems = [
 
     <!-- Testo -->
     <section>
-      <pre class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{traduzione.testo}</pre>
+      <pre lang={linguaToIso(traduzione.lingue?.[0]?.titolo)} class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{traduzione.testo}</pre>
     </section>
 
     <!-- Informazioni -->

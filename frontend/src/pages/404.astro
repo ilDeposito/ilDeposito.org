@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/base/Icon.astro';
 ---
 <BaseLayout title="Pagina non trovata" description="La pagina richiesta non esiste" noindex={true}>
 
@@ -17,19 +18,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <ul class="flex flex-col gap-2">
       <li>
         <a href="/" class="inline-flex items-center gap-2 text-primary hover:underline">
-          <i class="ph ph-house"></i>
+          <Icon name="house" />
           Torna alla homepage
         </a>
       </li>
       <li>
         <a href="/cerca" class="inline-flex items-center gap-2 text-primary hover:underline">
-          <i class="ph ph-magnifying-glass"></i>
+          <Icon name="magnifying-glass" />
           Cerca nell'archivio
         </a>
       </li>
       <li>
         <a href="/canti" class="inline-flex items-center gap-2 text-primary hover:underline">
-          <i class="ph ph-music-notes"></i>
+          <Icon name="music-notes" />
           Esplora i canti
         </a>
       </li>

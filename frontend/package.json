@@ -17,7 +17,7 @@
     "@fontsource/bitter": "^5.2.10",
     "@fontsource/ibm-plex-mono": "^5.2.7",
     "@fontsource/source-sans-3": "^5.2.9",
-    "@phosphor-icons/web": "^2.1.2",
+    "@phosphor-icons/core": "^2.1.1",
     "astro": "^6.4.4",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",

@@ -2,6 +2,8 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Breadcrumb from '../components/ui/Breadcrumb.astro';
 import { getInformazioni, getInformazione } from '../lib/api/index.js';
+import { buildWebPageSchema, buildBreadcrumbSchema } from '../lib/schema.js';
+import { buildCanonical } from '../lib/seo.js';
 
 export async function getStaticPaths() {
   const items = await getInformazioni();
@@ -10,8 +12,17 @@ export async function getStaticPaths() {
 
 const { percorso } = Astro.params;
 const pagina = (await getInformazione(percorso))!;
+
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const jsonLd = [
+  buildWebPageSchema(pagina.titolo, pagina.testo || '', buildCanonical(Astro)),
+  buildBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: pagina.titolo },
+  ]),
+];
 ---
-<BaseLayout title={pagina.titolo} description={pagina.testo || ''}>
+<BaseLayout title={pagina.titolo} description={pagina.testo || ''} jsonLd={jsonLd}>
 
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">

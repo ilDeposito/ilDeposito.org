@@ -8,6 +8,10 @@ interface Props {
   ogImageAlt?: string;
   noindex?: boolean;
   publishedTime?: string;
+  articleSection?: string;
+  articleTags?: string[];
+  profileFirstName?: string;
+  profileLastName?: string;
   jsonLd?: object | object[];
 }
 
@@ -20,10 +24,17 @@ const {
   ogImageAlt,
   noindex = false,
   publishedTime,
+  articleSection,
+  articleTags,
+  profileFirstName,
+  profileLastName,
   jsonLd,
 } = Astro.props;
 
-const jsonLdItems = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+const jsonLdRaw = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+const jsonLdGraph = jsonLdRaw.length > 0
+  ? { '@context': 'https://schema.org', '@graph': jsonLdRaw.map(({ '@context': _, ...rest }) => rest) }
+  : null;
 ---
 
 <title>{title}</title>
@@ -51,7 +62,12 @@ const jsonLdItems = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
 {ogImage && <meta name="twitter:image" content={ogImage} />}
 
 {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+{articleSection && <meta property="article:section" content={articleSection} />}
+{articleTags?.map((tag) => <meta property="article:tag" content={tag} />)}
 
-{jsonLdItems.map((item) => (
-  <script type="application/ld+json" set:html={JSON.stringify(item)} />
-))}
+{profileFirstName && <meta property="profile:first_name" content={profileFirstName} />}
+{profileLastName && <meta property="profile:last_name" content={profileLastName} />}
+
+{jsonLdGraph && (
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLdGraph)} />
+)}

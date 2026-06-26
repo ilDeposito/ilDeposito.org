@@ -1,21 +1,17 @@
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import 'leaflet.markercluster';
-import 'leaflet.markercluster/dist/MarkerCluster.css';
-import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-import markerIcon from 'leaflet/dist/images/marker-icon.png?url';
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png?url';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png?url';
-
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
-});
-
 class EventsMap extends HTMLElement {
   connectedCallback() {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        observer.disconnect();
+        this._initMap();
+      },
+      { rootMargin: '200px' }
+    );
+    observer.observe(this);
+  }
+
+  async _initMap() {
     const raw = this.dataset.eventi;
     if (!raw) return;
 
@@ -23,9 +19,27 @@ class EventsMap extends HTMLElement {
     try { eventi = JSON.parse(raw); } catch { return; }
     if (!eventi.length) return;
 
-    const map = L.map(this, { scrollWheelZoom: false });
+    const [{ default: L }, { default: markerIcon }, { default: markerIcon2x }, { default: markerShadow }] = await Promise.all([
+      import('leaflet'),
+      import('leaflet/dist/images/marker-icon.png?url'),
+      import('leaflet/dist/images/marker-icon-2x.png?url'),
+      import('leaflet/dist/images/marker-shadow.png?url'),
+    ]);
+    await Promise.all([
+      import('leaflet/dist/leaflet.css'),
+      import('leaflet.markercluster'),
+      import('leaflet.markercluster/dist/MarkerCluster.css'),
+      import('leaflet.markercluster/dist/MarkerCluster.Default.css'),
+    ]);
 
-    // Rimuove il grigio Leaflet visibile quando i tile non coprono tutta l'area
+    delete L.Icon.Default.prototype._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconUrl: markerIcon,
+      iconRetinaUrl: markerIcon2x,
+      shadowUrl: markerShadow,
+    });
+
+    const map = L.map(this, { scrollWheelZoom: false });
     this.style.backgroundColor = '#a8c8d8';
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -33,7 +47,6 @@ class EventsMap extends HTMLElement {
       maxZoom: 19,
     }).addTo(map);
 
-    // Mobile: 1 dito scorre la pagina, 2 dita muovono la mappa
     if (L.Browser.touch) {
       map.dragging.disable();
       this.addEventListener('touchstart', (e) => {

@@ -1,9 +1,10 @@
 ---
 import { Image } from 'astro:assets';
 import type { AutoreDetail } from '../../lib/api/types.js';
-import { getAutoreImageUrl } from '../../lib/api/index.js';
+import { getImageUrl } from '../../lib/api/index.js';
 import Breadcrumb from './Breadcrumb.astro';
 import ShareModal from './ShareModal.astro';
+import Icon from '../base/Icon.astro';
 
 interface Props {
   autore: AutoreDetail;
@@ -17,7 +18,7 @@ if (autore.annoNascita && autore.annoMorte) anni = `${autore.annoNascita} - ${au
 else if (autore.annoNascita) anni = `${autore.annoNascita}`;
 else if (autore.annoMorte) anni = `${autore.annoMorte}`;
 
-const immagineUrl = autore.immagine ? await getAutoreImageUrl(autore.immagine) : null;
+const immagineUrl = getImageUrl(autore.immagine);
 ---
 <header class="bg-base-200 border-b-2 border-secondary">
   <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
@@ -28,9 +29,12 @@ const immagineUrl = autore.immagine ? await getAutoreImageUrl(autore.immagine) :
         <Image
           src={immagineUrl}
           alt={"Foto di " + autore.titolo}
-          width={80}
-          height={80}
+          width={160}
+          height={160}
+          format="webp"
+          quality={80}
           loading="eager"
+          fetchpriority="high"
           class="w-20 h-20 rounded-full object-cover shrink-0 border-2 border-base-300"
         />
       )}
@@ -52,7 +56,7 @@ const immagineUrl = autore.immagine ? await getAutoreImageUrl(autore.immagine) :
 
     <share-button data-title={autore.titolo} class="contents">
       <button type="button" class="inline-flex items-center gap-1 cursor-pointer w-fit" aria-label="Condividi questo autore">
-        <i class="ph ph-share-network"></i>
+        <Icon name="share-network" />
         Condividi
       </button>
       <ShareModal />

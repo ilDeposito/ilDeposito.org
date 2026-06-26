@@ -155,13 +155,15 @@ export async function getEvento(slug: string): Promise<EventoDetail | null> {
   if (!uuid) return null;
 
   const response = await fetchJsonApi(`/jsonapi/node/evento/${uuid}`, new URLSearchParams({
-    'fields[node--evento]': 'drupal_internal__nid,title,path,field_data_evento,field_informazioni,field_geofield,field_localizzazione,field_periodo,field_tags,field_tematiche,field_canti_correlati',
+    'fields[node--evento]': 'drupal_internal__nid,title,path,field_data_evento,field_informazioni,field_immagine,field_geofield,field_localizzazione,field_periodo,field_tags,field_tematiche,field_canti_correlati',
     'fields[node--canto]': 'drupal_internal__nid,title,path,field_anno,field_capoverso,field_audio,field_canto_accordi,status',
     'fields[taxonomy_term--localizzazioni]': 'name,path',
     'fields[taxonomy_term--periodi]': 'name,path',
     'fields[taxonomy_term--tags]': 'name,path',
     'fields[taxonomy_term--tematiche]': 'name,path',
-    'include': 'field_localizzazione,field_periodo,field_tags,field_tematiche,field_canti_correlati',
+    'fields[media--image]': 'field_media_image',
+    'fields[file--file]': 'uri',
+    'include': 'field_immagine,field_immagine.field_media_image,field_localizzazione,field_periodo,field_tags,field_tematiche,field_canti_correlati',
   }));
 
   const item = Array.isArray(response.data) ? response.data[0] : response.data;

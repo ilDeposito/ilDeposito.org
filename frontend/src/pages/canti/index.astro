@@ -3,9 +3,22 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
 import CantoCard from '../../components/ui/CantoCard.astro';
+import Icon from '../../components/base/Icon.astro';
 import { getCantiPiuVisti } from '../../lib/api/index.js';
+import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildCanonical } from '../../lib/seo.js';
 
 const canti = await getCantiPiuVisti(10);
+
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const seoDescription = 'Esplora l\'archivio completo dei canti di protesta politica e sociale: testi, accordi, traduzioni e informazioni storiche.';
+const jsonLd = [
+  buildCollectionPageSchema('Canti di protesta — Archivio completo', seoDescription, buildCanonical(Astro)),
+  buildBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Canti' },
+  ]),
+];
 
 const cantiConAutori = canti.map((canto) => {
   const autori = [...canto.autoriTesto, ...canto.autoriMusica].filter(
@@ -14,7 +27,7 @@ const cantiConAutori = canti.map((canto) => {
   return { canto, autori };
 });
 ---
-<BaseLayout title="I canti dell'archivio" description="La pagina di accesso all'archivio dei canti">
+<BaseLayout title="Canti di protesta — Archivio completo" description={seoDescription} jsonLd={jsonLd}>
 
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
@@ -26,12 +39,12 @@ const cantiConAutori = canti.map((canto) => {
 
       <a href="/canti/elenco" class="btn btn-primary btn-sm gap-2 w-fit border-0">
         Tutti i canti dell'archivio
-        <i class="ph ph-arrow-right"></i>
+        <Icon name="arrow-right" />
       </a>
 
       <share-button data-title="I canti dell'archivio" class="contents">
         <button type="button" class="inline-flex items-center gap-1 cursor-pointer w-fit" aria-label="Condividi questa pagina">
-          <i class="ph ph-share-network"></i>
+          <Icon name="share-network" />
           Condividi
         </button>
         <ShareModal />
@@ -55,7 +68,7 @@ const cantiConAutori = canti.map((canto) => {
 
       <a href="/canti/elenco" class="btn btn-primary self-center mt-4 gap-2">
         Tutti i canti dell'archivio
-        <i class="ph ph-arrow-right"></i>
+        <Icon name="arrow-right" />
       </a>
     </section>
 

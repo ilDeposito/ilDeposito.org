@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
+import Icon from '../../components/base/Icon.astro';
 import MonthCalendar from '../../components/ui/MonthCalendar.astro';
 import { getEventiCalendario } from '../../lib/api/index.js';
 
@@ -19,7 +20,7 @@ for (const evento of eventi) {
 
 const year = new Date().getFullYear();
 ---
-<BaseLayout title="Calendario cantato" description="Gli anniversari degli eventi storici, giorno per giorno">
+<BaseLayout title="Calendario cantato — Anniversari storici" description="Il calendario cantato di ilDeposito.org: gli anniversari degli eventi storici legati ai canti di protesta, giorno per giorno.">
 
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
@@ -30,7 +31,7 @@ const year = new Date().getFullYear();
 
       <share-button data-title="Calendario cantato" class="contents">
         <button type="button" class="inline-flex items-center gap-1 cursor-pointer w-fit" aria-label="Condividi questa pagina">
-          <i class="ph ph-share-network"></i>
+          <Icon name="share-network" />
           Condividi
         </button>
         <ShareModal />

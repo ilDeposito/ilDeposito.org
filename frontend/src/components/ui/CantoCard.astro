@@ -1,4 +1,5 @@
 ---
+import Icon from '../base/Icon.astro';
 import type { Ref } from '../../lib/api/types.js';
 
 interface Props {
@@ -19,8 +20,8 @@ const { canto, autori = [] } = Astro.props;
   <p class="text-sm text-base-content/50 flex items-center gap-2">
     {canto.anno && <span class="italic">{canto.anno}</span>}
     {canto.anno && <span aria-hidden="true">·</span>}
-    <i class={`ph ph-headphones ${canto.videoUrl ? 'text-primary' : 'text-base-content/30'}`}></i>
-    <i class={`ph ph-guitar ${canto.accordi ? 'text-primary' : 'text-base-content/30'}`}></i>
+    <Icon name="headphones" class={canto.videoUrl ? 'text-primary' : 'text-base-content/30'} />
+    <Icon name="guitar" class={canto.accordi ? 'text-primary' : 'text-base-content/30'} />
   </p>
   <h3 class="font-serif font-semibold text-primary">
     <a href={`/canti/${canto.slug}`} class="hover:underline">{canto.titolo}</a>
