@@ -1,6 +1,7 @@
 import { fetchJsonApi, fetchAllJsonApi } from './client.js';
 import { buildIncludedMap, extractSlug } from './resolvers.js';
 import { mapAutoreCard, mapAutoreDetail, mapCantoInAutore } from './mappers.js';
+import { resolveImageUrl } from './resolvers.js';
 import type { AutorePath, AutoreCard, AutoreDetail, CantoInAutore } from '../types.js';
 
 let slugToUuidCache: Map<string, string> | null = null;
@@ -43,7 +44,7 @@ export async function getAutori(): Promise<AutorePath[]> {
 export async function getAutoriPiuVisti(limit = 20): Promise<AutoreCard[]> {
   const { data, included } = await fetchJsonApi('/jsonapi/node/autore', new URLSearchParams({
     'filter[status]': '1',
-    'fields[node--autore]': 'drupal_internal__nid,title,path,field_immagine,field_localizzazione,field_visualizzazioni',
+    'fields[node--autore]': 'drupal_internal__nid,title,path,field_immagine,field_localizzazione,field_visualizzazioni,field_anno_di_nascita,field_anno_di_morte',
     'fields[taxonomy_term--localizzazioni]': 'name,path',
     'fields[media--image]': 'field_media_image',
     'fields[file--file]': 'uri',
@@ -74,6 +75,25 @@ export async function getAutore(slug: string): Promise<AutoreDetail | null> {
 
   const map = buildIncludedMap(response.included);
   return mapAutoreDetail(item, map);
+}
+
+export async function getAutoriImmaginiMap(): Promise<Map<string, string | null>> {
+  const { data, included } = await fetchAllJsonApi('/jsonapi/node/autore', new URLSearchParams({
+    'filter[status]': '1',
+    'fields[node--autore]': 'path,field_immagine',
+    'fields[media--image]': 'field_media_image',
+    'fields[file--file]': 'uri',
+    'include': 'field_immagine,field_immagine.field_media_image',
+    'page[limit]': '50',
+  }));
+
+  const map = buildIncludedMap(included);
+  const result = new Map<string, string | null>();
+  for (const item of data) {
+    const slug = extractSlug(item.attributes.path?.alias);
+    result.set(slug, resolveImageUrl(item.relationships.field_immagine, map));
+  }
+  return result;
 }
 
 let cantiByAutoreCache: Map<number | string, CantoInAutore[]> | null = null;

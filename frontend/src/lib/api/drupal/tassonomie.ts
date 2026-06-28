@@ -1,7 +1,7 @@
 import { fetchAllJsonApi } from './client.js';
 import { extractSlug, buildIncludedMap, resolveImageUrl } from './resolvers.js';
 import type {
-  Tassonomia, Periodo,
+  Tassonomia, Periodo, Tag,
   ContenutiLingua, ContenutiLocalizzazione, ContenutiPeriodo, ContenutiTag,
 } from '../types.js';
 
@@ -19,7 +19,7 @@ function mapTassonomia(item: any): Tassonomia {
 
 export async function getLingue(): Promise<Tassonomia[]> {
   const { data } = await fetchAllJsonApi('/jsonapi/taxonomy_term/lingue', new URLSearchParams({
-    'fields[taxonomy_term--lingue]': 'name,path',
+    'fields[taxonomy_term--lingue]': 'drupal_internal__tid,name,path',
     'page[limit]': '50',
   }));
 
@@ -67,7 +67,7 @@ export async function getContenutiByLinguaMap(): Promise<Map<number | string, Co
 
 export async function getLocalizzazioni(): Promise<Tassonomia[]> {
   const { data } = await fetchAllJsonApi('/jsonapi/taxonomy_term/localizzazioni', new URLSearchParams({
-    'fields[taxonomy_term--localizzazioni]': 'name,path',
+    'fields[taxonomy_term--localizzazioni]': 'drupal_internal__tid,name,path',
     'page[limit]': '50',
   }));
 
@@ -115,7 +115,7 @@ export async function getContenutiByLocalizzazioneMap(): Promise<Map<number | st
 
 export async function getPeriodi(): Promise<Periodo[]> {
   const { data, included } = await fetchAllJsonApi('/jsonapi/taxonomy_term/periodi', new URLSearchParams({
-    'fields[taxonomy_term--periodi]': 'name,path,weight,field_immagine',
+    'fields[taxonomy_term--periodi]': 'drupal_internal__tid,name,path,weight,field_immagine',
     'fields[media--image]': 'field_media_image',
     'fields[file--file]': 'uri',
     'include': 'field_immagine,field_immagine.field_media_image',
@@ -181,14 +181,22 @@ export async function getContenutiByPeriodoMap(): Promise<Map<number | string, C
 
 // ── Tags ───────────────────────────────────────────────
 
-export async function getTags(): Promise<Tassonomia[]> {
-  const { data } = await fetchAllJsonApi('/jsonapi/taxonomy_term/tags', new URLSearchParams({
-    'fields[taxonomy_term--tags]': 'name,path',
+export async function getTags(): Promise<Tag[]> {
+  const { data, included } = await fetchAllJsonApi('/jsonapi/taxonomy_term/tags', new URLSearchParams({
+    'fields[taxonomy_term--tags]': 'drupal_internal__tid,name,path,field_immagine',
+    'fields[media--image]': 'field_media_image',
+    'fields[file--file]': 'uri',
+    'include': 'field_immagine,field_immagine.field_media_image',
     'page[limit]': '50',
   }));
 
+  const map = buildIncludedMap(included);
+
   return data
-    .map(mapTassonomia)
+    .map((item: any): Tag => ({
+      ...mapTassonomia(item),
+      immagine: resolveImageUrl(item.relationships?.field_immagine, map),
+    }))
     .sort((a, b) => a.titolo.localeCompare(b.titolo, 'it'));
 }
 

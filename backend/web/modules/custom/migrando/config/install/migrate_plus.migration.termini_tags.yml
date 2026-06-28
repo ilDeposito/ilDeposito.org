@@ -23,6 +23,9 @@ source:
       name: description
       selector: description
     -
+      name: immagine
+      selector: immagine 
+    -   
   ids:
     tid:
       type: string
@@ -37,6 +40,10 @@ process:
   'description/format':
     plugin: default_value
     default_value: basic_html
+  field_immagine:
+    plugin: migration_lookup
+    migration: media
+    source: immagine    
 
 destination:
   plugin: entity:taxonomy_term

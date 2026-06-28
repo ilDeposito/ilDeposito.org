@@ -3,7 +3,6 @@ import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
-import EventCard from '../../components/ui/EventCard.astro';
 import Icon from '../../components/base/Icon.astro';
 import {
   getEventiDelMese,
@@ -19,7 +18,7 @@ const month = now.getUTCMonth() + 1;
 
 const [eventiMese, eventiPiuVisti, eventiGeo] = await Promise.all([
   getEventiDelMese(month),
-  getEventiPiuVisti(10),
+  getEventiPiuVisti(12),
   getEventiGeo(),
 ]);
 
@@ -56,6 +55,11 @@ const eventiGeoJson = JSON.stringify(
     longitude:   e.longitude,
   }))
 );
+
+const eventiConDati = eventiPiuVisti.map((evento) => ({
+  evento,
+  immagineUrl: getImageUrl(evento.immagine),
+}));
 ---
 <BaseLayout title="Eventi storici — Archivio" description={seoDescription} jsonLd={jsonLd} dnsPrefetch={['https://tile.openstreetmap.org']}>
 
@@ -93,7 +97,7 @@ const eventiGeoJson = JSON.stringify(
 
         <image-carousel
           data-initial={String(startIndex)}
-          class="block relative"
+          class="block relative max-w-3xl mx-auto w-full"
         >
           <!-- Viewport -->
           <div data-viewport class="overflow-hidden relative">
@@ -176,14 +180,68 @@ const eventiGeoJson = JSON.stringify(
     )}
 
     <!-- Eventi più visti -->
-    <section class="flex flex-col gap-2">
+    <section class="flex flex-col gap-8">
       <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
         Gli eventi più visti
       </h2>
 
-      <div class="flex flex-col divide-y divide-secondary/30">
-        {eventiPiuVisti.map((evento) => (
-          <EventCard evento={evento} />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+        {eventiConDati.map(({ evento, immagineUrl }, i) => (
+          <div class="flex items-start gap-5 group relative">
+            <div class="shrink-0">
+              {immagineUrl ? (
+                <Image
+                  src={immagineUrl}
+                  alt={"Immagine dell'evento: " + evento.titolo}
+                  width={240}
+                  height={240}
+                  format="webp"
+                  quality={80}
+                  loading={i < 4 ? 'eager' : 'lazy'}
+                  class="w-32 h-32 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
+                />
+              ) : (
+                <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">
+                  <Icon name="calendar-star" class="text-base-content/30 text-5xl" />
+                </div>
+              )}
+            </div>
+
+            <div class="flex flex-col gap-1.5 min-w-0 pt-2">
+              <h3 class="font-serif font-bold text-xl md:text-2xl text-primary leading-tight">
+                <a href={`/eventi/${evento.slug}`} class="hover:underline after:absolute after:inset-0">{evento.titolo}</a>
+              </h3>
+
+              {evento.dataEvento && (
+                <p class="text-base text-base-content/50 flex items-center gap-2">
+                  <Icon name="calendar-blank" class="text-sm shrink-0" />
+                  {formatData(evento.dataEvento)}
+                </p>
+              )}
+
+              {evento.localizzazioni.length > 0 && (
+                <p class="text-base text-base-content/60 flex items-center gap-2 relative z-10">
+                  <Icon name="map-pin" class="text-sm shrink-0" />
+                  <span>
+                    {evento.localizzazioni.map((l, j) => (
+                      <>{j > 0 && ', '}<a href={`/localizzazioni/${l.slug}`} class="hover:text-primary hover:underline">{l.titolo}</a></>
+                    ))}
+                  </span>
+                </p>
+              )}
+
+              {evento.periodi.length > 0 && (
+                <p class="text-base text-base-content/50 flex items-center gap-2 relative z-10">
+                  <Icon name="calendar-star" class="text-sm shrink-0" />
+                  <span>
+                    {evento.periodi.map((p, j) => (
+                      <>{j > 0 && ', '}<a href={`/periodi/${p.slug}`} class="hover:text-primary hover:underline">{p.titolo}</a></>
+                    ))}
+                  </span>
+                </p>
+              )}
+            </div>
+          </div>
         ))}
       </div>
 
@@ -201,7 +259,8 @@ const eventiGeoJson = JSON.stringify(
         </h2>
         <events-map
           data-eventi={eventiGeoJson}
-          class="block h-96 w-full rounded-lg overflow-hidden border border-base-300"
+          class="block w-full rounded-lg overflow-hidden border border-base-300"
+          style="height: 24rem;"
         ></events-map>
       </section>
     )}

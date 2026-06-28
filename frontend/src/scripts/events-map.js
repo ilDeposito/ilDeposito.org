@@ -1,3 +1,16 @@
+import 'leaflet/dist/leaflet.css';
+import markerClusterCss from 'leaflet.markercluster/dist/MarkerCluster.css?inline';
+import markerClusterDefaultCss from 'leaflet.markercluster/dist/MarkerCluster.Default.css?inline';
+
+const cssInjected = false;
+function injectMarkerClusterCss() {
+  if (document.querySelector('[data-marker-cluster-css]')) return;
+  const style = document.createElement('style');
+  style.setAttribute('data-marker-cluster-css', '');
+  style.textContent = markerClusterCss + markerClusterDefaultCss;
+  document.head.appendChild(style);
+}
+
 class EventsMap extends HTMLElement {
   connectedCallback() {
     const observer = new IntersectionObserver(
@@ -19,18 +32,20 @@ class EventsMap extends HTMLElement {
     try { eventi = JSON.parse(raw); } catch { return; }
     if (!eventi.length) return;
 
+    injectMarkerClusterCss();
+
+    const container = document.createElement('div');
+    container.style.width = '100%';
+    container.style.height = '100%';
+    this.appendChild(container);
+
     const [{ default: L }, { default: markerIcon }, { default: markerIcon2x }, { default: markerShadow }] = await Promise.all([
       import('leaflet'),
       import('leaflet/dist/images/marker-icon.png?url'),
       import('leaflet/dist/images/marker-icon-2x.png?url'),
       import('leaflet/dist/images/marker-shadow.png?url'),
     ]);
-    await Promise.all([
-      import('leaflet/dist/leaflet.css'),
-      import('leaflet.markercluster'),
-      import('leaflet.markercluster/dist/MarkerCluster.css'),
-      import('leaflet.markercluster/dist/MarkerCluster.Default.css'),
-    ]);
+    await import('leaflet.markercluster');
 
     delete L.Icon.Default.prototype._getIconUrl;
     L.Icon.Default.mergeOptions({
@@ -39,8 +54,8 @@ class EventsMap extends HTMLElement {
       shadowUrl: markerShadow,
     });
 
-    const map = L.map(this, { scrollWheelZoom: false });
-    this.style.backgroundColor = '#a8c8d8';
+    const map = L.map(container, { scrollWheelZoom: false });
+    container.style.backgroundColor = '#a8c8d8';
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -70,6 +85,7 @@ class EventsMap extends HTMLElement {
 
     map.addLayer(cluster);
     map.fitBounds(cluster.getBounds(), { padding: [20, 20] });
+    requestAnimationFrame(() => map.invalidateSize());
   }
 }
 

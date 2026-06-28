@@ -14,7 +14,3 @@ ddev drush mim canti_correlati
 ddev drush mim autori_correlati
 ddev drush mim eventi
 ddev drush mim traduzioni
-ddev drush mim stats_canti
-ddev drush mim stats_autori
-ddev drush mim stats_eventi
-ddev drush mim stats_traduzioni

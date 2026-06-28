@@ -110,10 +110,12 @@ export async function getEventiDelGiorno(): Promise<EventoDelGiorno[]> {
 export async function getEventiPiuVisti(limit = 10): Promise<EventoCard[]> {
   const { data, included } = await fetchJsonApi('/jsonapi/node/evento', new URLSearchParams({
     'filter[status]': '1',
-    'fields[node--evento]': 'drupal_internal__nid,title,path,field_data_evento,field_localizzazione,field_periodo,field_visualizzazioni',
+    'fields[node--evento]': 'drupal_internal__nid,title,path,field_data_evento,field_immagine,field_localizzazione,field_periodo,field_visualizzazioni',
     'fields[taxonomy_term--localizzazioni]': 'name,path',
     'fields[taxonomy_term--periodi]': 'name,path',
-    'include': 'field_localizzazione,field_periodo',
+    'fields[media--image]': 'field_media_image',
+    'fields[file--file]': 'uri',
+    'include': 'field_localizzazione,field_periodo,field_immagine,field_immagine.field_media_image',
     'sort': '-field_visualizzazioni',
     'page[limit]': String(Math.min(limit, 50)),
   }));

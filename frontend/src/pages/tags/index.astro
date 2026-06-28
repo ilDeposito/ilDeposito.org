@@ -3,7 +3,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
 import Icon from '../../components/base/Icon.astro';
-import { getTags, getContenutiByTagMap } from '../../lib/api/index.js';
+import { Image } from 'astro:assets';
+import { getTags, getContenutiByTagMap, getImageUrl } from '../../lib/api/index.js';
 import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
 import { buildCanonical } from '../../lib/seo.js';
 
@@ -39,31 +40,63 @@ const jsonLd = [
       </share-button>
     </div>
   </header>
+
   <div class="max-w-6xl mx-auto px-4 py-8">
 
-  <article class="grid grid-cols-2 gap-x-4 gap-y-2 mt-6">
-    {tags.map((tag) => {
-      const { canti = 0, eventi = 0 } = contenutiMap.get(tag.id) ?? {};
-      const parti = [
-        canti > 0 && `${canti} ${canti === 1 ? 'canto' : 'canti'}`,
-        eventi > 0 && `${eventi} ${eventi === 1 ? 'evento' : 'eventi'}`,
-      ].filter(Boolean);
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10 mt-6">
+      {tags.map((tag, i) => {
+        const { canti = 0, eventi = 0 } = contenutiMap.get(tag.id) ?? {};
+        const immagineUrl = getImageUrl(tag.immagine);
 
-      return (
-        <div class="flex flex-col gap-0.5 py-2">
-          <a href={`/tags/${tag.slug}`} class="font-serif font-semibold text-primary hover:underline">
-            {tag.titolo}
-          </a>
-          {parti.length > 0 && (
-            <p class="font-serif italic text-base text-base-content/60">{parti.join(' · ')}</p>
-          )}
-        </div>
-      );
-    })}
-  </article>
+        return (
+          <div class="flex items-start gap-5 group relative">
+            <div class="shrink-0">
+              {immagineUrl ? (
+                <Image
+                  src={immagineUrl}
+                  alt={"Immagine del tag: " + tag.titolo}
+                  width={240}
+                  height={240}
+                  format="webp"
+                  quality={80}
+                  loading={i < 4 ? 'eager' : 'lazy'}
+                  class="w-32 h-32 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
+                />
+              ) : (
+                <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">
+                  <Icon name="funnel" class="text-base-content/30 text-5xl" />
+                </div>
+              )}
+            </div>
+
+            <div class="flex flex-col gap-2 min-w-0 pt-2">
+              <h2 class="font-serif font-bold text-xl md:text-2xl text-primary leading-tight">
+                <a href={`/tags/${tag.slug}`} class="hover:underline after:absolute after:inset-0">{tag.titolo}</a>
+              </h2>
+
+              <div class="flex flex-wrap gap-x-5 gap-y-1.5">
+                {canti > 0 && (
+                  <p class="text-lg text-base-content/60 flex items-center gap-2">
+                    <Icon name="music-notes" class="text-base text-primary/70 shrink-0" />
+                    <span class="font-bold text-base-content">{canti}</span> {canti === 1 ? 'canto' : 'canti'}
+                  </p>
+                )}
+                {eventi > 0 && (
+                  <p class="text-lg text-base-content/60 flex items-center gap-2">
+                    <Icon name="calendar-star" class="text-base text-primary/70 shrink-0" />
+                    <span class="font-bold text-base-content">{eventi}</span> {eventi === 1 ? 'evento' : 'eventi'}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+
+  </div>
 
   <script>
     import '../../scripts/share-button.js';
   </script>
-  </div>
 </BaseLayout>

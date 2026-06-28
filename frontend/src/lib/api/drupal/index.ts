@@ -1,5 +1,5 @@
 export { getCanti, getCantiRecenti, getCantiPiuVisti, getCanto } from './canti.js';
-export { getAutori, getAutoriPiuVisti, getAutore, getCantiByAutoreMap } from './autori.js';
+export { getAutori, getAutoriPiuVisti, getAutore, getAutoriImmaginiMap, getCantiByAutoreMap } from './autori.js';
 export {
   getEventi, getEventiForCanto, getEventiDelMese, getEventiDelGiorno,
   getEventiPiuVisti, getEventiCalendario, getEventiGeo, getEvento,

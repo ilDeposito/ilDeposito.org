@@ -1,3 +1,5 @@
+import 'leaflet/dist/leaflet.css';
+
 class EventMap extends HTMLElement {
   connectedCallback() {
     const observer = new IntersectionObserver(
@@ -22,8 +24,6 @@ class EventMap extends HTMLElement {
       import('leaflet/dist/images/marker-icon-2x.png?url'),
       import('leaflet/dist/images/marker-shadow.png?url'),
     ]);
-    await import('leaflet/dist/leaflet.css');
-
     delete L.Icon.Default.prototype._getIconUrl;
     L.Icon.Default.mergeOptions({
       iconUrl: markerIcon,

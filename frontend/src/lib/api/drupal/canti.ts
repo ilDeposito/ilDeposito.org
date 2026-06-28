@@ -6,7 +6,7 @@ import type { CantoPath, CantoRecente, CantoCard, CantoDetail } from '../types.j
 const CANTO_CARD_FIELDS = [
   'drupal_internal__nid', 'title', 'path', 'field_anno', 'field_capoverso',
   'field_audio', 'field_canto_accordi', 'field_autori_testo', 'field_autori_musica',
-  'field_visualizzazioni',
+  'field_visualizzazioni', 'field_periodo',
 ].join(',');
 
 const CANTO_DETAIL_FIELDS = [
@@ -16,7 +16,7 @@ const CANTO_DETAIL_FIELDS = [
   'field_lingua', 'field_periodo', 'field_tags', 'field_tematiche',
 ].join(',');
 
-const CANTO_CARD_INCLUDE = 'field_autori_testo,field_autori_musica';
+const CANTO_CARD_INCLUDE = 'field_autori_testo,field_autori_musica,field_periodo';
 const CANTO_DETAIL_INCLUDE = 'field_autori_testo,field_autori_musica,field_lingua,field_periodo,field_tags,field_tematiche';
 
 let slugToUuidCache: Map<string, string> | null = null;
@@ -73,6 +73,7 @@ export async function getCantiPiuVisti(limit = 10): Promise<CantoCard[]> {
     'filter[status]': '1',
     'fields[node--canto]': CANTO_CARD_FIELDS,
     'fields[node--autore]': 'drupal_internal__nid,title,path',
+    'fields[taxonomy_term--periodi]': 'name,path',
     'include': CANTO_CARD_INCLUDE,
     'sort': '-field_visualizzazioni',
     'page[limit]': String(Math.min(limit, 50)),

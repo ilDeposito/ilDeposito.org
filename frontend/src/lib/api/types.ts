@@ -30,6 +30,7 @@ export interface CantoCard {
   visualizzazioni: number;
   autoriTesto: Ref[];
   autoriMusica: Ref[];
+  periodi: Ref[];
 }
 
 export interface CantoDetail extends CantoCard {
@@ -77,6 +78,8 @@ export interface AutoreCard {
   immagine: string | null;
   visualizzazioni: number;
   localizzazioni: Ref[];
+  annoNascita: number | null;
+  annoMorte: number | null;
 }
 
 export interface AutoreDetail {
@@ -127,6 +130,7 @@ export interface EventoCard {
   titolo: string;
   slug: string;
   dataEvento: string | null;
+  immagine: string | null;
   visualizzazioni: number;
   localizzazioni: Ref[];
   periodi: Ref[];
@@ -197,6 +201,10 @@ export interface Tassonomia {
 
 export interface Periodo extends Tassonomia {
   sort: number;
+  immagine: string | null;
+}
+
+export interface Tag extends Tassonomia {
   immagine: string | null;
 }
 

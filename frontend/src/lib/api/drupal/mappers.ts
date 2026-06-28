@@ -56,6 +56,7 @@ export function mapCantoCard(raw: any, included: IncludedMap): CantoCard {
     visualizzazioni: a.field_visualizzazioni ?? 0,
     autoriTesto: resolveRefs(r.field_autori_testo, included),
     autoriMusica: resolveRefs(r.field_autori_musica, included),
+    periodi: resolveRefs(r.field_periodo, included),
   };
 }
 
@@ -113,6 +114,8 @@ export function mapAutoreCard(raw: any, included: IncludedMap): AutoreCard {
     immagine: resolveImageUrl(r.field_immagine, included),
     visualizzazioni: a.field_visualizzazioni ?? 0,
     localizzazioni: resolveRefs(r.field_localizzazione, included),
+    annoNascita: a.field_anno_di_nascita ?? null,
+    annoMorte: a.field_anno_di_morte ?? null,
   };
 }
 
@@ -176,6 +179,7 @@ export function mapEventoCard(raw: any, included: IncludedMap): EventoCard {
     titolo: a.title,
     slug: extractSlug(a.path?.alias),
     dataEvento: a.field_data_evento ?? null,
+    immagine: resolveImageUrl(r.field_immagine, included),
     visualizzazioni: a.field_visualizzazioni ?? 0,
     localizzazioni: resolveRefs(r.field_localizzazione, included),
     periodi: resolveRefs(r.field_periodo, included),

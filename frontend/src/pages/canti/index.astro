@@ -1,14 +1,15 @@
 ---
+import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
-import CantoCard from '../../components/ui/CantoCard.astro';
 import Icon from '../../components/base/Icon.astro';
-import { getCantiPiuVisti } from '../../lib/api/index.js';
+import { getCantiPiuVisti, getAutoriImmaginiMap, getImageUrl } from '../../lib/api/index.js';
 import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
 import { buildCanonical } from '../../lib/seo.js';
 
-const canti = await getCantiPiuVisti(10);
+const canti = await getCantiPiuVisti(12);
+const autoriImmagini = await getAutoriImmaginiMap();
 
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
 const seoDescription = 'Esplora l\'archivio completo dei canti di protesta politica e sociale: testi, accordi, traduzioni e informazioni storiche.';
@@ -20,11 +21,13 @@ const jsonLd = [
   ]),
 ];
 
-const cantiConAutori = canti.map((canto) => {
+const cantiConDati = canti.map((canto) => {
   const autori = [...canto.autoriTesto, ...canto.autoriMusica].filter(
     (a, i, arr) => arr.findIndex((x) => x.slug === a.slug) === i
   );
-  return { canto, autori };
+  const primoAutore = canto.autoriTesto[0] ?? null;
+  const immagineUrl = primoAutore ? getImageUrl(autoriImmagini.get(primoAutore.slug) ?? null) : null;
+  return { canto, autori, immagineUrl };
 });
 ---
 <BaseLayout title="Canti di protesta — Archivio completo" description={seoDescription} jsonLd={jsonLd}>
@@ -51,18 +54,72 @@ const cantiConAutori = canti.map((canto) => {
       </share-button>
     </div>
   </header>
+
   <div class="max-w-6xl mx-auto px-4 py-8">
 
-  <article class="flex flex-col gap-6 max-w-2xl mx-auto mt-6">
-
-    <section class="flex flex-col gap-2">
+    <section class="flex flex-col gap-8 mt-2">
       <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
         I canti più visti
       </h2>
 
-      <div class="flex flex-col divide-y divide-secondary/30">
-        {cantiConAutori.map(({ canto, autori }) => (
-          <CantoCard canto={canto} autori={autori} />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+        {cantiConDati.map(({ canto, autori, immagineUrl }, i) => (
+          <div class="flex items-start gap-5 group relative">
+            <div class="shrink-0">
+              {immagineUrl ? (
+                <Image
+                  src={immagineUrl}
+                  alt={autori[0] ? "Foto di " + autori[0].titolo : canto.titolo}
+                  width={240}
+                  height={240}
+                  format="webp"
+                  quality={80}
+                  loading={i < 4 ? 'eager' : 'lazy'}
+                  class="w-32 h-32 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
+                />
+              ) : (
+                <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">
+                  <Icon name="user" class="text-base-content/30 text-5xl" />
+                </div>
+              )}
+            </div>
+
+            <div class="flex flex-col gap-1.5 min-w-0 pt-2">
+              <h3 class="font-serif font-bold text-xl md:text-2xl text-primary leading-tight flex items-center gap-2">
+                <a href={`/canti/${canto.slug}`} class="hover:underline after:absolute after:inset-0">{canto.titolo}</a>
+                <span class="flex items-center gap-1 shrink-0 relative z-10">
+                  <Icon name="headphones" class={`text-sm ${canto.videoUrl ? 'text-primary' : 'text-base-content/30'}`} />
+                  <Icon name="guitar" class={`text-sm ${canto.accordi ? 'text-primary' : 'text-base-content/30'}`} />
+                </span>
+              </h3>
+
+              {canto.capoverso && (
+                <p class="italic text-base text-base-content/50 line-clamp-2">{canto.capoverso}</p>
+              )}
+
+              {autori.length > 0 && (
+                <p class="text-base text-base-content/60 flex items-center gap-2 relative z-10">
+                  <Icon name="user" class="text-sm shrink-0" />
+                  <span>
+                    {autori.map((a, j) => (
+                      <>{j > 0 && ', '}<a href={`/autori/${a.slug}`} class="hover:text-primary hover:underline">{a.titolo}</a></>
+                    ))}
+                  </span>
+                </p>
+              )}
+
+              {canto.periodi.length > 0 && (
+                <p class="text-base text-base-content/50 flex items-center gap-2 relative z-10">
+                  <Icon name="calendar-blank" class="text-sm shrink-0" />
+                  <span>
+                    {canto.periodi.map((p, j) => (
+                      <>{j > 0 && ', '}<a href={`/periodi/${p.slug}`} class="hover:text-primary hover:underline">{p.titolo}</a></>
+                    ))}
+                  </span>
+                </p>
+              )}
+            </div>
+          </div>
         ))}
       </div>
 
@@ -72,10 +129,9 @@ const cantiConAutori = canti.map((canto) => {
       </a>
     </section>
 
-  </article>
+  </div>
 
   <script>
     import '../../scripts/share-button.js';
   </script>
-  </div>
 </BaseLayout>
