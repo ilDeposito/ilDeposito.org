@@ -27,7 +27,7 @@ jobs:
         run: git pull origin main
 
       - name: Update containers
-        run: ./ildeposito.sh up
+        run: ./ildeposito.sh up --force-recreate
 
       - name: Install Composer dependencies
         run: ./ildeposito.sh composer install --no-dev --optimize-autoloader

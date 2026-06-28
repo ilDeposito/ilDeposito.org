@@ -34,9 +34,10 @@ export COMPOSE_PROJECT_NAME="${PROJECT_NAME}"
 COMPOSE="docker compose --project-directory ${PROJECT_ROOT}"
 
 cmd_up() {
+    local extra_flags="${1:-}"
     info "Avvio ambiente ${ENV} (${PROJECT_NAME})..."
     ${COMPOSE} pull --quiet
-    ${COMPOSE} up -d
+    ${COMPOSE} up -d ${extra_flags}
     ok "Ambiente ${ENV} avviato"
     info "Backend:  https://admin-${ENV}.ildeposito.org"
     info "Frontend: https://${ENV}.ildeposito.org"
