@@ -10,6 +10,7 @@ dependencies:
     - field.field.node.autore.field_cognome
     - field.field.node.autore.field_immagine
     - field.field.node.autore.field_informazioni
+    - field.field.node.autore.field_links
     - field.field.node.autore.field_localizzazione
     - field.field.node.autore.field_nome
     - field.field.node.autore.field_old_id
@@ -17,6 +18,7 @@ dependencies:
     - field.field.node.autore.field_visualizzazioni
     - node.type.autore
   module:
+    - link
     - media_library
     - path
     - text
@@ -87,6 +89,14 @@ content:
       summary_rows: 3
       placeholder: ''
       show_summary: false
+    third_party_settings: {  }
+  field_links:
+    type: link_default
+    weight: 10
+    region: content
+    settings:
+      placeholder_url: ''
+      placeholder_title: ''
     third_party_settings: {  }
   field_localizzazione:
     type: options_select

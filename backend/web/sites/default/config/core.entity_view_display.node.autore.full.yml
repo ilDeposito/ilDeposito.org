@@ -11,6 +11,7 @@ dependencies:
     - field.field.node.autore.field_cognome
     - field.field.node.autore.field_immagine
     - field.field.node.autore.field_informazioni
+    - field.field.node.autore.field_links
     - field.field.node.autore.field_localizzazione
     - field.field.node.autore.field_nome
     - field.field.node.autore.field_old_id
@@ -18,6 +19,7 @@ dependencies:
     - field.field.node.autore.field_visualizzazioni
     - node.type.autore
   module:
+    - link
     - text
     - user
 id: node.autore.full
@@ -56,6 +58,18 @@ content:
     settings: {  }
     third_party_settings: {  }
     weight: 13
+    region: content
+  field_links:
+    type: link
+    label: above
+    settings:
+      trim_length: 80
+      url_only: false
+      url_plain: false
+      rel: ''
+      target: ''
+    third_party_settings: {  }
+    weight: 111
     region: content
   field_localizzazione:
     type: entity_reference_label
