@@ -2,10 +2,12 @@ FROM node:22-alpine
 RUN apk add --no-cache tzdata su-exec
 WORKDIR /app
 
-COPY --chown=node:node package.json package-lock.json ./
-RUN npm ci
+COPY package.json package-lock.json ./
+RUN npm ci && chown -R node:node node_modules
 
 COPY --chown=node:node . .
+
+RUN chown node:node /app
 
 COPY entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh
