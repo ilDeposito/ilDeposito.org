@@ -74,6 +74,9 @@ cmd_build_frontend() {
     info "Avvio build..."
     ${COMPOSE} run --rm astro-builder
 
+    info "Ricarica configurazione nginx..."
+    ${COMPOSE} exec frontend-web nginx -s reload
+
     ok "Build frontend completata"
     info "Il sito è live su https://${ENV}.ildeposito.org"
 }
