@@ -3,6 +3,9 @@ services:
     class: Drupal\ildeposito_build\Service\GitHubWorkflowClient
     arguments: ['@http_client']
 
+  Drupal\ildeposito_build\Service\GitHubWorkflowClient:
+    alias: ildeposito_build.github_workflow
+
   ildeposito_build.access_check:
     class: Drupal\ildeposito_build\Access\BuildAccessCheck
     arguments: ['@request_stack']
