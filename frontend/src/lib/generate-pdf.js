@@ -1,4 +1,5 @@
 import { join, dirname } from 'node:path';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import PDFDocument from 'pdfkit';
 import QRCode from 'qrcode';
@@ -17,11 +18,11 @@ const COLOR_GRAY = '#333333';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const FONTS_DIR = join(__dirname, '../assets/fonts');
 
-const FONT_FILES = {
-  'SourceSans':        join(FONTS_DIR, 'SourceSans3-Medium.ttf'),
-  'SourceSans-Italic': join(FONTS_DIR, 'SourceSans3-Italic.ttf'),
-  'Bitter':            join(FONTS_DIR, 'Bitter.ttf'),
-  'IBMPlexMono':       join(FONTS_DIR, 'IBMPlexMono-Regular.ttf'),
+const FONT_BUFFERS = {
+  'SourceSans':        readFileSync(join(FONTS_DIR, 'SourceSans3-Medium.ttf')),
+  'SourceSans-Italic': readFileSync(join(FONTS_DIR, 'SourceSans3-Italic.ttf')),
+  'Bitter':            readFileSync(join(FONTS_DIR, 'Bitter.ttf')),
+  'IBMPlexMono':       readFileSync(join(FONTS_DIR, 'IBMPlexMono-Regular.ttf')),
 };
 
 function sanitizeText(text) {
@@ -72,9 +73,18 @@ function drawFooterLine(doc) {
 }
 
 function registerFonts(doc) {
-  for (const [name, path] of Object.entries(FONT_FILES)) {
-    doc.registerFont(name, path);
+  for (const [name, buffer] of Object.entries(FONT_BUFFERS)) {
+    doc.registerFont(name, buffer);
   }
+}
+
+export async function generateQrBuffer(slug) {
+  return QRCode.toBuffer(`${SITE_URL}/canti/${slug}`, {
+    width: 100,
+    errorCorrectionLevel: 'M',
+    margin: 1,
+    color: { dark: '#000000', light: '#ffffff' },
+  });
 }
 
 /**
@@ -84,18 +94,12 @@ function registerFonts(doc) {
  * @param {string} options.periodo
  * @param {string[]} options.lingue
  * @param {string[]} options.tags
+ * @param {Buffer} options.qrBuffer
  * @returns {Promise<Buffer>}
  */
-export async function generateCantoPdf(canto, { autoriTesto, periodo, lingue, tags }) {
+export async function generateCantoPdf(canto, { autoriTesto, periodo, lingue, tags, qrBuffer }) {
   const slug = canto.slug;
   const pageUrl = `${SITE_URL}/canti/${slug}`;
-
-  const qrBuffer = await QRCode.toBuffer(pageUrl, {
-    width: 200,
-    errorCorrectionLevel: 'H',
-    margin: 1,
-    color: { dark: '#000000', light: '#ffffff' },
-  });
 
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -191,7 +195,6 @@ function renderCantoPage(doc, canto, { autoriTesto, periodo, lingue, tags, pageU
 
   const textStartY = Math.max(doc.y + 30, qrY + qrSize + 15);
 
-  // Lyrics — two columns
   doc.font('IBMPlexMono').fontSize(8).fillColor(COLOR_BLACK);
 
   const colGap = 20;

@@ -1,4 +1,5 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
+import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -86,24 +87,46 @@ async function getAllCantiForPdf() {
   });
 }
 
+const QR_BATCH = 500;
+
+async function generateAllQrBuffers(canti, generateQrBuffer, logger) {
+  const qrMap = new Map();
+  for (let i = 0; i < canti.length; i += QR_BATCH) {
+    const batch = canti.slice(i, i + QR_BATCH);
+    const buffers = await Promise.all(batch.map((c) => generateQrBuffer(c.slug)));
+    for (let j = 0; j < batch.length; j++) {
+      qrMap.set(batch[j].slug, buffers[j]);
+    }
+    if (i + QR_BATCH < canti.length) {
+      logger.info(`  QR codes: ${Math.min(i + QR_BATCH, canti.length)}/${canti.length}`);
+    }
+  }
+  return qrMap;
+}
+
 export default function pdfGeneratorIntegration() {
   return {
     name: 'pdf-generator',
     hooks: {
       'astro:build:done': async ({ dir, logger }) => {
-        const { generateCantoPdf } = await import('../lib/generate-pdf.js');
+        const { generateCantoPdf, generateQrBuffer } = await import('../lib/generate-pdf.js');
 
         logger.info('Recupero canti da Drupal...');
         const canti = await getAllCantiForPdf();
-        logger.info(`${canti.length} canti trovati. Generazione PDF...`);
+        logger.info(`${canti.length} canti trovati.`);
+
+        logger.info('Generazione QR codes...');
+        const qrMap = await generateAllQrBuffers(canti, generateQrBuffer, logger);
+        logger.info(`${qrMap.size} QR codes generati.`);
 
         const outDir = join(fileURLToPath(dir), 'pdf', 'canti');
         mkdirSync(outDir, { recursive: true });
 
+        logger.info('Generazione PDF...');
         let count = 0;
         let errors = 0;
         const total = canti.length;
-        const BATCH_SIZE = 50;
+        const BATCH_SIZE = 200;
 
         for (let i = 0; i < total; i += BATCH_SIZE) {
           const batch = canti.slice(i, i + BATCH_SIZE);
@@ -114,8 +137,9 @@ export default function pdfGeneratorIntegration() {
                 periodo: canto.periodo,
                 lingue: canto.lingue,
                 tags: canto.tags,
+                qrBuffer: qrMap.get(canto.slug),
               });
-              writeFileSync(join(outDir, `${canto.slug}.pdf`), pdfBuffer);
+              await writeFile(join(outDir, `${canto.slug}.pdf`), pdfBuffer);
               return canto.slug;
             })
           );
