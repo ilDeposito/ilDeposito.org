@@ -1,5 +1,6 @@
 import { fetchAllJsonApi, fetchJsonApi } from './client.js';
 import { extractSlug } from './resolvers.js';
+import { sanitizeHtml } from './mappers.js';
 import type { InformazionePath, InformazioneDetail } from '../types.js';
 
 let pathToUuidCache: Map<string, string> | null = null;
@@ -65,6 +66,6 @@ export async function getInformazione(percorso: string): Promise<InformazioneDet
     id: item.attributes.drupal_internal__nid,
     titolo: item.attributes.title,
     percorso: alias.startsWith('/') ? alias.slice(1) : alias,
-    testo: item.attributes.field_descrizione_header ?? '',
+    testo: sanitizeHtml(item.attributes.field_descrizione_header?.processed ?? item.attributes.field_descrizione_header?.value ?? item.attributes.field_descrizione_header ?? ''),
   };
 }

@@ -1,7 +1,8 @@
 name: ilDeposito Build
 description: Pubblica i contenuti sul sito tramite GitHub Actions.
 package: ilDeposito
-core_version_requirement: ^11
+core_version_requirement: ^11 || ^12
 type: module
+# @todo Drupal 12: toolbar sarà sostituito da navigation. Adattare hook e dipendenza.
 dependencies:
   - drupal:toolbar

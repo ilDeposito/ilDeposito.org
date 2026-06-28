@@ -130,6 +130,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
       x: _svg('<path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/>'),
       check: _svg('<path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"/>'),
     };
+    const _esc = (s) => { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
     const VIEW_MORE_THRESHOLD = 10;
 
     const DEFAULT_LABELS = {
@@ -230,12 +231,13 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
         const meta = item.meta || {};
         item.url = item.url.replace(/\/$/, '') || '/';
         const cardType = this._type || (meta.type ?? '');
+        const e = _esc;
 
         if (cardType === 'periodi') {
           return `
             <div class="flex flex-col gap-1.5 py-4 hover:bg-base-200 transition-colors rounded-lg px-2">
               <h3 class="font-serif font-semibold text-lg text-primary">
-                <a href="${item.url}" class="hover:underline">${meta.title ?? ''}</a>
+                <a href="${e(item.url)}" class="hover:underline">${e(meta.title)}</a>
               </h3>
               <p class="text-sm text-base-content/40 uppercase tracking-wide font-sans">Periodo storico</p>
             </div>
@@ -245,13 +247,13 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
         if (cardType === 'traduzioni') {
           const cantoLink = meta.canto_originale_titolo
             ? (meta.canto_originale_slug
-                ? `<a href="/canti/${meta.canto_originale_slug}" class="hover:underline">${meta.canto_originale_titolo}</a>`
-                : meta.canto_originale_titolo)
+                ? `<a href="/canti/${e(meta.canto_originale_slug)}" class="hover:underline">${e(meta.canto_originale_titolo)}</a>`
+                : e(meta.canto_originale_titolo))
             : '';
           return `
             <div class="flex flex-col gap-1.5 py-4 hover:bg-base-200 transition-colors rounded-lg px-2">
               <h3 class="font-serif font-semibold text-lg text-primary">
-                <a href="${item.url}" class="hover:underline">${meta.title ?? ''}</a>
+                <a href="${e(item.url)}" class="hover:underline">${e(meta.title)}</a>
               </h3>
               ${cantoLink ? `<p class="font-serif italic text-base text-base-content/60">${cantoLink}</p>` : ''}
             </div>
@@ -263,9 +265,9 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
           return `
             <div class="flex flex-col gap-1.5 py-4 hover:bg-base-200 transition-colors rounded-lg px-2">
               <h3 class="font-serif font-semibold text-lg text-primary">
-                <a href="${item.url}" class="hover:underline">${meta.title ?? ''}</a>
+                <a href="${e(item.url)}" class="hover:underline">${e(meta.title)}</a>
               </h3>
-              ${meta.localizzazioni ? `<p class="font-serif italic text-base text-base-content/60">${meta.localizzazioni}</p>` : ''}
+              ${meta.localizzazioni ? `<p class="font-serif italic text-base text-base-content/60">${e(meta.localizzazioni)}</p>` : ''}
               ${numCanti > 0 ? `<p class="text-sm text-base-content/40">${numCanti} ${numCanti === 1 ? 'canto' : 'canti'}</p>` : ''}
             </div>
           `;
@@ -275,19 +277,19 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
           const loc     = meta.localizzazioni ?? '';
           const locSlug = meta.localizzazioni_slug ?? '';
           const locHtml = loc
-            ? (locSlug ? `<a href="/localizzazioni/${locSlug}" class="hover:underline">${loc}</a>` : loc)
+            ? (locSlug ? `<a href="/localizzazioni/${e(locSlug)}" class="hover:underline">${e(loc)}</a>` : e(loc))
             : '';
           const periodoHtml = meta.periodi
             ? (meta.periodi_slug
-                ? `<a href="/periodi/${meta.periodi_slug}" class="hover:underline">${meta.periodi}</a>`
-                : meta.periodi)
+                ? `<a href="/periodi/${e(meta.periodi_slug)}" class="hover:underline">${e(meta.periodi)}</a>`
+                : e(meta.periodi))
             : '';
-          const dateStr    = meta.data_display ?? '';
-          const metaLine1  = [locHtml, dateStr].filter(Boolean).join(' · ');
+          const dateStr    = e(meta.data_display ?? '');
+          const metaLine1  = [locHtml, dateStr].filter(Boolean).join(' &middot; ');
           return `
             <div class="flex flex-col gap-1.5 py-4 hover:bg-base-200 transition-colors rounded-lg px-2">
               <h3 class="font-serif font-semibold text-lg text-primary">
-                <a href="${item.url}" class="hover:underline">${meta.title ?? ''}</a>
+                <a href="${e(item.url)}" class="hover:underline">${e(meta.title)}</a>
               </h3>
               ${metaLine1   ? `<p class="font-serif italic text-base text-base-content/60">${metaLine1}</p>`   : ''}
               ${periodoHtml ? `<p class="font-serif italic text-base text-base-content/60">${periodoHtml}</p>` : ''}
@@ -300,15 +302,15 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
         return `
           <div class="flex flex-col gap-1.5 py-4 hover:bg-base-200 transition-colors rounded-lg px-2">
             <p class="text-sm text-base-content/40 flex items-center gap-2">
-              ${meta.anno ? `<span class="italic">${meta.anno}</span><span aria-hidden="true">·</span>` : ''}
+              ${meta.anno ? `<span class="italic">${e(meta.anno)}</span><span aria-hidden="true">&middot;</span>` : ''}
               ${ICO.headphones(audio ? 'text-primary' : 'text-base-content/20')}
               ${ICO.guitar(accordi ? 'text-primary' : 'text-base-content/20')}
             </p>
             <h3 class="font-serif font-semibold text-lg text-primary">
-              <a href="${item.url}" class="hover:underline">${meta.title ?? ''}</a>
+              <a href="${e(item.url)}" class="hover:underline">${e(meta.title)}</a>
             </h3>
-            ${meta.autori    ? `<p class="text-base text-base-content/60">${meta.autori}</p>`    : ''}
-            ${meta.capoverso ? `<p class="italic text-base text-base-content/60">${meta.capoverso}</p>` : ''}
+            ${meta.autori    ? `<p class="text-base text-base-content/60">${e(meta.autori)}</p>`    : ''}
+            ${meta.capoverso ? `<p class="italic text-base text-base-content/60">${e(meta.capoverso)}</p>` : ''}
           </div>
         `;
       }
@@ -578,11 +580,11 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
         el.innerHTML = entries.map(([key, val]) => `
           <button
             type="button"
-            data-remove-filter="${key}"
+            data-remove-filter="${_esc(key)}"
             class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-secondary/15 text-secondary-content rounded-full cursor-pointer hover:bg-secondary/25 transition-colors"
-            aria-label="Rimuovi filtro ${val}"
+            aria-label="Rimuovi filtro ${_esc(val)}"
           >
-            ${val} <span class="text-xs leading-none">${ICO.x}</span>
+            ${_esc(val)} <span class="text-xs leading-none">${ICO.x}</span>
           </button>
         `).join('');
 

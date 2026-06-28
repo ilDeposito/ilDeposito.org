@@ -11,6 +11,8 @@ function injectMarkerClusterCss() {
   document.head.appendChild(style);
 }
 
+function _esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
 class EventsMap extends HTMLElement {
   connectedCallback() {
     const observer = new IntersectionObserver(
@@ -77,8 +79,8 @@ class EventsMap extends HTMLElement {
       const dateStr = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
       L.marker([ev.latitude, ev.longitude])
         .bindPopup(
-          `<a href="/eventi/${ev.slug}" style="font-weight:bold;color:#9E1B1B;text-decoration:none">${ev.titolo}</a>` +
-          `<br><span style="font-size:0.85em">${dateStr}</span>`
+          `<a href="/eventi/${_esc(ev.slug)}" style="font-weight:bold;color:#9E1B1B;text-decoration:none">${_esc(ev.titolo)}</a>` +
+          `<br><span style="font-size:0.85em">${_esc(dateStr)}</span>`
         )
         .addTo(cluster);
     }

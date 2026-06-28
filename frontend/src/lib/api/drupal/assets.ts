@@ -20,9 +20,12 @@ async function downloadAsset(relativeUrl: string, category: string): Promise<str
   const publicPath = join(PUBLIC_DIR, relPath);
 
   if (!existsSync(publicPath)) {
-    const absoluteUrl = new URL(relativeUrl, DRUPAL_API_URL).toString();
+    const absoluteUrl = new URL(relativeUrl, DRUPAL_API_URL);
+    const allowedHost = new URL(DRUPAL_API_URL).hostname;
+    if (absoluteUrl.hostname !== allowedHost) return null;
+
     try {
-      const res = await fetch(absoluteUrl);
+      const res = await fetch(absoluteUrl.toString());
       if (!res.ok) return null;
       const buffer = Buffer.from(await res.arrayBuffer());
       mkdirSync(dirname(publicPath), { recursive: true });

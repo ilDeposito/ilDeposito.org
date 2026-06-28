@@ -19,10 +19,48 @@ function extractVideoUrl(fieldAudio: any[] | null | undefined): string | null {
   return fieldAudio[0].uri?.trim() || null;
 }
 
+const ALLOWED_TAGS = new Set([
+  'p', 'br', 'a', 'em', 'i', 'strong', 'b', 'u',
+  'ul', 'ol', 'li', 'h2', 'h3', 'h4', 'h5', 'h6',
+  'blockquote', 'sup', 'sub', 'span', 'div',
+]);
+
+const ALLOWED_ATTRS: Record<string, Set<string>> = {
+  a: new Set(['href', 'title', 'target', 'rel']),
+  span: new Set(['class']),
+  div: new Set(['class']),
+};
+
+export function sanitizeHtml(html: string): string {
+  return html.replace(/<\/?([a-zA-Z][a-zA-Z0-9]*)\b([^>]*)?\/?>/g, (match, tag, attrs) => {
+    const lower = tag.toLowerCase();
+    if (!ALLOWED_TAGS.has(lower)) return '';
+
+    if (match.startsWith('</')) return `</${lower}>`;
+
+    const allowedAttrs = ALLOWED_ATTRS[lower];
+    if (!allowedAttrs || !attrs?.trim()) return `<${lower}>`;
+
+    const safeAttrs = [...(attrs as string).matchAll(/([a-zA-Z-]+)\s*=\s*"([^"]*)"/g)]
+      .filter(([, name]) => allowedAttrs.has(name.toLowerCase()))
+      .filter(([, name, value]) => {
+        if (name.toLowerCase() === 'href') {
+          return /^(?:https?:\/\/|\/|#|mailto:)/.test(value.trim());
+        }
+        return true;
+      })
+      .map(([, name, value]) => `${name.toLowerCase()}="${value}"`)
+      .join(' ');
+
+    return safeAttrs ? `<${lower} ${safeAttrs}>` : `<${lower}>`;
+  });
+}
+
 function textValue(field: any): string | null {
   if (!field) return null;
-  if (typeof field === 'string') return field;
-  return field.processed ?? field.value ?? null;
+  if (typeof field === 'string') return sanitizeHtml(field);
+  const raw = field.processed ?? field.value ?? null;
+  return raw ? sanitizeHtml(raw) : null;
 }
 
 function plainText(field: string | null | undefined): string {

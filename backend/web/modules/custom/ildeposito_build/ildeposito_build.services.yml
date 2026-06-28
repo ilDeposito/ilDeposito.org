@@ -2,3 +2,13 @@ services:
   ildeposito_build.github_workflow:
     class: Drupal\ildeposito_build\Service\GitHubWorkflowClient
     arguments: ['@http_client']
+
+  ildeposito_build.access_check:
+    class: Drupal\ildeposito_build\Access\BuildAccessCheck
+    arguments: ['@request_stack']
+
+  Drupal\ildeposito_build\Hook\IldepositoBuildHooks:
+    autowire: true
+
+  Drupal\ildeposito_build\Form\BuildFrontendForm:
+    autowire: true

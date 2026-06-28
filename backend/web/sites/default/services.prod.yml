@@ -166,8 +166,6 @@ parameters:
       - 'https://www.ildeposito.org'
       - 'https://ildeposito.org'
       - 'https://admin.ildeposito.org'
-      - 'https://stage.ildeposito.org'
-      - 'https://admin-stage.ildeposito.org'
     exposedHeaders: false
     maxAge: 86400
     supportsCredentials: false

@@ -8,6 +8,7 @@ use Drupal\Core\Hook\Attribute\Hook;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 final class IldepositoBuildHooks {
 
@@ -15,11 +16,12 @@ final class IldepositoBuildHooks {
 
   public function __construct(
     private readonly AccountProxyInterface $currentUser,
+    private readonly RequestStack $requestStack,
   ) {}
 
   #[Hook('toolbar')]
   public function toolbar(): array {
-    $env = $_SERVER['ILDEPOSITO_ENV'] ?? '';
+    $env = (string) $this->requestStack->getCurrentRequest()?->server->get('ILDEPOSITO_ENV', '');
     if (!in_array($env, ['stage', 'prod'], TRUE)) {
       return [];
     }

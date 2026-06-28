@@ -7,7 +7,9 @@ import SEO from '../components/base/SEO.astro';
 import { buildTitle, buildDescription, buildCanonical, resolveOgImage } from '../lib/seo.js';
 
 import sourceSansLatin400 from '@fontsource/source-sans-3/files/source-sans-3-latin-400-normal.woff2?url';
+import sourceSansLatin600 from '@fontsource/source-sans-3/files/source-sans-3-latin-600-normal.woff2?url';
 import bitterLatin400 from '@fontsource/bitter/files/bitter-latin-400-normal.woff2?url';
+import bitterLatin700 from '@fontsource/bitter/files/bitter-latin-700-normal.woff2?url';
 
 interface Props {
   title: string;
@@ -59,7 +61,9 @@ const seoOgImage = resolveOgImage(ogImage || '/og-default.jpg', Astro.site);
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#9E1B1B" />
     <link rel="preload" as="font" type="font/woff2" href={sourceSansLatin400} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={sourceSansLatin600} crossorigin />
     <link rel="preload" as="font" type="font/woff2" href={bitterLatin400} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={bitterLatin700} crossorigin />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

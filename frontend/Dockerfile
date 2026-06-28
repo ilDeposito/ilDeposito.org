@@ -2,9 +2,11 @@ FROM node:22-alpine
 RUN apk add --no-cache tzdata
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+COPY --chown=node:node package.json package-lock.json ./
 RUN npm ci
 
-COPY . .
+COPY --chown=node:node . .
+
+USER node
 
 CMD ["sh", "docker-entrypoint.sh"]

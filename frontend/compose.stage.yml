@@ -16,12 +16,19 @@ services:
 
   frontend-web:
     container_name: ildeposito_stage_frontend_nginx
-    image: nginx:1.27-alpine
+    image: macbre/nginx-brotli:latest
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     volumes:
       - frontend_output:/usr/share/nginx/html:ro
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./nginx-ratelimit.conf:/etc/nginx/conf.d/ratelimit.conf:ro
+      - ./nginx-security-headers.conf:/etc/nginx/conf.d/security-headers.conf:ro
     labels:
       caddy: stage.ildeposito.org
       caddy.basicauth: "/*"

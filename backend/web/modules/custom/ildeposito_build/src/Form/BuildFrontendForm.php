@@ -8,7 +8,6 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\ildeposito_build\Service\GitHubWorkflowClient;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 final class BuildFrontendForm extends FormBase {
 
@@ -24,14 +23,8 @@ final class BuildFrontendForm extends FormBase {
     private readonly GitHubWorkflowClient $githubClient,
   ) {}
 
-  public static function create(ContainerInterface $container): static {
-    return new static(
-      $container->get('ildeposito_build.github_workflow'),
-    );
-  }
-
   private static function getEnvironment(): string {
-    $env = $_SERVER['ILDEPOSITO_ENV'] ?? '';
+    $env = (string) \Drupal::request()->server->get('ILDEPOSITO_ENV', '');
     return in_array($env, ['stage', 'prod'], TRUE) ? $env : '';
   }
 
@@ -85,6 +78,7 @@ final class BuildFrontendForm extends FormBase {
     batch_set($batch);
   }
 
+  // @todo Drupal 12: refactoring con batch DI-aware per eliminare \Drupal:: statici.
   public static function processBuild(string $workflow, array &$context): void {
     /** @var \Drupal\ildeposito_build\Service\GitHubWorkflowClient $client */
     $client = \Drupal::service('ildeposito_build.github_workflow');
