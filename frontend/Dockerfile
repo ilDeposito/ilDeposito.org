@@ -7,6 +7,8 @@ RUN npm ci
 
 COPY --chown=node:node . .
 
+RUN mkdir -p /app/output && chown node:node /app/output
+
 USER node
 
 CMD ["sh", "docker-entrypoint.sh"]
