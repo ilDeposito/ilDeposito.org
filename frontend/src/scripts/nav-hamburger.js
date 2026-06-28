@@ -2,9 +2,9 @@ class NavHamburger extends HTMLElement {
   connectedCallback() {
     const toggle = this.querySelector('[data-menu-toggle]');
     const panel = this.querySelector('[data-menu-panel]');
-    const close = this.querySelector('[data-menu-close]');
+    const closeButtons = this.querySelectorAll('[data-menu-close]');
 
-    if (!toggle || !panel || !close) return;
+    if (!toggle || !panel || !closeButtons.length) return;
 
     const TRANSITION_MS = 300;
 
@@ -20,7 +20,7 @@ class NavHamburger extends HTMLElement {
         });
       });
 
-      close.focus();
+      closeButtons[closeButtons.length - 1].focus();
     };
 
     const closeMenu = () => {
@@ -35,7 +35,11 @@ class NavHamburger extends HTMLElement {
     };
 
     toggle.addEventListener('click', open);
-    close.addEventListener('click', closeMenu);
+    closeButtons.forEach((btn) => btn.addEventListener('click', closeMenu));
+
+    panel.querySelectorAll('a[href]').forEach((link) => {
+      link.addEventListener('click', closeMenu);
+    });
 
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && panel.getAttribute('aria-hidden') === 'false') {

@@ -14,6 +14,7 @@ const CANTO_DETAIL_FIELDS = [
   'field_canto_testo', 'field_canto_accordi', 'field_audio', 'field_fonte',
   'field_informazioni', 'field_autori_testo', 'field_autori_musica',
   'field_lingua', 'field_periodo', 'field_tags', 'field_tematiche',
+  'field_visualizzazioni',
 ].join(',');
 
 const CANTO_CARD_INCLUDE = 'field_autori_testo,field_autori_musica,field_periodo';
@@ -71,6 +72,22 @@ export async function getCantiRecenti(limit = 50): Promise<CantoRecente[]> {
 export async function getCantiPiuVisti(limit = 10): Promise<CantoCard[]> {
   const { data, included } = await fetchJsonApi('/jsonapi/node/canto', new URLSearchParams({
     'filter[status]': '1',
+    'fields[node--canto]': CANTO_CARD_FIELDS,
+    'fields[node--autore]': 'drupal_internal__nid,title,path',
+    'fields[taxonomy_term--periodi]': 'name,path',
+    'include': CANTO_CARD_INCLUDE,
+    'sort': '-field_visualizzazioni',
+    'page[limit]': String(Math.min(limit, 50)),
+  }));
+
+  const map = buildIncludedMap(included);
+  return data.map((item: any) => mapCantoCard(item, map));
+}
+
+export async function getCantiByPeriodo(periodoId: number | string, limit = 5): Promise<CantoCard[]> {
+  const { data, included } = await fetchJsonApi('/jsonapi/node/canto', new URLSearchParams({
+    'filter[status]': '1',
+    'filter[field_periodo.drupal_internal__tid]': String(periodoId),
     'fields[node--canto]': CANTO_CARD_FIELDS,
     'fields[node--autore]': 'drupal_internal__nid,title,path',
     'fields[taxonomy_term--periodi]': 'name,path',

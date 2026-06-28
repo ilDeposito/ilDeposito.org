@@ -90,6 +90,7 @@ export interface AutoreDetail {
   cognome: string | null;
   informazioni: string | null;
   immagine: string | null;
+  visualizzazioni: number;
   localizzazioni: Ref[];
   periodi: Ref[];
   annoNascita: number | null;
@@ -161,6 +162,7 @@ export interface EventoDetail {
   dataEvento: string | null;
   informazioni: string | null;
   immagine: string | null;
+  visualizzazioni: number;
   latitude: number | null;
   longitude: number | null;
   localizzazioni: Ref[];
@@ -183,6 +185,7 @@ export interface TraduzioneDetail {
   slug: string;
   testo: string;
   informazioni: string | null;
+  visualizzazioni: number;
   lingue: Ref[];
   cantoOriginale: {
     titolo: string;

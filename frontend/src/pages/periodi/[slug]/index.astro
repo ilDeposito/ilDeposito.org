@@ -1,0 +1,304 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../../components/ui/Breadcrumb.astro';
+import Icon from '../../../components/base/Icon.astro';
+import {
+  getPeriodi, getContenutiByPeriodoMap,
+  getCantiByPeriodo, getAutoriByPeriodo, getEventiByPeriodo,
+  getAutoriImmaginiMap, getImageUrl,
+} from '../../../lib/api/index.js';
+import type { Periodo } from '../../../lib/api/types.js';
+import { buildWebPageSchema, buildBreadcrumbSchema } from '../../../lib/schema.js';
+import { buildCanonical } from '../../../lib/seo.js';
+import { getOgImageForPeriodo } from '../../../lib/og-image.js';
+
+export async function getStaticPaths() {
+  const periodi = await getPeriodi();
+  return periodi.map((periodo) => ({
+    params: { slug: periodo.slug },
+    props: { periodo },
+  }));
+}
+
+const { periodo } = Astro.props as { periodo: Periodo };
+
+const contenutiMap = await getContenutiByPeriodoMap();
+const { canti: numCanti = 0, autori: numAutori = 0, eventi: numEventi = 0 } = contenutiMap.get(periodo.id) ?? {};
+
+const [canti, autori, eventi, autoriImmagini] = await Promise.all([
+  getCantiByPeriodo(periodo.id, 4),
+  getAutoriByPeriodo(periodo.id, 4),
+  getEventiByPeriodo(periodo.id, 4),
+  getAutoriImmaginiMap(),
+]);
+
+const cantiConDati = canti.map((canto) => {
+  const autoriCanto = [...canto.autoriTesto, ...canto.autoriMusica].filter(
+    (a, i, arr) => arr.findIndex((x) => x.slug === a.slug) === i
+  );
+  const primoAutore = canto.autoriTesto[0] ?? null;
+  const immagineUrl = primoAutore ? getImageUrl(autoriImmagini.get(primoAutore.slug) ?? null) : null;
+  return { canto, autori: autoriCanto, immagineUrl };
+});
+
+const immagineUrl = getImageUrl(periodo.immagine);
+
+const formatData = (data: string) =>
+  new Date(data).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const seoDescription = `I canti, gli autori e gli eventi storici del periodo "${periodo.titolo}" nell'archivio di ilDeposito.org.`;
+const jsonLd = [
+  buildWebPageSchema(`${periodo.titolo} — Canti, autori e eventi`, seoDescription, buildCanonical(Astro)),
+  buildBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Periodi', url: `${siteUrl}/periodi` },
+    { name: periodo.titolo },
+  ]),
+];
+const ogImage = await getOgImageForPeriodo(periodo);
+---
+<BaseLayout title={`${periodo.titolo} — Canti, autori e eventi`} description={seoDescription} pagefindType="periodi" jsonLd={jsonLd} ogImage={ogImage} ogImageAlt={ogImage ? `Immagine del periodo ${periodo.titolo}` : undefined}>
+
+  <header class="bg-base-200 border-b-2 border-secondary">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
+      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Periodi', href: '/periodi' }, { label: periodo.titolo }]} />
+
+      <div class="flex items-center gap-4">
+        {immagineUrl && (
+          <Image
+            src={immagineUrl}
+            alt={"Immagine del periodo: " + periodo.titolo}
+            width={160}
+            height={160}
+            format="webp"
+            quality={80}
+            loading="eager"
+            fetchpriority="high"
+            class="w-20 h-20 rounded-full object-cover shrink-0 border-2 border-base-300"
+          />
+        )}
+        <div class="flex flex-col gap-1">
+          <h1 class="font-serif font-bold text-2xl md:text-3xl text-base-content">{periodo.titolo}</h1>
+          <div class="flex flex-wrap gap-x-4 gap-y-1 text-base text-base-content/60">
+            {numCanti > 0 && (
+              <span class="flex items-center gap-1.5">
+                <Icon name="music-notes" class="text-sm text-primary/70" />
+                <span class="font-bold text-base-content">{numCanti}</span> {numCanti === 1 ? 'canto' : 'canti'}
+              </span>
+            )}
+            {numAutori > 0 && (
+              <span class="flex items-center gap-1.5">
+                <Icon name="user" class="text-sm text-primary/70" />
+                <span class="font-bold text-base-content">{numAutori}</span> {numAutori === 1 ? 'autore' : 'autori'}
+              </span>
+            )}
+            {numEventi > 0 && (
+              <span class="flex items-center gap-1.5">
+                <Icon name="calendar-star" class="text-sm text-primary/70" />
+                <span class="font-bold text-base-content">{numEventi}</span> {numEventi === 1 ? 'evento' : 'eventi'}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <a href={`/periodi/${periodo.slug}/contenuti`} class="btn btn-primary btn-sm gap-2 w-fit border-0">
+        Tutti i contenuti del periodo
+        <Icon name="arrow-right" />
+      </a>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8">
+  <article data-pagefind-body class="flex flex-col gap-10">
+
+    <span class="sr-only" data-pagefind-weight="10">{periodo.titolo}</span>
+    <span class="sr-only" data-pagefind-sort="titolo">{periodo.titolo}</span>
+
+    <!-- Canti più visti -->
+    {cantiConDati.length > 0 && (
+      <section data-pagefind-ignore class="flex flex-col gap-6">
+        <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
+          I canti più visti
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+          {cantiConDati.map(({ canto, autori, immagineUrl }, i) => (
+            <div class="flex items-start gap-5 group relative">
+              <div class="shrink-0">
+                {immagineUrl ? (
+                  <Image
+                    src={immagineUrl}
+                    alt={autori[0] ? "Foto di " + autori[0].titolo : canto.titolo}
+                    width={240}
+                    height={240}
+                    format="webp"
+                    quality={80}
+                    loading={i < 4 ? 'eager' : 'lazy'}
+                    class="w-32 h-32 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
+                  />
+                ) : (
+                  <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">
+                    <Icon name="user" class="text-base-content/30 text-5xl" />
+                  </div>
+                )}
+              </div>
+
+              <div class="flex flex-col gap-1.5 min-w-0 pt-2">
+                <h3 class="font-serif font-bold text-xl md:text-2xl text-primary leading-tight flex items-center gap-2">
+                  <a href={`/canti/${canto.slug}`} class="hover:underline after:absolute after:inset-0">{canto.titolo}</a>
+                  <span class="flex items-center gap-1 shrink-0 relative z-10">
+                    <Icon name="headphones" class={`text-sm ${canto.videoUrl ? 'text-primary' : 'text-base-content/30'}`} />
+                    <Icon name="guitar" class={`text-sm ${canto.accordi ? 'text-primary' : 'text-base-content/30'}`} />
+                  </span>
+                </h3>
+
+                {canto.capoverso && (
+                  <p class="italic text-base text-base-content/50 line-clamp-2">{canto.capoverso}</p>
+                )}
+
+                {autori.length > 0 && (
+                  <p class="text-base text-base-content/60 flex items-center gap-2 relative z-10">
+                    <Icon name="user" class="text-sm shrink-0" />
+                    <span>
+                      {autori.map((a, j) => (
+                        <>{j > 0 && ', '}<a href={`/autori/${a.slug}`} class="hover:text-primary hover:underline">{a.titolo}</a></>
+                      ))}
+                    </span>
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Autori più visti -->
+    {autori.length > 0 && (
+      <section data-pagefind-ignore class="flex flex-col gap-6">
+        <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
+          Gli autori più visti
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+          {autori.map((autore, i) => {
+            const autoreImgUrl = getImageUrl(autore.immagine);
+            return (
+              <div class="flex items-start gap-5 group relative">
+                <div class="shrink-0">
+                  {autoreImgUrl ? (
+                    <Image
+                      src={autoreImgUrl}
+                      alt={"Foto di " + autore.titolo}
+                      width={240}
+                      height={240}
+                      format="webp"
+                      quality={80}
+                      loading="lazy"
+                      class="w-32 h-32 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
+                    />
+                  ) : (
+                    <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">
+                      <Icon name="user" class="text-base-content/30 text-5xl" />
+                    </div>
+                  )}
+                </div>
+
+                <div class="flex flex-col gap-1.5 min-w-0 pt-2">
+                  <h3 class="font-serif font-bold text-xl md:text-2xl text-primary leading-tight">
+                    <a href={`/autori/${autore.slug}`} class="hover:underline after:absolute after:inset-0">{autore.titolo}</a>
+                  </h3>
+
+                  {autore.localizzazioni.length > 0 && (
+                    <p class="text-base text-base-content/60 flex items-center gap-2 relative z-10">
+                      <Icon name="map-pin" class="text-sm shrink-0" />
+                      <span>
+                        {autore.localizzazioni.map((l, j) => (
+                          <>{j > 0 && ', '}<a href={`/localizzazioni/${l.slug}`} class="hover:text-primary hover:underline">{l.titolo}</a></>
+                        ))}
+                      </span>
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    )}
+
+    <!-- Eventi più visti -->
+    {eventi.length > 0 && (
+      <section data-pagefind-ignore class="flex flex-col gap-6">
+        <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
+          Gli eventi più visti
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+          {eventi.map((evento, i) => {
+            const eventoImgUrl = getImageUrl(evento.immagine);
+            return (
+              <div class="flex items-start gap-5 group relative">
+                <div class="shrink-0">
+                  {eventoImgUrl ? (
+                    <Image
+                      src={eventoImgUrl}
+                      alt={"Immagine dell'evento: " + evento.titolo}
+                      width={240}
+                      height={240}
+                      format="webp"
+                      quality={80}
+                      loading="lazy"
+                      class="w-32 h-32 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
+                    />
+                  ) : (
+                    <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">
+                      <Icon name="calendar-star" class="text-base-content/30 text-5xl" />
+                    </div>
+                  )}
+                </div>
+
+                <div class="flex flex-col gap-1.5 min-w-0 pt-2">
+                  <h3 class="font-serif font-bold text-xl md:text-2xl text-primary leading-tight">
+                    <a href={`/eventi/${evento.slug}`} class="hover:underline after:absolute after:inset-0">{evento.titolo}</a>
+                  </h3>
+
+                  {evento.dataEvento && (
+                    <p class="text-base text-base-content/50 flex items-center gap-2">
+                      <Icon name="calendar-blank" class="text-sm shrink-0" />
+                      {formatData(evento.dataEvento)}
+                    </p>
+                  )}
+
+                  {evento.localizzazioni.length > 0 && (
+                    <p class="text-base text-base-content/60 flex items-center gap-2 relative z-10">
+                      <Icon name="map-pin" class="text-sm shrink-0" />
+                      <span>
+                        {evento.localizzazioni.map((l, j) => (
+                          <>{j > 0 && ', '}<a href={`/localizzazioni/${l.slug}`} class="hover:text-primary hover:underline">{l.titolo}</a></>
+                        ))}
+                      </span>
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    )}
+
+    <!-- CTA tutti i contenuti -->
+    <div class="flex justify-center mt-4">
+      <a href={`/periodi/${periodo.slug}/contenuti`} class="btn btn-primary gap-2">
+        Tutti i contenuti del periodo {periodo.titolo}
+        <Icon name="arrow-right" />
+      </a>
+    </div>
+
+  </article>
+  </div>
+</BaseLayout>

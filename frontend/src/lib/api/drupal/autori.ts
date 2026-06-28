@@ -62,7 +62,7 @@ export async function getAutore(slug: string): Promise<AutoreDetail | null> {
   if (!uuid) return null;
 
   const response = await fetchJsonApi(`/jsonapi/node/autore/${uuid}`, new URLSearchParams({
-    'fields[node--autore]': 'drupal_internal__nid,title,path,field_nome,field_cognome,field_informazioni,field_immagine,field_localizzazione,field_periodo,field_anno_di_nascita,field_anno_di_morte',
+    'fields[node--autore]': 'drupal_internal__nid,title,path,field_nome,field_cognome,field_informazioni,field_immagine,field_localizzazione,field_periodo,field_anno_di_nascita,field_anno_di_morte,field_visualizzazioni',
     'fields[taxonomy_term--localizzazioni]': 'name,path',
     'fields[taxonomy_term--periodi]': 'name,path',
     'fields[media--image]': 'field_media_image',
@@ -75,6 +75,23 @@ export async function getAutore(slug: string): Promise<AutoreDetail | null> {
 
   const map = buildIncludedMap(response.included);
   return mapAutoreDetail(item, map);
+}
+
+export async function getAutoriByPeriodo(periodoId: number | string, limit = 5): Promise<AutoreCard[]> {
+  const { data, included } = await fetchJsonApi('/jsonapi/node/autore', new URLSearchParams({
+    'filter[status]': '1',
+    'filter[field_periodo.drupal_internal__tid]': String(periodoId),
+    'fields[node--autore]': 'drupal_internal__nid,title,path,field_immagine,field_localizzazione,field_visualizzazioni,field_anno_di_nascita,field_anno_di_morte',
+    'fields[taxonomy_term--localizzazioni]': 'name,path',
+    'fields[media--image]': 'field_media_image',
+    'fields[file--file]': 'uri',
+    'include': 'field_localizzazione,field_immagine,field_immagine.field_media_image',
+    'sort': '-field_visualizzazioni',
+    'page[limit]': String(Math.min(limit, 50)),
+  }));
+
+  const map = buildIncludedMap(included);
+  return data.map((item: any) => mapAutoreCard(item, map));
 }
 
 export async function getAutoriImmaginiMap(): Promise<Map<string, string | null>> {

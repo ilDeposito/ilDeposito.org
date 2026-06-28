@@ -83,7 +83,11 @@ export async function getEventiDelMese(month: number): Promise<EventoMese[]> {
     .map((item: any) => mapEventoMese(item, map));
 }
 
+let eventiDelGiornoCache: EventoDelGiorno[] | null = null;
+
 export async function getEventiDelGiorno(): Promise<EventoDelGiorno[]> {
+  if (eventiDelGiornoCache) return eventiDelGiornoCache;
+
   const oggi = new Date();
   const day = oggi.getUTCDate();
   const month = oggi.getUTCMonth() + 1;
@@ -96,7 +100,7 @@ export async function getEventiDelGiorno(): Promise<EventoDelGiorno[]> {
     'page[limit]': '50',
   }));
 
-  return data
+  eventiDelGiornoCache = data
     .filter((e: any) => {
       const d = new Date(e.attributes.field_data_evento);
       return d.getUTCDate() === day && d.getUTCMonth() + 1 === month;
@@ -105,11 +109,31 @@ export async function getEventiDelGiorno(): Promise<EventoDelGiorno[]> {
       new Date(a.attributes.field_data_evento).getUTCFullYear() - new Date(b.attributes.field_data_evento).getUTCFullYear()
     )
     .map(mapEventoDelGiorno);
+
+  return eventiDelGiornoCache;
 }
 
 export async function getEventiPiuVisti(limit = 10): Promise<EventoCard[]> {
   const { data, included } = await fetchJsonApi('/jsonapi/node/evento', new URLSearchParams({
     'filter[status]': '1',
+    'fields[node--evento]': 'drupal_internal__nid,title,path,field_data_evento,field_immagine,field_localizzazione,field_periodo,field_visualizzazioni',
+    'fields[taxonomy_term--localizzazioni]': 'name,path',
+    'fields[taxonomy_term--periodi]': 'name,path',
+    'fields[media--image]': 'field_media_image',
+    'fields[file--file]': 'uri',
+    'include': 'field_localizzazione,field_periodo,field_immagine,field_immagine.field_media_image',
+    'sort': '-field_visualizzazioni',
+    'page[limit]': String(Math.min(limit, 50)),
+  }));
+
+  const map = buildIncludedMap(included);
+  return data.map((item: any) => mapEventoCard(item, map));
+}
+
+export async function getEventiByPeriodo(periodoId: number | string, limit = 5): Promise<EventoCard[]> {
+  const { data, included } = await fetchJsonApi('/jsonapi/node/evento', new URLSearchParams({
+    'filter[status]': '1',
+    'filter[field_periodo.drupal_internal__tid]': String(periodoId),
     'fields[node--evento]': 'drupal_internal__nid,title,path,field_data_evento,field_immagine,field_localizzazione,field_periodo,field_visualizzazioni',
     'fields[taxonomy_term--localizzazioni]': 'name,path',
     'fields[taxonomy_term--periodi]': 'name,path',
@@ -157,7 +181,7 @@ export async function getEvento(slug: string): Promise<EventoDetail | null> {
   if (!uuid) return null;
 
   const response = await fetchJsonApi(`/jsonapi/node/evento/${uuid}`, new URLSearchParams({
-    'fields[node--evento]': 'drupal_internal__nid,title,path,field_data_evento,field_informazioni,field_immagine,field_geofield,field_localizzazione,field_periodo,field_tags,field_tematiche,field_canti_correlati',
+    'fields[node--evento]': 'drupal_internal__nid,title,path,field_data_evento,field_informazioni,field_immagine,field_geofield,field_localizzazione,field_periodo,field_tags,field_tematiche,field_canti_correlati,field_visualizzazioni',
     'fields[node--canto]': 'drupal_internal__nid,title,path,field_anno,field_capoverso,field_audio,field_canto_accordi,status',
     'fields[taxonomy_term--localizzazioni]': 'name,path',
     'fields[taxonomy_term--periodi]': 'name,path',

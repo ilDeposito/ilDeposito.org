@@ -82,6 +82,7 @@ const jsonLd = [
     <!-- Metadati Pagefind (nascosti, per facet e card elenco) -->
     <span class="sr-only" data-pagefind-weight="10">{traduzione.titolo}</span>
     <span class="sr-only" data-pagefind-sort="titolo">{traduzione.titolo}</span>
+    <span class="sr-only" data-pagefind-sort={`visualizzazioni:${String(traduzione.visualizzazioni).padStart(10, '0')}`}></span>
     {traduzione.lingue.map(l => <span class="sr-only" data-pagefind-filter={`lingue:${l.titolo}`}></span>)}
     {cantoOriginale && (
       <>

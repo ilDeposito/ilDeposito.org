@@ -20,20 +20,10 @@ const jsonLd = [
   ]),
 ];
 
-// TODO: rimuovere i dati fittizi quando gli anni saranno popolati nel CMS
-const fakeYears: [number, number | null][] = [
-  [1908, 1967], [1924, 1997], [1919, 2005],
-  [1935, 2016], [1893, 1976], [1940, null],
-  [1898, 1937], [1920, 1990], [1915, 1987],
-  [1901, 1966],
-];
-
-const autoriConDati = autori.map((autore, i) => {
+const autoriConDati = autori.map((autore) => {
   const canti = cantiMap.get(autore.id) ?? [];
   const immagineUrl = getImageUrl(autore.immagine);
-  const annoNascita = autore.annoNascita ?? fakeYears[i]?.[0] ?? null;
-  const annoMorte = autore.annoMorte ?? fakeYears[i]?.[1] ?? null;
-  return { autore, numCanti: canti.length, immagineUrl, annoNascita, annoMorte };
+  return { autore, numCanti: canti.length, immagineUrl, annoNascita: autore.annoNascita, annoMorte: autore.annoMorte };
 });
 ---
 <BaseLayout title="Autori e compositori — Archivio" description={seoDescription} jsonLd={jsonLd}>

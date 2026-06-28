@@ -27,9 +27,9 @@ const emptyCells = Array.from({ length: startOffset });
   <h3 class="font-serif font-bold text-center text-primary capitalize text-base py-1">
     {meseNome}
   </h3>
-  <div class="grid grid-cols-7 text-center text-sm gap-y-0.5">
+  <div class="grid grid-cols-7 text-center text-sm gap-y-1 gap-x-1">
     {giorniSettimana.map((g) => (
-      <span class="font-sans font-semibold text-base-content/50 text-xs py-1">{g}</span>
+      <span class="font-sans font-semibold text-base-content/50 text-xs py-1.5">{g}</span>
     ))}
     {emptyCells.map(() => <span></span>)}
     {days.map((day) => {
@@ -37,12 +37,12 @@ const emptyCells = Array.from({ length: startOffset });
       return hasEvent ? (
         <a
           href={`${basePath}/${day}-${meseNome}`}
-          class="py-1 font-bold text-primary hover:bg-primary hover:text-primary-content rounded-full transition-colors leading-tight"
+          class="w-8 h-8 flex items-center justify-center mx-auto font-bold text-primary hover:bg-primary hover:text-primary-content rounded-full transition-colors"
         >
           {day}
         </a>
       ) : (
-        <span class="py-1 text-base-content/30 leading-tight">{day}</span>
+        <span class="w-8 h-8 flex items-center justify-center mx-auto text-base-content/30">{day}</span>
       );
     })}
   </div>

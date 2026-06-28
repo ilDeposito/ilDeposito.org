@@ -130,6 +130,7 @@ export function mapAutoreDetail(raw: any, included: IncludedMap): AutoreDetail {
     cognome: a.field_cognome || null,
     informazioni: textValue(a.field_informazioni),
     immagine: resolveImageUrl(r.field_immagine, included),
+    visualizzazioni: a.field_visualizzazioni ?? 0,
     localizzazioni: resolveRefs(r.field_localizzazione, included),
     periodi: resolveRefs(r.field_periodo, included),
     annoNascita: a.field_anno_di_nascita ?? null,
@@ -226,6 +227,7 @@ export function mapEventoDetail(raw: any, included: IncludedMap): EventoDetail {
     dataEvento: a.field_data_evento ?? null,
     informazioni: textValue(a.field_informazioni),
     immagine: resolveImageUrl(r.field_immagine, included),
+    visualizzazioni: a.field_visualizzazioni ?? 0,
     latitude: a.field_geofield?.lat ?? null,
     longitude: a.field_geofield?.lon ?? null,
     localizzazioni: resolveRefs(r.field_localizzazione, included),
@@ -260,6 +262,7 @@ export function mapTraduzioneDetail(raw: any, included: IncludedMap): Traduzione
     slug: extractSlug(a.path?.alias),
     testo: plainText(a.field_canto_testo),
     informazioni: textValue(a.field_informazioni),
+    visualizzazioni: a.field_visualizzazioni ?? 0,
     lingue: resolveRefs(r.field_lingua, included),
     cantoOriginale,
   };

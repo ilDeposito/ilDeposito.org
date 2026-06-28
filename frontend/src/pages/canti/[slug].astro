@@ -69,6 +69,13 @@ const jsonLd = [
         </p>
       )}
 
+      {periodo && (
+        <p class="font-serif italic font-bold text-base">
+          <span class="text-base-content">Periodo: </span>
+          <a href={`/periodi/${periodo.slug}`} class="text-primary hover:underline">{periodo.titolo}</a>
+        </p>
+      )}
+
       {canto.anno && <p class="font-serif italic font-bold text-base text-base-content">Anno: {canto.anno}</p>}
 
       <div class="flex items-center gap-4 text-base text-base-content mt-1">
@@ -116,6 +123,7 @@ const jsonLd = [
     {autoriUnici.length > 0 && <span class="sr-only" data-pagefind-meta="autori" data-pagefind-weight="5">{autoriUnici.map(a => a.titolo).join(', ')}</span>}
     {autoriUnici.map(a => <span class="sr-only" data-pagefind-filter={`autori:${a.titolo}`}></span>)}
     <span class="sr-only" data-pagefind-sort="titolo">{canto.titolo}</span>
+    <span class="sr-only" data-pagefind-sort={`visualizzazioni:${String(canto.visualizzazioni).padStart(10, '0')}`}></span>
     {periodo && <span class="sr-only" data-pagefind-filter={`periodi:${periodo.titolo}`}></span>}
     {canto.tags.map(t => <span class="sr-only" data-pagefind-filter={`tags:${t.titolo}`}></span>)}
     {canto.lingue.map(l => <span class="sr-only" data-pagefind-filter={`lingue:${l.titolo}`}></span>)}

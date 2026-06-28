@@ -1,11 +1,7 @@
 ---
 import { getEventiDelGiorno } from '../../lib/api/index.js';
 
-// const eventi = await getEventiDelGiorno();
-const eventi = [
-  { slug: 'la-presa-della-bastiglia', titolo: 'La presa della Bastiglia', dataEvento: '1789-07-14' },
-  { slug: 'l-attentato-a-palmiro-togliatti', titolo: "L'attentato a Palmiro Togliatti", dataEvento: '1948-07-14' },
-];
+const eventi = await getEventiDelGiorno();
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr);

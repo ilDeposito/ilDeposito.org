@@ -1,0 +1,78 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../../components/ui/Breadcrumb.astro';
+import Icon from '../../../components/base/Icon.astro';
+import PagefindList from '../../../components/ui/PagefindList.astro';
+import { getPeriodi, getImageUrl } from '../../../lib/api/index.js';
+import type { Periodo } from '../../../lib/api/types.js';
+import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../../lib/schema.js';
+import { buildCanonical } from '../../../lib/seo.js';
+
+export async function getStaticPaths() {
+  const periodi = await getPeriodi();
+  return periodi.map((periodo) => ({
+    params: { slug: periodo.slug },
+    props: { periodo },
+  }));
+}
+
+const { periodo } = Astro.props as { periodo: Periodo };
+const immagineUrl = getImageUrl(periodo.immagine);
+
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const seoTitle = `Tutti i contenuti del periodo ${periodo.titolo}`;
+const seoDescription = `Canti, autori e eventi del periodo "${periodo.titolo}": esplora l'archivio completo di ilDeposito.org.`;
+const breadcrumbItems = [
+  { label: 'Home', href: '/' },
+  { label: 'Periodi', href: '/periodi' },
+  { label: periodo.titolo, href: `/periodi/${periodo.slug}` },
+  { label: 'Contenuti' },
+];
+const jsonLd = [
+  buildCollectionPageSchema(seoTitle, seoDescription, buildCanonical(Astro)),
+  buildBreadcrumbSchema(breadcrumbItems.map((item) => ({ name: item.label, url: item.href ? `${siteUrl}${item.href}` : undefined }))),
+];
+---
+<BaseLayout title={seoTitle} description={seoDescription} jsonLd={jsonLd}>
+
+  <header class="bg-base-200 border-b-2 border-secondary">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
+      <Breadcrumb items={breadcrumbItems} />
+
+      <div class="flex items-center gap-4">
+        {immagineUrl && (
+          <Image
+            src={immagineUrl}
+            alt={"Immagine del periodo: " + periodo.titolo}
+            width={160}
+            height={160}
+            format="webp"
+            quality={80}
+            loading="eager"
+            fetchpriority="high"
+            class="w-20 h-20 rounded-full object-cover shrink-0 border-2 border-base-300"
+          />
+        )}
+        <div class="flex flex-col gap-1">
+          <h1 class="font-serif font-bold text-2xl md:text-3xl text-base-content">Contenuti: {periodo.titolo}</h1>
+          <p class="font-serif italic text-base text-base-content/60">Tutti i canti, autori e eventi del periodo</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <PagefindList
+      presetFilter={{ periodi: periodo.titolo }}
+      filterKeys={["type", "tags"]}
+      pageSize={15}
+      sortOptions={[
+        { field: 'titolo', label: 'A–Z', dir: 'asc' },
+        { field: 'visualizzazioni', label: 'Più visti', dir: 'desc' },
+        { field: 'visualizzazioni', label: 'Meno visti', dir: 'asc' },
+      ]}
+    />
+  </div>
+
+</BaseLayout>

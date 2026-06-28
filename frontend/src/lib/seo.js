@@ -75,6 +75,7 @@ export function stripHtml(html) {
 
 export function buildTitle(pageTitle, suffix = SITE_NAME) {
   const title = truncate(pageTitle, MAX_TITLE_LEN) || suffix;
+  if (title.includes(suffix)) return title;
   return `${title} | ${suffix}`;
 }
 

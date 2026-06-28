@@ -57,6 +57,7 @@ const jsonLd = [
     <!-- Metadati Pagefind (nascosti, per facet e display nell'elenco) -->
     <span class="sr-only" data-pagefind-weight="10">{autore.titolo}</span>
     <span class="sr-only" data-pagefind-sort="titolo">{autore.titolo}</span>
+    <span class="sr-only" data-pagefind-sort={`visualizzazioni:${String(autore.visualizzazioni).padStart(10, '0')}`}></span>
     <span class="sr-only" data-pagefind-meta={`num_canti:${tuttiCanti.length}`}></span>
     {autore.localizzazioni.length > 0 && (
       <span class="sr-only" data-pagefind-meta={`localizzazioni:${autore.localizzazioni.map((l) => l.titolo).join(', ')}`}></span>
@@ -70,32 +71,38 @@ const jsonLd = [
 
     <!-- I canti principali -->
     {canti.length > 0 && (
-      <section data-pagefind-ignore class="flex flex-col gap-2">
+      <section data-pagefind-ignore class="flex flex-col gap-8">
         <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
           I canti principali
         </h2>
 
-        <div class="flex flex-col divide-y divide-base-300">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
           {canti.map((canto) => (
-            <div class="flex flex-col gap-1 py-3 hover:bg-base-200 transition-colors rounded-lg">
-              <p class="text-sm text-base-content/50 flex items-center gap-2">
-                {canto.anno && <span class="italic">{canto.anno}</span>}
-                {canto.anno && <span>·</span>}
-                <Icon name="headphones" class={canto.videoUrl ? 'text-primary' : 'text-base-content/30'} />
-                <Icon name="guitar" class={canto.accordi ? 'text-primary' : 'text-base-content/30'} />
-              </p>
-              <h3 class="font-serif font-bold text-primary">
-                <a href={`/canti/${canto.slug}`} class="hover:underline">{canto.titolo}</a>
+            <div class="flex flex-col gap-1.5 group relative">
+              <h3 class="font-serif font-bold text-xl md:text-2xl text-primary leading-tight flex items-center gap-2">
+                <a href={`/canti/${canto.slug}`} class="hover:underline after:absolute after:inset-0">{canto.titolo}</a>
+                <span class="flex items-center gap-1 shrink-0 relative z-10">
+                  <Icon name="headphones" class={`text-sm ${canto.videoUrl ? 'text-primary' : 'text-base-content/30'}`} />
+                  <Icon name="guitar" class={`text-sm ${canto.accordi ? 'text-primary' : 'text-base-content/30'}`} />
+                </span>
               </h3>
+
               {canto.capoverso && (
-                <p class="italic text-base text-base-content/60">{canto.capoverso}</p>
+                <p class="italic text-base text-base-content/50 line-clamp-2">{canto.capoverso}</p>
+              )}
+
+              {canto.anno && (
+                <p class="text-base text-base-content/50 flex items-center gap-2">
+                  <Icon name="calendar-blank" class="text-sm shrink-0" />
+                  {canto.anno}
+                </p>
               )}
             </div>
           ))}
         </div>
 
         {haPiuDiDieci && (
-          <a href={`/autori/${autore.slug}/canti`} class="btn btn-primary self-center mt-2">
+          <a href={`/autori/${autore.slug}/canti`} class="btn btn-primary self-center gap-2">
             <Icon name="arrow-right" />
             Tutti i canti
           </a>

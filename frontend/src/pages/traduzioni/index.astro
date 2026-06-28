@@ -31,6 +31,11 @@ const jsonLd = [
       type="traduzioni"
       filterKeys={["lingue"]}
       pageSize={15}
+      sortOptions={[
+        { field: 'titolo', label: 'A–Z', dir: 'asc' },
+        { field: 'visualizzazioni', label: 'Più visti', dir: 'desc' },
+        { field: 'visualizzazioni', label: 'Meno visti', dir: 'asc' },
+      ]}
     />
   </div>
 

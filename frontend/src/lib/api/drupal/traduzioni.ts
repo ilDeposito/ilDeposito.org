@@ -45,7 +45,7 @@ export async function getTraduzione(slug: string): Promise<TraduzioneDetail | nu
   if (!uuid) return null;
 
   const response = await fetchJsonApi(`/jsonapi/node/traduzione/${uuid}`, new URLSearchParams({
-    'fields[node--traduzione]': 'drupal_internal__nid,title,path,field_canto_testo,field_informazioni,field_lingua,field_canti_correlati',
+    'fields[node--traduzione]': 'drupal_internal__nid,title,path,field_canto_testo,field_informazioni,field_lingua,field_canti_correlati,field_visualizzazioni',
     'fields[node--canto]': 'drupal_internal__nid,title,path,field_lingua',
     'fields[taxonomy_term--lingue]': 'name,path',
     'include': 'field_lingua,field_canti_correlati,field_canti_correlati.field_lingua',

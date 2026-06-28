@@ -1,5 +1,20 @@
 ---
+import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/base/Icon.astro';
+import MonthCalendar from '../components/ui/MonthCalendar.astro';
+import {
+  getCantiPiuVisti,
+  getAutoriImmaginiMap,
+  getAutoriPiuVisti,
+  getEventiDelMese,
+  getEventiCalendario,
+  getPeriodi,
+  getContenutiByPeriodoMap,
+  getTags,
+  getContenutiByTagMap,
+  getImageUrl,
+} from '../lib/api/index.js';
 import { buildWebSiteSchema, buildOrganizationSchema, buildBreadcrumbSchema } from '../lib/schema.js';
 
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
@@ -8,13 +23,430 @@ const jsonLd = [
   buildOrganizationSchema(siteUrl),
   buildBreadcrumbSchema([{ name: 'Home', url: siteUrl }]),
 ];
+
+const now = new Date();
+const month = now.getUTCMonth() + 1;
+
+const [
+  canti,
+  autoriImmagini,
+  autori,
+  eventiMese,
+  eventiCalendario,
+  periodi,
+  contenutiPeriodoMap,
+  tags,
+  contenutiTagMap,
+] = await Promise.all([
+  getCantiPiuVisti(8),
+  getAutoriImmaginiMap(),
+  getAutoriPiuVisti(6),
+  getEventiDelMese(month),
+  getEventiCalendario(),
+  getPeriodi(),
+  getContenutiByPeriodoMap(),
+  getTags(),
+  getContenutiByTagMap(),
+]);
+
+const cantiConDati = canti.map((canto) => {
+  const autoriList = [...canto.autoriTesto, ...canto.autoriMusica].filter(
+    (a, i, arr) => arr.findIndex((x) => x.slug === a.slug) === i
+  );
+  const primoAutore = canto.autoriTesto[0] ?? null;
+  const immagineUrl = primoAutore ? getImageUrl(autoriImmagini.get(primoAutore.slug) ?? null) : null;
+  return { canto, autori: autoriList, immagineUrl };
+});
+
+const imgUrls = eventiMese.map((e) => getImageUrl(e.immagine));
+const todayDay = now.getUTCDate();
+const startIndex = (() => {
+  const i = eventiMese.findIndex((e) => new Date(e.dataEvento).getUTCDate() >= todayDay);
+  return i === -1 ? 0 : i;
+})();
+
+const mesiIT = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+const meseNome = mesiIT[month - 1];
+
+const formatData = (data: string) =>
+  new Date(data).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+
+const eventsByMonth = new Map<number, Set<number>>();
+for (const e of eventiCalendario) {
+  const d = new Date(e.dataEvento);
+  const m = d.getUTCMonth() + 1;
+  if (!eventsByMonth.has(m)) eventsByMonth.set(m, new Set());
+  eventsByMonth.get(m)!.add(d.getUTCDate());
+}
+const highlightedDays = [...(eventsByMonth.get(month) ?? [])];
+
+const tagsSorted = tags
+  .map((tag) => {
+    const counts = contenutiTagMap.get(tag.id);
+    const total = counts ? counts.canti + counts.eventi : 0;
+    return { ...tag, total };
+  })
+  .filter((t) => t.total > 0)
+  .sort((a, b) => b.total - a.total)
+  .slice(0, 20);
+const maxTagCount = tagsSorted[0]?.total ?? 1;
+
+const autoriConDati = autori.map((autore) => ({
+  autore,
+  immagineUrl: getImageUrl(autore.immagine),
+}));
 ---
 <BaseLayout
-  title="Canti di protesta politica e sociale"
+  title="ilDeposito.org - Canti di protesta politica e sociale"
   description="Archivio online di canti di protesta politica e sociale: testi, accordi, traduzioni, autori e eventi storici."
   jsonLd={jsonLd}
 >
-  <div class="max-w-6xl mx-auto px-4 py-8">
-    <h1 class="font-serif text-4xl md:text-5xl">Il Deposito</h1>
-  </div>
+
+  <!-- ═══ 1. HERO ═══ bg-neutral -->
+  <section class="bg-neutral text-neutral-content">
+    <div class="max-w-6xl mx-auto px-4 py-8 md:py-12 flex flex-col items-center text-center gap-5">
+      <h1 class="font-serif font-bold text-4xl md:text-5xl lg:text-6xl leading-tight">
+        ilDeposito
+      </h1>
+      <p class="font-serif italic text-lg md:text-xl text-neutral-content/80 max-w-2xl">
+        Archivio online di canti di protesta politica e sociale italiani.
+        Testi, accordi, traduzioni, autori e gli eventi storici che li hanno ispirati.
+      </p>
+      <div class="flex flex-wrap gap-3 justify-center mt-2">
+        <a href="/canti/elenco" class="btn btn-primary border-0 gap-2">
+          <Icon name="music-notes" />
+          Esplora i canti
+        </a>
+        <a href="/autori/elenco" class="btn btn-primary border-0 gap-2">
+          <Icon name="users-three" />
+          Esplora gli autori
+        </a>
+        <a href="/cerca" class="btn btn-ghost text-neutral-content hover:bg-neutral-content/10 gap-2">
+          <Icon name="magnifying-glass" />
+          Cerca nell'archivio
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 2. CANTI PIÙ VISTI ═══ bg-base-100 -->
+  <section class="bg-base-100">
+    <div class="max-w-6xl mx-auto px-4 py-12 md:py-16">
+      <h2 class="font-serif font-bold text-xl md:text-2xl text-base-content text-center border-b-2 border-secondary pb-2 w-fit mx-auto mb-10">
+        <Icon name="music-notes" class="text-primary mr-2" />I canti più visti
+      </h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-8">
+        {cantiConDati.map(({ canto, autori, immagineUrl }, i) => (
+          <div class="flex items-start gap-5 group relative">
+            <div class="shrink-0">
+              {immagineUrl ? (
+                <Image
+                  src={immagineUrl}
+                  alt={autori[0] ? `Foto di ${autori[0].titolo}` : canto.titolo}
+                  width={240}
+                  height={240}
+                  format="webp"
+                  quality={80}
+                  loading={i < 4 ? 'eager' : 'lazy'}
+                  class="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
+                />
+              ) : (
+                <div class="w-28 h-28 md:w-32 md:h-32 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">
+                  <Icon name="music-notes" class="text-base-content/30 text-4xl" />
+                </div>
+              )}
+            </div>
+            <div class="flex flex-col gap-1 min-w-0 pt-1">
+              <p class="text-sm text-base-content/40 flex items-center gap-2">
+                {canto.anno && <span class="italic">{canto.anno}</span>}
+                {canto.anno && <span aria-hidden="true">&middot;</span>}
+                <Icon name="headphones" class={canto.videoUrl ? 'text-primary' : 'text-base-content/30'} />
+                <Icon name="guitar" class={canto.accordi ? 'text-primary' : 'text-base-content/30'} />
+              </p>
+              <h3 class="font-serif font-bold text-lg md:text-xl text-primary leading-tight">
+                <a href={`/canti/${canto.slug}`} class="hover:underline after:absolute after:inset-0">{canto.titolo}</a>
+              </h3>
+              {canto.capoverso && (
+                <p class="italic text-base text-base-content/50 line-clamp-2">{canto.capoverso}</p>
+              )}
+              {autori.length > 0 && (
+                <p class="text-sm text-base-content/60 relative z-10">
+                  {autori.map((a, j) => (
+                    <>{j > 0 && ', '}<a href={`/autori/${a.slug}`} class="hover:text-primary hover:underline">{a.titolo}</a></>
+                  ))}
+                </p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div class="text-center mt-10">
+        <a href="/canti/elenco" class="btn btn-primary border-0 gap-2">
+          Tutti i canti dell'archivio
+          <Icon name="arrow-right" />
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 3. AUTORI PIÙ VISTI ═══ bg-base-200 -->
+  <section class="bg-base-200">
+    <div class="max-w-6xl mx-auto px-4 py-12 md:py-16">
+      <h2 class="font-serif font-bold text-xl md:text-2xl text-base-content text-center border-b-2 border-secondary pb-2 w-fit mx-auto mb-10">
+        <Icon name="users-three" class="text-primary mr-2" />Gli autori più visti
+      </h2>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 md:gap-8">
+        {autoriConDati.map(({ autore, immagineUrl }, i) => (
+          <a href={`/autori/${autore.slug}`} class="flex flex-col items-center gap-3 group">
+            <div class="shrink-0">
+              {immagineUrl ? (
+                <Image
+                  src={immagineUrl}
+                  alt={`Foto di ${autore.titolo}`}
+                  width={200}
+                  height={200}
+                  format="webp"
+                  quality={80}
+                  loading={i < 4 ? 'eager' : 'lazy'}
+                  class="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 group-hover:border-primary transition-all duration-300"
+                />
+              ) : (
+                <div class="w-24 h-24 md:w-28 md:h-28 rounded-full bg-base-100 flex items-center justify-center border-2 border-base-300 group-hover:border-primary transition-colors">
+                  <Icon name="user" class="text-base-content/30 text-3xl" />
+                </div>
+              )}
+            </div>
+            <div class="text-center">
+              <h3 class="font-serif font-semibold text-sm md:text-base text-base-content group-hover:text-primary transition-colors leading-tight">{autore.titolo}</h3>
+              {(autore.annoNascita || autore.annoMorte) && (
+                <p class="text-xs text-base-content/40 mt-0.5">
+                  {autore.annoNascita ?? '?'}–{autore.annoMorte ?? ''}
+                </p>
+              )}
+            </div>
+          </a>
+        ))}
+      </div>
+
+      <div class="text-center mt-10">
+        <a href="/autori/elenco" class="btn btn-primary btn-sm border-0 gap-2">
+          Tutti gli autori
+          <Icon name="arrow-right" />
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 4. PERIODI STORICI ═══ bg-primary -->
+  <section class="bg-primary text-primary-content">
+    <div class="max-w-6xl mx-auto px-4 py-12 md:py-16">
+      <h2 class="font-serif font-bold text-xl md:text-2xl text-center border-b-2 border-secondary pb-2 w-fit mx-auto mb-10">
+        <Icon name="books" class="text-secondary mr-2" />I periodi storici
+      </h2>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
+        {periodi.map((periodo, i) => {
+          const { canti = 0, autori = 0 } = contenutiPeriodoMap.get(periodo.id) ?? {};
+          const immagineUrl = getImageUrl(periodo.immagine);
+          return (
+            <a href={`/periodi/${periodo.slug}`} class="flex flex-col items-center gap-3 group">
+              <div class="shrink-0">
+                {immagineUrl ? (
+                  <Image
+                    src={immagineUrl}
+                    alt={periodo.titolo}
+                    width={200}
+                    height={200}
+                    format="webp"
+                    quality={80}
+                    loading={i < 4 ? 'eager' : 'lazy'}
+                    class="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover border-2 border-secondary/50 grayscale group-hover:grayscale-0 transition-all duration-300"
+                  />
+                ) : (
+                  <div class="w-24 h-24 md:w-28 md:h-28 rounded-full bg-primary-content/10 flex items-center justify-center border-2 border-secondary/50">
+                    <Icon name="calendar-star" class="text-primary-content/50 text-3xl" />
+                  </div>
+                )}
+              </div>
+              <div class="text-center">
+                <h3 class="font-serif font-bold text-sm md:text-base leading-tight group-hover:underline">{periodo.titolo}</h3>
+                <p class="text-xs text-primary-content/60 mt-1">
+                  {canti > 0 && <span>{canti} {canti === 1 ? 'canto' : 'canti'}</span>}
+                  {canti > 0 && autori > 0 && <span> &middot; </span>}
+                  {autori > 0 && <span>{autori} {autori === 1 ? 'autore' : 'autori'}</span>}
+                </p>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+
+      <div class="text-center mt-10">
+        <a href="/periodi" class="btn bg-primary-content text-primary border-0 hover:bg-primary-content/90 gap-2">
+          Tutti i periodi
+          <Icon name="arrow-right" />
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 5. EVENTI DEL MESE — CAROUSEL ═══ bg-base-100 -->
+  {eventiMese.length > 0 && (
+    <section class="bg-base-100">
+      <div class="max-w-6xl mx-auto px-4 py-12 md:py-16">
+        <h2 class="font-serif font-bold text-xl md:text-2xl text-base-content text-center border-b-2 border-primary pb-2 w-fit mx-auto mb-10">
+          <Icon name="calendar-star" class="text-primary mr-2" />Gli eventi di {meseNome}
+        </h2>
+
+        <image-carousel
+          data-initial={String(startIndex)}
+          class="block relative max-w-3xl mx-auto w-full"
+        >
+          <div data-viewport class="overflow-hidden relative rounded-lg">
+            <div data-track class="flex">
+              {eventiMese.map((evento, i) => {
+                const loc = evento.localizzazioni[0];
+                return (
+                  <div data-item class="min-w-full">
+                    <a href={`/eventi/${evento.slug}`} class="block relative h-56 md:h-72">
+                      {imgUrls[i] ? (
+                        <Image
+                          src={imgUrls[i]}
+                          alt={`Immagine: ${evento.titolo}`}
+                          width={800}
+                          height={450}
+                          format="webp"
+                          quality={75}
+                          class="w-full h-full object-cover grayscale"
+                          loading={i === startIndex ? 'eager' : 'lazy'}
+                        />
+                      ) : (
+                        <div class="w-full h-full bg-base-300 flex items-center justify-center">
+                          <Icon name="image-broken" class="text-4xl text-base-content/30" />
+                        </div>
+                      )}
+                      <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"></div>
+                      <div class="absolute bottom-0 left-0 right-0 p-4 text-white">
+                        {loc && evento.dataEvento && (
+                          <p class="font-sans text-sm text-white/80 mb-1">
+                            {loc.titolo} &middot; {formatData(evento.dataEvento)}
+                          </p>
+                        )}
+                        <p class="font-serif font-bold text-lg leading-tight line-clamp-2">{evento.titolo}</p>
+                      </div>
+                    </a>
+                  </div>
+                );
+              })}
+            </div>
+            {eventiMese.length > 1 && (
+              <>
+                <button data-prev type="button" aria-label="Evento precedente" class="absolute left-2 top-1/2 -translate-y-1/2 z-10 btn btn-circle btn-sm bg-black/50 border-0 text-white hover:bg-black/70">
+                  <Icon name="arrow-left" class="text-base" />
+                </button>
+                <button data-next type="button" aria-label="Evento successivo" class="absolute right-2 top-1/2 -translate-y-1/2 z-10 btn btn-circle btn-sm bg-black/50 border-0 text-white hover:bg-black/70">
+                  <Icon name="arrow-right" class="text-base" />
+                </button>
+              </>
+            )}
+          </div>
+          {eventiMese.length > 1 && (
+            <div class="flex justify-center gap-2 mt-3">
+              {eventiMese.map((_, i) => (
+                <button
+                  data-dot
+                  type="button"
+                  aria-label={`Vai all'evento ${i + 1}`}
+                  class={`w-2 h-2 rounded-full bg-primary transition-opacity ${i === startIndex ? 'opacity-100' : 'opacity-30'}`}
+                ></button>
+              ))}
+            </div>
+          )}
+        </image-carousel>
+
+        <div class="text-center mt-8">
+          <a href="/eventi/elenco" class="btn btn-primary btn-sm border-0 gap-2">
+            Tutti gli eventi
+            <Icon name="arrow-right" />
+          </a>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- ═══ 6. CALENDARIO CANTATO ═══ bg-base-200 -->
+  <section class="bg-base-200">
+    <div class="max-w-6xl mx-auto px-4 py-12 md:py-16">
+      <div class="flex flex-col md:flex-row items-center gap-8 md:gap-16">
+        <div class="flex flex-col gap-4 md:w-1/2 text-center md:text-left">
+          <h2 class="font-serif font-bold text-xl md:text-2xl text-base-content">
+            <Icon name="calendar-blank" class="text-secondary mr-2" />Il calendario cantato
+          </h2>
+          <p class="font-serif italic text-base text-base-content/60">
+            Ogni giorno dell'anno ha la sua storia. Esplora gli eventi che hanno segnato la lotta sociale e
+            scopri i canti che li raccontano.
+          </p>
+          <a href="/calendario-cantato" class="btn btn-secondary btn-sm border-0 gap-2 w-fit mx-auto md:mx-0">
+            Vedi il calendario completo
+            <Icon name="arrow-right" />
+          </a>
+        </div>
+        <div class="md:w-1/2 flex justify-center">
+          <div class="bg-base-100 rounded-lg p-5 md:p-8 shadow-sm border border-base-300">
+            <MonthCalendar month={month} year={now.getUTCFullYear()} highlightedDays={highlightedDays} basePath="/calendario-cantato" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 7. TAG PIÙ USATI ═══ bg-base-100 -->
+  {tagsSorted.length > 0 && (
+    <section class="bg-base-100">
+      <div class="max-w-4xl mx-auto px-4 py-12 md:py-16">
+        <h2 class="font-serif font-bold text-xl md:text-2xl text-base-content text-center border-b-2 border-secondary pb-2 w-fit mx-auto mb-10">
+          <Icon name="tag" class="text-primary mr-2" />Esplora per argomento
+        </h2>
+
+        <div class="flex flex-wrap justify-center gap-2 md:gap-3">
+          {tagsSorted.map((t) => {
+            const ratio = t.total / maxTagCount;
+            const sizeClass = ratio > 0.7 ? 'text-lg md:text-xl px-4 py-2' : ratio > 0.4 ? 'text-base px-3 py-1.5' : 'text-sm px-2.5 py-1';
+            return (
+              <a
+                href={`/tags/${t.slug}`}
+                class:list={[
+                  "font-serif rounded-full border border-base-300 bg-base-200 text-base-content hover:bg-primary hover:text-primary-content hover:border-primary transition-colors",
+                  sizeClass,
+                ]}
+              >
+                {t.titolo}
+                <span class="text-xs opacity-50 ml-1">{t.total}</span>
+              </a>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- ═══ 8. COLLABORA ═══ bg-base-300 -->
+  <section class="bg-base-300">
+    <div class="max-w-2xl mx-auto px-4 py-12 md:py-16 text-center">
+      <h2 class="font-serif font-bold text-xl md:text-2xl text-base-content mb-3">Collabora con noi</h2>
+      <p class="text-base text-base-content/70 mb-6">
+        Conosci un canto che non abbiamo? Hai correzioni o materiale da condividere?
+      </p>
+      <a href="/informazioni/collabora" class="btn btn-primary border-0 gap-2">
+        Partecipa
+      </a>
+    </div>
+  </section>
+
+  <script>
+    import '../scripts/image-carousel.js';
+  </script>
 </BaseLayout>

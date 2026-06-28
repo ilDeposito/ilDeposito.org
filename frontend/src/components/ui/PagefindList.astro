@@ -44,28 +44,35 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
   data-initial-query={initialQuery}
   class="block"
 >
-  <!-- Desktop: riga di dropdown button + contatore -->
-  <div class="hidden sm:flex items-center justify-between gap-4 mb-5">
-    <div data-filter-panel class="flex flex-wrap gap-2">
-      <p class="text-sm text-base-content/40 italic">Caricamento filtri…</p>
-    </div>
-    <div class="flex items-center gap-3 shrink-0">
-      <button type="button" data-reset-filters class="btn btn-ghost btn-xs hidden">
+  <!-- Desktop: contatore + filtri -->
+  <div class="hidden sm:block mb-5">
+    <div class="flex items-baseline gap-4 mb-4">
+      <p data-result-count class="text-lg font-serif font-semibold text-base-content whitespace-nowrap"></p>
+      <button type="button" data-reset-filters class="text-sm text-primary hover:text-primary/70 transition-colors hidden whitespace-nowrap">
         Rimuovi filtri
       </button>
+    </div>
+    <div class="flex items-center justify-between gap-4">
+      <div data-filter-panel class="flex flex-wrap gap-2">
+        <p class="text-base text-base-content/40 italic">Caricamento filtri…</p>
+      </div>
       <div data-sort-panel-desktop></div>
-      <p data-result-count class="text-xs text-base-content/40 whitespace-nowrap"></p>
     </div>
   </div>
 
-  <!-- Mobile: bottone filtri + contatore -->
-  <div class="sm:hidden mb-4 flex items-center justify-between">
+  <!-- Mobile: contatore + bottone filtri -->
+  <div class="sm:hidden mb-4">
+    <div class="flex items-baseline gap-3 mb-3">
+      <p data-result-count class="text-base font-serif font-semibold text-base-content"></p>
+      <button type="button" data-reset-filters class="text-sm text-primary hover:text-primary/70 transition-colors hidden whitespace-nowrap">
+        Rimuovi filtri
+      </button>
+    </div>
     <button type="button" data-filter-toggle class="btn btn-ghost btn-sm gap-2 border border-base-300">
       <Icon name="funnel" />
       Filtra l'elenco
       <span data-filter-count class="badge badge-secondary badge-sm hidden"></span>
     </button>
-    <p data-result-count class="text-xs text-base-content/40"></p>
   </div>
 
   <!-- Drawer filtri (mobile) -->
@@ -98,17 +105,17 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
   </div>
 
   <!-- Filtri attivi (badges) -->
-  <div data-active-filters class="hidden flex-wrap gap-2 mb-4"></div>
+  <div data-active-filters class="hidden flex-wrap gap-2 mb-5"></div>
 
   <!-- Lista risultati -->
-  <div data-results class="flex flex-col divide-y divide-secondary/30">
+  <div data-results class="max-w-2xl mx-auto flex flex-col divide-y divide-secondary/30">
     <div class="py-12 flex justify-center">
       <span class="loading loading-spinner loading-md text-primary"></span>
     </div>
   </div>
 
   <!-- Paginazione -->
-  <nav data-pagination aria-label="Paginazione" class="flex justify-center flex-wrap gap-1 mt-6"></nav>
+  <nav data-pagination aria-label="Paginazione" class="flex justify-center flex-wrap gap-2 mt-8"></nav>
 </pagefind-list>
 
 <script is:inline>
@@ -214,7 +221,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
         );
         const el = this.querySelector('[data-results]');
         el.innerHTML = items.length === 0
-          ? '<p class="py-10 text-center font-serif italic text-base-content/50">Nessun risultato.</p>'
+          ? '<p class="py-12 text-center font-serif italic text-lg text-base-content/50">Nessun risultato.</p>'
           : items.map((item) => this._renderCard(item)).join('');
         this._renderPagination();
       }
@@ -226,11 +233,11 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
 
         if (cardType === 'periodi') {
           return `
-            <div class="flex flex-col gap-1 py-3 hover:bg-base-200 transition-colors rounded-lg px-1">
-              <h3 class="font-serif font-semibold text-primary">
+            <div class="flex flex-col gap-1.5 py-4 hover:bg-base-200 transition-colors rounded-lg px-2">
+              <h3 class="font-serif font-semibold text-lg text-primary">
                 <a href="${item.url}" class="hover:underline">${meta.title ?? ''}</a>
               </h3>
-              <p class="text-xs text-base-content/40 uppercase tracking-wide font-sans">Periodo storico</p>
+              <p class="text-sm text-base-content/40 uppercase tracking-wide font-sans">Periodo storico</p>
             </div>
           `;
         }
@@ -242,11 +249,11 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
                 : meta.canto_originale_titolo)
             : '';
           return `
-            <div class="flex flex-col gap-1 py-3 hover:bg-base-200 transition-colors rounded-lg px-1">
-              <h3 class="font-serif font-semibold text-primary">
+            <div class="flex flex-col gap-1.5 py-4 hover:bg-base-200 transition-colors rounded-lg px-2">
+              <h3 class="font-serif font-semibold text-lg text-primary">
                 <a href="${item.url}" class="hover:underline">${meta.title ?? ''}</a>
               </h3>
-              ${cantoLink ? `<p class="font-serif italic text-sm text-base-content/60">${cantoLink}</p>` : ''}
+              ${cantoLink ? `<p class="font-serif italic text-base text-base-content/60">${cantoLink}</p>` : ''}
             </div>
           `;
         }
@@ -254,12 +261,12 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
         if (cardType === 'autori') {
           const numCanti = meta.num_canti ? parseInt(meta.num_canti, 10) : 0;
           return `
-            <div class="flex flex-col gap-1 py-3 hover:bg-base-200 transition-colors rounded-lg px-1">
-              <h3 class="font-serif font-semibold text-primary">
+            <div class="flex flex-col gap-1.5 py-4 hover:bg-base-200 transition-colors rounded-lg px-2">
+              <h3 class="font-serif font-semibold text-lg text-primary">
                 <a href="${item.url}" class="hover:underline">${meta.title ?? ''}</a>
               </h3>
-              ${meta.localizzazioni ? `<p class="font-serif italic text-sm text-base-content/60">${meta.localizzazioni}</p>` : ''}
-              ${numCanti > 0 ? `<p class="text-xs text-base-content/40">${numCanti} ${numCanti === 1 ? 'canto' : 'canti'}</p>` : ''}
+              ${meta.localizzazioni ? `<p class="font-serif italic text-base text-base-content/60">${meta.localizzazioni}</p>` : ''}
+              ${numCanti > 0 ? `<p class="text-sm text-base-content/40">${numCanti} ${numCanti === 1 ? 'canto' : 'canti'}</p>` : ''}
             </div>
           `;
         }
@@ -278,12 +285,12 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
           const dateStr    = meta.data_display ?? '';
           const metaLine1  = [locHtml, dateStr].filter(Boolean).join(' · ');
           return `
-            <div class="flex flex-col gap-1 py-3 hover:bg-base-200 transition-colors rounded-lg px-1">
-              <h3 class="font-serif font-semibold text-primary">
+            <div class="flex flex-col gap-1.5 py-4 hover:bg-base-200 transition-colors rounded-lg px-2">
+              <h3 class="font-serif font-semibold text-lg text-primary">
                 <a href="${item.url}" class="hover:underline">${meta.title ?? ''}</a>
               </h3>
-              ${metaLine1   ? `<p class="font-serif italic text-sm text-base-content/60">${metaLine1}</p>`   : ''}
-              ${periodoHtml ? `<p class="font-serif italic text-sm text-base-content/60">${periodoHtml}</p>` : ''}
+              ${metaLine1   ? `<p class="font-serif italic text-base text-base-content/60">${metaLine1}</p>`   : ''}
+              ${periodoHtml ? `<p class="font-serif italic text-base text-base-content/60">${periodoHtml}</p>` : ''}
             </div>
           `;
         }
@@ -291,17 +298,17 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
         const accordi = meta.accordi === 'sì';
         const audio   = meta.audio   === 'sì';
         return `
-          <div class="flex flex-col gap-1 py-3 hover:bg-base-200 transition-colors rounded-lg px-1">
-            <p class="text-xs text-base-content/40 flex items-center gap-2">
+          <div class="flex flex-col gap-1.5 py-4 hover:bg-base-200 transition-colors rounded-lg px-2">
+            <p class="text-sm text-base-content/40 flex items-center gap-2">
               ${meta.anno ? `<span class="italic">${meta.anno}</span><span aria-hidden="true">·</span>` : ''}
               ${ICO.headphones(audio ? 'text-primary' : 'text-base-content/20')}
               ${ICO.guitar(accordi ? 'text-primary' : 'text-base-content/20')}
             </p>
-            <h3 class="font-serif font-semibold text-primary">
+            <h3 class="font-serif font-semibold text-lg text-primary">
               <a href="${item.url}" class="hover:underline">${meta.title ?? ''}</a>
             </h3>
-            ${meta.autori    ? `<p class="text-sm text-base-content/60">${meta.autori}</p>`    : ''}
-            ${meta.capoverso ? `<p class="italic text-sm text-base-content/60">${meta.capoverso}</p>` : ''}
+            ${meta.autori    ? `<p class="text-base text-base-content/60">${meta.autori}</p>`    : ''}
+            ${meta.capoverso ? `<p class="italic text-base text-base-content/60">${meta.capoverso}</p>` : ''}
           </div>
         `;
       }
@@ -317,9 +324,9 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
         const parts = [];
         const btn   = (n) => {
           const active = n === cur;
-          return `<button type="button" data-page="${n}" class="btn btn-xs ${active ? 'btn-primary' : 'btn-ghost'}" aria-current="${active}">${n + 1}</button>`;
+          return `<button type="button" data-page="${n}" class="btn btn-sm ${active ? 'btn-primary' : 'btn-ghost !border-transparent'}" aria-current="${active}">${n + 1}</button>`;
         };
-        const dots  = () => '<span class="px-1 self-center text-base-content/30 text-sm">…</span>';
+        const dots  = () => '<span class="px-2 self-center text-base-content/30">…</span>';
 
         parts.push(btn(0));
         if (cur > 2) parts.push(dots());
@@ -374,15 +381,15 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
         const extra   = entries.slice(VIEW_MORE_THRESHOLD);
 
         const itemHtml = ([val, count]) => `
-          <label class="flex items-center gap-2 px-3 py-1.5 cursor-pointer hover:bg-base-200 text-sm">
+          <label class="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-base-200 text-base">
             <input
               type="checkbox"
-              class="checkbox checkbox-xs checkbox-primary"
+              class="checkbox checkbox-sm checkbox-primary"
               data-filter-key="${key}"
               data-filter-val="${val}"
             />
             <span class="flex-1">${val}</span>
-            <span class="text-xs text-base-content/30">${count}</span>
+            <span class="text-sm text-base-content/30">${count}</span>
           </label>
         `;
 
@@ -391,7 +398,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
             <button
               type="button"
               data-dropdown-toggle="${key}"
-              class="btn btn-sm btn-ghost border border-base-300 gap-1"
+              class="btn btn-md btn-ghost border border-base-300 gap-1"
             >
               ${label}
               <span class="text-xs">${ICO.caretDown}</span>
@@ -431,22 +438,22 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
 
         const itemHtml = ([val, count]) => `
           <li>
-            <label class="flex items-center gap-2 cursor-pointer py-1 text-sm group">
+            <label class="flex items-center gap-2 cursor-pointer py-1.5 text-base group">
               <input
                 type="checkbox"
-                class="checkbox checkbox-xs checkbox-primary"
+                class="checkbox checkbox-sm checkbox-primary"
                 data-filter-key="${key}"
                 data-filter-val="${val}"
               />
               <span class="flex-1 group-hover:text-primary transition-colors">${val}</span>
-              <span class="text-xs text-base-content/30">${count}</span>
+              <span class="text-sm text-base-content/30">${count}</span>
             </label>
           </li>
         `;
 
         return `
           <div class="flex flex-col gap-1.5">
-            <h3 class="font-serif font-bold text-xs uppercase tracking-wide text-base-content/50">${label}</h3>
+            <h3 class="font-serif font-bold text-sm uppercase tracking-wide text-base-content/50">${label}</h3>
             <ul class="flex flex-col gap-0">
               ${visible.map(itemHtml).join('')}
               ${extra.length > 0 ? `
@@ -511,22 +518,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
       }
 
       // Aggiorna label e stile dei bottoni dropdown in base ai filtri attivi
-      _updateDropdownButtons() {
-        this.querySelectorAll('[data-dropdown-group]').forEach((group) => {
-          const key      = group.dataset.dropdownGroup;
-          const btn      = group.querySelector(`[data-dropdown-toggle="${key}"]`);
-          if (!btn) return;
-          const label    = this._filterLabels[key] ?? key;
-          const activeVal = this._filters[key];
-          if (activeVal) {
-            btn.className = 'btn btn-sm btn-primary gap-1';
-            btn.innerHTML = `${label}: <strong>${activeVal}</strong> <span class="text-xs">${ICO.caretDown}</span>`;
-          } else {
-            btn.className = 'btn btn-sm btn-ghost border border-base-300 gap-1';
-            btn.innerHTML = `${label} <span class="text-xs">${ICO.caretDown}</span>`;
-          }
-        });
-      }
+      _updateDropdownButtons() {}
 
       // ── Filter events ────────────────────────────────────────────────────────
 
@@ -587,10 +579,10 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
           <button
             type="button"
             data-remove-filter="${key}"
-            class="badge badge-secondary gap-1 cursor-pointer hover:badge-error transition-colors"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-secondary/15 text-secondary-content rounded-full cursor-pointer hover:bg-secondary/25 transition-colors"
             aria-label="Rimuovi filtro ${val}"
           >
-            ${val} <span class="text-xs">${ICO.x}</span>
+            ${val} <span class="text-xs leading-none">${ICO.x}</span>
           </button>
         `).join('');
 
@@ -610,9 +602,10 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
           countBadge.classList.toggle('hidden', entries.length === 0);
         }
 
-        // Bottone reset desktop
-        const resetBtn = this.querySelector('[data-filter-panel] ~ div [data-reset-filters]');
-        if (resetBtn) resetBtn.classList.toggle('hidden', entries.length === 0);
+        // Bottoni reset (desktop + mobile)
+        this.querySelectorAll('[data-reset-filters]').forEach((btn) => {
+          btn.classList.toggle('hidden', entries.length === 0);
+        });
 
         // Aggiorna label bottoni dropdown
         this._updateDropdownButtons();
@@ -649,10 +642,11 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
         // Desktop: dropdown button
         const desktopContainer = this.querySelector('[data-sort-panel-desktop]');
         if (desktopContainer) {
-          const activeLabel = this._sortOptions.find((o) => o.field === this._sortField)?.label ?? 'Ordina';
+          const _isActiveSort = (o) => o.field === this._sortField && o.dir === this._sortDir;
+          const activeLabel = this._sortOptions.find(_isActiveSort)?.label ?? 'Ordina';
           desktopContainer.innerHTML = `
             <div class="relative" data-sort-dropdown>
-              <button type="button" data-sort-toggle class="btn btn-sm btn-ghost border border-base-300 gap-1">
+              <button type="button" data-sort-toggle class="btn btn-md btn-ghost border border-base-300 gap-1">
                 ${activeLabel} <span class="text-xs">${ICO.caretDown}</span>
               </button>
               <div data-sort-dropdown-panel class="hidden absolute right-0 top-[calc(100%+4px)] z-50
@@ -660,8 +654,8 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
                 ${this._sortOptions.map((o) => `
                   <button type="button" data-sort-select="${o.field}" data-sort-dir="${o.dir}"
                     class="flex items-center gap-2 w-full px-3 py-1.5 text-sm hover:bg-base-200 text-left
-                           ${o.field === this._sortField ? 'text-primary font-semibold' : ''}">
-                    <span class="text-xs ${o.field === this._sortField ? '' : 'invisible'}">${ICO.check}</span>
+                           ${_isActiveSort(o) ? 'text-primary font-semibold' : ''}">
+                    <span class="text-xs ${_isActiveSort(o) ? '' : 'invisible'}">${ICO.check}</span>
                     ${o.label}
                   </button>
                 `).join('')}
@@ -704,7 +698,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
                   <label class="flex items-center gap-2 cursor-pointer py-1 text-sm group">
                     <input type="radio" name="sort-mobile" class="radio radio-xs radio-primary"
                       data-sort-select="${o.field}" data-sort-dir="${o.dir}"
-                      ${o.field === this._sortField ? 'checked' : ''} />
+                      ${o.field === this._sortField && o.dir === this._sortDir ? 'checked' : ''} />
                     <span class="flex-1 group-hover:text-primary transition-colors">${o.label}</span>
                   </label>
                 `).join('')}
@@ -724,22 +718,24 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
       }
 
       _updateSortUI() {
+        const _isActive = (el) => el.dataset.sortSelect === this._sortField && el.dataset.sortDir === this._sortDir;
         // Update desktop button label
         const toggle = this.querySelector('[data-sort-toggle]');
         if (toggle) {
-          const activeLabel = this._sortOptions.find((o) => o.field === this._sortField)?.label ?? 'Ordina';
+          const activeLabel = this._sortOptions.find((o) => o.field === this._sortField && o.dir === this._sortDir)?.label ?? 'Ordina';
           toggle.innerHTML = `${activeLabel} <span class="text-xs">${ICO.caretDown}</span>`;
         }
         // Update desktop check marks + active styles
         this.querySelector('[data-sort-dropdown-panel]')?.querySelectorAll('[data-sort-select]').forEach((btn) => {
-          const isActive = btn.dataset.sortSelect === this._sortField;
-          btn.querySelector('.ph-check')?.classList.toggle('invisible', !isActive);
-          btn.classList.toggle('text-primary', isActive);
-          btn.classList.toggle('font-semibold', isActive);
+          const active = _isActive(btn);
+          btn.classList.toggle('text-primary', active);
+          btn.classList.toggle('font-semibold', active);
+          const check = btn.querySelector('span');
+          if (check) check.classList.toggle('invisible', !active);
         });
         // Sync mobile radio states
         this.querySelectorAll('[data-sort-section-mobile] [data-sort-select]').forEach((input) => {
-          input.checked = input.dataset.sortSelect === this._sortField;
+          input.checked = _isActive(input);
         });
       }
 
