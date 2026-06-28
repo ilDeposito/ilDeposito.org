@@ -1,3 +1,5 @@
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import PDFDocument from 'pdfkit';
 import QRCode from 'qrcode';
 
@@ -12,15 +14,25 @@ const COLOR_RED = '#aa0000';
 const COLOR_BLACK = '#000000';
 const COLOR_GRAY = '#333333';
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const FONTS_DIR = join(__dirname, '../assets/fonts');
+
+const FONT_FILES = {
+  'SourceSans':        join(FONTS_DIR, 'SourceSans3-Medium.ttf'),
+  'SourceSans-Italic': join(FONTS_DIR, 'SourceSans3-Italic.ttf'),
+  'Bitter':            join(FONTS_DIR, 'Bitter.ttf'),
+  'IBMPlexMono':       join(FONTS_DIR, 'IBMPlexMono-Regular.ttf'),
+};
+
 function sanitizeText(text) {
   if (!text) return '';
   return text
-    .replace(/[‘’]/g, "'")
-    .replace(/[“”]/g, '"')
+    .replace(/['']/g, "'")
+    .replace(/[""]/g, '"')
     .replace(/—/g, '--')
     .replace(/–/g, '-')
     .replace(/…/g, '...')
-    .replace(/ /g, ' ');
+    .replace(/ /g, ' ');
 }
 
 function stripHtml(html) {
@@ -59,6 +71,12 @@ function drawFooterLine(doc) {
     .restore();
 }
 
+function registerFonts(doc) {
+  for (const [name, path] of Object.entries(FONT_FILES)) {
+    doc.registerFont(name, path);
+  }
+}
+
 /**
  * @param {object} canto
  * @param {object} options
@@ -93,6 +111,8 @@ export async function generateCantoPdf(canto, { autoriTesto, periodo, lingue, ta
       bufferPages: true,
     });
 
+    registerFonts(doc);
+
     doc.on('data', (chunk) => chunks.push(chunk));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
@@ -105,7 +125,7 @@ export async function generateCantoPdf(canto, { autoriTesto, periodo, lingue, ta
 
       doc.save()
         .fontSize(9)
-        .font('Helvetica-Oblique')
+        .font('SourceSans-Italic')
         .fillColor(COLOR_GRAY);
 
       const headerWidth = doc.widthOfString(HEADER_TEXT);
@@ -127,7 +147,7 @@ export async function generateCantoPdf(canto, { autoriTesto, periodo, lingue, ta
 
 function renderCantoPage(doc, canto, { autoriTesto, periodo, lingue, tags, pageUrl, qrBuffer }) {
   const anno = canto.anno ? new Date(canto.anno).getUTCFullYear() : null;
-  const testo = sanitizeText(canto.testo || '');
+  const testo = sanitizeText(stripHtml(canto.testo || ''));
   const informazioni = canto.informazioni ? sanitizeText(stripHtml(canto.informazioni)) : null;
 
   const qrSize = 65;
@@ -137,96 +157,101 @@ function renderCantoPage(doc, canto, { autoriTesto, periodo, lingue, tags, pageU
 
   const titleMaxWidth = CONTENT_WIDTH - qrSize - 15;
 
-  let y = MARGIN.top + 10;
+  let y = MARGIN.top + 5;
 
-  doc.font('Times-Bold').fontSize(24).fillColor(COLOR_BLACK);
+  doc.font('SourceSans').fontSize(20).fillColor(COLOR_BLACK);
   const titleText = sanitizeText(canto.titolo);
   const titleHeight = doc.heightOfString(titleText, { width: titleMaxWidth, align: 'center' });
   doc.text(titleText, MARGIN.left, y, { width: titleMaxWidth, align: 'center' });
-  y += titleHeight + 5;
+  y += titleHeight + 2;
 
-  doc.font('Helvetica').fontSize(13).fillColor(COLOR_BLACK);
+  doc.font('SourceSans').fontSize(11).fillColor(COLOR_BLACK);
 
-  if (anno) {
-    doc.text(`(${anno})`, MARGIN.left, y, { width: titleMaxWidth, align: 'center' });
-    y += doc.currentLineHeight() + 2;
+  const metaParts = [];
+  if (anno) metaParts.push(`(${anno})`);
+  if (autoriTesto.length > 0) metaParts.push(`di ${autoriTesto.join(', ')}`);
+  if (periodo) metaParts.push(`Periodo: ${sanitizeText(periodo)}`);
+  if (lingue.length > 0) metaParts.push(`Lingua: ${lingue.join(', ')}`);
+  if (tags.length > 0) metaParts.push(`Tags: ${tags.join(', ')}`);
+
+  for (const part of metaParts) {
+    doc.text(part, MARGIN.left, y, { width: titleMaxWidth, align: 'center' });
+    y = doc.y;
   }
 
-  if (autoriTesto.length > 0) {
-    doc.text(`di ${autoriTesto.join(', ')}`, MARGIN.left, y, { width: titleMaxWidth, align: 'center' });
-    y += doc.currentLineHeight() + 2;
-  }
-
-  if (periodo) {
-    doc.text(`Periodo: ${sanitizeText(periodo)}`, MARGIN.left, y, { width: titleMaxWidth, align: 'center' });
-    y += doc.currentLineHeight() + 2;
-  }
-
-  if (lingue.length > 0) {
-    doc.text(`Lingua: ${lingue.join(', ')}`, MARGIN.left, y, { width: titleMaxWidth, align: 'center' });
-    y += doc.currentLineHeight() + 2;
-  }
-
-  if (tags.length > 0) {
-    doc.text(`Tags: ${tags.join(', ')}`, MARGIN.left, y, { width: titleMaxWidth, align: 'center' });
-    y += doc.currentLineHeight() + 2;
-  }
-
+  y += 2;
   const addrFull = `Indirizzo: ${pageUrl}`;
-  doc.font('Helvetica').fontSize(11).fillColor(COLOR_RED);
+  doc.font('SourceSans').fontSize(10).fillColor(COLOR_RED);
   doc.text(addrFull, MARGIN.left, y, {
     width: titleMaxWidth,
     align: 'center',
     link: pageUrl,
     underline: true,
   });
-  y = doc.y + 15;
 
-  const textStartY = Math.max(y, qrY + qrSize + 15);
+  const textStartY = Math.max(doc.y + 30, qrY + qrSize + 15);
 
-  doc.font('Courier').fontSize(10).fillColor(COLOR_BLACK);
+  // Lyrics — two columns
+  doc.font('IBMPlexMono').fontSize(8).fillColor(COLOR_BLACK);
 
   const colGap = 20;
   const colWidth = (CONTENT_WIDTH - colGap) / 2;
-  const availableHeight = PAGE.height - MARGIN.bottom - textStartY - 10;
+  const rightX = MARGIN.left + colWidth + colGap;
+  const pageBottom = PAGE.height - MARGIN.bottom - 10;
+  const LINE_GAP = 1;
+  const STANZA_GAP = 5;
 
   const lines = testo.split('\n');
-  const lineH = doc.currentLineHeight() * 1.15;
-
-  const linesPerPage = Math.floor(availableHeight / lineH);
   const linesPerCol = Math.ceil(lines.length / 2);
 
+  let rightStart = linesPerCol;
+  while (rightStart < lines.length && lines[rightStart].trim() === '') rightStart++;
   const leftLines = lines.slice(0, linesPerCol);
-  const rightLines = lines.slice(linesPerCol);
+  const rightLines = lines.slice(rightStart);
 
-  let currentY = textStartY;
-  let lineIndex = 0;
+  let ly = textStartY;
+  let ry = textStartY;
+  const maxRows = Math.max(leftLines.length, rightLines.length);
 
-  function renderColumns(leftL, rightL, startY) {
-    let ly = startY;
-    for (const line of leftL) {
-      if (ly + lineH > PAGE.height - MARGIN.bottom - 10) {
-        doc.addPage();
-        ly = MARGIN.top + 10;
-      }
-      doc.text(sanitizeText(line), MARGIN.left, ly, { width: colWidth, lineBreak: false });
-      ly += lineH;
+  for (let i = 0; i < maxRows; i++) {
+    const lLine = i < leftLines.length ? sanitizeText(leftLines[i]) : null;
+    const rLine = i < rightLines.length ? sanitizeText(rightLines[i]) : null;
+
+    const lEmpty = !lLine || lLine.trim() === '';
+    const rEmpty = !rLine || rLine.trim() === '';
+
+    if (lEmpty && rEmpty) {
+      ly += STANZA_GAP;
+      ry += STANZA_GAP;
+      continue;
     }
 
-    let ry = startY;
-    const rightX = MARGIN.left + colWidth + colGap;
-    for (const line of rightL) {
-      if (ry + lineH > PAGE.height - MARGIN.bottom - 10) {
-        break;
-      }
-      doc.text(sanitizeText(line), rightX, ry, { width: colWidth, lineBreak: false });
-      ry += lineH;
+    const lH = lLine && !lEmpty ? doc.heightOfString(lLine, { width: colWidth, lineGap: 0 }) : 0;
+    const rH = rLine && !rEmpty ? doc.heightOfString(rLine, { width: colWidth, lineGap: 0 }) : 0;
+    const rowH = Math.max(lH, rH);
+
+    if (Math.max(ly, ry) + rowH > pageBottom) {
+      doc.addPage();
+      ly = MARGIN.top + 10;
+      ry = MARGIN.top + 10;
     }
 
-    return Math.max(ly, ry);
+    if (lLine && !lEmpty) {
+      doc.text(lLine, MARGIN.left, ly, { width: colWidth, lineGap: 0 });
+      ly += lH + LINE_GAP;
+    } else {
+      ly += STANZA_GAP;
+    }
+
+    if (rLine && !rEmpty) {
+      doc.text(rLine, rightX, ry, { width: colWidth, lineGap: 0 });
+      ry += rH + LINE_GAP;
+    } else {
+      ry += STANZA_GAP;
+    }
   }
 
-  const endY = renderColumns(leftLines, rightLines, textStartY);
+  const endY = Math.max(ly, ry);
 
   if (informazioni) {
     let infoY = endY + 20;
@@ -236,11 +261,11 @@ function renderCantoPage(doc, canto, { autoriTesto, periodo, lingue, tags, pageU
       infoY = MARGIN.top + 10;
     }
 
-    doc.font('Times-Bold').fontSize(14).fillColor(COLOR_BLACK);
+    doc.font('SourceSans').fontSize(14).fillColor(COLOR_BLACK);
     doc.text('Informazioni', MARGIN.left, infoY, { width: CONTENT_WIDTH });
     infoY = doc.y + 5;
 
-    doc.font('Helvetica').fontSize(11).fillColor(COLOR_GRAY);
+    doc.font('SourceSans').fontSize(11).fillColor(COLOR_GRAY);
     doc.text(informazioni, MARGIN.left, infoY, { width: CONTENT_WIDTH });
   }
 }
