@@ -1,7 +1,8 @@
 import { mkdirSync } from 'node:fs';
-import { writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { Worker } from 'node:worker_threads';
+import { availableParallelism } from 'node:os';
 
 async function fetchAllPaginated(path, params = {}) {
   const baseUrl = process.env.DRUPAL_API_URL;
@@ -87,21 +88,29 @@ async function getAllCantiForPdf() {
   });
 }
 
-const QR_BATCH = 500;
+function spawnWorker(workerFile, canti, outDir) {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(workerFile, {
+      workerData: { canti, outDir },
+    });
 
-async function generateAllQrBuffers(canti, generateQrBuffer, logger) {
-  const qrMap = new Map();
-  for (let i = 0; i < canti.length; i += QR_BATCH) {
-    const batch = canti.slice(i, i + QR_BATCH);
-    const buffers = await Promise.all(batch.map((c) => generateQrBuffer(c.slug)));
-    for (let j = 0; j < batch.length; j++) {
-      qrMap.set(batch[j].slug, buffers[j]);
-    }
-    if (i + QR_BATCH < canti.length) {
-      logger.info(`  QR codes: ${Math.min(i + QR_BATCH, canti.length)}/${canti.length}`);
-    }
-  }
-  return qrMap;
+    let result = { count: 0, errors: 0, errorMessages: [] };
+
+    worker.on('message', (msg) => {
+      if (msg.type === 'done') {
+        result.count = msg.count;
+        result.errors = msg.errors;
+      } else if (msg.type === 'error') {
+        result.errorMessages.push(msg.message);
+      }
+    });
+
+    worker.on('error', reject);
+    worker.on('exit', (code) => {
+      if (code !== 0) reject(new Error(`Worker exit code ${code}`));
+      else resolve(result);
+    });
+  });
 }
 
 export default function pdfGeneratorIntegration() {
@@ -109,49 +118,37 @@ export default function pdfGeneratorIntegration() {
     name: 'pdf-generator',
     hooks: {
       'astro:build:done': async ({ dir, logger }) => {
-        const { generateCantoPdf, generateQrBuffer } = await import('../lib/generate-pdf.js');
-
         logger.info('Recupero canti da Drupal...');
         const canti = await getAllCantiForPdf();
         logger.info(`${canti.length} canti trovati.`);
 
-        logger.info('Generazione QR codes...');
-        const qrMap = await generateAllQrBuffers(canti, generateQrBuffer, logger);
-        logger.info(`${qrMap.size} QR codes generati.`);
-
         const outDir = join(fileURLToPath(dir), 'pdf', 'canti');
         mkdirSync(outDir, { recursive: true });
 
-        logger.info('Generazione PDF...');
-        let count = 0;
-        let errors = 0;
-        const total = canti.length;
-        const BATCH_SIZE = 200;
+        const numWorkers = Math.min(availableParallelism(), 8);
+        const chunkSize = Math.ceil(canti.length / numWorkers);
+        const workerFile = join(dirname(fileURLToPath(import.meta.url)), 'pdf-worker.js');
 
-        for (let i = 0; i < total; i += BATCH_SIZE) {
-          const batch = canti.slice(i, i + BATCH_SIZE);
-          const results = await Promise.allSettled(
-            batch.map(async (canto) => {
-              const pdfBuffer = await generateCantoPdf(canto, {
-                autoriTesto: canto.autoriTesto,
-                periodo: canto.periodo,
-                lingue: canto.lingue,
-                tags: canto.tags,
-                qrBuffer: qrMap.get(canto.slug),
-              });
-              await writeFile(join(outDir, `${canto.slug}.pdf`), pdfBuffer);
-              return canto.slug;
-            })
-          );
-          for (const r of results) {
-            if (r.status === 'fulfilled') count++;
-            else { errors++; logger.warn(`ERRORE PDF: ${r.reason.message}`); }
-          }
-          const pct = Math.round(((i + batch.length) / total) * 100);
-          logger.info(`[${i + batch.length}/${total}] (${pct}%) — ${count} ok, ${errors} errori`);
+        logger.info(`Generazione PDF con ${numWorkers} worker thread...`);
+
+        const promises = [];
+        for (let i = 0; i < numWorkers; i++) {
+          const chunk = canti.slice(i * chunkSize, (i + 1) * chunkSize);
+          if (chunk.length === 0) continue;
+          promises.push(spawnWorker(workerFile, chunk, outDir));
         }
 
-        logger.info(`${count}/${total} PDF generati in ${outDir}`);
+        const results = await Promise.all(promises);
+        const totalCount = results.reduce((s, r) => s + r.count, 0);
+        const totalErrors = results.reduce((s, r) => s + r.errors, 0);
+
+        for (const r of results) {
+          for (const msg of r.errorMessages) {
+            logger.warn(`ERRORE PDF: ${msg}`);
+          }
+        }
+
+        logger.info(`${totalCount}/${canti.length} PDF generati (${totalErrors} errori) in ${outDir}`);
       },
     },
   };
