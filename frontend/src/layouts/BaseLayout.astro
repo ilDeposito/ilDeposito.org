@@ -15,6 +15,7 @@ interface Props {
   title: string;
   description?: string;
   pagefindType?: string;
+  pagefindTitle?: string;
   canonical?: string;
   ogType?: string;
   ogImage?: string;
@@ -34,6 +35,7 @@ const {
   title,
   description = '',
   pagefindType,
+  pagefindTitle,
   canonical,
   ogType,
   ogImage,
@@ -92,7 +94,7 @@ const seoOgImage = resolveOgImage(ogImage || '/og-default.jpg', Astro.site);
     <main>
       {pagefindType && (
         <span aria-hidden="true" class="sr-only">
-          <span data-pagefind-meta="title">{title}</span>
+          <span data-pagefind-meta="title">{pagefindTitle || title}</span>
           <span data-pagefind-meta={`type:${pagefindType}`}></span>
           <span data-pagefind-filter={`type:${pagefindType}`}></span>
         </span>

@@ -24,6 +24,9 @@ npx pagefind --site "$BUILD_DIR"
 COMPLETED=$(TZ=Europe/Rome date +%Y.%m.%d\ -\ %H:%M:%S)
 find "$BUILD_DIR" -name '*.html' -exec sed -i "s/build dev/Last build: $COMPLETED/" {} +
 
+echo "→ Generating CSP hashes ..."
+node /app/scripts/generate-csp-hashes.js "$BUILD_DIR" "$OUTPUT_DIR/csp-hashes.conf"
+
 echo "→ Swapping symlink to $TIMESTAMP ..."
 ln -sfn "releases/$TIMESTAMP" "$OUTPUT_DIR/current"
 

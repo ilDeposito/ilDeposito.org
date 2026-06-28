@@ -9,9 +9,10 @@ import Icon from '../base/Icon.astro';
 interface Props {
   autore: AutoreDetail;
   breadcrumbItems?: Array<{ label: string; href?: string }>;
+  cantiSlug?: string;
 }
 
-const { autore, breadcrumbItems } = Astro.props;
+const { autore, breadcrumbItems, cantiSlug } = Astro.props;
 
 let anni: string | null = null;
 if (autore.annoNascita && autore.annoMorte) anni = `${autore.annoNascita} - ${autore.annoMorte}`;
@@ -53,6 +54,13 @@ const immagineUrl = getImageUrl(autore.immagine);
         )}
       </div>
     </div>
+
+    {cantiSlug && (
+      <a href={`/autori/${cantiSlug}`} class="inline-flex items-center gap-1 w-fit text-primary hover:underline font-semibold">
+        <Icon name="music-notes" />
+        Tutti i canti
+      </a>
+    )}
 
     <share-button data-title={autore.titolo} class="contents">
       <button type="button" class="inline-flex items-center gap-1 cursor-pointer w-fit" aria-label="Condividi questo autore">
