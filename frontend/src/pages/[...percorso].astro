@@ -1,17 +1,20 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Breadcrumb from '../components/ui/Breadcrumb.astro';
-import { getInformazioni, getInformazione } from '../lib/api/index.js';
+import { getAllInformazioniDetail } from '../lib/api/index.js';
+import type { InformazioneDetail } from '../lib/api/types.js';
 import { buildWebPageSchema, buildBreadcrumbSchema } from '../lib/schema.js';
 import { buildCanonical } from '../lib/seo.js';
 
 export async function getStaticPaths() {
-  const items = await getInformazioni();
-  return items.map((item) => ({ params: { percorso: item.percorso } }));
+  const allInfo = await getAllInformazioniDetail();
+  return allInfo.map((item) => ({
+    params: { percorso: item.percorso },
+    props: { pagina: item },
+  }));
 }
 
-const { percorso } = Astro.params;
-const pagina = (await getInformazione(percorso))!;
+const { pagina } = Astro.props as { pagina: InformazioneDetail };
 
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
 const jsonLd = [

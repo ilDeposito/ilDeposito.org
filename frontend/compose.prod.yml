@@ -8,6 +8,7 @@ services:
       DRUPAL_API_URL: http://drupal-api:80
     volumes:
       - frontend_output:/app/output
+      - astro_cache:/app/.astro
     networks:
       - internal
       - app-internal
@@ -41,6 +42,7 @@ services:
 
 volumes:
   frontend_output:
+  astro_cache:
 
 networks:
   internal:

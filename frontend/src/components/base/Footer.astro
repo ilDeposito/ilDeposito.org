@@ -1,6 +1,8 @@
 ---
 import logoRaw from '../../assets/images/ildeposito-logo.svg?raw';
 import Icon from './Icon.astro';
+
+const buildDate = import.meta.env.BUILD_DATE;
 ---
 
 <footer class="w-full font-sans" style="content-visibility:auto;contain-intrinsic-size:auto 400px">
@@ -89,7 +91,7 @@ import Icon from './Icon.astro';
       I diritti dei testi e degli accordi sono dei rispettivi autori.
     </p>
 
-    <p class="text-neutral-content/30 text-xs text-right">build dev</p>
+    <p class="text-neutral-content/30 text-xs text-right">{buildDate ? `Last build: ${buildDate}` : 'build dev'}</p>
 
   </div>
   </div>

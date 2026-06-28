@@ -14,11 +14,11 @@ UPLOAD_CACHE="$OUTPUT_DIR/.uploads-cache"
 if [ -d "$UPLOAD_CACHE" ]; then
   echo "→ Restoring image cache ($(du -sh "$UPLOAD_CACHE" | cut -f1))..."
   mkdir -p /app/public/uploads
-  cp -a "$UPLOAD_CACHE/." /app/public/uploads/
+  rsync -a "$UPLOAD_CACHE/" /app/public/uploads/
 fi
 
 echo "→ Building to $BUILD_DIR ..."
-npx astro build --outDir "$BUILD_DIR"
+BUILD_DATE=$(TZ=Europe/Rome date "+%Y.%m.%d - %H:%M:%S") npx astro build --outDir "$BUILD_DIR"
 
 # Le immagini vengono scaricate da Drupal in public/uploads/ durante la build,
 # ma DOPO che Astro ha già copiato public/ nell'outDir. Vanno copiate manualmente.
@@ -29,13 +29,10 @@ if [ -d /app/public/uploads ]; then
   # Aggiorna cache immagini sul volume per i prossimi build
   echo "→ Updating image cache..."
   mkdir -p "$UPLOAD_CACHE"
-  cp -a /app/public/uploads/. "$UPLOAD_CACHE/"
+  rsync -a --delete /app/public/uploads/ "$UPLOAD_CACHE/"
 fi
 
 npx pagefind --site "$BUILD_DIR"
-
-COMPLETED=$(TZ=Europe/Rome date +%Y.%m.%d\ -\ %H:%M:%S)
-find "$BUILD_DIR" -name '*.html' -exec sed -i "s/build dev/Last build: $COMPLETED/" {} +
 
 echo "→ Swapping symlink to $TIMESTAMP ..."
 ln -sfn "releases/$TIMESTAMP" "$OUTPUT_DIR/current"

@@ -1,46 +1,19 @@
-import { fetchAllJsonApi, fetchJsonApi } from './client.js';
-import { extractSlug } from './resolvers.js';
+import { fetchAllPagineRaw } from './store.js';
 import { sanitizeHtml } from './mappers.js';
 import type { InformazionePath, InformazioneDetail } from '../types.js';
 
-let pathToUuidCache: Map<string, string> | null = null;
-
-async function resolveInformazioneUuid(percorso: string): Promise<string | null> {
-  if (!pathToUuidCache) {
-    const { data } = await fetchAllJsonApi('/jsonapi/node/pagina', new URLSearchParams({
-      'filter[status]': '1',
-      'fields[node--pagina]': 'path',
-      'page[limit]': '50',
-    }));
-    pathToUuidCache = new Map();
-    for (const item of data) {
-      const alias = item.attributes.path?.alias ?? '';
-      const key = alias.startsWith('/') ? alias.slice(1) : alias;
-      pathToUuidCache.set(key, item.id);
-    }
-  }
-  return pathToUuidCache.get(percorso) ?? null;
+function mapPagina(item: any): { percorso: string; raw: any } {
+  const alias = item.attributes.path?.alias ?? '';
+  return {
+    percorso: alias.startsWith('/') ? alias.slice(1) : alias,
+    raw: item,
+  };
 }
 
 export async function getInformazioni(): Promise<InformazionePath[]> {
-  const { data } = await fetchAllJsonApi('/jsonapi/node/pagina', new URLSearchParams({
-    'filter[status]': '1',
-    'fields[node--pagina]': 'title,path',
-    'page[limit]': '50',
-  }));
-
-  if (!pathToUuidCache) {
-    pathToUuidCache = new Map();
-    for (const item of data) {
-      const alias = item.attributes.path?.alias ?? '';
-      const key = alias.startsWith('/') ? alias.slice(1) : alias;
-      pathToUuidCache.set(key, item.id);
-    }
-  }
-
+  const { data } = await fetchAllPagineRaw();
   return data.map((item: any) => {
-    const alias = item.attributes.path?.alias ?? '';
-    const percorso = alias.startsWith('/') ? alias.slice(1) : alias;
+    const { percorso } = mapPagina(item);
     return {
       id: item.attributes.drupal_internal__nid,
       titolo: item.attributes.title,
@@ -50,22 +23,36 @@ export async function getInformazioni(): Promise<InformazionePath[]> {
 }
 
 export async function getInformazione(percorso: string): Promise<InformazioneDetail | null> {
-  const uuid = await resolveInformazioneUuid(percorso);
-  if (!uuid) return null;
+  const { data } = await fetchAllPagineRaw();
+  const match = data.find((item: any) => {
+    const { percorso: p } = mapPagina(item);
+    return p === percorso;
+  });
+  if (!match) return null;
 
-  const response = await fetchJsonApi(`/jsonapi/node/pagina/${uuid}`, new URLSearchParams({
-    'fields[node--pagina]': 'title,path,field_descrizione_header',
-  }));
-
-  const item = Array.isArray(response.data) ? response.data[0] : response.data;
-  if (!item) return null;
-
-  const alias = item.attributes.path?.alias ?? '';
+  const alias = match.attributes.path?.alias ?? '';
+  const field = match.attributes.field_descrizione_header;
+  const html = field?.processed ?? field?.value ?? field ?? '';
 
   return {
-    id: item.attributes.drupal_internal__nid,
-    titolo: item.attributes.title,
+    id: match.attributes.drupal_internal__nid,
+    titolo: match.attributes.title,
     percorso: alias.startsWith('/') ? alias.slice(1) : alias,
-    testo: sanitizeHtml(item.attributes.field_descrizione_header?.processed ?? item.attributes.field_descrizione_header?.value ?? item.attributes.field_descrizione_header ?? ''),
+    testo: sanitizeHtml(html),
   };
+}
+
+export async function getAllInformazioniDetail(): Promise<InformazioneDetail[]> {
+  const { data } = await fetchAllPagineRaw();
+  return data.map((item: any) => {
+    const alias = item.attributes.path?.alias ?? '';
+    const field = item.attributes.field_descrizione_header;
+    const html = field?.processed ?? field?.value ?? field ?? '';
+    return {
+      id: item.attributes.drupal_internal__nid,
+      titolo: item.attributes.title,
+      percorso: alias.startsWith('/') ? alias.slice(1) : alias,
+      testo: sanitizeHtml(html),
+    };
+  });
 }

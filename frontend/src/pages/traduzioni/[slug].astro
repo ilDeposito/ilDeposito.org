@@ -3,17 +3,20 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
 import Icon from '../../components/base/Icon.astro';
-import { getTraduzioni, getTraduzione } from '../../lib/api/index.js';
+import { getAllTraduzioniDetail } from '../../lib/api/index.js';
+import type { TraduzioneDetail } from '../../lib/api/types.js';
 import { buildTranslationSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
 import { buildTraduzioneTitle, buildTraduzioneDescription, linguaToIso } from '../../lib/seo.js';
 
 export async function getStaticPaths() {
-  const traduzioni = await getTraduzioni();
-  return traduzioni.map((traduzione) => ({ params: { slug: traduzione.slug } }));
+  const allTraduzioni = await getAllTraduzioniDetail();
+  return allTraduzioni.map((traduzione) => ({
+    params: { slug: traduzione.slug },
+    props: { traduzione },
+  }));
 }
 
-const { slug } = Astro.params;
-const traduzione = (await getTraduzione(slug))!;
+const { traduzione } = Astro.props as { traduzione: TraduzioneDetail };
 
 const cantoOriginale = traduzione.cantoOriginale;
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';

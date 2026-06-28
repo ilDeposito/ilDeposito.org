@@ -2,18 +2,21 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import AuthorHeader from '../../components/ui/AuthorHeader.astro';
 import Icon from '../../components/base/Icon.astro';
-import { getAutori, getAutore, getCantiByAutoreMap } from '../../lib/api/index.js';
+import { getAllAutoriDetail, getCantiByAutoreMap } from '../../lib/api/index.js';
+import type { AutoreDetail } from '../../lib/api/types.js';
 import { buildPersonSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
 import { buildAutoreTitle, buildAutoreDescription } from '../../lib/seo.js';
 import { getOgImageForAutore } from '../../lib/og-image.js';
 
 export async function getStaticPaths() {
-  const autori = await getAutori();
-  return autori.map((autore) => ({ params: { slug: autore.slug } }));
+  const allAutori = await getAllAutoriDetail();
+  return allAutori.map((autore) => ({
+    params: { slug: autore.slug },
+    props: { autore },
+  }));
 }
 
-const { slug } = Astro.params;
-const autore = (await getAutore(slug))!;
+const { autore } = Astro.props as { autore: AutoreDetail };
 
 const cantiMap = await getCantiByAutoreMap();
 const tuttiCanti = cantiMap.get(autore.id) ?? [];

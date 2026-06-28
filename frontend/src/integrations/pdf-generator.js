@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-async function fetchAllDrupalJsonApi(path, params = {}) {
+async function fetchAllPaginated(path, params = {}) {
   const baseUrl = process.env.DRUPAL_API_URL;
   if (!baseUrl) throw new Error('DRUPAL_API_URL deve essere definito');
 
@@ -16,39 +16,26 @@ async function fetchAllDrupalJsonApi(path, params = {}) {
   }
 
   let nextUrl = url.toString();
-
   while (nextUrl) {
     const res = await fetch(nextUrl, {
       headers: { Accept: 'application/vnd.api+json' },
     });
-    if (!res.ok) throw new Error(`Drupal JSON:API fetch fallito: ${res.status}`);
+    if (!res.ok) throw new Error(`JSON:API fetch fallito: ${res.status}`);
 
     const json = await res.json();
-    const items = Array.isArray(json.data) ? json.data : [json.data];
-    allData.push(...items);
+    allData.push(...(Array.isArray(json.data) ? json.data : [json.data]));
 
-    if (json.included) {
-      for (const item of json.included) {
-        const key = `${item.type}:${item.id}`;
-        if (!seenIncluded.has(key)) {
-          seenIncluded.add(key);
-          allIncluded.push(item);
-        }
+    for (const item of (json.included ?? [])) {
+      const key = `${item.type}:${item.id}`;
+      if (!seenIncluded.has(key)) {
+        seenIncluded.add(key);
+        allIncluded.push(item);
       }
     }
-
     nextUrl = json.links?.next?.href || null;
   }
 
   return { data: allData, included: allIncluded };
-}
-
-function buildIncludedMap(included = []) {
-  const map = new Map();
-  for (const item of included) {
-    map.set(`${item.type}:${item.id}`, item);
-  }
-  return map;
 }
 
 function resolveNames(rel, includedMap) {
@@ -64,8 +51,8 @@ function extractSlug(alias) {
   return alias.split('/').pop() ?? '';
 }
 
-async function getAllCantiFull() {
-  const { data, included } = await fetchAllDrupalJsonApi('/jsonapi/node/canto', {
+async function getAllCantiForPdf() {
+  const { data, included } = await fetchAllPaginated('/jsonapi/node/canto', {
     'filter[status]': '1',
     'fields[node--canto]': 'title,path,field_anno,field_canto_testo,field_informazioni,field_autori_testo,field_lingua,field_periodo,field_tags',
     'fields[node--autore]': 'title',
@@ -74,10 +61,13 @@ async function getAllCantiFull() {
     'fields[taxonomy_term--tags]': 'name',
     'include': 'field_autori_testo,field_lingua,field_periodo,field_tags',
     'sort': 'title',
-    'page[limit]': '50',
+    'page[limit]': '200',
   });
 
-  const includedMap = buildIncludedMap(included);
+  const includedMap = new Map();
+  for (const item of included) {
+    includedMap.set(`${item.type}:${item.id}`, item);
+  }
 
   return data.map((item) => {
     const a = item.attributes;
@@ -104,7 +94,7 @@ export default function pdfGeneratorIntegration() {
         const { generateCantoPdf } = await import('../lib/generate-pdf.js');
 
         logger.info('Recupero canti da Drupal...');
-        const canti = await getAllCantiFull();
+        const canti = await getAllCantiForPdf();
         logger.info(`${canti.length} canti trovati. Generazione PDF...`);
 
         const outDir = join(fileURLToPath(dir), 'pdf', 'canti');

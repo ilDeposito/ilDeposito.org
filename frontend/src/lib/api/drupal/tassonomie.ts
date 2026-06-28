@@ -1,4 +1,7 @@
-import { fetchAllJsonApi } from './client.js';
+import {
+  fetchAllLingueRaw, fetchAllLocalizzazioniRaw, fetchAllPeriodiRaw, fetchAllTagsRaw,
+  fetchAllCantiRaw, fetchAllAutoriRaw, fetchAllEventiRaw, fetchAllTraduzioniRaw,
+} from './store.js';
 import { extractSlug, buildIncludedMap, resolveImageUrl } from './resolvers.js';
 import type {
   Tassonomia, Periodo, Tag,
@@ -18,11 +21,7 @@ function mapTassonomia(item: any): Tassonomia {
 // ── Lingue ─────────────────────────────────────────────
 
 export async function getLingue(): Promise<Tassonomia[]> {
-  const { data } = await fetchAllJsonApi('/jsonapi/taxonomy_term/lingue', new URLSearchParams({
-    'fields[taxonomy_term--lingue]': 'drupal_internal__tid,name,path',
-    'page[limit]': '50',
-  }));
-
+  const { data } = await fetchAllLingueRaw();
   return data
     .map(mapTassonomia)
     .sort((a, b) => a.titolo.localeCompare(b.titolo, 'it'));
@@ -30,16 +29,8 @@ export async function getLingue(): Promise<Tassonomia[]> {
 
 export async function getContenutiByLinguaMap(): Promise<Map<number | string, ContenutiLingua>> {
   const [cantiRes, traduzioniRes] = await Promise.all([
-    fetchAllJsonApi('/jsonapi/node/canto', new URLSearchParams({
-      'filter[status]': '1',
-      'fields[node--canto]': 'field_lingua',
-      'page[limit]': '50',
-    })),
-    fetchAllJsonApi('/jsonapi/node/traduzione', new URLSearchParams({
-      'filter[status]': '1',
-      'fields[node--traduzione]': 'field_lingua',
-      'page[limit]': '50',
-    })),
+    fetchAllCantiRaw(),
+    fetchAllTraduzioniRaw(),
   ]);
 
   const map = new Map<number | string, ContenutiLingua>();
@@ -66,11 +57,7 @@ export async function getContenutiByLinguaMap(): Promise<Map<number | string, Co
 // ── Localizzazioni ─────────────────────────────────────
 
 export async function getLocalizzazioni(): Promise<Tassonomia[]> {
-  const { data } = await fetchAllJsonApi('/jsonapi/taxonomy_term/localizzazioni', new URLSearchParams({
-    'fields[taxonomy_term--localizzazioni]': 'drupal_internal__tid,name,path',
-    'page[limit]': '50',
-  }));
-
+  const { data } = await fetchAllLocalizzazioniRaw();
   return data
     .map(mapTassonomia)
     .sort((a, b) => a.titolo.localeCompare(b.titolo, 'it'));
@@ -78,16 +65,8 @@ export async function getLocalizzazioni(): Promise<Tassonomia[]> {
 
 export async function getContenutiByLocalizzazioneMap(): Promise<Map<number | string, ContenutiLocalizzazione>> {
   const [autoriRes, eventiRes] = await Promise.all([
-    fetchAllJsonApi('/jsonapi/node/autore', new URLSearchParams({
-      'filter[status]': '1',
-      'fields[node--autore]': 'field_localizzazione',
-      'page[limit]': '50',
-    })),
-    fetchAllJsonApi('/jsonapi/node/evento', new URLSearchParams({
-      'filter[status]': '1',
-      'fields[node--evento]': 'field_localizzazione',
-      'page[limit]': '50',
-    })),
+    fetchAllAutoriRaw(),
+    fetchAllEventiRaw(),
   ]);
 
   const map = new Map<number | string, ContenutiLocalizzazione>();
@@ -114,15 +93,7 @@ export async function getContenutiByLocalizzazioneMap(): Promise<Map<number | st
 // ── Periodi ────────────────────────────────────────────
 
 export async function getPeriodi(): Promise<Periodo[]> {
-  const { data, included } = await fetchAllJsonApi('/jsonapi/taxonomy_term/periodi', new URLSearchParams({
-    'fields[taxonomy_term--periodi]': 'drupal_internal__tid,name,path,weight,field_immagine',
-    'fields[media--image]': 'field_media_image',
-    'fields[file--file]': 'uri',
-    'include': 'field_immagine,field_immagine.field_media_image',
-    'sort': 'weight',
-    'page[limit]': '50',
-  }));
-
+  const { data, included } = await fetchAllPeriodiRaw();
   const map = buildIncludedMap(included);
 
   return data.map((item: any) => ({
@@ -136,21 +107,9 @@ export async function getPeriodi(): Promise<Periodo[]> {
 
 export async function getContenutiByPeriodoMap(): Promise<Map<number | string, ContenutiPeriodo>> {
   const [cantiRes, autoriRes, eventiRes] = await Promise.all([
-    fetchAllJsonApi('/jsonapi/node/canto', new URLSearchParams({
-      'filter[status]': '1',
-      'fields[node--canto]': 'field_periodo',
-      'page[limit]': '50',
-    })),
-    fetchAllJsonApi('/jsonapi/node/autore', new URLSearchParams({
-      'filter[status]': '1',
-      'fields[node--autore]': 'field_periodo',
-      'page[limit]': '50',
-    })),
-    fetchAllJsonApi('/jsonapi/node/evento', new URLSearchParams({
-      'filter[status]': '1',
-      'fields[node--evento]': 'field_periodo',
-      'page[limit]': '50',
-    })),
+    fetchAllCantiRaw(),
+    fetchAllAutoriRaw(),
+    fetchAllEventiRaw(),
   ]);
 
   const map = new Map<number | string, ContenutiPeriodo>();
@@ -182,14 +141,7 @@ export async function getContenutiByPeriodoMap(): Promise<Map<number | string, C
 // ── Tags ───────────────────────────────────────────────
 
 export async function getTags(): Promise<Tag[]> {
-  const { data, included } = await fetchAllJsonApi('/jsonapi/taxonomy_term/tags', new URLSearchParams({
-    'fields[taxonomy_term--tags]': 'drupal_internal__tid,name,path,field_immagine',
-    'fields[media--image]': 'field_media_image',
-    'fields[file--file]': 'uri',
-    'include': 'field_immagine,field_immagine.field_media_image',
-    'page[limit]': '50',
-  }));
-
+  const { data, included } = await fetchAllTagsRaw();
   const map = buildIncludedMap(included);
 
   return data
@@ -202,16 +154,8 @@ export async function getTags(): Promise<Tag[]> {
 
 export async function getContenutiByTagMap(): Promise<Map<number | string, ContenutiTag>> {
   const [cantiRes, eventiRes] = await Promise.all([
-    fetchAllJsonApi('/jsonapi/node/canto', new URLSearchParams({
-      'filter[status]': '1',
-      'fields[node--canto]': 'field_tags',
-      'page[limit]': '50',
-    })),
-    fetchAllJsonApi('/jsonapi/node/evento', new URLSearchParams({
-      'filter[status]': '1',
-      'fields[node--evento]': 'field_tags',
-      'page[limit]': '50',
-    })),
+    fetchAllCantiRaw(),
+    fetchAllEventiRaw(),
   ]);
 
   const map = new Map<number | string, ContenutiTag>();

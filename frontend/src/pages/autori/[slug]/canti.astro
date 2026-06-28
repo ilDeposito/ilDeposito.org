@@ -2,22 +2,26 @@
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import AuthorHeader from '../../../components/ui/AuthorHeader.astro';
 import PagefindList from '../../../components/ui/PagefindList.astro';
-import { getAutori, getAutore, getCantiByAutoreMap } from '../../../lib/api/index.js';
+import { getAllAutoriDetail, getCantiByAutoreMap } from '../../../lib/api/index.js';
+import type { AutoreDetail } from '../../../lib/api/types.js';
 import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../../lib/schema.js';
 import { buildCanonical } from '../../../lib/seo.js';
 import { getOgImageForAutore } from '../../../lib/og-image.js';
 
 export async function getStaticPaths() {
-  const autori = await getAutori();
-  const cantiMap = await getCantiByAutoreMap();
-
-  return autori
+  const [allAutori, cantiMap] = await Promise.all([
+    getAllAutoriDetail(),
+    getCantiByAutoreMap(),
+  ]);
+  return allAutori
     .filter((autore) => (cantiMap.get(autore.id)?.length ?? 0) > 10)
-    .map((autore) => ({ params: { slug: autore.slug } }));
+    .map((autore) => ({
+      params: { slug: autore.slug },
+      props: { autore },
+    }));
 }
 
-const { slug } = Astro.params;
-const autore = (await getAutore(slug))!;
+const { autore } = Astro.props as { autore: AutoreDetail };
 
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
 const seoTitle = `Tutti i canti di ${autore.titolo}`;

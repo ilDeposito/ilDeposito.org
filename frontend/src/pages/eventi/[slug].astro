@@ -3,18 +3,21 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
 import Icon from '../../components/base/Icon.astro';
-import { getEventi, getEvento } from '../../lib/api/index.js';
+import { getAllEventiDetail } from '../../lib/api/index.js';
+import type { EventoDetail } from '../../lib/api/types.js';
 import { buildEventSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
 import { buildEventoTitle, buildEventoDescription } from '../../lib/seo.js';
 import { getOgImageForEvento } from '../../lib/og-image.js';
 
 export async function getStaticPaths() {
-  const eventi = await getEventi();
-  return eventi.map((evento) => ({ params: { slug: evento.slug } }));
+  const allEventi = await getAllEventiDetail();
+  return allEventi.map((evento) => ({
+    params: { slug: evento.slug },
+    props: { evento },
+  }));
 }
 
-const { slug } = Astro.params;
-const evento = (await getEvento(slug))!;
+const { evento } = Astro.props as { evento: EventoDetail };
 
 const periodo = evento.periodi[0];
 const hasCoordinate = evento.latitude != null && evento.longitude != null;

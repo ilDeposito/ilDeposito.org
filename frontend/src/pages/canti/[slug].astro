@@ -3,19 +3,24 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
 import Icon from '../../components/base/Icon.astro';
-import { getCanti, getCanto, getEventiForCanto, getAutore } from '../../lib/api/index.js';
+import { getAllCantiDetail, getEventiForCantoMap, getAutore } from '../../lib/api/index.js';
+import type { CantoDetail, EventoForCanto } from '../../lib/api/types.js';
 import { buildCreativeWorkSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
 import { buildCantoTitle, buildCantoDescription, linguaToIso } from '../../lib/seo.js';
 import { getOgImageForCanto } from '../../lib/og-image.js';
 
 export async function getStaticPaths() {
-  const canti = await getCanti();
-  return canti.map((canto) => ({ params: { slug: canto.slug } }));
+  const [allCanti, eventiMap] = await Promise.all([
+    getAllCantiDetail(),
+    getEventiForCantoMap(),
+  ]);
+  return allCanti.map((canto) => ({
+    params: { slug: canto.slug },
+    props: { canto, eventi: eventiMap.get(canto.id) ?? [] },
+  }));
 }
 
-const { slug } = Astro.params;
-const canto = (await getCanto(slug))!;
-const eventi = await getEventiForCanto(canto.id);
+const { canto, eventi } = Astro.props as { canto: CantoDetail; eventi: EventoForCanto[] };
 
 const autoriUnici = [...canto.autoriTesto, ...canto.autoriMusica].filter(
   (autore, index, arr) => arr.findIndex((a) => a.slug === autore.slug) === index
@@ -149,7 +154,7 @@ const jsonLd = [
         </div>
       )}
       <div data-pagefind-ignore class="flex justify-end mt-2">
-        <a href={`/pdf/canti/${slug}.pdf`} download class="inline-flex items-center gap-1 text-base text-base-content">
+        <a href={`/pdf/canti/${canto.slug}.pdf`} download class="inline-flex items-center gap-1 text-base text-base-content">
           <Icon name="file-pdf" />
           Scarica PDF
         </a>
