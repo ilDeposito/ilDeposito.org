@@ -1,5 +1,5 @@
 FROM node:22-alpine
-RUN apk add --no-cache tzdata
+RUN apk add --no-cache tzdata su-exec
 WORKDIR /app
 
 COPY --chown=node:node package.json package-lock.json ./
@@ -7,8 +7,8 @@ RUN npm ci
 
 COPY --chown=node:node . .
 
-RUN mkdir -p /app/output && chown node:node /app/output
+COPY entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-USER node
-
+ENTRYPOINT ["entrypoint.sh"]
 CMD ["sh", "docker-entrypoint.sh"]
