@@ -9,6 +9,14 @@ KEEP=7
 
 mkdir -p "$BUILD_DIR"
 
+# Ripristina cache immagini dal volume (evita ri-download da Drupal)
+UPLOAD_CACHE="$OUTPUT_DIR/.uploads-cache"
+if [ -d "$UPLOAD_CACHE" ]; then
+  echo "→ Restoring image cache ($(du -sh "$UPLOAD_CACHE" | cut -f1))..."
+  mkdir -p /app/public/uploads
+  cp -a "$UPLOAD_CACHE/." /app/public/uploads/
+fi
+
 echo "→ Building to $BUILD_DIR ..."
 npx astro build --outDir "$BUILD_DIR"
 
@@ -17,6 +25,11 @@ npx astro build --outDir "$BUILD_DIR"
 if [ -d /app/public/uploads ]; then
   echo "→ Copying uploads to build dir ..."
   cp -r /app/public/uploads "$BUILD_DIR/"
+
+  # Aggiorna cache immagini sul volume per i prossimi build
+  echo "→ Updating image cache..."
+  mkdir -p "$UPLOAD_CACHE"
+  cp -a /app/public/uploads/. "$UPLOAD_CACHE/"
 fi
 
 npx pagefind --site "$BUILD_DIR"

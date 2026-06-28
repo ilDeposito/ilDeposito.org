@@ -111,22 +111,33 @@ export default function pdfGeneratorIntegration() {
         mkdirSync(outDir, { recursive: true });
 
         let count = 0;
-        for (const canto of canti) {
-          try {
-            const pdfBuffer = await generateCantoPdf(canto, {
-              autoriTesto: canto.autoriTesto,
-              periodo: canto.periodo,
-              lingue: canto.lingue,
-              tags: canto.tags,
-            });
-            writeFileSync(join(outDir, `${canto.slug}.pdf`), pdfBuffer);
-            count++;
-          } catch (err) {
-            logger.warn(`Errore PDF per "${canto.titolo}" (${canto.slug}): ${err.message}`);
+        let errors = 0;
+        const total = canti.length;
+        const BATCH_SIZE = 50;
+
+        for (let i = 0; i < total; i += BATCH_SIZE) {
+          const batch = canti.slice(i, i + BATCH_SIZE);
+          const results = await Promise.allSettled(
+            batch.map(async (canto) => {
+              const pdfBuffer = await generateCantoPdf(canto, {
+                autoriTesto: canto.autoriTesto,
+                periodo: canto.periodo,
+                lingue: canto.lingue,
+                tags: canto.tags,
+              });
+              writeFileSync(join(outDir, `${canto.slug}.pdf`), pdfBuffer);
+              return canto.slug;
+            })
+          );
+          for (const r of results) {
+            if (r.status === 'fulfilled') count++;
+            else { errors++; logger.warn(`ERRORE PDF: ${r.reason.message}`); }
           }
+          const pct = Math.round(((i + batch.length) / total) * 100);
+          logger.info(`[${i + batch.length}/${total}] (${pct}%) — ${count} ok, ${errors} errori`);
         }
 
-        logger.info(`${count}/${canti.length} PDF generati in ${outDir}`);
+        logger.info(`${count}/${total} PDF generati in ${outDir}`);
       },
     },
   };

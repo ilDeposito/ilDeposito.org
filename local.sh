@@ -56,6 +56,7 @@ cmd_build() {
 
     info "Nodi pubblicati: ${total}"
     info "Avvio build Astro..."
+    local start_time=$SECONDS
 
     if [[ -d "${PROJECT_ROOT}/frontend/dist" ]]; then
         info "Pulizia dist/ precedente..."
@@ -91,7 +92,10 @@ cmd_build() {
     count=$(find "${PROJECT_ROOT}/frontend/dist" -name "*.html" 2>/dev/null | wc -l | tr -d ' ')
 
     if [[ $exit_code -eq 0 ]]; then
-        printf "\r  ${GREEN}✓${NC} Build completata: %d pagine generate (da %d nodi)    \n" "$count" "$total"
+        local elapsed=$(( SECONDS - start_time ))
+        local mins=$(( elapsed / 60 ))
+        local secs=$(( elapsed % 60 ))
+        printf "\r  ${GREEN}✓${NC} Build completata: %d pagine generate (da %d nodi) in %dm %ds    \n" "$count" "$total" "$mins" "$secs"
         docker restart ddev-ildeposito11-astro-static >/dev/null 2>&1 && \
             ok "Container frontend riavviato → https://frontend.ildeposito11.ddev.site"
     else
