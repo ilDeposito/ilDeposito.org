@@ -3,21 +3,22 @@ import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 async function run() {
-  const { generateCantoPdf, generateQrBuffer } = await import('../lib/generate-pdf.js');
-  const { canti, outDir } = workerData;
+  const { generateCantoPdf, initFonts } = await import('../lib/generate-pdf.js');
+  const { canti, outDir, fontBuffers } = workerData;
+
+  if (fontBuffers) initFonts(fontBuffers);
 
   let count = 0;
   let errors = 0;
 
   for (const canto of canti) {
     try {
-      const qrBuffer = await generateQrBuffer(canto.slug);
       const pdfBuffer = await generateCantoPdf(canto, {
         autoriTesto: canto.autoriTesto,
         periodo: canto.periodo,
         lingue: canto.lingue,
         tags: canto.tags,
-        qrBuffer,
+        qrBuffer: Buffer.from(canto.qrBuffer),
       });
       await writeFile(join(outDir, `${canto.slug}.pdf`), pdfBuffer);
       count++;

@@ -1,5 +1,7 @@
 # build output
 dist/
+# pdf cache
+.cache/
 # generated types
 .astro/
 # immagini scaricate da Drupal a build-time

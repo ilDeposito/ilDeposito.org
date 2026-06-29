@@ -123,9 +123,27 @@ export async function getEventiGeo(): Promise<EventoGeo[]> {
     .map(mapEventoGeo);
 }
 
+let eventiSlugMapPromise: Promise<Map<string, any>> | null = null;
+
+function getEventiSlugMap(): Promise<Map<string, any>> {
+  if (!eventiSlugMapPromise) {
+    eventiSlugMapPromise = fetchAllEventiRaw().then(({ data }) => {
+      const map = new Map<string, any>();
+      for (const item of data) {
+        map.set(extractSlug(item.attributes.path?.alias), item);
+      }
+      return map;
+    });
+  }
+  return eventiSlugMapPromise;
+}
+
 export async function getEvento(slug: string): Promise<EventoDetail | null> {
-  const { data, included } = await fetchAllEventiRaw();
-  const item = data.find((e: any) => extractSlug(e.attributes.path?.alias) === slug);
+  const [slugMap, { included }] = await Promise.all([
+    getEventiSlugMap(),
+    fetchAllEventiRaw(),
+  ]);
+  const item = slugMap.get(slug);
   if (!item) return null;
   const map = buildIncludedMap(included);
   return mapEventoDetail(item, map);

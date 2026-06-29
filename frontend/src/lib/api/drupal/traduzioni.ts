@@ -11,9 +11,27 @@ export async function getTraduzioni(): Promise<TraduzionePath[]> {
   }));
 }
 
+let traduzioniSlugMapPromise: Promise<Map<string, any>> | null = null;
+
+function getTraduzioniSlugMap(): Promise<Map<string, any>> {
+  if (!traduzioniSlugMapPromise) {
+    traduzioniSlugMapPromise = fetchAllTraduzioniRaw().then(({ data }) => {
+      const map = new Map<string, any>();
+      for (const item of data) {
+        map.set(extractSlug(item.attributes.path?.alias), item);
+      }
+      return map;
+    });
+  }
+  return traduzioniSlugMapPromise;
+}
+
 export async function getTraduzione(slug: string): Promise<TraduzioneDetail | null> {
-  const { data, included } = await fetchAllTraduzioniRaw();
-  const item = data.find((t: any) => extractSlug(t.attributes.path?.alias) === slug);
+  const [slugMap, { included }] = await Promise.all([
+    getTraduzioniSlugMap(),
+    fetchAllTraduzioniRaw(),
+  ]);
+  const item = slugMap.get(slug);
   if (!item) return null;
   const map = buildIncludedMap(included);
   return mapTraduzioneDetail(item, map);

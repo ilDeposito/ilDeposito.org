@@ -20,9 +20,27 @@ export async function getAutoriPiuVisti(limit = 20): Promise<AutoreCard[]> {
     .map((item: any) => mapAutoreCard(item, map));
 }
 
+let autoriSlugMapPromise: Promise<Map<string, any>> | null = null;
+
+function getAutoriSlugMap(): Promise<Map<string, any>> {
+  if (!autoriSlugMapPromise) {
+    autoriSlugMapPromise = fetchAllAutoriRaw().then(({ data }) => {
+      const map = new Map<string, any>();
+      for (const item of data) {
+        map.set(extractSlug(item.attributes.path?.alias), item);
+      }
+      return map;
+    });
+  }
+  return autoriSlugMapPromise;
+}
+
 export async function getAutore(slug: string): Promise<AutoreDetail | null> {
-  const { data, included } = await fetchAllAutoriRaw();
-  const item = data.find((a: any) => extractSlug(a.attributes.path?.alias) === slug);
+  const [slugMap, { included }] = await Promise.all([
+    getAutoriSlugMap(),
+    fetchAllAutoriRaw(),
+  ]);
+  const item = slugMap.get(slug);
   if (!item) return null;
   const map = buildIncludedMap(included);
   return mapAutoreDetail(item, map);

@@ -1,8 +1,23 @@
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, existsSync, copyFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 import { Worker } from 'node:worker_threads';
 import { availableParallelism } from 'node:os';
+import QRCode from 'qrcode';
+
+function resolveNames(rel, includedMap) {
+  const refs = Array.isArray(rel?.data) ? rel.data : rel?.data ? [rel.data] : [];
+  return refs
+    .map((ref) => includedMap.get(`${ref.type}:${ref.id}`))
+    .filter(Boolean)
+    .map((item) => item.attributes.title ?? item.attributes.name);
+}
+
+function extractSlug(alias) {
+  if (!alias) return '';
+  return alias.split('/').pop() ?? '';
+}
 
 async function fetchAllPaginated(path, params = {}) {
   const baseUrl = process.env.DRUPAL_API_URL;
@@ -40,19 +55,6 @@ async function fetchAllPaginated(path, params = {}) {
   return { data: allData, included: allIncluded };
 }
 
-function resolveNames(rel, includedMap) {
-  const refs = Array.isArray(rel?.data) ? rel.data : rel?.data ? [rel.data] : [];
-  return refs
-    .map((ref) => includedMap.get(`${ref.type}:${ref.id}`))
-    .filter(Boolean)
-    .map((item) => item.attributes.title ?? item.attributes.name);
-}
-
-function extractSlug(alias) {
-  if (!alias) return '';
-  return alias.split('/').pop() ?? '';
-}
-
 async function getAllCantiForPdf() {
   const { data, included } = await fetchAllPaginated('/jsonapi/node/canto', {
     'filter[status]': '1',
@@ -88,10 +90,56 @@ async function getAllCantiForPdf() {
   });
 }
 
-function spawnWorker(workerFile, canti, outDir) {
+function computeHash(canto) {
+  return createHash('md5').update(JSON.stringify({
+    titolo: canto.titolo,
+    testo: canto.testo,
+    anno: canto.anno,
+    informazioni: canto.informazioni,
+    autoriTesto: canto.autoriTesto,
+    periodo: canto.periodo,
+    lingue: canto.lingue,
+    tags: canto.tags,
+  })).digest('hex');
+}
+
+async function generateQrBuffers(canti) {
+  const BATCH_SIZE = 50;
+  const results = new Map();
+
+  for (let i = 0; i < canti.length; i += BATCH_SIZE) {
+    const batch = canti.slice(i, i + BATCH_SIZE);
+    const buffers = await Promise.all(
+      batch.map((c) => QRCode.toBuffer(`https://www.ildeposito.org/canti/${c.slug}`, {
+        width: 100,
+        errorCorrectionLevel: 'M',
+        margin: 1,
+        color: { dark: '#000000', light: '#ffffff' },
+      }))
+    );
+    for (let j = 0; j < batch.length; j++) {
+      results.set(batch[j].slug, buffers[j]);
+    }
+  }
+
+  return results;
+}
+
+function readFontBuffers() {
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  const fontsDir = join(__dirname, '../assets/fonts');
+  return {
+    'SourceSans':        readFileSync(join(fontsDir, 'SourceSans3-Medium.ttf')),
+    'SourceSans-Italic': readFileSync(join(fontsDir, 'SourceSans3-Italic.ttf')),
+    'Bitter':            readFileSync(join(fontsDir, 'Bitter.ttf')),
+    'IBMPlexMono':       readFileSync(join(fontsDir, 'IBMPlexMono-Regular.ttf')),
+  };
+}
+
+function spawnWorker(workerFile, canti, outDir, fontBuffers) {
   return new Promise((resolve, reject) => {
     const worker = new Worker(workerFile, {
-      workerData: { canti, outDir },
+      workerData: { canti, outDir, fontBuffers },
     });
 
     let result = { count: 0, errors: 0, errorMessages: [] };
@@ -118,24 +166,71 @@ export default function pdfGeneratorIntegration() {
     name: 'pdf-generator',
     hooks: {
       'astro:build:done': async ({ dir, logger }) => {
-        logger.info('Recupero canti da Drupal...');
-        const canti = await getAllCantiForPdf();
-        logger.info(`${canti.length} canti trovati.`);
-
         const outDir = join(fileURLToPath(dir), 'pdf', 'canti');
         mkdirSync(outDir, { recursive: true });
 
-        const numWorkers = Math.min(availableParallelism(), 8);
-        const chunkSize = Math.ceil(canti.length / numWorkers);
+        const cacheDir = join(process.cwd(), '.cache', 'pdf');
+        mkdirSync(cacheDir, { recursive: true });
+        const manifestPath = join(cacheDir, 'manifest.json');
+
+        let manifest = {};
+        if (existsSync(manifestPath)) {
+          try { manifest = JSON.parse(readFileSync(manifestPath, 'utf-8')); } catch {}
+        }
+
+        logger.info('Recupero canti per PDF...');
+        const canti = await getAllCantiForPdf();
+        logger.info(`${canti.length} canti trovati.`);
+
+        const newManifest = {};
+        const changedCanti = [];
+        let cachedCount = 0;
+
+        for (const canto of canti) {
+          const hash = computeHash(canto);
+          newManifest[canto.slug] = hash;
+
+          const cachedPdf = join(cacheDir, `${canto.slug}.pdf`);
+          if (manifest[canto.slug] === hash && existsSync(cachedPdf)) {
+            copyFileSync(cachedPdf, join(outDir, `${canto.slug}.pdf`));
+            cachedCount++;
+          } else {
+            changedCanti.push(canto);
+          }
+        }
+
+        if (cachedCount > 0) {
+          logger.info(`${cachedCount} PDF invariati copiati dalla cache.`);
+        }
+
+        if (changedCanti.length === 0) {
+          logger.info('Nessun PDF da rigenerare.');
+          writeFileSync(manifestPath, JSON.stringify(newManifest, null, 2));
+          return;
+        }
+
+        logger.info(`${changedCanti.length} PDF da generare...`);
+
+        const qrMap = await generateQrBuffers(changedCanti);
+
+        const cantiWithQr = changedCanti.map((c) => ({
+          ...c,
+          qrBuffer: qrMap.get(c.slug),
+        }));
+
+        const fontBuffers = readFontBuffers();
+
+        const numWorkers = Math.min(availableParallelism(), 8, changedCanti.length);
+        const chunkSize = Math.ceil(cantiWithQr.length / numWorkers);
         const workerFile = join(dirname(fileURLToPath(import.meta.url)), 'pdf-worker.js');
 
-        logger.info(`Generazione PDF con ${numWorkers} worker thread...`);
+        logger.info(`Generazione con ${numWorkers} worker thread...`);
 
         const promises = [];
         for (let i = 0; i < numWorkers; i++) {
-          const chunk = canti.slice(i * chunkSize, (i + 1) * chunkSize);
+          const chunk = cantiWithQr.slice(i * chunkSize, (i + 1) * chunkSize);
           if (chunk.length === 0) continue;
-          promises.push(spawnWorker(workerFile, chunk, outDir));
+          promises.push(spawnWorker(workerFile, chunk, outDir, fontBuffers));
         }
 
         const results = await Promise.all(promises);
@@ -148,7 +243,16 @@ export default function pdfGeneratorIntegration() {
           }
         }
 
-        logger.info(`${totalCount}/${canti.length} PDF generati (${totalErrors} errori) in ${outDir}`);
+        for (const canto of changedCanti) {
+          const pdfPath = join(outDir, `${canto.slug}.pdf`);
+          if (existsSync(pdfPath)) {
+            copyFileSync(pdfPath, join(cacheDir, `${canto.slug}.pdf`));
+          }
+        }
+
+        writeFileSync(manifestPath, JSON.stringify(newManifest, null, 2));
+
+        logger.info(`${totalCount + cachedCount}/${canti.length} PDF totali (${totalCount} generati, ${cachedCount} da cache, ${totalErrors} errori)`);
       },
     },
   };

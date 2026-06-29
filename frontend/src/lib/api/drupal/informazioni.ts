@@ -22,12 +22,25 @@ export async function getInformazioni(): Promise<InformazionePath[]> {
   });
 }
 
+let paginePercorsoMapPromise: Promise<Map<string, any>> | null = null;
+
+function getPaginePercorsoMap(): Promise<Map<string, any>> {
+  if (!paginePercorsoMapPromise) {
+    paginePercorsoMapPromise = fetchAllPagineRaw().then(({ data }) => {
+      const map = new Map<string, any>();
+      for (const item of data) {
+        const { percorso } = mapPagina(item);
+        map.set(percorso, item);
+      }
+      return map;
+    });
+  }
+  return paginePercorsoMapPromise;
+}
+
 export async function getInformazione(percorso: string): Promise<InformazioneDetail | null> {
-  const { data } = await fetchAllPagineRaw();
-  const match = data.find((item: any) => {
-    const { percorso: p } = mapPagina(item);
-    return p === percorso;
-  });
+  const percorsoMap = await getPaginePercorsoMap();
+  const match = percorsoMap.get(percorso);
   if (!match) return null;
 
   const alias = match.attributes.path?.alias ?? '';

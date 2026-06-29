@@ -15,15 +15,27 @@ const COLOR_RED = '#aa0000';
 const COLOR_BLACK = '#000000';
 const COLOR_GRAY = '#333333';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const FONTS_DIR = join(__dirname, '../assets/fonts');
+let FONT_BUFFERS = null;
 
-const FONT_BUFFERS = {
-  'SourceSans':        readFileSync(join(FONTS_DIR, 'SourceSans3-Medium.ttf')),
-  'SourceSans-Italic': readFileSync(join(FONTS_DIR, 'SourceSans3-Italic.ttf')),
-  'Bitter':            readFileSync(join(FONTS_DIR, 'Bitter.ttf')),
-  'IBMPlexMono':       readFileSync(join(FONTS_DIR, 'IBMPlexMono-Regular.ttf')),
-};
+export function initFonts(buffers) {
+  FONT_BUFFERS = {};
+  for (const [name, data] of Object.entries(buffers)) {
+    FONT_BUFFERS[name] = Buffer.from(data);
+  }
+}
+
+function getFontBuffers() {
+  if (FONT_BUFFERS) return FONT_BUFFERS;
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  const FONTS_DIR = join(__dirname, '../assets/fonts');
+  FONT_BUFFERS = {
+    'SourceSans':        readFileSync(join(FONTS_DIR, 'SourceSans3-Medium.ttf')),
+    'SourceSans-Italic': readFileSync(join(FONTS_DIR, 'SourceSans3-Italic.ttf')),
+    'Bitter':            readFileSync(join(FONTS_DIR, 'Bitter.ttf')),
+    'IBMPlexMono':       readFileSync(join(FONTS_DIR, 'IBMPlexMono-Regular.ttf')),
+  };
+  return FONT_BUFFERS;
+}
 
 function sanitizeText(text) {
   if (!text) return '';
@@ -73,7 +85,7 @@ function drawFooterLine(doc) {
 }
 
 function registerFonts(doc) {
-  for (const [name, buffer] of Object.entries(FONT_BUFFERS)) {
+  for (const [name, buffer] of Object.entries(getFontBuffers())) {
     doc.registerFont(name, buffer);
   }
 }
