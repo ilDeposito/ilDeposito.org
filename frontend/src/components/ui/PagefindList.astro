@@ -52,11 +52,14 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
         Rimuovi filtri
       </button>
     </div>
-    <div class="flex items-center justify-between gap-4">
-      <div data-filter-panel class="flex flex-wrap gap-2">
-        <p class="text-base text-base-content/40 italic">Caricamento filtri…</p>
+    <div class="flex items-center gap-4 flex-wrap">
+      <div class="flex items-center gap-3">
+        <Icon name="funnel" class="text-base-content/40 text-lg shrink-0" />
+        <div data-filter-panel class="flex flex-wrap gap-2">
+          <p class="text-base text-base-content/40 italic">Caricamento filtri…</p>
+        </div>
       </div>
-      <div data-sort-panel-desktop></div>
+      <div data-sort-panel-desktop class="pl-4"></div>
     </div>
   </div>
 
@@ -129,6 +132,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
       caretDown: _svg('<path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/>'),
       x: _svg('<path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/>'),
       check: _svg('<path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"/>'),
+      sortAsc: _svg('<path d="M128,128a8,8,0,0,1-8,8H48a8,8,0,0,1,0-16h72A8,8,0,0,1,128,128ZM48,72H184a8,8,0,0,0,0-16H48a8,8,0,0,0,0,16Zm56,112H48a8,8,0,0,0,0,16h56a8,8,0,0,0,0-16Zm125.66-21.66a8,8,0,0,0-11.32,0L192,188.69V112a8,8,0,0,0-16,0v76.69l-26.34-26.35a8,8,0,0,0-11.32,11.32l40,40a8,8,0,0,0,11.32,0l40-40A8,8,0,0,0,229.66,162.34Z"/>'),
     };
     const _esc = (s) => { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
     const VIEW_MORE_THRESHOLD = 10;
@@ -647,20 +651,23 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
           const _isActiveSort = (o) => o.field === this._sortField && o.dir === this._sortDir;
           const activeLabel = this._sortOptions.find(_isActiveSort)?.label ?? 'Ordina';
           desktopContainer.innerHTML = `
-            <div class="relative" data-sort-dropdown>
-              <button type="button" data-sort-toggle class="btn btn-md btn-ghost border border-base-300 gap-1">
-                ${activeLabel} <span class="text-xs">${ICO.caretDown}</span>
-              </button>
-              <div data-sort-dropdown-panel class="hidden absolute right-0 top-[calc(100%+4px)] z-50
-                   bg-base-100 border border-base-300 rounded-box shadow-lg min-w-40 py-1">
-                ${this._sortOptions.map((o) => `
-                  <button type="button" data-sort-select="${o.field}" data-sort-dir="${o.dir}"
-                    class="flex items-center gap-2 w-full px-3 py-1.5 text-sm hover:bg-base-200 text-left
-                           ${_isActiveSort(o) ? 'text-primary font-semibold' : ''}">
-                    <span class="text-xs ${_isActiveSort(o) ? '' : 'invisible'}">${ICO.check}</span>
-                    ${o.label}
-                  </button>
-                `).join('')}
+            <div class="flex items-center gap-3" data-sort-dropdown>
+              <span class="text-base-content/40 text-lg shrink-0">${ICO.sortAsc}</span>
+              <div class="relative">
+                <button type="button" data-sort-toggle class="btn btn-md btn-ghost border border-base-300 gap-1">
+                  ${activeLabel} <span class="text-xs">${ICO.caretDown}</span>
+                </button>
+                <div data-sort-dropdown-panel class="hidden absolute right-0 top-[calc(100%+4px)] z-50
+                     bg-base-100 border border-base-300 rounded-box shadow-lg min-w-40 py-1">
+                  ${this._sortOptions.map((o) => `
+                    <button type="button" data-sort-select="${o.field}" data-sort-dir="${o.dir}"
+                      class="flex items-center gap-2 w-full px-3 py-1.5 text-sm hover:bg-base-200 text-left
+                             ${_isActiveSort(o) ? 'text-primary font-semibold' : ''}">
+                      <span class="text-xs ${_isActiveSort(o) ? '' : 'invisible'}">${ICO.check}</span>
+                      ${o.label}
+                    </button>
+                  `).join('')}
+                </div>
               </div>
             </div>
           `;
