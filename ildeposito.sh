@@ -131,7 +131,7 @@ EOF
 }
 
 case "${1:-}" in
-    up)              cmd_up ;;
+    up)              shift; cmd_up "$@" ;;
     down)            cmd_down ;;
     stop)            cmd_stop ;;
     restart)         cmd_restart ;;
