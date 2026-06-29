@@ -1,0 +1,30 @@
+uuid: 82f60460-1904-4fd4-a11e-f604c4469820
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.citazione.field_fonte
+    - field.field.paragraph.citazione.field_testo
+    - paragraphs.paragraphs_type.citazione
+  module:
+    - text
+id: paragraph.citazione.default
+targetEntityType: paragraph
+bundle: citazione
+mode: default
+content:
+  field_fonte:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_testo:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden: {  }

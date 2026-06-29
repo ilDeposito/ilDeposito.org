@@ -1,0 +1,41 @@
+uuid: 78f4664a-b776-4026-ab79-e6a955561b90
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_paragraphs
+    - node.type.pagina
+  module:
+    - entity_reference_revisions
+id: node.pagina.field_paragraphs
+field_name: field_paragraphs
+entity_type: node
+bundle: pagina
+label: 'Elementi pagina'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:paragraph'
+  handler_settings:
+    target_bundles: null
+    negate: 1
+    target_bundles_drag_drop:
+      card:
+        weight: -10
+        enabled: false
+      citazione:
+        weight: -7
+        enabled: false
+      griglia:
+        weight: -11
+        enabled: false
+      immagine:
+        weight: -8
+        enabled: false
+      testo:
+        weight: -9
+        enabled: false
+field_type: entity_reference_revisions

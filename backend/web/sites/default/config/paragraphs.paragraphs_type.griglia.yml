@@ -1,0 +1,10 @@
+uuid: eedca830-3822-4f65-827f-3b3f055181ad
+langcode: it
+status: true
+dependencies: {  }
+id: griglia
+label: Griglia
+icon_uuid: null
+icon_default: null
+description: ''
+behavior_plugins: {  }

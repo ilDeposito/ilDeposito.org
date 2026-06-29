@@ -1,0 +1,10 @@
+uuid: f8a2c482-4e88-4288-a71b-bba422443a14
+langcode: it
+status: true
+dependencies: {  }
+id: testo
+label: Testo
+icon_uuid: null
+icon_default: null
+description: ''
+behavior_plugins: {  }

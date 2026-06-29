@@ -1,0 +1,24 @@
+uuid: e5ab834d-3544-4e31-8a57-dde7d1bf10c1
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_testo
+    - filter.format.restricted_html
+    - paragraphs.paragraphs_type.testo
+  module:
+    - text
+id: paragraph.testo.field_testo
+field_name: field_testo
+entity_type: paragraph
+bundle: testo
+label: Testo
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats:
+    - restricted_html
+field_type: text_long

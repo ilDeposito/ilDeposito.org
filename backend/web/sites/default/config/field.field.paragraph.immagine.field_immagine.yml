@@ -1,15 +1,15 @@
-uuid: ed5b5deb-2346-43b2-9dac-da5b7cae57e5
+uuid: 27ca0d16-0f0d-4ea7-b0a9-fe7ebe88d849
 langcode: it
 status: true
 dependencies:
   config:
-    - field.storage.node.field_immagine
+    - field.storage.paragraph.field_immagine
     - media.type.image
-    - node.type.pagina
-id: node.pagina.field_immagine
+    - paragraphs.paragraphs_type.immagine
+id: paragraph.immagine.field_immagine
 field_name: field_immagine
-entity_type: node
-bundle: pagina
+entity_type: paragraph
+bundle: immagine
 label: Immagine
 description: ''
 required: false

@@ -1,0 +1,24 @@
+uuid: 11b61120-c656-4f97-8a5b-ea9ed0f007f1
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.griglia.field_grid_item
+    - paragraphs.paragraphs_type.griglia
+  module:
+    - entity_reference_revisions
+id: paragraph.griglia.default
+targetEntityType: paragraph
+bundle: griglia
+mode: default
+content:
+  field_grid_item:
+    type: entity_reference_revisions_entity_view
+    label: above
+    settings:
+      view_mode: default
+      link: ''
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden: {  }

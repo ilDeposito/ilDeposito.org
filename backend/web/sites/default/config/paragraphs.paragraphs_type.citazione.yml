@@ -1,0 +1,10 @@
+uuid: 6270564d-03a7-4bb5-bfb8-653cc40df569
+langcode: it
+status: true
+dependencies: {  }
+id: citazione
+label: Citazione
+icon_uuid: null
+icon_default: null
+description: ''
+behavior_plugins: {  }

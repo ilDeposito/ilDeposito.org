@@ -1,0 +1,22 @@
+uuid: d181a9f0-6a70-43b3-a4c5-254225f26fb8
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.testo.field_testo
+    - paragraphs.paragraphs_type.testo
+  module:
+    - text
+id: paragraph.testo.default
+targetEntityType: paragraph
+bundle: testo
+mode: default
+content:
+  field_testo:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden: {  }

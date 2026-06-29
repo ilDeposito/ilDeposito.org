@@ -1,0 +1,31 @@
+uuid: 70db1291-a3a2-4bc2-a0f8-843279cb1f2e
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.immagine.field_descrizione_immagine
+    - field.field.paragraph.immagine.field_immagine
+    - paragraphs.paragraphs_type.immagine
+id: paragraph.immagine.default
+targetEntityType: paragraph
+bundle: immagine
+mode: default
+content:
+  field_descrizione_immagine:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_immagine:
+    type: entity_reference_entity_view
+    label: above
+    settings:
+      view_mode: default
+      link: false
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden: {  }

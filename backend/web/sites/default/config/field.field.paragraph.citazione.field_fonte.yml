@@ -1,0 +1,24 @@
+uuid: ebb50982-03ec-4072-be0e-f4e5fa180137
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_fonte
+    - filter.format.restricted_html
+    - paragraphs.paragraphs_type.citazione
+  module:
+    - text
+id: paragraph.citazione.field_fonte
+field_name: field_fonte
+entity_type: paragraph
+bundle: citazione
+label: Fonte
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats:
+    - restricted_html
+field_type: text_long
