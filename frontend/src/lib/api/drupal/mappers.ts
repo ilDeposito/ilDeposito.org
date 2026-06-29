@@ -65,7 +65,7 @@ function textValue(field: any): string | null {
 
 function plainText(field: string | null | undefined): string {
   if (!field) return '';
-  return field.replace(/<br\s*\/?>\s*/gi, '\n').replace(/\r\n/g, '\n');
+  return field.replace(/<br\s*\/?>[\r\n]*/gi, '\n').replace(/\r\n/g, '\n');
 }
 
 // ── Canti ──────────────────────────────────────────────
