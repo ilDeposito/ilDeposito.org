@@ -30,6 +30,7 @@
         "drupal/paragraphs": "^1.20",
         "drupal/pathauto": "^1.15",
         "drupal/radix": "^6.0",
+        "drupal/redis": "^1.11",
         "drupal/security_review": "^3.0",
         "drush/drush": "^13",
         "npm-asset/chart.js": "^4.4",
