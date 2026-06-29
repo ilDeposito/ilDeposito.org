@@ -108,17 +108,8 @@ process:
     plugin: default_value
     default_value: 1
   uid:
-    -
-      plugin: explode
-      delimiter: ', '
-      source: uid
-    -
-      plugin: multiple_values
-    -
-      plugin: get_migration_id
-      importer: 'utenti'
-  #  plugin: default_value
-  #  default_value: 1
+    plugin: default_value
+    default_value: 1
   type:
     plugin: default_value
     default_value: canto

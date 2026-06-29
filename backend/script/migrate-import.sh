@@ -1,6 +1,5 @@
 #!/bin/bash
 
-ddev drush mim utenti
 ddev drush mim immagini
 ddev drush mim media
 ddev drush mim termini_localizzazioni
