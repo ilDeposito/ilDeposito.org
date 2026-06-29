@@ -30,6 +30,11 @@ services:
       DRUPAL_HASH_SALT: ${DRUPAL_HASH_SALT:-}
       GITHUB_APP_ID: ${GITHUB_APP_ID:-}
       GITHUB_APP_INSTALLATION_ID: ${GITHUB_APP_INSTALLATION_ID:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-}
       PHP_FPM_CLEAR_ENV: "no"
     volumes:
     - ./:/var/www/html:cached

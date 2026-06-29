@@ -17,6 +17,18 @@ final class IldepositoUtilsHooks {
     }
   }
 
+  #[Hook('mail_alter')]
+  public function mailAlter(array &$message): void {
+    $from = getenv('MAIL_FROM');
+    if ($from === false || $from === '') {
+      return;
+    }
+    $message['from'] = $from;
+    $message['headers']['From'] = $from;
+    $message['headers']['Sender'] = $from;
+    $message['headers']['Return-Path'] = $from;
+  }
+
   private function setAutoreTitle(NodeInterface $node): void {
     $cognome = trim((string) $node->get('field_cognome')->value);
     $nome = trim((string) $node->get('field_nome')->value);

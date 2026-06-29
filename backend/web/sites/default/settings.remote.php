@@ -29,3 +29,20 @@ $config['system.performance']['response']['gzip'] = TRUE;
 $config['system.performance']['cache']['page']['max_age'] = 3600;
 $config['views.settings']['ui']['show']['sql_query']['enabled'] = FALSE;
 $config['views.settings']['ui']['show']['performance_statistics'] = FALSE;
+
+// SMTP via Symfony Mailer (core).
+if (getenv('SMTP_HOST')) {
+  $config['system.mail']['interface']['default'] = 'symfony_mailer';
+  $config['system.mail']['mailer_dsn'] = [
+    'scheme' => 'smtp',
+    'host' => getenv('SMTP_HOST'),
+    'port' => (int) (getenv('SMTP_PORT') ?: 587),
+    'user' => getenv('SMTP_USER') ?: NULL,
+    'password' => getenv('SMTP_PASS') ?: NULL,
+    'options' => [],
+  ];
+}
+
+if (getenv('MAIL_FROM')) {
+  $config['system.site']['mail'] = getenv('MAIL_FROM');
+}
