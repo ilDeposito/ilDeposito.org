@@ -169,13 +169,21 @@ export default function pdfGeneratorIntegration() {
         const outDir = join(fileURLToPath(dir), 'pdf', 'canti');
         mkdirSync(outDir, { recursive: true });
 
-        const cacheDir = join(process.cwd(), '.cache', 'pdf');
-        mkdirSync(cacheDir, { recursive: true });
-        const manifestPath = join(cacheDir, 'manifest.json');
-
+        let cacheDir = null;
+        let manifestPath = null;
         let manifest = {};
-        if (existsSync(manifestPath)) {
-          try { manifest = JSON.parse(readFileSync(manifestPath, 'utf-8')); } catch {}
+
+        try {
+          cacheDir = join(process.cwd(), '.cache', 'pdf');
+          mkdirSync(cacheDir, { recursive: true });
+          manifestPath = join(cacheDir, 'manifest.json');
+          if (existsSync(manifestPath)) {
+            manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+          }
+        } catch {
+          cacheDir = null;
+          manifestPath = null;
+          manifest = {};
         }
 
         logger.info('Recupero canti per PDF...');
@@ -190,13 +198,15 @@ export default function pdfGeneratorIntegration() {
           const hash = computeHash(canto);
           newManifest[canto.slug] = hash;
 
-          const cachedPdf = join(cacheDir, `${canto.slug}.pdf`);
-          if (manifest[canto.slug] === hash && existsSync(cachedPdf)) {
-            copyFileSync(cachedPdf, join(outDir, `${canto.slug}.pdf`));
-            cachedCount++;
-          } else {
-            changedCanti.push(canto);
+          if (cacheDir && manifest[canto.slug] === hash) {
+            const cachedPdf = join(cacheDir, `${canto.slug}.pdf`);
+            if (existsSync(cachedPdf)) {
+              copyFileSync(cachedPdf, join(outDir, `${canto.slug}.pdf`));
+              cachedCount++;
+              continue;
+            }
           }
+          changedCanti.push(canto);
         }
 
         if (cachedCount > 0) {
@@ -205,7 +215,9 @@ export default function pdfGeneratorIntegration() {
 
         if (changedCanti.length === 0) {
           logger.info('Nessun PDF da rigenerare.');
-          writeFileSync(manifestPath, JSON.stringify(newManifest, null, 2));
+          if (manifestPath) {
+            try { writeFileSync(manifestPath, JSON.stringify(newManifest, null, 2)); } catch {}
+          }
           return;
         }
 
@@ -243,14 +255,19 @@ export default function pdfGeneratorIntegration() {
           }
         }
 
-        for (const canto of changedCanti) {
-          const pdfPath = join(outDir, `${canto.slug}.pdf`);
-          if (existsSync(pdfPath)) {
-            copyFileSync(pdfPath, join(cacheDir, `${canto.slug}.pdf`));
-          }
+        if (cacheDir) {
+          try {
+            for (const canto of changedCanti) {
+              const pdfPath = join(outDir, `${canto.slug}.pdf`);
+              if (existsSync(pdfPath)) {
+                copyFileSync(pdfPath, join(cacheDir, `${canto.slug}.pdf`));
+              }
+            }
+            if (manifestPath) {
+              writeFileSync(manifestPath, JSON.stringify(newManifest, null, 2));
+            }
+          } catch {}
         }
-
-        writeFileSync(manifestPath, JSON.stringify(newManifest, null, 2));
 
         logger.info(`${totalCount + cachedCount}/${canti.length} PDF totali (${totalCount} generati, ${cachedCount} da cache, ${totalErrors} errori)`);
       },
