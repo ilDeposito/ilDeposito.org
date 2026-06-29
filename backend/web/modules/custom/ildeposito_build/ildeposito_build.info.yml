@@ -5,4 +5,5 @@ core_version_requirement: ^11 || ^12
 type: module
 # @todo Drupal 12: toolbar sarà sostituito da navigation. Adattare hook e dipendenza.
 dependencies:
+  - drupal:jsonapi
   - drupal:toolbar

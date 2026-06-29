@@ -15,3 +15,7 @@ services:
 
   Drupal\ildeposito_build\Form\BuildFrontendForm:
     autowire: true
+
+  Drupal\ildeposito_build\EventSubscriber\JsonApiWriteFirewall:
+    tags:
+      - { name: event_subscriber }

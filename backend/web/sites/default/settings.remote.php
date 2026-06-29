@@ -46,3 +46,7 @@ if (getenv('SMTP_HOST')) {
 if (getenv('MAIL_FROM')) {
   $config['system.site']['mail'] = getenv('MAIL_FROM');
 }
+
+// JSON:API in scrittura (filtrato dal modulo ildeposito_build).
+// @todo Abilitare quando il frontend sarà pronto.
+// $config['jsonapi.settings']['read_only'] = FALSE;
