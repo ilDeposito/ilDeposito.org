@@ -163,12 +163,20 @@ const jsonLd = [
     <section>
       {canto.accordi ? (
         <song-lyrics class="block">
-          <div data-pagefind-ignore class="flex justify-center gap-4 border-b border-base-300 mb-3" role="tablist">
-            <button type="button" data-tab="testo" role="tab" aria-selected="true" class="font-serif font-bold text-base pb-2 border-b-2 border-secondary text-base-content">Testo</button>
-            <button type="button" data-tab="accordi" role="tab" aria-selected="false" class="font-serif font-bold text-base pb-2 border-b-2 border-transparent text-base-content/40">Accordi</button>
+          <div data-pagefind-ignore class="flex justify-center gap-4 mb-3" role="tablist">
+            <button type="button" data-tab="testo" role="tab" aria-selected="true" class="font-serif font-bold text-base px-4 pb-2 border-b-2 border-secondary text-base-content cursor-pointer">Testo</button>
+            <button type="button" data-tab="accordi" role="tab" aria-selected="false" class="font-serif font-bold text-base px-4 pb-2 border-b-2 border-transparent text-base-content/40 cursor-pointer">Accordi</button>
           </div>
           <pre data-panel="testo" lang={linguaToIso(canto.lingue?.[0]?.titolo)} class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{canto.testo}</pre>
-          <pre data-panel="accordi" class="hidden font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{canto.accordi}</pre>
+          <div data-panel="accordi" data-pagefind-ignore class="hidden text-center">
+            <div data-transpose-toolbar class="inline-flex items-center gap-3 mb-5 text-sm text-base-content/70 bg-base-200 rounded-lg px-4 py-2">
+              <span class="font-serif font-semibold">Cambia la tonalità</span>
+              <button type="button" data-transpose="-1" class="btn btn-xs border-0 bg-base-300 text-base-content/70 min-w-8" aria-label="Abbassa di mezzo tono">−1</button>
+              <button type="button" data-transpose="+1" class="btn btn-xs border-0 bg-base-300 text-base-content/70 min-w-8" aria-label="Alza di mezzo tono">+1</button>
+              <button type="button" data-transpose-reset class="btn btn-xs btn-ghost text-base-content/50 hidden" aria-label="Tonalità originale">Reset</button>
+            </div>
+            <pre class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap text-left [&>.chord-line]:font-bold [&>.chord-line]:text-base-content">{canto.accordi}</pre>
+          </div>
         </song-lyrics>
       ) : (
         <div>
