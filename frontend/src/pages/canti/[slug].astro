@@ -85,11 +85,34 @@ const jsonLd = [
       {canto.anno && <p class="font-serif italic font-bold text-base text-base-content">Anno: {canto.anno}</p>}
 
       <div class="flex items-center gap-4 text-base text-base-content mt-1">
-        {canto.audio && (
-          <span class="inline-flex items-center gap-1">
-            <Icon name="play" />
-            2:56
-          </span>
+        {canto.videoUrl && (
+          <youtube-player data-video-url={canto.videoUrl} class="contents">
+            <button type="button" data-yt-toggle class="inline-flex items-center gap-1 cursor-pointer" aria-label="Ascolta questo canto">
+              <span data-yt-icon-play class="leading-none"><Icon name="play-fill" /></span>
+              <span data-yt-icon-pause class="hidden leading-none"><Icon name="pause" /></span>
+              <span data-yt-label>Ascolta</span>
+            </button>
+
+            <dialog class="modal">
+              <div class="modal-box max-w-sm" style="background-color: #ece8d9;">
+                <h3 class="font-serif font-semibold text-lg text-primary mb-3">Contenuto esterno</h3>
+                <p class="text-sm text-base-content/80 mb-2">
+                  Per riprodurre l'audio verrà caricato un player da YouTube.
+                  Questo comporta l'invio di dati a Google e l'impostazione di cookie di terze parti.
+                </p>
+                <p class="text-sm text-base-content/80 mb-4">
+                  Maggiori informazioni nella nostra <a href="/privacy" class="text-primary underline">informativa sulla privacy</a>.
+                </p>
+                <div class="flex justify-end gap-2">
+                  <button type="button" data-yt-cancel class="btn btn-sm btn-ghost border-0 shadow-none">Annulla</button>
+                  <button type="button" data-yt-accept class="btn btn-sm btn-primary border-0 shadow-none">Accetta e ascolta</button>
+                </div>
+              </div>
+              <form method="dialog" class="modal-backdrop"><button>chiudi</button></form>
+            </dialog>
+
+            <div data-yt-iframe-wrap class="absolute opacity-0 pointer-events-none w-0 h-0 overflow-hidden" aria-hidden="true"></div>
+          </youtube-player>
         )}
 
         <share-button data-title={canto.titolo} class="contents">
@@ -269,6 +292,7 @@ const jsonLd = [
   <script>
     import '../../scripts/song-lyrics.js';
     import '../../scripts/share-button.js';
+    import '../../scripts/youtube-player.js';
   </script>
   </div>
 </BaseLayout>
