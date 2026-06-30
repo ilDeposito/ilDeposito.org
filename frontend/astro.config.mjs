@@ -2,6 +2,7 @@ import { defineConfig } from 'astro/config';
 import { loadEnv } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
+import node from '@astrojs/node';
 
 const { DRUPAL_API_URL } = loadEnv(process.env.NODE_ENV ?? 'production', process.cwd(), '');
 const drupalHost = new URL(DRUPAL_API_URL || 'http://localhost').hostname;
@@ -31,7 +32,8 @@ function pagefindDevServer() {
 
 export default defineConfig({
   site: 'https://www.ildeposito.org',
-  output: 'static',
+  output: 'hybrid',
+  adapter: node({ mode: 'standalone' }),
   trailingSlash: 'never',
 
   image: {

@@ -3,3 +3,5 @@ description: Hook e servizi di utilità per ilDeposito.
 package: ilDeposito
 core_version_requirement: ^11 || ^12
 type: module
+dependencies:
+  - drupal:jsonapi

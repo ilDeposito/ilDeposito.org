@@ -78,6 +78,9 @@ cmd_build_frontend() {
     info "Ricarica configurazione nginx..."
     ${COMPOSE} exec frontend-web nginx -s reload
 
+    info "Riavvio server SSR (frontend-api)..."
+    ${COMPOSE} restart frontend-api
+
     ok "Build frontend completata"
     info "Il sito è live su https://${ENV}.ildeposito.org"
 }

@@ -1,0 +1,111 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumb from '../components/ui/Breadcrumb.astro';
+
+const inviato = Astro.url.searchParams.get('inviato') === '1';
+const errore = Astro.url.searchParams.get('error');
+---
+<BaseLayout
+  title="Contatti"
+  description="Scrivici per segnalazioni, collaborazioni o informazioni sull'archivio ilDeposito.org"
+  noindex={true}
+>
+  <header class="bg-base-200 border-b-2 border-secondary">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
+      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Contatti' }]} />
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">Contatti</h1>
+      <p class="font-sans text-base-content/70">Scrivici per segnalazioni, collaborazioni o informazioni sull'archivio.</p>
+    </div>
+  </header>
+
+  <div class="max-w-2xl mx-auto px-4 py-10">
+
+    {inviato && (
+      <div role="alert" class="alert alert-success mb-8">
+        <i class="ph ph-check-circle text-xl"></i>
+        <span>Il tuo messaggio è stato inviato. Ti risponderemo il prima possibile.</span>
+      </div>
+    )}
+
+    {errore && (
+      <div role="alert" class="alert alert-error mb-8">
+        <i class="ph ph-warning-circle text-xl"></i>
+        <span>
+          {errore === 'campi_mancanti'
+            ? 'Compila tutti i campi richiesti.'
+            : "Si è verificato un errore durante l'invio. Riprova più tardi."}
+        </span>
+      </div>
+    )}
+
+    {!inviato && (
+      <form action="/api/modulo_contatti" method="post" class="flex flex-col gap-5">
+
+        <div class="form-control">
+          <label class="label" for="nome">
+            <span class="label-text font-semibold">Nome <span class="text-error" aria-hidden="true">*</span></span>
+          </label>
+          <input
+            type="text"
+            id="nome"
+            name="nome"
+            required
+            maxlength="255"
+            autocomplete="name"
+            class="input input-bordered w-full"
+            placeholder="Il tuo nome"
+            value={errore ? '' : ''}
+          />
+        </div>
+
+        <div class="form-control">
+          <label class="label" for="email">
+            <span class="label-text font-semibold">Email <span class="text-error" aria-hidden="true">*</span></span>
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            maxlength="254"
+            autocomplete="email"
+            class="input input-bordered w-full"
+            placeholder="la-tua@email.it"
+          />
+        </div>
+
+        <div class="form-control">
+          <label class="label" for="messaggio">
+            <span class="label-text font-semibold">Messaggio <span class="text-error" aria-hidden="true">*</span></span>
+          </label>
+          <textarea
+            id="messaggio"
+            name="messaggio"
+            required
+            rows="6"
+            class="textarea textarea-bordered w-full font-sans text-base leading-relaxed"
+            placeholder="Scrivi il tuo messaggio…"
+          ></textarea>
+        </div>
+
+        <div class="mt-2">
+          <button type="submit" class="btn btn-primary w-full sm:w-auto">
+            <i class="ph ph-paper-plane-tilt"></i>
+            Invia messaggio
+          </button>
+        </div>
+
+      </form>
+    )}
+
+    {inviato && (
+      <div class="mt-6">
+        <a href="/" class="btn btn-ghost btn-sm">
+          <i class="ph ph-arrow-left"></i>
+          Torna all'archivio
+        </a>
+      </div>
+    )}
+
+  </div>
+</BaseLayout>

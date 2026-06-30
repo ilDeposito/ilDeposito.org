@@ -15,6 +15,35 @@ services:
     profiles:
       - build
 
+  frontend-api:
+    container_name: ildeposito_stage_frontend_api
+    image: node:22-alpine
+    restart: unless-stopped
+    command: >
+      sh -c "
+        until [ -f /app/output/current/server/entry.mjs ]; do
+          echo 'Waiting for frontend build...'; sleep 3;
+        done &&
+        exec node /app/output/current/server/entry.mjs
+      "
+    environment:
+      HOST: 0.0.0.0
+      PORT: 4321
+      DRUPAL_API_URL: http://drupal-api:80
+      DRUPAL_API_USER: ${DRUPAL_API_USER}
+      DRUPAL_API_PASS: ${DRUPAL_API_PASS}
+    volumes:
+      - frontend_output:/app/output:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null http://localhost:4321/ 2>&1; true"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - internal
+      - app-internal
+
   frontend-web:
     container_name: ildeposito_stage_frontend_nginx
     image: macbre/nginx-brotli:latest
@@ -36,6 +65,7 @@ services:
       caddy.basicauth.ildeposito: "${BASIC_AUTH_HASH}"
       caddy.reverse_proxy: "{{upstreams 80}}"
     networks:
+      - internal
       - caddy
 
 volumes:
