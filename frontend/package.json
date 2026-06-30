@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && pagefind --site dist",
+    "build": "astro build && pagefind --site dist/client",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -19,6 +19,8 @@
     "@fontsource/ibm-plex-mono": "^5.2.7",
     "@fontsource/source-sans-3": "^5.2.9",
     "@phosphor-icons/core": "^2.1.1",
+    "altcha": "^3.1.0",
+    "altcha-lib": "^2.2.0",
     "astro": "^6.4.4",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",

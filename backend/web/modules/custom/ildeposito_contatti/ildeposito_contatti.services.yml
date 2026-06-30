@@ -1,3 +1,7 @@
 services:
   Drupal\ildeposito_contatti\Hook\IldepositoContattiHooks:
     autowire: true
+
+  Drupal\ildeposito_contatti\Config\JsonApiWriteOverride:
+    tags:
+      - { name: config.factory.override, priority: 5 }

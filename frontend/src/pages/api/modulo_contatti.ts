@@ -4,7 +4,13 @@ import type { APIRoute } from 'astro';
 
 const tag = '[modulo_contatti]';
 
-export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
+const json = (body: object, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+export const POST: APIRoute = async ({ request, clientAddress }) => {
   console.log(`${tag} POST ricevuto da ${clientAddress}`);
 
   // --- Lettura form data ---
@@ -13,7 +19,14 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
     data = await request.formData();
   } catch (err) {
     console.error(`${tag} Impossibile leggere FormData:`, err);
-    return redirect('/contatti?error=invio_fallito', 302);
+    return json({ ok: false, error: 'invio_fallito' }, 500);
+  }
+
+  const honeypot = (data.get('website') as string | null) ?? '';
+  if (honeypot) {
+    // Bot ha compilato il campo nascosto: risposta silenziosamente positiva per non rivelare il filtro
+    console.warn(`${tag} Honeypot attivato — richiesta scartata`);
+    return json({ ok: true });
   }
 
   const nome = (data.get('nome') as string | null)?.trim() ?? '';
@@ -26,9 +39,32 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
   if (!nome || !email || !messaggio) {
     const mancanti = [!nome && 'nome', !email && 'email', !messaggio && 'messaggio'].filter(Boolean);
     console.warn(`${tag} Validazione fallita — campi mancanti: ${mancanti.join(', ')}`);
-    return redirect('/contatti?error=campi_mancanti', 302);
+    return json({ ok: false, error: 'campi_mancanti' }, 400);
   }
   console.log(`${tag} Validazione OK`);
+
+  // --- Verifica Altcha ---
+  const altchaMasterKey = (import.meta.env.ALTCHA_HMAC_KEY as string) || process.env.ALTCHA_HMAC_KEY || '';
+  const altchaPayload = (data.get('altcha') as string | null) ?? '';
+
+  if (altchaMasterKey) {
+    if (!altchaPayload) {
+      console.warn(`${tag} Altcha — payload mancante`);
+      return json({ ok: false, error: 'verifica_fallita' }, 400);
+    }
+    const { verify, deriveHmacKeySecret } = await import('altcha-lib/frameworks/shared');
+    const { deriveKey } = await import('altcha-lib/algorithms/pbkdf2');
+    const hmacSignatureSecret = await deriveHmacKeySecret(altchaMasterKey);
+    const hmacKeySignatureSecret = await deriveHmacKeySecret(altchaMasterKey + '-key');
+    const { error } = await verify(altchaPayload, deriveKey, hmacSignatureSecret, hmacKeySignatureSecret);
+    if (error) {
+      console.warn(`${tag} Altcha — verifica fallita: ${error}`);
+      return json({ ok: false, error: 'verifica_fallita' }, 400);
+    }
+    console.log(`${tag} Altcha OK`);
+  } else {
+    console.log(`${tag} Altcha — ALTCHA_HMAC_KEY non configurata, verifica saltata`);
+  }
 
   // --- Configurazione Drupal ---
   // import.meta.env: dev → da frontend/.env via Vite; prod → da process.env via Node adapter
@@ -38,7 +74,7 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
 
   if (!drupalUrl || !drupalUser || !drupalPass) {
     console.error(`${tag} Configurazione mancante — DRUPAL_API_URL: ${!!drupalUrl}, DRUPAL_API_USER: ${!!drupalUser}, DRUPAL_API_PASS: ${!!drupalPass}`);
-    return redirect('/contatti?error=invio_fallito', 302);
+    return json({ ok: false, error: 'invio_fallito' }, 500);
   }
 
   const endpoint = `${drupalUrl}/jsonapi/ildeposito_contatto/modulo_contatti`;
@@ -69,7 +105,7 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
     });
   } catch (err) {
     console.error(`${tag} Errore di rete verso Drupal (${endpoint}):`, err);
-    return redirect('/contatti?error=invio_fallito', 302);
+    return json({ ok: false, error: 'invio_fallito' }, 500);
   }
 
   console.log(`${tag} Risposta Drupal: HTTP ${res.status}`);
@@ -77,7 +113,6 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
   if (!res.ok) {
     const body = await res.text();
     console.error(`${tag} Drupal ha risposto con errore ${res.status}:`);
-    // Tenta di parsare il body JSON:API per estrarre i dettagli dell'errore
     try {
       const parsed = JSON.parse(body);
       const errors = parsed?.errors ?? [];
@@ -87,9 +122,9 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
     } catch {
       console.error(`${tag}   → Body grezzo: ${body.slice(0, 500)}`);
     }
-    return redirect('/contatti?error=invio_fallito', 302);
+    return json({ ok: false, error: 'invio_fallito' }, 500);
   }
 
   console.log(`${tag} Entità creata con successo`);
-  return redirect('/contatti?inviato=1', 302);
+  return json({ ok: true });
 };

@@ -32,6 +32,7 @@ services:
       DRUPAL_API_URL: http://drupal-api:80
       DRUPAL_API_USER: ${DRUPAL_API_USER}
       DRUPAL_API_PASS: ${DRUPAL_API_PASS}
+      ALTCHA_HMAC_KEY: ${ALTCHA_HMAC_KEY}
     volumes:
       - frontend_output:/app/output:ro
     healthcheck:

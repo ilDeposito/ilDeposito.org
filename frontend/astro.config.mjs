@@ -35,6 +35,10 @@ export default defineConfig({
   output: 'static',
   adapter: node({ mode: 'standalone' }),
   trailingSlash: 'never',
+  // checkOrigin confronta Origin con url.origin, ma il Node adapter costruisce
+  // sempre url come http:// dietro un proxy nginx (non legge X-Forwarded-Proto).
+  // Anti-spam delegato al rate limit nginx (2r/min per IP) sull'endpoint /api/.
+  security: { checkOrigin: false },
 
   image: {
     domains: [drupalHost],

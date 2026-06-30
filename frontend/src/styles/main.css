@@ -63,3 +63,43 @@
   --rounded-btn:   0.375rem;
   --rounded-badge: 0.25rem;
 }
+
+/* ═══════════════════════════════════════════════
+   6. Form contatti — bordo uniforme su tutti i campi
+   ─ Sovrascrive il bordo DaisyUI con un valore fisso
+   ─ condiviso anche dal widget Altcha.
+   ═══════════════════════════════════════════════ */
+:root {
+  --form-border-color: oklch(0.236 0 0 / 0.25);
+}
+
+[data-theme="ildeposito"] .input-bordered,
+[data-theme="ildeposito"] .textarea-bordered {
+  border-color: var(--form-border-color);
+  border-width: 1px;
+}
+
+/* ═══════════════════════════════════════════════
+   7. Altcha widget — tema ildeposito
+   ─ Le CSS custom properties perforano il Shadow DOM.
+   ─ Colori e bordo allineati ai campi del form.
+   ═══════════════════════════════════════════════ */
+[data-theme="ildeposito"] altcha-widget {
+  --altcha-color-base:            oklch(0.92 0.013 92);      /* base-200 — uguale agli input */
+  --altcha-color-base-content:    oklch(0.236 0 0);          /* base-content */
+  --altcha-border-color:          var(--form-border-color);  /* condiviso con gli input */
+  --altcha-border-width:          1px;
+  --altcha-border-radius:         0.5rem;                    /* --rounded-box */
+  --altcha-shadow:                none;
+  --altcha-color-primary:         oklch(0.45 0.165 27);      /* rosso — checkbox/spinner */
+  --altcha-color-primary-content: oklch(0.97 0.008 75);
+  --altcha-color-success:         oklch(0.6 0.15 145);
+  --altcha-color-success-content: oklch(0.97 0.008 75);
+  --altcha-color-error:           oklch(0.55 0.2 27);
+  --altcha-color-error-content:   oklch(0.97 0.008 75);
+  --altcha-color-neutral:         oklch(0.35 0.025 40);
+  --altcha-color-neutral-content: oklch(0.97 0.008 75);
+  --altcha-spinner-color:         oklch(0.45 0.165 27);
+  --altcha-checkbox-border-color: oklch(0.236 0 0 / 0.35);
+  --altcha-input-background-color: oklch(0.92 0.013 92);
+}

@@ -58,15 +58,6 @@ cmd_build() {
     info "Avvio build Astro..."
     local start_time=$SECONDS
 
-    if [[ -d "${PROJECT_ROOT}/frontend/dist" ]]; then
-        info "Pulizia dist/ precedente..."
-        rm -rf "${PROJECT_ROOT}/frontend/dist" 2>/dev/null || true
-        if [[ -d "${PROJECT_ROOT}/frontend/dist" ]]; then
-            error "Impossibile eliminare dist/ — controlla se è in uso"
-            exit 1
-        fi
-    fi
-
     local logfile
     logfile=$(mktemp)
 
@@ -96,8 +87,10 @@ cmd_build() {
         local mins=$(( elapsed / 60 ))
         local secs=$(( elapsed % 60 ))
         printf "\r  ${GREEN}✓${NC} Build completata: %d pagine generate (da %d nodi) in %dm %ds    \n" "$count" "$total" "$mins" "$secs"
-        docker restart ddev-ildeposito11-astro-static >/dev/null 2>&1 && \
-            ok "Container frontend riavviato → https://frontend.ildeposito11.ddev.site"
+        # Riavvia entrambi i container senza ricreare dist/ (l'inode resta stabile)
+        docker restart ddev-ildeposito11-astro-static >/dev/null 2>&1
+        docker restart ddev-ildeposito11-astro-node   >/dev/null 2>&1
+        ok "Container frontend riavviati → https://frontend.ildeposito11.ddev.site"
     else
         printf "\n"
         error "Build fallita (exit code: ${exit_code})"
