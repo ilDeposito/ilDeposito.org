@@ -24,7 +24,7 @@ BUILD_DATE=$(TZ=Europe/Rome date "+%Y.%m.%d - %H:%M:%S") npx astro build --outDi
 # ma DOPO che Astro ha già copiato public/ nell'outDir. Vanno copiate manualmente.
 if [ -d /app/public/uploads ]; then
   echo "→ Copying uploads to build dir ..."
-  # Con output hybrid, i file statici sono in client/
+  # I file statici sono in client/ (output static + adapter node)
   cp -r /app/public/uploads "$BUILD_DIR/client/"
 
   # Aggiorna cache immagini sul volume per i prossimi build
@@ -33,7 +33,7 @@ if [ -d /app/public/uploads ]; then
   rsync -a --delete /app/public/uploads/ "$UPLOAD_CACHE/"
 fi
 
-# Con output hybrid, pagefind indicizza solo la parte statica (client/)
+# Pagefind indicizza solo la parte statica (client/)
 npx pagefind --site "$BUILD_DIR/client"
 
 echo "→ Swapping symlink to $TIMESTAMP ..."

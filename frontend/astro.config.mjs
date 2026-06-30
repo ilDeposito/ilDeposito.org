@@ -32,7 +32,7 @@ function pagefindDevServer() {
 
 export default defineConfig({
   site: 'https://www.ildeposito.org',
-  output: 'hybrid',
+  output: 'static',
   adapter: node({ mode: 'standalone' }),
   trailingSlash: 'never',
 
