@@ -36,6 +36,20 @@ fi
 # Pagefind indicizza solo la parte statica (client/)
 npx pagefind --site "$BUILD_DIR/client"
 
+# Sincronizza node_modules sul volume (solo se package-lock.json è cambiato).
+# frontend-api non ha filesystem proprio: Node risolve i moduli risalendo le
+# directory fino a trovare $OUTPUT_DIR/node_modules via il symlink nella release.
+LOCK_HASH=$(md5sum /app/package-lock.json | cut -d' ' -f1)
+LOCK_MARKER="$OUTPUT_DIR/.node_modules_hash"
+if [ ! -d "$OUTPUT_DIR/node_modules" ] || [ "$(cat "$LOCK_MARKER" 2>/dev/null)" != "$LOCK_HASH" ]; then
+  echo "→ Syncing node_modules to volume (packages changed)..."
+  rsync -a --delete /app/node_modules/ "$OUTPUT_DIR/node_modules/"
+  echo "$LOCK_HASH" > "$LOCK_MARKER"
+else
+  echo "→ node_modules unchanged, skipping sync."
+fi
+ln -sfn "$OUTPUT_DIR/node_modules" "$BUILD_DIR/node_modules"
+
 echo "→ Swapping symlink to $TIMESTAMP ..."
 ln -sfn "releases/$TIMESTAMP" "$OUTPUT_DIR/current"
 
