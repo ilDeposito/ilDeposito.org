@@ -1,0 +1,33 @@
+uuid: ad31f132-41f1-450d-86bb-0e937590b97a
+langcode: it
+status: true
+dependencies:
+  module:
+    - options
+    - paragraphs
+id: paragraph.field_colonne
+field_name: field_colonne
+entity_type: paragraph
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: due_50_50
+      label: 'Due colonne (50% - 50%)'
+    -
+      value: due_33_66
+      label: 'Due colonne (33% - 66%)'
+    -
+      value: due_66_33
+      label: 'Due colonne (66% - 33%)'
+    -
+      value: tre_33_33_33
+      label: 'Tre colonne (33% - 33% - 33%)'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

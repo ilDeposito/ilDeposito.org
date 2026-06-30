@@ -3,15 +3,24 @@ langcode: it
 status: true
 dependencies:
   config:
+    - field.field.paragraph.griglia.field_colonne
     - field.field.paragraph.griglia.field_grid_item
     - paragraphs.paragraphs_type.griglia
   module:
     - entity_reference_revisions
+    - options
 id: paragraph.griglia.default
 targetEntityType: paragraph
 bundle: griglia
 mode: default
 content:
+  field_colonne:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 1
+    region: content
   field_grid_item:
     type: entity_reference_revisions_entity_view
     label: above

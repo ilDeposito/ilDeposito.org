@@ -1,0 +1,21 @@
+uuid: 0a56d73b-6b76-4ffe-b41c-1617f72da258
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_colonne
+    - paragraphs.paragraphs_type.griglia
+  module:
+    - options
+id: paragraph.griglia.field_colonne
+field_name: field_colonne
+entity_type: paragraph
+bundle: griglia
+label: Colonne
+description: 'Seleziona in quante colonne (e con quali percentuali) deve essere divisa la griglia'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

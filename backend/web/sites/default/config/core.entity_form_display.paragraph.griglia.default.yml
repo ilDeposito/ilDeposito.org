@@ -3,6 +3,7 @@ langcode: it
 status: true
 dependencies:
   config:
+    - field.field.paragraph.griglia.field_colonne
     - field.field.paragraph.griglia.field_grid_item
     - paragraphs.paragraphs_type.griglia
   module:
@@ -12,23 +13,31 @@ targetEntityType: paragraph
 bundle: griglia
 mode: default
 content:
-  field_grid_item:
-    type: paragraphs
+  field_colonne:
+    type: options_select
     weight: 0
     region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_grid_item:
+    type: paragraphs
+    weight: 1
+    region: content
     settings:
-      title: Paragrafo
-      title_plural: Paragrafi
-      edit_mode: open
+      title: Elemento
+      title_plural: Elementi
+      edit_mode: closed_expand_nested
       closed_mode: summary
       autocollapse: none
       closed_mode_threshold: 0
-      add_mode: dropdown
+      add_mode: button
       form_display_mode: default
-      default_paragraph_type: ''
+      default_paragraph_type: _none
       features:
-        collapse_edit_all: collapse_edit_all
-        duplicate: duplicate
+        add_above: '0'
+        collapse_edit_all: '0'
+        convert: '0'
+        duplicate: '0'
     third_party_settings: {  }
 hidden:
   created: true
