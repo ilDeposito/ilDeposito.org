@@ -109,3 +109,38 @@ const errore = Astro.url.searchParams.get('error');
 
   </div>
 </BaseLayout>
+
+<script is:inline>
+(function () {
+  const tag = '[contatti]';
+  const params = new URLSearchParams(window.location.search);
+  const inviato = params.get('inviato');
+  const errore = params.get('error');
+
+  if (inviato === '1') {
+    console.log(tag, 'Messaggio inviato con successo — redirect da /api/modulo_contatti');
+  } else if (errore) {
+    const messaggi = {
+      campi_mancanti: 'Validazione fallita lato server: uno o più campi mancanti.',
+      invio_fallito: 'Errore durante la chiamata JSON:API a Drupal. Controlla i log del server.',
+    };
+    console.warn(tag, messaggi[errore] ?? `Errore sconosciuto: ${errore}`);
+  } else {
+    console.log(tag, 'Pagina caricata — form pronto per l\'invio');
+  }
+
+  // Intercetta submit per loggare i dati inviati prima del POST
+  const form = document.querySelector('form[action="/api/modulo_contatti"]');
+  if (form) {
+    form.addEventListener('submit', function () {
+      const fd = new FormData(form);
+      console.log(tag, 'Form submitted →', {
+        nome: fd.get('nome') ? `"${fd.get('nome')}" (${String(fd.get('nome')).length} ch)` : '⚠ vuoto',
+        email: fd.get('email') ? `"${fd.get('email')}"` : '⚠ vuoto',
+        messaggio: fd.get('messaggio') ? `${String(fd.get('messaggio')).length} caratteri` : '⚠ vuoto',
+      });
+      console.log(tag, 'POST → /api/modulo_contatti (attendi redirect…)');
+    });
+  }
+})();
+</script>
