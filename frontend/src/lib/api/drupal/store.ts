@@ -130,7 +130,23 @@ export function fetchAllPagineRaw(): Promise<RawStore> {
   if (!paginePromise) {
     paginePromise = fetchAllJsonApi('/jsonapi/node/pagina', new URLSearchParams({
       'filter[status]': '1',
-      'fields[node--pagina]': 'drupal_internal__nid,title,path,field_descrizione_header',
+      'fields[node--pagina]': 'drupal_internal__nid,title,path,field_descrizione_header,field_paragraphs',
+      'fields[paragraph--testo]': 'field_testo',
+      'fields[paragraph--citazione]': 'field_testo,field_fonte',
+      'fields[paragraph--immagine]': 'field_immagine,field_descrizione_immagine',
+      'fields[paragraph--card]': 'field_titolo,field_testo,field_link',
+      'fields[paragraph--griglia]': 'field_colonne,field_grid_item',
+      'fields[media--image]': 'field_media_image',
+      'fields[file--file]': 'uri',
+      // Drupal JSON:API non supporta include > 2 livelli su entity_reference_revisions:
+      // field_paragraphs.field_grid_item.field_immagine causerebbe 400.
+      // Le immagini nei grid item vengono risolte via fetchAllImmagineParaGraphsRaw().
+      'include': [
+        'field_paragraphs',
+        'field_paragraphs.field_immagine',
+        'field_paragraphs.field_immagine.field_media_image',
+        'field_paragraphs.field_grid_item',
+      ].join(','),
       'page[limit]': '200',
     })).then(toStore);
     triggerWarmAll();
@@ -187,6 +203,21 @@ export function fetchAllTagsRaw(): Promise<RawStore> {
     triggerWarmAll();
   }
   return tagsPromise;
+}
+
+let immagineParaGraphsPromise: Promise<RawStore> | null = null;
+
+export function fetchAllImmagineParaGraphsRaw(): Promise<RawStore> {
+  if (!immagineParaGraphsPromise) {
+    immagineParaGraphsPromise = fetchAllJsonApi('/jsonapi/paragraph/immagine', new URLSearchParams({
+      'fields[paragraph--immagine]': 'field_immagine,field_descrizione_immagine',
+      'fields[media--image]': 'field_media_image',
+      'fields[file--file]': 'uri',
+      'include': 'field_immagine,field_immagine.field_media_image',
+      'page[limit]': '200',
+    })).then(toStore);
+  }
+  return immagineParaGraphsPromise;
 }
 
 export function warmAll(): Promise<RawStore[]> {

@@ -1,0 +1,33 @@
+---
+import Icon from '../base/Icon.astro';
+
+interface Props {
+  testo: string;
+  fonte: string | null;
+}
+const { testo, fonte } = Astro.props;
+---
+<div class="py-10 w-full">
+  <div class="relative px-16 py-2 w-fit mx-auto max-w-[85%]">
+    <Icon
+      name="quotes"
+      class="absolute top-0 left-0 text-5xl text-secondary/60 rotate-180 leading-none"
+    />
+    <blockquote class="text-center">
+      <div
+        class="[&_p]:font-serif [&_p]:italic [&_p]:text-2xl md:[&_p]:text-3xl [&_p]:leading-relaxed [&_p]:text-base-content font-serif italic text-2xl md:text-3xl leading-relaxed text-base-content"
+        set:html={testo}
+      />
+      {fonte && (
+        <footer
+          class="mt-4 text-sm text-base-content/60 not-italic"
+          set:html={fonte}
+        />
+      )}
+    </blockquote>
+    <Icon
+      name="quotes"
+      class="absolute bottom-0 right-0 text-5xl text-secondary/60 leading-none"
+    />
+  </div>
+</div>

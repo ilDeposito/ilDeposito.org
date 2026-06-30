@@ -4,6 +4,7 @@ import type {
   AutoreCard, AutoreDetail,
   EventoForCanto, EventoDelGiorno, EventoMese, EventoCard, EventoCalendario, EventoGeo, EventoDetail,
   TraduzioneDetail,
+  ParagraphItem,
 } from '../types.js';
 import { type IncludedMap, resolveRefs, resolveMany, resolveImageUrl, extractSlug } from './resolvers.js';
 
@@ -308,4 +309,71 @@ export function mapTraduzioneDetail(raw: any, included: IncludedMap): Traduzione
 
 function buildIncludedMapForCanto(_cantoRaw: any, parentIncluded: IncludedMap): IncludedMap {
   return parentIncluded;
+}
+
+// ── Paragraphs ─────────────────────────────────────────
+
+function normalizeLinkUrl(uri: string | null | undefined): string | null {
+  if (!uri) return null;
+  return uri.startsWith('internal:') ? uri.slice('internal:'.length) : uri;
+}
+
+export function mapParagraph(
+  raw: any,
+  included: IncludedMap,
+  // UUID→imageUrl per paragraph--immagine dentro griglie (fetched separatamente)
+  immagineUuidMap?: Map<string, string>,
+): ParagraphItem | null {
+  const a = raw.attributes ?? {};
+  const r = raw.relationships ?? {};
+
+  switch (raw.type) {
+    case 'paragraph--testo':
+      return { type: 'testo', testo: textValue(a.field_testo) ?? '' };
+
+    case 'paragraph--citazione':
+      return {
+        type: 'citazione',
+        testo: textValue(a.field_testo) ?? '',
+        fonte: textValue(a.field_fonte),
+      };
+
+    case 'paragraph--immagine': {
+      const imageUrl =
+        resolveImageUrl(r.field_immagine, included)
+        ?? immagineUuidMap?.get(raw.id)
+        ?? null;
+      return {
+        type: 'immagine',
+        imageUrl,
+        descrizione: a.field_descrizione_immagine ?? null,
+      };
+    }
+
+    case 'paragraph--card':
+      return {
+        type: 'card',
+        titolo: a.field_titolo ?? null,
+        testo: textValue(a.field_testo),
+        linkUrl: normalizeLinkUrl(a.field_link?.uri),
+        linkTesto: a.field_link?.title ?? null,
+      };
+
+    case 'paragraph--griglia': {
+      const gridRefs = Array.isArray(r.field_grid_item?.data) ? r.field_grid_item.data : [];
+      const items = gridRefs
+        .map((ref: any) => included.get(ref.type, ref.id))
+        .filter(Boolean)
+        .map((item: any) => mapParagraph(item, included, immagineUuidMap))
+        .filter(Boolean) as ParagraphItem[];
+      return {
+        type: 'griglia',
+        colonne: a.field_colonne ?? 'due_50_50',
+        items,
+      };
+    }
+
+    default:
+      return null;
+  }
 }

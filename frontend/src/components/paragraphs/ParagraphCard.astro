@@ -1,0 +1,37 @@
+---
+interface Props {
+  titolo: string | null;
+  testo: string | null;
+  linkUrl: string | null;
+  linkTesto: string | null;
+}
+const { titolo, testo, linkUrl, linkTesto } = Astro.props;
+---
+<article class="h-full flex flex-col bg-base-200 rounded-lg p-6 border-t-2 border-secondary hover:bg-base-300 transition-colors duration-200">
+
+  {titolo && linkUrl ? (
+    <a href={linkUrl} class="font-serif font-bold text-xl text-base-content hover:text-primary transition-colors leading-snug mb-3">
+      {titolo}
+    </a>
+  ) : titolo ? (
+    <p class="font-serif font-bold text-xl text-base-content leading-snug mb-3">{titolo}</p>
+  ) : null}
+
+  {testo && (
+    <div
+      class="text-sm text-base-content/70 leading-relaxed flex-grow mb-4 [&_a]:text-primary [&_a]:underline"
+      set:html={testo}
+    />
+  )}
+
+  {linkUrl && linkTesto && (
+    <a
+      href={linkUrl}
+      class="mt-auto inline-flex items-center gap-1 text-sm font-semibold text-secondary hover:text-primary transition-colors"
+    >
+      {linkTesto}
+      <span aria-hidden="true">→</span>
+    </a>
+  )}
+
+</article>

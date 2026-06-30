@@ -223,6 +223,56 @@ export interface InformazioneDetail extends InformazionePath {
   testo: string;
 }
 
+// ── Paragraphs ─────────────────────────────────────────
+
+export interface ParagraphTesto {
+  type: 'testo';
+  testo: string;
+}
+
+export interface ParagraphCitazione {
+  type: 'citazione';
+  testo: string;
+  fonte: string | null;
+}
+
+export interface ParagraphImmagine {
+  type: 'immagine';
+  imageUrl: string | null;
+  descrizione: string | null;
+}
+
+export interface ParagraphCard {
+  type: 'card';
+  titolo: string | null;
+  testo: string | null;
+  linkUrl: string | null;
+  linkTesto: string | null;
+}
+
+export interface ParagraphGriglia {
+  type: 'griglia';
+  colonne: 'due_50_50' | 'due_33_66' | 'due_66_33' | 'tre_33_33_33';
+  items: ParagraphItem[];
+}
+
+export type ParagraphItem =
+  | ParagraphTesto
+  | ParagraphCitazione
+  | ParagraphImmagine
+  | ParagraphCard
+  | ParagraphGriglia;
+
+// ── Pagina ─────────────────────────────────────────────
+
+export interface PaginaDetail {
+  id: number | string;
+  titolo: string;
+  percorso: string;
+  descrizioneHeader: string | null;
+  paragraphs: ParagraphItem[];
+}
+
 // ── Contatori per tassonomie ───────────────────────────
 
 export interface ContenutiLingua {

@@ -1,0 +1,28 @@
+---
+import ParagraphRenderer from './ParagraphRenderer.astro';
+import type { ParagraphItem } from '../../lib/api/types.js';
+
+type Colonne = 'due_50_50' | 'due_33_66' | 'due_66_33' | 'tre_33_33_33';
+
+interface Props {
+  colonne: Colonne;
+  items: ParagraphItem[];
+}
+const { colonne, items } = Astro.props;
+
+const gridClass: Record<Colonne, string> = {
+  due_50_50:    'grid-cols-1 md:grid-cols-2',
+  due_33_66:    'grid-cols-1 md:grid-cols-[1fr_2fr]',
+  due_66_33:    'grid-cols-1 md:grid-cols-[2fr_1fr]',
+  tre_33_33_33: 'grid-cols-1 md:grid-cols-3',
+};
+---
+<div class="py-10 w-full">
+  <div class={`grid gap-6 ${gridClass[colonne]}`}>
+    {items.map((item) => (
+      <div>
+        <ParagraphRenderer paragraph={item} insideGrid />
+      </div>
+    ))}
+  </div>
+</div>

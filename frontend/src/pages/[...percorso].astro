@@ -1,41 +1,64 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Breadcrumb from '../components/ui/Breadcrumb.astro';
-import { getAllInformazioniDetail } from '../lib/api/index.js';
-import type { InformazioneDetail } from '../lib/api/types.js';
+import ShareModal from '../components/ui/ShareModal.astro';
+import Icon from '../components/base/Icon.astro';
+import ParagraphRenderer from '../components/paragraphs/ParagraphRenderer.astro';
+import { getAllPagineDetail } from '../lib/api/index.js';
+import type { PaginaDetail } from '../lib/api/types.js';
 import { buildWebPageSchema, buildBreadcrumbSchema } from '../lib/schema.js';
-import { buildCanonical } from '../lib/seo.js';
+import { buildCanonical, stripHtml } from '../lib/seo.js';
 
 export async function getStaticPaths() {
-  const allInfo = await getAllInformazioniDetail();
-  return allInfo.map((item) => ({
-    params: { percorso: item.percorso },
-    props: { pagina: item },
+  const allPagine = await getAllPagineDetail();
+  return allPagine.map((pagina) => ({
+    params: { percorso: pagina.percorso },
+    props: { pagina },
   }));
 }
 
-const { pagina } = Astro.props as { pagina: InformazioneDetail };
+const { pagina } = Astro.props as { pagina: PaginaDetail };
+
+const description = pagina.descrizioneHeader ? stripHtml(pagina.descrizioneHeader) : '';
 
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
 const jsonLd = [
-  buildWebPageSchema(pagina.titolo, pagina.testo || '', buildCanonical(Astro)),
+  buildWebPageSchema(pagina.titolo, description, buildCanonical(Astro)),
   buildBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
     { name: pagina.titolo },
   ]),
 ];
 ---
-<BaseLayout title={pagina.titolo} description={pagina.testo || ''} jsonLd={jsonLd}>
+<BaseLayout title={pagina.titolo} description={description} jsonLd={jsonLd}>
 
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: pagina.titolo }]} />
       <h1 class="font-serif font-bold text-2xl md:text-3xl text-base-content">{pagina.titolo}</h1>
+      {pagina.descrizioneHeader && (
+        <p class="text-base text-base-content/70 leading-relaxed" set:html={pagina.descrizioneHeader} />
+      )}
+      <div class="flex items-center gap-4 text-base text-base-content mt-1">
+        <share-button data-title={pagina.titolo} class="contents">
+          <button type="button" class="inline-flex items-center gap-1 cursor-pointer" aria-label="Condividi questa pagina">
+            <Icon name="share-network" />
+            Condividi
+          </button>
+          <ShareModal />
+        </share-button>
+      </div>
     </div>
   </header>
-  <div class="max-w-6xl mx-auto px-4 py-8">
 
-  <article class="max-w-2xl mx-auto mt-6 text-base text-base-content/80 leading-relaxed [&_a]:text-primary [&_a]:underline" set:html={pagina.testo} />
+  <script>
+    import '../scripts/share-button.js';
+  </script>
 
+  <div class="max-w-6xl mx-auto px-4">
+    {pagina.paragraphs.map((paragraph) => (
+      <ParagraphRenderer paragraph={paragraph} />
+    ))}
   </div>
+
 </BaseLayout>

@@ -1,0 +1,38 @@
+---
+import ParagraphTesto from './ParagraphTesto.astro';
+import ParagraphCitazione from './ParagraphCitazione.astro';
+import ParagraphImmagine from './ParagraphImmagine.astro';
+import ParagraphCard from './ParagraphCard.astro';
+import ParagraphGriglia from './ParagraphGriglia.astro';
+import type { ParagraphItem } from '../../lib/api/types.js';
+
+interface Props {
+  paragraph: ParagraphItem;
+  insideGrid?: boolean;
+}
+const { paragraph, insideGrid = false } = Astro.props;
+---
+{paragraph.type === 'testo' && (
+  <ParagraphTesto testo={paragraph.testo} />
+)}
+
+{paragraph.type === 'citazione' && (
+  <ParagraphCitazione testo={paragraph.testo} fonte={paragraph.fonte} />
+)}
+
+{paragraph.type === 'immagine' && (
+  <ParagraphImmagine imageUrl={paragraph.imageUrl} descrizione={paragraph.descrizione} />
+)}
+
+{paragraph.type === 'card' && (
+  <ParagraphCard
+    titolo={paragraph.titolo}
+    testo={paragraph.testo}
+    linkUrl={paragraph.linkUrl}
+    linkTesto={paragraph.linkTesto}
+  />
+)}
+
+{paragraph.type === 'griglia' && !insideGrid && (
+  <ParagraphGriglia colonne={paragraph.colonne} items={paragraph.items} />
+)}

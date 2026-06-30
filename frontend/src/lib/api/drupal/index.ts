@@ -11,5 +11,5 @@ export {
   getPeriodi, getContenutiByPeriodoMap,
   getTags, getContenutiByTagMap,
 } from './tassonomie.js';
-export { getInformazioni, getInformazione, getAllInformazioniDetail } from './informazioni.js';
+export { getAllPagineDetail, getPagina } from './pagine.js';
 export { getAutoreImageUrl, getEventoImageUrl, getPeriodoImageUrl, getImageUrl } from './assets.js';

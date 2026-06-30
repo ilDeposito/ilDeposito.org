@@ -1,0 +1,33 @@
+---
+import { Image } from 'astro:assets';
+import { getImageUrl } from '../../lib/api/index.js';
+
+interface Props {
+  imageUrl: string | null;
+  descrizione: string | null;
+}
+const { imageUrl, descrizione } = Astro.props;
+
+const src = getImageUrl(imageUrl);
+---
+<div class="py-10 w-full">
+  {src ? (
+    <figure class="w-[85%] mx-auto">
+      <Image
+        src={src}
+        alt={descrizione ?? ''}
+        width={800}
+        height={350}
+        format="webp"
+        quality={85}
+        loading="lazy"
+        class="w-full object-cover rounded-sm"
+      />
+      {descrizione && (
+        <figcaption class="mt-3 text-center text-sm text-base-content/60 italic">
+          {descrizione}
+        </figcaption>
+      )}
+    </figure>
+  ) : null}
+</div>
