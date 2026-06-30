@@ -73,10 +73,8 @@
   --form-border-color: oklch(0.236 0 0 / 0.25);
 }
 
-[data-theme="ildeposito"] .input-bordered,
-[data-theme="ildeposito"] .textarea-bordered {
-  border-color: var(--form-border-color);
-  border-width: 1px;
+.form-border {
+  border: 1px solid var(--form-border-color) !important;
 }
 
 /* ═══════════════════════════════════════════════
@@ -100,6 +98,6 @@
   --altcha-color-neutral:         oklch(0.35 0.025 40);
   --altcha-color-neutral-content: oklch(0.97 0.008 75);
   --altcha-spinner-color:         oklch(0.45 0.165 27);
-  --altcha-checkbox-border-color: oklch(0.236 0 0 / 0.35);
+  --altcha-checkbox-border-color: var(--form-border-color);
   --altcha-input-background-color: oklch(0.92 0.013 92);
 }
