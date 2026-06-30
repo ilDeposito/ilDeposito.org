@@ -1,0 +1,21 @@
+uuid: 6cf9f5d2-1a00-4182-b7ea-39f04caf768e
+langcode: it
+status: true
+dependencies:
+  module:
+    - ildeposito_contatti
+id: ildeposito_contatto.field_nome
+field_name: field_nome
+entity_type: ildeposito_contatto
+type: string
+settings:
+  max_length: 255
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

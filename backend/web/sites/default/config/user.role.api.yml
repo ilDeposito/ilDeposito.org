@@ -2,13 +2,11 @@ uuid: b5e2c98e-dc1f-4375-8504-18be6004be59
 langcode: it
 status: true
 dependencies:
-  config:
-    - node.type.contatti
   module:
-    - node
+    - ildeposito_contatti
 id: api
 label: Api
 weight: 5
 is_admin: false
 permissions:
-  - 'create contatti content'
+  - 'create ildeposito contatti'

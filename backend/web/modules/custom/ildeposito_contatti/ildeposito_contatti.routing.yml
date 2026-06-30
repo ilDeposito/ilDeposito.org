@@ -1,0 +1,4 @@
+# Tutte le rotte CRUD per ildeposito_contatto e ildeposito_contatto_type sono
+# generate automaticamente da DefaultHtmlRouteProvider (dichiarato in Entity/*.php).
+# Le submission arrivano via JSON:API standard: POST /jsonapi/ildeposito_contatto/{bundle}
+# con autenticazione HTTP Basic (ruolo "api", permesso "create ildeposito contatti").

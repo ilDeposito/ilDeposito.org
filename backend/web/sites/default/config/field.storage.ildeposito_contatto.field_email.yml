@@ -1,0 +1,18 @@
+uuid: b7879540-a1bc-43bf-be4b-a6eafebfd4f1
+langcode: it
+status: true
+dependencies:
+  module:
+    - ildeposito_contatti
+id: ildeposito_contatto.field_email
+field_name: field_email
+entity_type: ildeposito_contatto
+type: email
+settings: {  }
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

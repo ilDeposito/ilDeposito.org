@@ -1,0 +1,7 @@
+uuid: 77fcaf1d-7114-449e-a61c-1dc5d070d98f
+langcode: it
+status: true
+dependencies: {  }
+id: modulo_contatti
+label: 'Modulo contatti'
+description: ''

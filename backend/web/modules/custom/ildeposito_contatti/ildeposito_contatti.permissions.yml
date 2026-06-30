@@ -1,0 +1,16 @@
+administer ildeposito contatti:
+  title: 'Amministra contatti ilDeposito'
+  description: 'Gestione completa: crea tipi, visualizza, modifica, elimina submission.'
+  restrict access: true
+
+view ildeposito contatti:
+  title: 'Visualizza contatti ilDeposito'
+  description: 'Accede alla lista e alla pagina di dettaglio delle submission.'
+
+delete ildeposito contatti:
+  title: 'Elimina contatti ilDeposito'
+  description: 'Elimina submission dei form contatto.'
+
+create ildeposito contatti:
+  title: 'Crea contatti ilDeposito'
+  description: 'Crea submission via API (da assegnare al service account Astro).'

@@ -1,0 +1,5 @@
+ildeposito_contatto_type.add:
+  route_name: entity.ildeposito_contatto_type.add_form
+  title: 'Aggiungi tipo contatto'
+  appears_on:
+    - entity.ildeposito_contatto_type.collection

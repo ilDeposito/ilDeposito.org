@@ -4,9 +4,11 @@ status: true
 dependencies:
   module:
     - ildeposito_build
+    - ildeposito_contatti
 id: staff
 label: Staff
 weight: 4
 is_admin: null
 permissions:
   - 'trigger frontend build'
+  - 'view ildeposito contatti'

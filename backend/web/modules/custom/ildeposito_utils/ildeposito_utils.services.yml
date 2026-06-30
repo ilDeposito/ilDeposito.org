@@ -1,3 +1,7 @@
 services:
   Drupal\ildeposito_utils\Hook\IldepositoUtilsHooks:
     autowire: true
+
+  Drupal\ildeposito_utils\EventSubscriber\JsonApiWriteFirewall:
+    tags:
+      - { name: event_subscriber }

@@ -1,0 +1,13 @@
+ildeposito_contatti.admin_collection:
+  title: 'Contatti'
+  description: 'Gestisci le submission dei form contatto.'
+  parent: system.admin_content
+  route_name: entity.ildeposito_contatto.collection
+  weight: 20
+
+ildeposito_contatti.admin_types:
+  title: 'Tipi di contatto'
+  description: 'Gestisci i bundle (tipi) dei form contatto.'
+  parent: system.admin_structure
+  route_name: entity.ildeposito_contatto_type.collection
+  weight: 20

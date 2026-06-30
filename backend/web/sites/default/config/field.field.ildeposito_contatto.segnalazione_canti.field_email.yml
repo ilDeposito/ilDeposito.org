@@ -1,0 +1,19 @@
+uuid: 18c5c467-fb0c-4384-aac2-74a0edb56cb3
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.ildeposito_contatto.field_email
+    - ildeposito_contatti.type.segnalazione_canti
+id: ildeposito_contatto.segnalazione_canti.field_email
+field_name: field_email
+entity_type: ildeposito_contatto
+bundle: segnalazione_canti
+label: Email
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: email
