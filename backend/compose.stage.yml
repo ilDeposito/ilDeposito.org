@@ -16,6 +16,6 @@ services:
     container_name: ildeposito_stage_backend_nginx
     labels:
       caddy: admin-stage.ildeposito.org
-      caddy.basicauth: "/*"
-      caddy.basicauth.ildeposito: "${BASIC_AUTH_HASH}"
+      #caddy.basicauth: "/*"
+      #caddy.basicauth.ildeposito: "${BASIC_AUTH_HASH}"
       caddy.reverse_proxy: "{{upstreams 80}}"
