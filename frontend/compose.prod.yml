@@ -61,9 +61,8 @@ services:
       - ./nginx-ratelimit.conf:/etc/nginx/conf.d/ratelimit.conf:ro
       - ./nginx-security-headers.conf:/etc/nginx/conf.d/security-headers.conf:ro
     labels:
+      # In prod il frontend è pubblico: nessuna basic auth.
       caddy: www.ildeposito.org
-      caddy.basicauth: "/*"
-      caddy.basicauth.ildeposito: "${BASIC_AUTH_HASH}"
       caddy.reverse_proxy: "{{upstreams 80}}"
       caddy_1: ildeposito.org
       caddy_1.redir: "https://www.ildeposito.org{uri} permanent"

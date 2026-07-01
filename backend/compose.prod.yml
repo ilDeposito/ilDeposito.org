@@ -19,3 +19,6 @@ services:
       caddy.basicauth: "/*"
       caddy.basicauth.ildeposito: "${BASIC_AUTH_HASH}"
       caddy.reverse_proxy: "{{upstreams 80}}"
+      # Caddy valida la basic auth ma NON deve inoltrare l'header ad HTTP:
+      # il modulo basic_auth di Drupal lo interpreterebbe come login → 403.
+      caddy.reverse_proxy.header_up: "-Authorization"
