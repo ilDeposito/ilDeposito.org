@@ -1,6 +1,10 @@
 services:
   Drupal\ildeposito_contatti\Hook\IldepositoContattiHooks:
-    autowire: true
+    arguments:
+      - '@request_stack'
+      - '@plugin.manager.mail'
+      - '@state'
+      - '@language_manager'
 
   Drupal\ildeposito_contatti\Config\JsonApiWriteOverride:
     tags:

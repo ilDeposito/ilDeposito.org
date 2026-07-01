@@ -1,44 +1,73 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import Breadcrumb from '../components/ui/Breadcrumb.astro';
+import Icon from '../base/Icon.astro';
+
+interface Props {
+  cantoUrl: string;
+}
+const { cantoUrl } = Astro.props;
 ---
-<BaseLayout
-  title="Contatti"
-  description="Scrivici per segnalazioni, collaborazioni o informazioni sull'archivio ilDeposito.org"
-  noindex={true}
+
+<!-- Pulsante flottante fisso in basso a destra -->
+<button
+  id="segnala-open-btn"
+  type="button"
+  class="fixed bottom-6 right-6 z-40 btn btn-primary rounded-xl shadow-lg gap-2"
+  aria-label="Segnala una modifica a questo canto"
 >
-  <header class="bg-base-200 border-b-2 border-secondary">
-    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
-      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Contatti' }]} />
-      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">Contatti</h1>
-      <p class="font-sans text-base-content/70">Scrivici per segnalazioni, collaborazioni o informazioni sull'archivio.</p>
+  <Icon name="pencil-simple" class="text-lg" />
+  <span class="font-semibold text-sm">Modifica</span>
+</button>
+
+<!-- Modal segnalazione -->
+<dialog id="modal-segnalazione" class="modal">
+  <div class="modal-box max-w-lg">
+    <form method="dialog" class="absolute right-3 top-3">
+      <button class="btn btn-sm btn-circle btn-ghost" aria-label="Chiudi">✕</button>
+    </form>
+
+    <div class="flex items-center gap-3 mb-1">
+      <Icon name="pencil-simple" class="text-2xl text-primary" />
+      <h3 class="font-serif font-bold text-xl">Segnala una modifica</h3>
     </div>
-  </header>
+    <p class="text-sm text-base-content/70 mb-5">Hai trovato un errore o vuoi suggerire una correzione a questo canto?</p>
 
-  <div class="max-w-2xl mx-auto px-4 py-10">
-
-    <div id="form-error" role="alert" class="alert alert-error mb-8 hidden">
-      <i class="ph ph-warning-circle text-xl"></i>
-      <span id="form-error-msg">Si è verificato un errore durante l'invio. Riprova più tardi.</span>
+    <div id="segnalazione-error" role="alert" class="alert alert-error mb-5 hidden">
+      <Icon name="warning-circle" class="text-xl shrink-0" />
+      <span id="segnalazione-error-msg">Si è verificato un errore durante l'invio. Riprova più tardi.</span>
     </div>
 
-    <form id="contatti-form" action="/api/modulo_contatti" method="post" class="flex flex-col gap-5" novalidate>
-
-      <input type="hidden" name="titolo" value="Modulo contatti" />
+    <form id="segnalazione-form" action="/api/modulo_contatti" method="post" class="flex flex-col gap-5" novalidate>
 
       <!-- Honeypot: campo invisibile compilato solo dai bot -->
       <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;">
-        <label for="website">Non compilare</label>
-        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" />
+        <label for="seg-website">Non compilare</label>
+        <input type="text" id="seg-website" name="website" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <input type="hidden" name="titolo" value="Segnalazione canto" />
+
+      <!-- URL canto: visibile ma disabilitato; hidden input porta il valore effettivo -->
+      <div class="form-control">
+        <label class="label" for="seg-link">
+          <span class="label-text font-semibold">Canto</span>
+        </label>
+        <input
+          type="url"
+          id="seg-link"
+          value={cantoUrl}
+          disabled
+          class="input input-bordered form-border bg-base-200 w-full opacity-60 cursor-not-allowed"
+        />
+        <input type="hidden" name="link" value={cantoUrl} />
       </div>
 
       <div class="form-control">
-        <label class="label" for="nome">
+        <label class="label" for="seg-nome">
           <span class="label-text font-semibold">Nome <span class="text-error" aria-hidden="true">*</span></span>
         </label>
         <input
           type="text"
-          id="nome"
+          id="seg-nome"
           name="nome"
           required
           maxlength="255"
@@ -49,12 +78,12 @@ import Breadcrumb from '../components/ui/Breadcrumb.astro';
       </div>
 
       <div class="form-control">
-        <label class="label" for="email">
+        <label class="label" for="seg-email">
           <span class="label-text font-semibold">Email <span class="text-error" aria-hidden="true">*</span></span>
         </label>
         <input
           type="email"
-          id="email"
+          id="seg-email"
           name="email"
           required
           maxlength="254"
@@ -65,32 +94,32 @@ import Breadcrumb from '../components/ui/Breadcrumb.astro';
       </div>
 
       <div class="form-control">
-        <label class="label" for="messaggio">
-          <span class="label-text font-semibold">Messaggio <span class="text-error" aria-hidden="true">*</span></span>
+        <label class="label" for="seg-messaggio">
+          <span class="label-text font-semibold">Segnalazione <span class="text-error" aria-hidden="true">*</span></span>
         </label>
         <textarea
-          id="messaggio"
+          id="seg-messaggio"
           name="messaggio"
           required
-          rows="6"
+          rows="5"
           class="textarea textarea-bordered form-border bg-base-200 w-full font-sans text-base leading-relaxed"
-          placeholder="Scrivi il tuo messaggio…"
+          placeholder="Descrivi l'errore o la correzione suggerita…"
         ></textarea>
         <div class="label">
           <span class="label-text-alt text-base-content/50">
-            <span id="messaggio-count">0</span>/200 righe
+            <span id="seg-count">0</span>/200 righe
           </span>
         </div>
       </div>
 
-      <!-- Altcha: proof-of-work antispam, self-hosted, zero dati a terzi -->
-      <altcha-widget challenge="/api/altcha" hidefooter></altcha-widget>
+      <!-- Altcha: auto="onload" forza il solve immediato, necessario dentro un dialog chiuso -->
+      <altcha-widget challenge="/api/altcha" hidefooter auto="onload"></altcha-widget>
 
       <div class="form-control">
-        <label class="label cursor-pointer justify-start gap-3" for="privacy">
+        <label class="label cursor-pointer justify-start gap-3" for="seg-privacy">
           <input
             type="checkbox"
-            id="privacy"
+            id="seg-privacy"
             name="privacy"
             class="checkbox checkbox-primary form-border shrink-0"
           />
@@ -103,59 +132,60 @@ import Breadcrumb from '../components/ui/Breadcrumb.astro';
       </div>
 
       <div class="mt-2">
-        <button id="submit-btn" type="submit" class="btn btn-primary w-full sm:w-auto">
-          <i class="ph ph-paper-plane-tilt"></i>
-          <span id="submit-label">Invia messaggio</span>
+        <button id="seg-submit-btn" type="submit" class="btn btn-primary w-full sm:w-auto">
+          <Icon name="paper-plane-tilt" />
+          <span id="seg-submit-label">Invia segnalazione</span>
         </button>
       </div>
 
     </form>
   </div>
+  <form method="dialog" class="modal-backdrop"><button>chiudi</button></form>
+</dialog>
 
-  <!-- Modal successo (DaisyUI v5) -->
-  <dialog id="modal-successo" class="modal">
-    <div class="modal-box">
-      <div class="flex items-center gap-3 mb-4">
-        <i class="ph ph-check-circle text-3xl text-success"></i>
-        <h3 class="font-serif font-bold text-lg">Messaggio inviato!</h3>
-      </div>
-      <p class="font-sans text-base-content/80">
-        Grazie per averci scritto. Ti risponderemo il prima possibile.
-      </p>
-      <div class="modal-action">
-        <form method="dialog">
-          <button class="btn btn-primary">Chiudi</button>
-        </form>
-      </div>
+<!-- Modal successo -->
+<dialog id="modal-segnalazione-ok" class="modal">
+  <div class="modal-box">
+    <div class="flex items-center gap-3 mb-4">
+      <Icon name="check-circle" class="text-3xl text-success" />
+      <h3 class="font-serif font-bold text-lg">Segnalazione inviata!</h3>
     </div>
-    <form method="dialog" class="modal-backdrop">
-      <button>chiudi</button>
-    </form>
-  </dialog>
-
-</BaseLayout>
+    <p class="font-sans text-base-content/80">
+      Grazie per la segnalazione. La esamineremo il prima possibile.
+    </p>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn btn-primary">Chiudi</button>
+      </form>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button>chiudi</button></form>
+</dialog>
 
 <script>
-  // Registra <altcha-widget> come custom element (bundlato da Vite, zero CDN esterni)
   import 'altcha';
 </script>
 
 <script is:inline>
 (function () {
-  const tag = '[contatti]';
-  const form = document.getElementById('contatti-form');
-  const submitBtn = document.getElementById('submit-btn');
-  const submitLabel = document.getElementById('submit-label');
-  const errorBox = document.getElementById('form-error');
-  const errorMsg = document.getElementById('form-error-msg');
-  const modal = document.getElementById('modal-successo');
-  const privacyCheck = document.getElementById('privacy');
-  const emailInput = document.getElementById('email');
-  const messaggioArea = document.getElementById('messaggio');
-  const messaggioCount = document.getElementById('messaggio-count');
-  console.log(tag, 'Form pronto');
+  const tag = '[segnalazione]';
+  const openBtn = document.getElementById('segnala-open-btn');
+  const modal = document.getElementById('modal-segnalazione');
+  const modalOk = document.getElementById('modal-segnalazione-ok');
+  const form = document.getElementById('segnalazione-form');
+  const errorBox = document.getElementById('segnalazione-error');
+  const errorMsg = document.getElementById('segnalazione-error-msg');
+  const submitBtn = document.getElementById('seg-submit-btn');
+  const submitLabel = document.getElementById('seg-submit-label');
+  const emailInput = document.getElementById('seg-email');
+  const privacyCheck = document.getElementById('seg-privacy');
+  const messaggioArea = document.getElementById('seg-messaggio');
+  const messaggioCount = document.getElementById('seg-count');
 
-  // Contatore righe textarea
+  openBtn.addEventListener('click', function () {
+    modal.showModal();
+  });
+
   messaggioArea.addEventListener('input', function () {
     const lines = this.value === '' ? 0 : this.value.split('\n').length;
     messaggioCount.textContent = lines;
@@ -166,7 +196,7 @@ import Breadcrumb from '../components/ui/Breadcrumb.astro';
 
   function setLoading(loading) {
     submitBtn.disabled = loading;
-    submitLabel.textContent = loading ? 'Invio in corso…' : 'Invia messaggio';
+    submitLabel.textContent = loading ? 'Invio in corso…' : 'Invia segnalazione';
     if (loading) {
       submitBtn.classList.add('loading', 'loading-spinner');
     } else {
@@ -189,9 +219,9 @@ import Breadcrumb from '../components/ui/Breadcrumb.astro';
     hideError();
 
     const fd = new FormData(form);
-    const privacyAccettata = privacyCheck.checked;
     const nome = String(fd.get('nome') || '').trim();
     const messaggio = String(fd.get('messaggio') || '').trim();
+    const privacyAccettata = privacyCheck.checked;
 
     console.log(tag, 'Submit →', {
       nome: nome ? `"${nome}" (${nome.length}ch)` : '⚠ vuoto',
@@ -201,7 +231,6 @@ import Breadcrumb from '../components/ui/Breadcrumb.astro';
       altcha: fd.get('altcha') ? '✓ verificato' : '⚠ in attesa',
     });
 
-    // --- Validazione campi ---
     if (nome.length < 2) {
       showError('Il nome deve contenere almeno 2 caratteri.');
       return;
@@ -215,12 +244,10 @@ import Breadcrumb from '../components/ui/Breadcrumb.astro';
       showError(`Il messaggio non può superare le 200 righe (attualmente ${righe}).`);
       return;
     }
-
     if (!privacyAccettata) {
       showError('Devi accettare la Privacy Policy per inviare il modulo.');
       return;
     }
-
     if (!fd.get('altcha')) {
       showError('Completa la verifica antispam prima di inviare.');
       return;
@@ -244,8 +271,9 @@ import Breadcrumb from '../components/ui/Breadcrumb.astro';
 
     if (data.ok) {
       form.reset();
-      console.log(tag, 'Messaggio inviato con successo — apertura modal');
-      modal.showModal();
+      modal.close();
+      console.log(tag, 'Segnalazione inviata con successo — apertura modal');
+      modalOk.showModal();
     } else {
       const messaggi = {
         campi_mancanti: 'Compila tutti i campi richiesti.',

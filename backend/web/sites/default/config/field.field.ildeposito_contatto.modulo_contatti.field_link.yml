@@ -1,0 +1,23 @@
+uuid: 7d39fedc-ea8d-47d2-a36a-f57df4f8b421
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.ildeposito_contatto.field_link
+    - ildeposito_contatti.type.modulo_contatti
+  module:
+    - link
+id: ildeposito_contatto.modulo_contatti.field_link
+field_name: field_link
+entity_type: ildeposito_contatto
+bundle: modulo_contatti
+label: Link
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  title: 0
+  link_type: 17
+field_type: link

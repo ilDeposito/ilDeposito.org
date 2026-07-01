@@ -1,16 +1,18 @@
-uuid: ab7216c2-2886-4559-a311-50a3416b7ccf
+uuid: a8006481-4b3d-42b8-b157-7f8e35acdee5
 langcode: it
 status: true
 dependencies:
   module:
     - ildeposito_contatti
-    - link
-id: ildeposito_contatto.field_canto
-field_name: field_canto
+id: ildeposito_contatto.field_titolo
+field_name: field_titolo
 entity_type: ildeposito_contatto
-type: link
-settings: {  }
-module: link
+type: string
+settings:
+  max_length: 255
+  case_sensitive: false
+  is_ascii: false
+module: core
 locked: false
 cardinality: 1
 translatable: true

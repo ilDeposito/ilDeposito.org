@@ -1,0 +1,19 @@
+uuid: 276083b9-27e4-40cb-95b6-f8d6748d6352
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.ildeposito_contatto.field_titolo
+    - ildeposito_contatti.type.modulo_contatti
+id: ildeposito_contatto.modulo_contatti.field_titolo
+field_name: field_titolo
+entity_type: ildeposito_contatto
+bundle: modulo_contatti
+label: Titolo
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

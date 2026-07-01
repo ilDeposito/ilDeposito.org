@@ -4,9 +4,13 @@ status: true
 dependencies:
   config:
     - field.field.ildeposito_contatto.modulo_contatti.field_email
+    - field.field.ildeposito_contatto.modulo_contatti.field_link
     - field.field.ildeposito_contatto.modulo_contatti.field_messaggio
     - field.field.ildeposito_contatto.modulo_contatti.field_nome
+    - field.field.ildeposito_contatto.modulo_contatti.field_titolo
     - ildeposito_contatti.type.modulo_contatti
+  module:
+    - link
 id: ildeposito_contatto.modulo_contatti.default
 targetEntityType: ildeposito_contatto
 bundle: modulo_contatti
@@ -37,6 +41,18 @@ content:
     label: inline
     settings: {  }
     third_party_settings: {  }
+    weight: 4
+    region: content
+  field_link:
+    type: link
+    label: inline
+    settings:
+      trim_length: 80
+      url_only: false
+      url_plain: false
+      rel: ''
+      target: ''
+    third_party_settings: {  }
     weight: 2
     region: content
   field_messaggio:
@@ -44,9 +60,17 @@ content:
     label: above
     settings: {  }
     third_party_settings: {  }
-    weight: 3
+    weight: 5
     region: content
   field_nome:
+    type: string
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 3
+    region: content
+  field_titolo:
     type: string
     label: inline
     settings:
@@ -60,7 +84,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 4
+    weight: 6
     region: content
 hidden:
   status: true

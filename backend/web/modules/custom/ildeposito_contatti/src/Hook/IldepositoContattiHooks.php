@@ -59,6 +59,8 @@ final class IldepositoContattiHooks {
     $nome = (string) ($entity->get('field_nome')->value ?? '');
     $email = (string) ($entity->get('field_email')->value ?? '');
     $messaggio = (string) ($entity->get('field_messaggio')->value ?? '');
+    $titolo = (string) ($entity->get('field_titolo')->value ?? '');
+    $link = (string) ($entity->get('field_link')->uri ?? '');
 
     $this->mailManager->mail(
       module: 'ildeposito_contatti',
@@ -69,6 +71,8 @@ final class IldepositoContattiHooks {
         'nome' => $nome,
         'email' => $email,
         'messaggio' => $messaggio,
+        'titolo' => $titolo,
+        'link' => $link,
       ],
     );
   }
@@ -87,12 +91,24 @@ final class IldepositoContattiHooks {
 
     $message['headers']['Reply-To'] = $params['nome'] . ' <' . $params['email'] . '>';
 
-    $message['body'][] = implode("\n", [
+    $lines = [
       'Nome: ' . $params['nome'],
       'Email: ' . $params['email'],
-      'Messaggio:',
-      $params['messaggio'],
-    ]);
+    ];
+
+    if (!empty($params['titolo'])) {
+      $lines[] = 'Titolo: ' . $params['titolo'];
+    }
+
+    if (!empty($params['link'])) {
+      $lines[] = 'Url: ' . $params['link'];
+    }
+
+    $lines[] = '';
+    $lines[] = 'Messaggio:';
+    $lines[] = $params['messaggio'];
+
+    $message['body'][] = implode("\n", $lines);
   }
 
 }

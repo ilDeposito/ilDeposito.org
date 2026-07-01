@@ -38,6 +38,7 @@ class IldepositoContattoListBuilder extends EntityListBuilder {
   public function buildHeader(): array {
     return [
       'id' => $this->t('ID'),
+      'titolo' => $this->t('Titolo'),
       'bundle' => $this->t('Tipo'),
       'status' => $this->t('Stato'),
       'ip_address' => $this->t('IP'),
@@ -49,9 +50,11 @@ class IldepositoContattoListBuilder extends EntityListBuilder {
     /** @var \Drupal\ildeposito_contatti\Entity\IldepositoContatto $entity */
     $bundle_entity = $entity->get('bundle')->entity;
     $status = $entity->getStatus();
+    $titolo = (string) ($entity->get('field_titolo')->value ?? '');
 
     return [
       'id' => $entity->toLink((string) $entity->id()),
+      'titolo' => $titolo,
       'bundle' => $bundle_entity ? $bundle_entity->label() : $entity->bundle(),
       'status' => self::STATUS_LABELS[$status] ?? $status,
       'ip_address' => $entity->getIpAddress(),

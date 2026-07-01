@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
+import SegnalazioneModal from '../../components/ui/SegnalazioneModal.astro';
 import Icon from '../../components/base/Icon.astro';
 import { getAllCantiDetail, getEventiForCantoMap, getAutore } from '../../lib/api/index.js';
 import type { CantoDetail, EventoForCanto } from '../../lib/api/types.js';
@@ -303,4 +304,7 @@ const jsonLd = [
     import '../../scripts/youtube-player.js';
   </script>
   </div>
+
+  <SegnalazioneModal cantoUrl={`${siteUrl}/canti/${canto.slug}`} />
+
 </BaseLayout>

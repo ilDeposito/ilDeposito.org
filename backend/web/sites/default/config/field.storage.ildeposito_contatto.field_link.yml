@@ -1,0 +1,19 @@
+uuid: 78eb95ec-7ff4-4db6-b2ad-b6c879a878bb
+langcode: it
+status: true
+dependencies:
+  module:
+    - ildeposito_contatti
+    - link
+id: ildeposito_contatto.field_link
+field_name: field_link
+entity_type: ildeposito_contatto
+type: link
+settings: {  }
+module: link
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

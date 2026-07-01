@@ -32,8 +32,10 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   const nome = (data.get('nome') as string | null)?.trim() ?? '';
   const email = (data.get('email') as string | null)?.trim() ?? '';
   const messaggio = (data.get('messaggio') as string | null)?.trim() ?? '';
+  const titolo = (data.get('titolo') as string | null)?.trim() || 'Modulo contatti';
+  const link = (data.get('link') as string | null)?.trim() ?? '';
 
-  console.log(`${tag} Campi ricevuti — nome: ${nome.length}ch, email: ${email.length}ch, messaggio: ${messaggio.length}ch`);
+  console.log(`${tag} Campi ricevuti — nome: ${nome.length}ch, email: ${email.length}ch, messaggio: ${messaggio.length}ch, titolo: "${titolo}", link: ${link || '(nessuno)'}`);
 
   // --- Validazione ---
   if (!nome || !email || !messaggio) {
@@ -70,16 +72,21 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       console.warn(`${tag} Altcha — payload mancante`);
       return json({ ok: false, error: 'verifica_fallita' }, 400);
     }
-    const { verify, deriveHmacKeySecret } = await import('altcha-lib/frameworks/shared');
-    const { deriveKey } = await import('altcha-lib/algorithms/pbkdf2');
-    const hmacSignatureSecret = await deriveHmacKeySecret(altchaMasterKey);
-    const hmacKeySignatureSecret = await deriveHmacKeySecret(altchaMasterKey + '-key');
-    const { error } = await verify(altchaPayload, deriveKey, hmacSignatureSecret, hmacKeySignatureSecret);
-    if (error) {
-      console.warn(`${tag} Altcha — verifica fallita: ${error}`);
+    try {
+      const { verify, deriveHmacKeySecret } = await import('altcha-lib/frameworks/shared');
+      const { deriveKey } = await import('altcha-lib/algorithms/pbkdf2');
+      const hmacSignatureSecret = await deriveHmacKeySecret(altchaMasterKey);
+      const hmacKeySignatureSecret = await deriveHmacKeySecret(altchaMasterKey + '-key');
+      const { error } = await verify(altchaPayload, deriveKey, hmacSignatureSecret, hmacKeySignatureSecret);
+      if (error) {
+        console.warn(`${tag} Altcha — verifica fallita: ${error}`);
+        return json({ ok: false, error: 'verifica_fallita' }, 400);
+      }
+      console.log(`${tag} Altcha OK`);
+    } catch (err) {
+      console.error(`${tag} Altcha — eccezione durante la verifica:`, err);
       return json({ ok: false, error: 'verifica_fallita' }, 400);
     }
-    console.log(`${tag} Altcha OK`);
   } else {
     console.log(`${tag} Altcha — ALTCHA_HMAC_KEY non configurata, verifica saltata`);
   }
@@ -114,9 +121,11 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
         data: {
           type: 'ildeposito_contatto--modulo_contatti',
           attributes: {
+            field_titolo: titolo,
             field_nome: nome,
             field_email: email,
             field_messaggio: messaggio,
+            ...(link ? { field_link: { uri: link, title: '' } } : {}),
           },
         },
       }),
