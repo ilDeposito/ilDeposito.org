@@ -78,5 +78,6 @@ jobs:
           STAGE_AUTH_PASS: ${{ secrets.STAGE_AUTH_PASS }}
         working-directory: /home/ubuntu/sergej/websites/ildeposito/stage/frontend
         run: |
+          npm ci
           npx playwright install chromium --with-deps
           npx playwright test
