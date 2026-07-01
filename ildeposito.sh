@@ -36,6 +36,9 @@ COMPOSE="docker compose --project-directory ${PROJECT_ROOT}"
 cmd_up() {
     local extra_flags="${1:-}"
     info "Avvio ambiente ${ENV} (${PROJECT_NAME})..."
+    local internal_net="ildeposito-${ENV}-internal"
+    docker network inspect "${internal_net}" &>/dev/null \
+        || { info "Creazione rete ${internal_net}..."; docker network create "${internal_net}"; }
     ${COMPOSE} pull --quiet
     ${COMPOSE} up -d ${extra_flags}
     ok "Ambiente ${ENV} avviato"

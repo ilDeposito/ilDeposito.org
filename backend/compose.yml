@@ -13,7 +13,7 @@ services:
       - mariadb_data:/var/lib/mysql
       - ./mariadb-init:/docker-entrypoint-initdb.d
     networks:
-      - internal
+      - backend-internal
 
   php:
     image: wodby/drupal-php:$PHP_TAG
@@ -40,7 +40,7 @@ services:
     - ./:/var/www/html:cached
     - ../backup:/var/backup_migrate
     networks:
-      - internal
+      - backend-internal
 
   crond:
     init: true
@@ -56,7 +56,7 @@ services:
     volumes:
       - ./:/var/www/html:cached
     networks:
-      - internal      
+      - backend-internal
 
   nginx:
     image: wodby/nginx:$NGINX_TAG
@@ -70,7 +70,7 @@ services:
     volumes:
     - ./:/var/www/html:cached
     networks:
-      internal:
+      backend-internal:
       caddy:
       app-internal:
         aliases:
@@ -80,7 +80,7 @@ volumes:
   mariadb_data:
 
 networks:
-  internal:
+  backend-internal:
     driver: bridge
   caddy:
     external: true

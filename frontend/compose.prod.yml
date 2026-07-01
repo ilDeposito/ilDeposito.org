@@ -10,7 +10,7 @@ services:
       - frontend_output:/app/output
       - astro_cache:/app/.astro
     networks:
-      - internal
+      - frontend-internal
       - app-internal
     profiles:
       - build
@@ -42,7 +42,7 @@ services:
       retries: 3
       start_period: 30s
     networks:
-      - internal
+      - frontend-internal
       - app-internal
 
   frontend-web:
@@ -67,7 +67,7 @@ services:
       caddy_1: ildeposito.org
       caddy_1.redir: "https://www.ildeposito.org{uri} permanent"
     networks:
-      - internal
+      - frontend-internal
       - caddy
 
 volumes:
@@ -75,7 +75,7 @@ volumes:
   astro_cache:
 
 networks:
-  internal:
+  frontend-internal:
     driver: bridge
   caddy:
     external: true
