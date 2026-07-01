@@ -63,7 +63,7 @@ services:
     labels:
       caddy: www.ildeposito.org
       caddy.basicauth: "/*"
-      caddy.basicauth.ildeposito: "${BASIC_AUTH_HASH}"
+      caddy.basicauth.${BASIC_AUTH_USER}: "${BASIC_AUTH_HASH}"
       caddy.reverse_proxy: "{{upstreams 80}}"
       caddy_1: ildeposito.org
       caddy_1.redir: "https://www.ildeposito.org{uri} permanent"

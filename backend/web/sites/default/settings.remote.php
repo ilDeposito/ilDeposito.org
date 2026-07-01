@@ -20,6 +20,13 @@ $databases['default']['default'] = [
 
 $settings['container_yamls'][] = DRUPAL_ROOT . '/sites/default/services.prod.yml';
 
+// Nginx è raggiungibile solo tramite Caddy (rete Docker "caddy", nessuna
+// porta pubblicata): fidarsi dell'header X-Forwarded-* del solo peer diretto
+// per far rilevare a Drupal lo schema/IP reali del client dietro il proxy.
+$settings['reverse_proxy'] = TRUE;
+$settings['reverse_proxy_addresses'] = [$_SERVER['REMOTE_ADDR'] ?? ''];
+$settings['reverse_proxy_trusted_headers'] = \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_ALL;
+
 $config['system.logging']['error_level'] = 'hide';
 $config['system.performance']['css']['preprocess'] = TRUE;
 $config['system.performance']['css']['gzip'] = TRUE;
