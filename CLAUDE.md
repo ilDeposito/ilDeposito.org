@@ -4,12 +4,12 @@ Archivio online di canti di protesta politica e sociale italiani.
 
 ## Architettura
 
-Monorepo con due applicazioni indipendenti: **Drupal 11** (backend/CMS) espone contenuti via **JSON:API**, **Astro 6** (frontend) li consuma a build time e genera un sito statico (SSG). Non c'è SSR.
+Monorepo con due applicazioni indipendenti: **Drupal 11** (backend/CMS) espone contenuti via **JSON:API**, **Astro 6** (frontend) li consuma a build time. Rendering **ibrido**: `output: 'static'` prerenderizza tutte le pagine a build time (SSG), ma l'adapter Node abilita alcuni endpoint server on-demand (SSR) per il form contatti — vedi [Rendering ibrido](#rendering-ibrido-ssg--ssr-on-demand).
 
 | Componente | Path | Stack | Ruolo |
 |---|---|---|---|
 | **Backend** | `backend/` | Drupal 11 + PHP 8.3 + Radix 6 (Bootstrap 5) | CMS, JSON:API, admin |
-| **Frontend** | `frontend/` | Astro 6 + Tailwind v4 + DaisyUI v5 | Sito pubblico statico |
+| **Frontend** | `frontend/` | Astro 6 + Tailwind v4 + DaisyUI v5 + Node adapter | Sito pubblico (SSG + SSR on-demand) |
 
 Il frontend raggiunge il backend tramite la rete Docker interna (`drupal-api` alias nginx) in staging/prod, oppure via `http://ildeposito11.ddev.site` in locale.
 
@@ -88,7 +88,10 @@ compose.yml (root)
 | Servizio | Immagine | Note |
 |---|---|---|
 | astro-builder | Node 22-alpine (custom Dockerfile) | Profile `build` — esegue solo su `build-frontend` |
-| frontend-web | nginx:1.27-alpine | Serve `/usr/share/nginx/html` (volume `frontend_output`) |
+| frontend-api | node:22-alpine | Server SSR Astro (`server/entry.mjs`, porta 4321) — serve gli endpoint `/api/*` |
+| frontend-web | macbre/nginx-brotli | Serve i file statici da `current/client`, proxy di `/api/` verso `frontend-api` |
+
+Basic auth Caddy: **stage** protegge sia backend (`admin-stage`) sia frontend (`stage`); **prod** protegge solo il backend (`admin`), il frontend (`www`) è pubblico. Sul backend le label Caddy includono `header_up -Authorization` per non inoltrare l'header al modulo `basic_auth` di Drupal (che altrimenti risponderebbe 403).
 
 **Reti Docker**:
 - `internal` — comunicazione interna servizi
@@ -194,14 +197,16 @@ backend/
 
 ```
 frontend/
-├── astro.config.mjs                     # SSG, site ildeposito.org, sitemap, PDF generator
+├── astro.config.mjs                     # output static + adapter Node, site www.ildeposito.org, sitemap, PDF generator
 ├── package.json                         # Astro 6.4, Tailwind v4, DaisyUI v5, Node >= 22.12
 ├── tsconfig.json                        # extends astro/tsconfigs/strict
 ├── pagefind.toml                        # force_language = "it"
 ├── Dockerfile                           # Node 22-alpine (stage/prod builder)
 ├── docker-entrypoint.sh                 # Build con release versionata
-├── compose.stage.yml                    # Builder + nginx statico
-├── nginx.stage.conf                     # Config nginx per serving statico
+├── compose.stage.yml                    # Builder + frontend-api (SSR) + frontend-web (nginx)
+├── nginx.conf                           # Serving statico + proxy /api/ → frontend-api
+├── nginx-ratelimit.conf                 # Zone rate limit (html, api, pdf)
+├── nginx-security-headers.conf          # Security headers condivisi
 ├── .env                                 # DRUPAL_API_URL
 └── src/
     ├── pages/                           # Route file-based (SSG)
@@ -251,6 +256,20 @@ npm run build        # Build statica + Pagefind
 npm run preview      # Preview della build
 ```
 
+### Rendering ibrido (SSG + SSR on-demand)
+
+`astro.config.mjs` usa `output: 'static'` con l'adapter `@astrojs/node` (`mode: 'standalone'`). Tutte le pagine sono **prerenderizzate a build time** (SSG); solo gli endpoint che dichiarano `export const prerender = false` girano lato server (SSR) a runtime:
+
+- `src/pages/api/altcha.ts` — challenge ALTCHA (captcha proof-of-work)
+- `src/pages/api/modulo_contatti.ts` — submit del form contatti verso Drupal JSON:API
+
+**Infrastruttura stage/prod:**
+- `frontend-web` (nginx) serve i file statici da `current/client` e fa da reverse proxy di `/api/*` verso `frontend-api`
+- `frontend-api` (Node, porta 4321) esegue `server/entry.mjs` per gli endpoint SSR
+- nginx passa `X-Forwarded-Proto` al Node; `security.checkOrigin` è **disabilitato** perché dietro proxy il Node adapter costruisce sempre `url.origin` come `http://` — l'anti-spam è delegato al rate limit nginx (`/api/`, zona `api`)
+
+**Env aggiuntive SSR** (solo `frontend-api`, non usate a build time): `DRUPAL_API_USER`, `DRUPAL_API_PASS` (auth JSON:API write), `ALTCHA_HMAC_KEY`.
+
 ### API Client (`src/lib/api/drupal/`)
 
 Pattern **mapper**: ogni content type ha un file dedicato che fetcha da JSON:API e passa i dati attraverso `mappers.ts` per produrre interfacce TypeScript pulite definite in `types.ts` (backend-agnostic).
@@ -288,11 +307,14 @@ DRUPAL_API_URL=http://ildeposito11.ddev.site   # Locale (DDEV)
 DRUPAL_API_URL=http://drupal-api:80            # Stage/Prod (rete Docker interna)
 ```
 
+Solo runtime SSR (`frontend-api`): `DRUPAL_API_USER`, `DRUPAL_API_PASS`, `ALTCHA_HMAC_KEY`.
+
 ### Build output
 
-- HTML statico pre-renderizzato per tutte le pagine
-- PDF individuali per ogni canto (`dist/pdf/canti/{slug}.pdf`)
-- Indice di ricerca Pagefind (`dist/pagefind/`)
+- `client/` — HTML statico pre-renderizzato per tutte le pagine + asset
+- `server/entry.mjs` — server Node per gli endpoint SSR (`/api/*`)
+- PDF individuali per ogni canto (`client/pdf/canti/{slug}.pdf`)
+- Indice di ricerca Pagefind (`client/pagefind/`)
 
 ## Regole di sviluppo
 
