@@ -13,6 +13,18 @@ const json = (body: object, status = 200) =>
 export const POST: APIRoute = async ({ request, clientAddress }) => {
   console.log(`${tag} POST ricevuto da ${clientAddress}`);
 
+  // Blocca richieste cross-origin: origin deve corrispondere al dominio del server (Host).
+  // checkOrigin di Astro è disabilitato perché il Node adapter legge l'URL come http://
+  // dietro proxy; questa validazione esplicita sostituisce quella protezione.
+  const origin = request.headers.get('origin');
+  const host = request.headers.get('host');
+  if (origin && host && !import.meta.env.DEV) {
+    if (origin !== `https://${host}`) {
+      console.warn(`${tag} Origin non consentita: ${origin} (host: ${host})`);
+      return json({ ok: false, error: 'invio_fallito' }, 403);
+    }
+  }
+
   // --- Lettura form data ---
   let data: FormData;
   try {
@@ -27,6 +39,13 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     // Bot ha compilato il campo nascosto: risposta silenziosamente positiva per non rivelare il filtro
     console.warn(`${tag} Honeypot attivato — richiesta scartata`);
     return json({ ok: true });
+  }
+
+  // Privacy obbligatoria lato server: difesa in profondità rispetto alla validazione JS.
+  const privacy = (data.get('privacy') as string | null) ?? '';
+  if (!privacy) {
+    console.warn(`${tag} Validazione fallita — privacy non accettata`);
+    return json({ ok: false, error: 'privacy_non_accettata' }, 400);
   }
 
   const nome = (data.get('nome') as string | null)?.trim() ?? '';
@@ -51,10 +70,14 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   if (!emailRegex.test(email)) {
-    console.warn(`${tag} Validazione fallita — email non valida: ${email}`);
+    console.warn(`${tag} Validazione fallita — email non valida (${email.length}ch)`);
     return json({ ok: false, error: 'email_non_valida' }, 400);
   }
 
+  if (messaggio.length > 50_000) {
+    console.warn(`${tag} Validazione fallita — messaggio troppo lungo: ${messaggio.length} bytes`);
+    return json({ ok: false, error: 'messaggio_troppo_lungo' }, 400);
+  }
   const righe = messaggio.split('\n').length;
   if (righe > 200) {
     console.warn(`${tag} Validazione fallita — messaggio troppo lungo: ${righe} righe`);
@@ -88,7 +111,8 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       return json({ ok: false, error: 'verifica_fallita' }, 400);
     }
   } else {
-    console.log(`${tag} Altcha — ALTCHA_HMAC_KEY non configurata, verifica saltata`);
+    console.error(`${tag} Altcha — ALTCHA_HMAC_KEY non configurata — endpoint non disponibile`);
+    return json({ ok: false, error: 'invio_fallito' }, 503);
   }
 
   // --- Configurazione Drupal ---

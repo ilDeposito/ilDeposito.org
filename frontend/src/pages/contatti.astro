@@ -142,7 +142,6 @@ import Breadcrumb from '../components/ui/Breadcrumb.astro';
 
 <script is:inline>
 (function () {
-  const tag = '[contatti]';
   const form = document.getElementById('contatti-form');
   const submitBtn = document.getElementById('submit-btn');
   const submitLabel = document.getElementById('submit-label');
@@ -153,7 +152,6 @@ import Breadcrumb from '../components/ui/Breadcrumb.astro';
   const emailInput = document.getElementById('email');
   const messaggioArea = document.getElementById('messaggio');
   const messaggioCount = document.getElementById('messaggio-count');
-  console.log(tag, 'Form pronto');
 
   // Contatore righe textarea
   messaggioArea.addEventListener('input', function () {
@@ -193,14 +191,6 @@ import Breadcrumb from '../components/ui/Breadcrumb.astro';
     const nome = String(fd.get('nome') || '').trim();
     const messaggio = String(fd.get('messaggio') || '').trim();
 
-    console.log(tag, 'Submit →', {
-      nome: nome ? `"${nome}" (${nome.length}ch)` : '⚠ vuoto',
-      email: fd.get('email') || '⚠ vuoto',
-      messaggio: messaggio ? `${messaggio.length}ch` : '⚠ vuoto',
-      privacy: privacyAccettata ? '✓ accettata' : '⚠ non accettata',
-      altcha: fd.get('altcha') ? '✓ verificato' : '⚠ in attesa',
-    });
-
     // --- Validazione campi ---
     if (nome.length < 2) {
       showError('Il nome deve contenere almeno 2 caratteri.');
@@ -232,9 +222,7 @@ import Breadcrumb from '../components/ui/Breadcrumb.astro';
     try {
       const res = await fetch('/api/modulo_contatti', { method: 'POST', body: fd });
       data = await res.json();
-      console.log(tag, `Risposta HTTP ${res.status}:`, data);
     } catch (err) {
-      console.error(tag, 'Errore fetch:', err);
       setLoading(false);
       showError('Errore di rete. Controlla la connessione e riprova.');
       return;
@@ -244,7 +232,6 @@ import Breadcrumb from '../components/ui/Breadcrumb.astro';
 
     if (data.ok) {
       form.reset();
-      console.log(tag, 'Messaggio inviato con successo — apertura modal');
       modal.showModal();
     } else {
       const messaggi = {
@@ -253,10 +240,10 @@ import Breadcrumb from '../components/ui/Breadcrumb.astro';
         email_non_valida: 'Inserisci un indirizzo email valido.',
         messaggio_troppo_lungo: 'Il messaggio non può superare le 200 righe.',
         verifica_fallita: 'Verifica antispam non valida. Ricarica la pagina e riprova.',
+        privacy_non_accettata: 'Devi accettare la Privacy Policy per inviare il modulo.',
         invio_fallito: "Si è verificato un errore durante l'invio. Riprova più tardi.",
       };
       const msg = messaggi[data.error] ?? "Si è verificato un errore. Riprova più tardi.";
-      console.warn(tag, 'Errore endpoint:', data.error, '→', msg);
       showError(msg);
     }
   });

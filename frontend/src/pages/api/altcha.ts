@@ -29,7 +29,7 @@ export const GET: APIRoute = async ({ request }) => {
       deriveKey,
       hmacSignatureSecret,
       hmacKeySignatureSecret,
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
     });
 
     return new Response(JSON.stringify(challenge), {

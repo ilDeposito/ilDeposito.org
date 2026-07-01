@@ -168,7 +168,6 @@ const { cantoUrl } = Astro.props;
 
 <script is:inline>
 (function () {
-  const tag = '[segnalazione]';
   const openBtn = document.getElementById('segnala-open-btn');
   const modal = document.getElementById('modal-segnalazione');
   const modalOk = document.getElementById('modal-segnalazione-ok');
@@ -223,14 +222,6 @@ const { cantoUrl } = Astro.props;
     const messaggio = String(fd.get('messaggio') || '').trim();
     const privacyAccettata = privacyCheck.checked;
 
-    console.log(tag, 'Submit →', {
-      nome: nome ? `"${nome}" (${nome.length}ch)` : '⚠ vuoto',
-      email: fd.get('email') || '⚠ vuoto',
-      messaggio: messaggio ? `${messaggio.length}ch` : '⚠ vuoto',
-      privacy: privacyAccettata ? '✓ accettata' : '⚠ non accettata',
-      altcha: fd.get('altcha') ? '✓ verificato' : '⚠ in attesa',
-    });
-
     if (nome.length < 2) {
       showError('Il nome deve contenere almeno 2 caratteri.');
       return;
@@ -259,9 +250,7 @@ const { cantoUrl } = Astro.props;
     try {
       const res = await fetch('/api/modulo_contatti', { method: 'POST', body: fd });
       data = await res.json();
-      console.log(tag, `Risposta HTTP ${res.status}:`, data);
     } catch (err) {
-      console.error(tag, 'Errore fetch:', err);
       setLoading(false);
       showError('Errore di rete. Controlla la connessione e riprova.');
       return;
@@ -272,7 +261,6 @@ const { cantoUrl } = Astro.props;
     if (data.ok) {
       form.reset();
       modal.close();
-      console.log(tag, 'Segnalazione inviata con successo — apertura modal');
       modalOk.showModal();
     } else {
       const messaggi = {
@@ -281,10 +269,10 @@ const { cantoUrl } = Astro.props;
         email_non_valida: 'Inserisci un indirizzo email valido.',
         messaggio_troppo_lungo: 'Il messaggio non può superare le 200 righe.',
         verifica_fallita: 'Verifica antispam non valida. Ricarica la pagina e riprova.',
+        privacy_non_accettata: 'Devi accettare la Privacy Policy per inviare la segnalazione.',
         invio_fallito: "Si è verificato un errore durante l'invio. Riprova più tardi.",
       };
       const msg = messaggi[data.error] ?? "Si è verificato un errore. Riprova più tardi.";
-      console.warn(tag, 'Errore endpoint:', data.error, '→', msg);
       showError(msg);
     }
   });
