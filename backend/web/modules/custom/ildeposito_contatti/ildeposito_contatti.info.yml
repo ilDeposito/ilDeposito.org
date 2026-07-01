@@ -3,3 +3,5 @@ type: module
 description: 'Entity fieldable per submission form contatti, con bundle configurabili da UI.'
 package: 'ilDeposito'
 core_version_requirement: ^10.2 || ^11 || ^12
+dependencies:
+  - drupal:options
