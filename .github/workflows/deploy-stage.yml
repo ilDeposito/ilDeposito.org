@@ -29,7 +29,7 @@ jobs:
           TIMESTAMP=$(date +%Y%m%d-%H%M%S)
           ./ildeposito.sh drush sql:dump --result-file=/var/backup_migrate/pre-deploy-${TIMESTAMP}.sql
           ./ildeposito.sh exec -T php bzip2 /var/backup_migrate/pre-deploy-${TIMESTAMP}.sql
-          find ../backup/ -name "pre-deploy-*.sql.bz2" -mtime +7 -delete
+          find backup/ -name "pre-deploy-*.sql.bz2" -mtime +7 -delete
 
       - name: Pull latest code
         run: |
