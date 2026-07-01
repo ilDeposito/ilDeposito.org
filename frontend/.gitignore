@@ -29,3 +29,7 @@ pnpm-debug.log*
 
 .playwright-cli
 
+# playwright output
+playwright-report/
+test-results/
+

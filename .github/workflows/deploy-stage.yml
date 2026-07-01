@@ -7,7 +7,7 @@ on:
 
 concurrency:
   group: deploy-stage
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -17,26 +17,66 @@ jobs:
         working-directory: /home/ubuntu/sergej/websites/ildeposito/stage
 
     steps:
+      - name: Pre-deploy health check
+        run: |
+          ./ildeposito.sh drush status --fields=drupal-version,db-status,bootstrap
+          ./ildeposito.sh drush config:status 2>/dev/null \
+            | grep -v 'No differences' \
+            && echo '::warning::Config drift rilevato' || true
+
       - name: Backup database
         run: |
           TIMESTAMP=$(date +%Y%m%d-%H%M%S)
           ./ildeposito.sh drush sql:dump --result-file=/var/backup_migrate/pre-deploy-${TIMESTAMP}.sql
-          ./ildeposito.sh exec php bzip2 /var/backup_migrate/pre-deploy-${TIMESTAMP}.sql
+          ./ildeposito.sh exec -T php bzip2 /var/backup_migrate/pre-deploy-${TIMESTAMP}.sql
+          find ../backup/ -name "pre-deploy-*.sql.bz2" -mtime +7 -delete
 
       - name: Pull latest code
-        run: git pull origin main
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
 
       - name: Update containers
         run: ./ildeposito.sh up --force-recreate
+
+      - name: Wait for DB ready
+        run: |
+          for i in $(seq 1 10); do
+            ./ildeposito.sh drush status --fields=db-status 2>/dev/null \
+              | grep -q Connected && break
+            echo "Waiting for DB... ($i/10)"; sleep 5
+          done
 
       - name: Install Composer dependencies
         run: ./ildeposito.sh composer install --no-dev --optimize-autoloader
 
       - name: Run Drupal updates
         run: |
-          ./ildeposito.sh drush updatedb -y
-          ./ildeposito.sh drush config:import -y
+          ./ildeposito.sh drush sset system.maintenance_mode 1
+          ./ildeposito.sh drush cache:rebuild
+          ./ildeposito.sh drush updatedb -y || { ./ildeposito.sh drush sset system.maintenance_mode 0; ./ildeposito.sh drush cache:rebuild; exit 1; }
+          ./ildeposito.sh drush config:import -y || { ./ildeposito.sh drush sset system.maintenance_mode 0; ./ildeposito.sh drush cache:rebuild; exit 1; }
+          ./ildeposito.sh drush cache:rebuild
+          ./ildeposito.sh drush sset system.maintenance_mode 0
           ./ildeposito.sh drush cache:rebuild
 
       - name: Build frontend
         run: ./ildeposito.sh build-frontend
+
+      - name: Smoke test
+        run: |
+          sleep 10
+          STATUS=$(curl -sk -o /dev/null -w "%{http_code}" \
+            -u "${{ secrets.STAGE_AUTH_USER }}:${{ secrets.STAGE_AUTH_PASS }}" \
+            https://stage.ildeposito.org/)
+          echo "HTTP status: $STATUS"
+          [ "$STATUS" = "200" ] || exit 1
+
+      - name: E2E tests (Playwright)
+        env:
+          STAGE_AUTH_USER: ${{ secrets.STAGE_AUTH_USER }}
+          STAGE_AUTH_PASS: ${{ secrets.STAGE_AUTH_PASS }}
+        working-directory: /home/ubuntu/sergej/websites/ildeposito/stage/frontend
+        run: |
+          npx playwright install chromium --with-deps
+          npx playwright test

@@ -47,7 +47,7 @@ services:
 
   frontend-web:
     container_name: ildeposito_prod_frontend_nginx
-    image: macbre/nginx-brotli:latest
+    image: macbre/nginx-brotli@sha256:c21d7b2a59c4e802b5511654b487855b40e32c4e28d6816b69e58fabf4a59281
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "wget -qO /dev/null http://localhost/ || exit 1"]

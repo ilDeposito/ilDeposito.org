@@ -89,11 +89,11 @@ cmd_build_frontend() {
 }
 
 cmd_drush() {
-    ${COMPOSE} exec php drush -r /var/www/html/web "$@"
+    ${COMPOSE} exec -T php drush -r /var/www/html/web "$@"
 }
 
 cmd_composer() {
-    ${COMPOSE} exec php composer --working-dir=/var/www/html "$@"
+    ${COMPOSE} exec -T php composer --working-dir=/var/www/html "$@"
 }
 
 cmd_exec() {
