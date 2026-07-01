@@ -85,6 +85,8 @@ final class IldepositoContattiHooks {
       $params['email'],
     );
 
+    $message['headers']['Reply-To'] = $params['nome'] . ' <' . $params['email'] . '>';
+
     $message['body'][] = implode("\n", [
       'Nome: ' . $params['nome'],
       'Email: ' . $params['email'],
