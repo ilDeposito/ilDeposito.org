@@ -41,6 +41,24 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     console.warn(`${tag} Validazione fallita — campi mancanti: ${mancanti.join(', ')}`);
     return json({ ok: false, error: 'campi_mancanti' }, 400);
   }
+
+  if (nome.length < 2) {
+    console.warn(`${tag} Validazione fallita — nome troppo corto: ${nome.length}ch`);
+    return json({ ok: false, error: 'nome_troppo_corto' }, 400);
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  if (!emailRegex.test(email)) {
+    console.warn(`${tag} Validazione fallita — email non valida: ${email}`);
+    return json({ ok: false, error: 'email_non_valida' }, 400);
+  }
+
+  const righe = messaggio.split('\n').length;
+  if (righe > 200) {
+    console.warn(`${tag} Validazione fallita — messaggio troppo lungo: ${righe} righe`);
+    return json({ ok: false, error: 'messaggio_troppo_lungo' }, 400);
+  }
+
   console.log(`${tag} Validazione OK`);
 
   // --- Verifica Altcha ---

@@ -74,6 +74,11 @@ import Breadcrumb from '../components/ui/Breadcrumb.astro';
           class="textarea textarea-bordered form-border bg-base-200 w-full font-sans text-base leading-relaxed"
           placeholder="Scrivi il tuo messaggio…"
         ></textarea>
+        <div class="label">
+          <span class="label-text-alt text-base-content/50">
+            <span id="messaggio-count">0</span>/200 righe
+          </span>
+        </div>
       </div>
 
       <!-- Altcha: proof-of-work antispam, self-hosted, zero dati a terzi -->
@@ -143,7 +148,19 @@ import Breadcrumb from '../components/ui/Breadcrumb.astro';
   const errorMsg = document.getElementById('form-error-msg');
   const modal = document.getElementById('modal-successo');
   const privacyCheck = document.getElementById('privacy');
+  const emailInput = document.getElementById('email');
+  const messaggioArea = document.getElementById('messaggio');
+  const messaggioCount = document.getElementById('messaggio-count');
   console.log(tag, 'Form pronto');
+
+  // Contatore righe textarea
+  messaggioArea.addEventListener('input', function () {
+    const lines = this.value === '' ? 0 : this.value.split('\n').length;
+    messaggioCount.textContent = lines;
+    const isOver = lines > 200;
+    messaggioCount.classList.toggle('text-error', isOver);
+    messaggioCount.classList.toggle('font-semibold', isOver);
+  });
 
   function setLoading(loading) {
     submitBtn.disabled = loading;
@@ -171,14 +188,31 @@ import Breadcrumb from '../components/ui/Breadcrumb.astro';
 
     const fd = new FormData(form);
     const privacyAccettata = privacyCheck.checked;
+    const nome = String(fd.get('nome') || '').trim();
+    const messaggio = String(fd.get('messaggio') || '').trim();
 
     console.log(tag, 'Submit →', {
-      nome: fd.get('nome') ? `"${fd.get('nome')}" (${String(fd.get('nome')).length}ch)` : '⚠ vuoto',
+      nome: nome ? `"${nome}" (${nome.length}ch)` : '⚠ vuoto',
       email: fd.get('email') || '⚠ vuoto',
-      messaggio: fd.get('messaggio') ? `${String(fd.get('messaggio')).length}ch` : '⚠ vuoto',
+      messaggio: messaggio ? `${messaggio.length}ch` : '⚠ vuoto',
       privacy: privacyAccettata ? '✓ accettata' : '⚠ non accettata',
       altcha: fd.get('altcha') ? '✓ verificato' : '⚠ in attesa',
     });
+
+    // --- Validazione campi ---
+    if (nome.length < 2) {
+      showError('Il nome deve contenere almeno 2 caratteri.');
+      return;
+    }
+    if (!emailInput.checkValidity()) {
+      showError('Inserisci un indirizzo email valido.');
+      return;
+    }
+    const righe = messaggio === '' ? 0 : messaggio.split('\n').length;
+    if (righe > 200) {
+      showError(`Il messaggio non può superare le 200 righe (attualmente ${righe}).`);
+      return;
+    }
 
     if (!privacyAccettata) {
       showError('Devi accettare la Privacy Policy per inviare il modulo.');
@@ -213,6 +247,9 @@ import Breadcrumb from '../components/ui/Breadcrumb.astro';
     } else {
       const messaggi = {
         campi_mancanti: 'Compila tutti i campi richiesti.',
+        nome_troppo_corto: 'Il nome deve contenere almeno 2 caratteri.',
+        email_non_valida: 'Inserisci un indirizzo email valido.',
+        messaggio_troppo_lungo: 'Il messaggio non può superare le 200 righe.',
         verifica_fallita: 'Verifica antispam non valida. Ricarica la pagina e riprova.',
         invio_fallito: "Si è verificato un errore durante l'invio. Riprova più tardi.",
       };
