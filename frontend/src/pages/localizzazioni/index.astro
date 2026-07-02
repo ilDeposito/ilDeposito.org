@@ -6,30 +6,31 @@ import Icon from '../../components/base/Icon.astro';
 import { getLocalizzazioni, getContenutiByLocalizzazioneMap } from '../../lib/api/index.js';
 import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
 import { buildCanonical } from '../../lib/seo.js';
+import { getPageMeta } from '../../lib/pages.js';
 
 const localizzazioni = await getLocalizzazioni();
 const contenutiMap = await getContenutiByLocalizzazioneMap();
 
+const meta = getPageMeta('localizzazioni.index');
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
-const seoDescription = 'Autori e eventi storici per luogo di origine: esplora l\'archivio di ilDeposito.org per località.';
 const jsonLd = [
-  buildCollectionPageSchema('Luoghi — Autori e eventi per luogo', seoDescription, buildCanonical(Astro)),
+  buildCollectionPageSchema(meta.metaTitle, meta.metaDescription, buildCanonical(Astro)),
   buildBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
     { name: 'Localizzazioni' },
   ]),
 ];
 ---
-<BaseLayout title="Luoghi — Autori e eventi per luogo" description={seoDescription} jsonLd={jsonLd}>
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription} jsonLd={jsonLd}>
 
   <!-- Titolo + info: attaccato all'header e ai bordi laterali -->
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Localizzazioni' }]} />
 
-      <h1 class="font-serif font-bold text-2xl md:text-3xl text-base-content">Localizzazioni</h1>
+      <h1 class="font-serif font-bold text-2xl md:text-3xl text-base-content">{meta.pageTitle}</h1>
 
-      <p class="font-serif italic text-base text-base-content/60">Le localizzazioni per gli autori e gli eventi dell'archivio</p>
+      <p class="font-serif italic text-base text-base-content/60">{meta.pageDescription}</p>
 
       <share-button data-title="Localizzazioni" class="contents">
         <button type="button" class="inline-flex items-center gap-1 cursor-pointer w-fit" aria-label="Condividi questa pagina">

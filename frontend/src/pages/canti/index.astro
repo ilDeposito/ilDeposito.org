@@ -7,14 +7,15 @@ import Icon from '../../components/base/Icon.astro';
 import { getCantiPiuVisti, getAutoriImmaginiMap, getImageUrl } from '../../lib/api/index.js';
 import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
 import { buildCanonical } from '../../lib/seo.js';
+import { getPageMeta } from '../../lib/pages.js';
 
 const canti = await getCantiPiuVisti(12);
 const autoriImmagini = await getAutoriImmaginiMap();
 
+const meta = getPageMeta('canti.index');
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
-const seoDescription = 'Esplora l\'archivio completo dei canti di protesta politica e sociale: testi, accordi, traduzioni e informazioni storiche.';
 const jsonLd = [
-  buildCollectionPageSchema('Canti di protesta — Archivio completo', seoDescription, buildCanonical(Astro)),
+  buildCollectionPageSchema(meta.metaTitle, meta.metaDescription, buildCanonical(Astro)),
   buildBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
     { name: 'Canti' },
@@ -30,15 +31,15 @@ const cantiConDati = canti.map((canto) => {
   return { canto, autori, immagineUrl };
 });
 ---
-<BaseLayout title="Canti di protesta — Archivio completo" description={seoDescription} jsonLd={jsonLd}>
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription} jsonLd={jsonLd}>
 
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Canti' }]} />
 
-      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">I canti dell'archivio</h1>
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{meta.pageTitle}</h1>
 
-      <p class="font-serif italic text-base text-base-content/60">La pagina di accesso all'archivio dei canti</p>
+      <p class="font-serif italic text-base text-base-content/60">{meta.pageDescription}</p>
 
       <a href="/canti/elenco" class="btn btn-primary btn-sm gap-2 w-fit border-0">
         Tutti i canti dell'archivio

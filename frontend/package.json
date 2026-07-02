@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
+    "@rollup/plugin-yaml": "^5.0.0",
     "@tailwindcss/vite": "^4.3.0",
     "daisyui": "^5.5.20",
     "pagefind": "^1.5.2",

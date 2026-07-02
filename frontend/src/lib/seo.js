@@ -1,3 +1,5 @@
+import { getPageMeta } from './pages.js';
+
 const SITE_NAME = 'ilDeposito.org';
 const MAX_TITLE_LEN = 53;
 const MAX_DESC_LEN = 155;
@@ -96,102 +98,80 @@ export function resolveOgImage(imagePath, site) {
   return new URL(imagePath, site).href;
 }
 
-// ── Title helpers per content type ─────────────────────
+// ── Metadati per content type (entità) ────────────────
+// I template vivono in src/config/pages.yaml (chiavi *.detail): qui si prepara
+// solo il set di variabili da interpolare. Vedi il commento in cima allo YAML
+// per i token disponibili e la sintassi dei condizionali.
 
-export function buildCantoTitle(canto) {
-  const parti = [canto.titolo, '—', 'Testo'];
-  if (canto.accordi) parti.push('e accordi');
-  return parti.join(' ');
-}
+const formatDataIT = (data) =>
+  new Date(data).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
 
-export function buildAutoreTitle(autore) {
-  return `${autore.titolo} — Canti e biografia`;
-}
-
-export function buildEventoTitle(evento) {
-  if (evento.dataEvento) {
-    const anno = new Date(evento.dataEvento).getUTCFullYear();
-    return `${evento.titolo} (${anno})`;
-  }
-  return evento.titolo;
-}
-
-export function buildTraduzioneTitle(traduzione) {
-  const lingua = traduzione.lingue?.[0]?.titolo;
-  return lingua
-    ? `${traduzione.titolo} — Traduzione in ${lingua}`
-    : traduzione.titolo;
-}
-
-// ── Description helpers per content type ───────────────
-
-export function buildCantoDescription(canto) {
-  const risorse = ['Testo'];
-  if (canto.accordi) risorse.push('accordi');
-
-  let desc = `${risorse.join(', ')} di ${canto.titolo}`;
-
+function cantoVars(canto) {
   const autori = [...(canto.autoriTesto ?? []), ...(canto.autoriMusica ?? [])].filter(
     (a, i, arr) => arr.findIndex((x) => x.slug === a.slug) === i
   );
-  if (autori.length > 0) {
-    desc += ` di ${autori.map((a) => a.titolo).join(' e ')}`;
-  }
-
-  if (canto.anno) desc += ` (${canto.anno})`;
-  desc += '.';
-
-  const extra = canto.capoverso || stripHtml(canto.informazioni || '');
-  if (extra) desc += ` ${extra}`;
-
-  return desc;
+  return {
+    titolo: canto.titolo,
+    accordi: canto.accordi ? '1' : '',
+    autori: autori.map((a) => a.titolo).join(' e '),
+    anno: canto.anno || '',
+    extra: canto.capoverso || stripHtml(canto.informazioni || ''),
+  };
 }
 
+function autoreVars(autore, numCanti = 0) {
+  return {
+    titolo: autore.titolo,
+    bio: autore.informazioni ? stripHtml(autore.informazioni) : '',
+    count: numCanti,
+    loc: autore.localizzazioni?.[0]?.titolo || '',
+  };
+}
+
+function eventoVars(evento) {
+  return {
+    titolo: evento.titolo,
+    anno: evento.dataEvento ? new Date(evento.dataEvento).getUTCFullYear() : '',
+    info: evento.informazioni ? stripHtml(evento.informazioni) : '',
+    data: evento.dataEvento ? formatDataIT(evento.dataEvento) : '',
+    loc: evento.localizzazioni?.[0]?.titolo || '',
+  };
+}
+
+function traduzioneVars(traduzione) {
+  return {
+    titolo: traduzione.titolo,
+    lingua: traduzione.lingue?.[0]?.titolo || '',
+    info: traduzione.informazioni ? stripHtml(traduzione.informazioni) : '',
+    nome: traduzione.cantoOriginale?.titolo || traduzione.titolo,
+  };
+}
+
+export function buildCantoTitle(canto) {
+  return getPageMeta('canti.detail', cantoVars(canto)).metaTitle;
+}
+export function buildCantoDescription(canto) {
+  return getPageMeta('canti.detail', cantoVars(canto)).metaDescription;
+}
+
+export function buildAutoreTitle(autore) {
+  return getPageMeta('autori.detail', autoreVars(autore)).metaTitle;
+}
 export function buildAutoreDescription(autore, numCanti) {
-  if (autore.informazioni) {
-    let desc = stripHtml(autore.informazioni);
-    if (numCanti > 0) desc += ` ${numCanti} canti nell'archivio.`;
-    return desc;
-  }
-
-  let desc = `Biografia e canti di ${autore.titolo}`;
-  if (autore.localizzazioni?.length > 0) {
-    desc += `, da ${autore.localizzazioni[0].titolo}`;
-  }
-  desc += '.';
-  if (numCanti > 0) {
-    desc += ` ${numCanti} canti con testo e accordi nell'archivio di ilDeposito.org.`;
-  } else {
-    desc += ' Nell\'archivio di ilDeposito.org.';
-  }
-  return desc;
+  return getPageMeta('autori.detail', autoreVars(autore, numCanti)).metaDescription;
 }
 
+export function buildEventoTitle(evento) {
+  return getPageMeta('eventi.detail', eventoVars(evento)).metaTitle;
+}
 export function buildEventoDescription(evento) {
-  if (evento.informazioni) return stripHtml(evento.informazioni);
-
-  let desc = evento.titolo;
-  if (evento.dataEvento) {
-    const d = new Date(evento.dataEvento);
-    desc += `, ${d.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })}`;
-  }
-  if (evento.localizzazioni?.length > 0) {
-    desc += ` — ${evento.localizzazioni[0].titolo}`;
-  }
-  desc += '. Evento storico nell\'archivio di ilDeposito.org.';
-  return desc;
+  return getPageMeta('eventi.detail', eventoVars(evento)).metaDescription;
 }
 
+export function buildTraduzioneTitle(traduzione) {
+  return getPageMeta('traduzioni.detail', traduzioneVars(traduzione)).metaTitle;
+}
 export function buildTraduzioneDescription(traduzione) {
-  if (traduzione.informazioni) return stripHtml(traduzione.informazioni);
-
-  const parti = ['Traduzione'];
-  if (traduzione.lingue?.length > 0) {
-    parti.push(`in ${traduzione.lingue[0].titolo}`);
-  }
-  const nome = traduzione.cantoOriginale?.titolo || traduzione.titolo;
-  parti.push(`di ${nome}.`);
-  parti.push('Testo completo nell\'archivio di ilDeposito.org.');
-  return parti.join(' ');
+  return getPageMeta('traduzioni.detail', traduzioneVars(traduzione)).metaDescription;
 }
 

@@ -16,7 +16,9 @@ import {
   getImageUrl,
 } from '../lib/api/index.js';
 import { buildWebSiteSchema, buildOrganizationSchema, buildBreadcrumbSchema } from '../lib/schema.js';
+import { getPageMeta } from '../lib/pages.js';
 
+const meta = getPageMeta('home');
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
 const jsonLd = [
   buildWebSiteSchema(siteUrl),
@@ -97,8 +99,8 @@ const autoriConDati = autori.map((autore) => ({
 }));
 ---
 <BaseLayout
-  title="ilDeposito.org - Canti di protesta politica e sociale"
-  description="Archivio online di canti di protesta politica e sociale: testi, accordi, traduzioni, autori e eventi storici."
+  title={meta.metaTitle}
+  description={meta.metaDescription}
   jsonLd={jsonLd}
 >
 

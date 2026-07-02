@@ -5,7 +5,9 @@ import ShareModal from '../../components/ui/ShareModal.astro';
 import Icon from '../../components/base/Icon.astro';
 import MonthCalendar from '../../components/ui/MonthCalendar.astro';
 import { getEventiCalendario } from '../../lib/api/index.js';
+import { getPageMeta } from '../../lib/pages.js';
 
+const meta = getPageMeta('calendario.index');
 const eventi = await getEventiCalendario();
 
 const eventsByMonth = new Map<number, Set<number>>();
@@ -20,14 +22,14 @@ for (const evento of eventi) {
 
 const year = new Date().getFullYear();
 ---
-<BaseLayout title="Calendario cantato — Anniversari storici" description="Il calendario cantato di ilDeposito.org: gli anniversari degli eventi storici legati ai canti di protesta, giorno per giorno.">
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription}>
 
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Eventi', href: '/eventi' }, { label: 'Calendario cantato' }]} />
 
-      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">Calendario cantato</h1>
-      <p class="font-serif italic text-base text-base-content/60">Gli anniversari degli eventi storici, giorno per giorno</p>
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{meta.pageTitle}</h1>
+      <p class="font-serif italic text-base text-base-content/60">{meta.pageDescription}</p>
 
       <share-button data-title="Calendario cantato" class="contents">
         <button type="button" class="inline-flex items-center gap-1 cursor-pointer w-fit" aria-label="Condividi questa pagina">

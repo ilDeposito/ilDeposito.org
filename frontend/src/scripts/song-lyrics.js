@@ -122,13 +122,17 @@ class SongLyrics extends HTMLElement {
       return;
     }
     pre.innerHTML = renderAccordi(this._originalAccordi, this._semitones);
-    this.querySelector('[data-transpose-reset]')?.classList.remove('hidden');
+    const resetBtn = this.querySelector('[data-transpose-reset]');
+    resetBtn?.classList.remove('invisible');
+    resetBtn?.removeAttribute('disabled');
   }
 
   _reset(pre) {
     this._semitones = 0;
     pre.innerHTML = renderAccordi(this._originalAccordi, 0);
-    this.querySelector('[data-transpose-reset]')?.classList.add('hidden');
+    const resetBtn = this.querySelector('[data-transpose-reset]');
+    resetBtn?.classList.add('invisible');
+    resetBtn?.setAttribute('disabled', '');
   }
 }
 

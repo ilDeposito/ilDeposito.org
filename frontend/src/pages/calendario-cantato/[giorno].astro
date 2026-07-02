@@ -6,6 +6,7 @@ import Icon from '../../components/base/Icon.astro';
 import EventCard from '../../components/ui/EventCard.astro';
 import { getEventiCalendario } from '../../lib/api/index.js';
 import type { EventoCalendario } from '../../lib/api/types.js';
+import { getPageMeta } from '../../lib/pages.js';
 
 export async function getStaticPaths() {
   const allEventi = await getEventiCalendario();
@@ -39,10 +40,12 @@ const eventiOrdinati = [...eventiGiorno].sort((a, b) =>
   new Date(a.dataEvento).getUTCFullYear() - new Date(b.dataEvento).getUTCFullYear()
 );
 
-const titolo = `${dayNum} ${monthName} — Calendario cantato`;
-const descrizione = `Gli eventi storici del ${dayNum} ${monthName} nell'archivio di ilDeposito.org: anniversari, ricorrenze e canti collegati.`;
+const giornoLabel = `${dayNum} ${monthName}`;
+const meta = getPageMeta('calendario.giorno', { giorno: giornoLabel });
+const titolo = meta.pageTitle;
+const descrizione = meta.pageDescription;
 ---
-<BaseLayout title={titolo} description={descrizione}>
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription}>
 
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">

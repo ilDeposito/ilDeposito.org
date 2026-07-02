@@ -174,16 +174,13 @@ const jsonLd = [
               <span class="font-serif font-semibold">Cambia la tonalità</span>
               <button type="button" data-transpose="-1" class="btn btn-xs border-0 bg-base-300 text-base-content/70 min-w-8" aria-label="Abbassa di mezzo tono">−1</button>
               <button type="button" data-transpose="+1" class="btn btn-xs border-0 bg-base-300 text-base-content/70 min-w-8" aria-label="Alza di mezzo tono">+1</button>
-              <button type="button" data-transpose-reset class="btn btn-xs btn-ghost text-base-content/50 hidden" aria-label="Tonalità originale">Reset</button>
+              <button type="button" data-transpose-reset disabled class="btn btn-xs btn-ghost text-base-content/50 invisible" aria-label="Tonalità originale">Reset</button>
             </div>
             <pre class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap text-left [&>.chord-line]:font-bold [&>.chord-line]:text-base-content">{canto.accordi}</pre>
           </div>
         </song-lyrics>
       ) : (
-        <div>
-          <p data-pagefind-ignore class="font-serif font-bold text-base text-base-content text-center border-b border-base-300 mb-3 pb-2">Testo</p>
-          <pre lang={linguaToIso(canto.lingue?.[0]?.titolo)} class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{canto.testo}</pre>
-        </div>
+        <pre lang={linguaToIso(canto.lingue?.[0]?.titolo)} class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{canto.testo}</pre>
       )}
       <div data-pagefind-ignore class="flex justify-end mt-2">
         <a href={`/pdf/canti/${canto.slug}.pdf`} download class="inline-flex items-center gap-1 text-base text-base-content">

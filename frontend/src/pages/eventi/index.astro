@@ -12,6 +12,7 @@ import {
 } from '../../lib/api/index.js';
 import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
 import { buildCanonical } from '../../lib/seo.js';
+import { getPageMeta } from '../../lib/pages.js';
 
 const now   = new Date();
 const month = now.getUTCMonth() + 1;
@@ -36,10 +37,10 @@ const meseNome = mesiIT[month - 1];
 const formatData = (data: string) =>
   new Date(data).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
 
+const meta = getPageMeta('eventi.index');
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
-const seoDescription = 'Gli eventi storici legati ai canti di protesta: date, luoghi e canti collegati nell\'archivio di ilDeposito.org.';
 const jsonLd = [
-  buildCollectionPageSchema('Eventi storici — Archivio', seoDescription, buildCanonical(Astro)),
+  buildCollectionPageSchema(meta.metaTitle, meta.metaDescription, buildCanonical(Astro)),
   buildBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
     { name: 'Eventi' },
@@ -61,14 +62,14 @@ const eventiConDati = eventiPiuVisti.map((evento) => ({
   immagineUrl: getImageUrl(evento.immagine),
 }));
 ---
-<BaseLayout title="Eventi storici — Archivio" description={seoDescription} jsonLd={jsonLd} dnsPrefetch={['https://tile.openstreetmap.org']}>
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription} jsonLd={jsonLd} dnsPrefetch={['https://tile.openstreetmap.org']}>
 
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Eventi' }]} />
 
-      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">Gli eventi dell'archivio</h1>
-      <p class="font-serif italic text-base text-base-content/60">La dashboard degli eventi</p>
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{meta.pageTitle}</h1>
+      <p class="font-serif italic text-base text-base-content/60">{meta.pageDescription}</p>
 
       <a href="/eventi/elenco" class="btn btn-primary btn-sm gap-2 w-fit border-0">
         Tutti gli eventi

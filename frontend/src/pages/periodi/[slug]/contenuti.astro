@@ -8,6 +8,7 @@ import { getPeriodi, getImageUrl } from '../../../lib/api/index.js';
 import type { Periodo } from '../../../lib/api/types.js';
 import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../../lib/schema.js';
 import { buildCanonical } from '../../../lib/seo.js';
+import { getPageMeta } from '../../../lib/pages.js';
 
 export async function getStaticPaths() {
   const periodi = await getPeriodi();
@@ -20,9 +21,8 @@ export async function getStaticPaths() {
 const { periodo } = Astro.props as { periodo: Periodo };
 const immagineUrl = getImageUrl(periodo.immagine);
 
+const meta = getPageMeta('periodi.contenuti', { titolo: periodo.titolo });
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
-const seoTitle = `Tutti i contenuti del periodo ${periodo.titolo}`;
-const seoDescription = `Canti, autori e eventi del periodo "${periodo.titolo}": esplora l'archivio completo di ilDeposito.org.`;
 const breadcrumbItems = [
   { label: 'Home', href: '/' },
   { label: 'Periodi', href: '/periodi' },
@@ -30,11 +30,11 @@ const breadcrumbItems = [
   { label: 'Contenuti' },
 ];
 const jsonLd = [
-  buildCollectionPageSchema(seoTitle, seoDescription, buildCanonical(Astro)),
+  buildCollectionPageSchema(meta.metaTitle, meta.metaDescription, buildCanonical(Astro)),
   buildBreadcrumbSchema(breadcrumbItems.map((item) => ({ name: item.label, url: item.href ? `${siteUrl}${item.href}` : undefined }))),
 ];
 ---
-<BaseLayout title={seoTitle} description={seoDescription} jsonLd={jsonLd}>
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription} jsonLd={jsonLd}>
 
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
@@ -55,8 +55,8 @@ const jsonLd = [
           />
         )}
         <div class="flex flex-col gap-1">
-          <h1 class="font-serif font-bold text-2xl md:text-3xl text-base-content">Contenuti: {periodo.titolo}</h1>
-          <p class="font-serif italic text-base text-base-content/60">Tutti i canti, autori e eventi del periodo</p>
+          <h1 class="font-serif font-bold text-2xl md:text-3xl text-base-content">{meta.pageTitle}</h1>
+          <p class="font-serif italic text-base text-base-content/60">{meta.pageDescription}</p>
         </div>
       </div>
     </div>

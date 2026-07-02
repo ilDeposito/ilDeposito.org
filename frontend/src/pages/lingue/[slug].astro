@@ -6,6 +6,7 @@ import { getLingue } from '../../lib/api/index.js';
 import type { Tassonomia } from '../../lib/api/types.js';
 import { buildWebPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
 import { buildCanonical } from '../../lib/seo.js';
+import { getPageMeta } from '../../lib/pages.js';
 import { getOgImageFallback } from '../../lib/og-image.js';
 
 export async function getStaticPaths() {
@@ -18,10 +19,10 @@ export async function getStaticPaths() {
 
 const { lingua } = Astro.props as { lingua: Tassonomia };
 const titolo = lingua.titolo.charAt(0).toUpperCase() + lingua.titolo.slice(1);
+const meta = getPageMeta('lingue.term', { titolo });
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
-const seoDescription = `I canti di protesta e le traduzioni in ${titolo} nell'archivio di ilDeposito.org.`;
 const jsonLd = [
-  buildWebPageSchema(`Canti in ${titolo}`, seoDescription, buildCanonical(Astro)),
+  buildWebPageSchema(meta.metaTitle, meta.metaDescription, buildCanonical(Astro)),
   buildBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
     { name: 'Lingue', url: `${siteUrl}/lingue` },
@@ -30,13 +31,13 @@ const jsonLd = [
 ];
 const ogImage = await getOgImageFallback();
 ---
-<BaseLayout title={`Canti in ${titolo}`} description={seoDescription} jsonLd={jsonLd} ogImage={ogImage}>
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription} jsonLd={jsonLd} ogImage={ogImage}>
 
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Lingue', href: '/lingue' }, { label: titolo }]} />
-      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{titolo}</h1>
-      <p class="font-serif italic text-base text-base-content/60">I contenuti in {titolo} dell'archivio</p>
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{meta.pageTitle}</h1>
+      <p class="font-serif italic text-base text-base-content/60">{meta.pageDescription}</p>
     </div>
   </header>
   <div class="max-w-6xl mx-auto px-4 py-8">

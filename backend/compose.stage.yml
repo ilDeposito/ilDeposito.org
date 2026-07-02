@@ -6,8 +6,11 @@ services:
     container_name: ildeposito_stage_backend_php
     environment:
       ILDEPOSITO_ENV: stage
-      FILES_DIR_PERMISSIONS_FIX: 0
-      DRUPAL_SITE_DIR_PERMISSIONS_FIX: 0
+      # Wodby corregge owner/permessi di files e sites/default all'avvio del
+      # container: senza, il bind mount resta di proprietà dell'utente host e
+      # PHP-FPM (uid 1000) non può scrivere in public:// (es. drush mim media).
+      FILES_DIR_PERMISSIONS_FIX: 1
+      DRUPAL_SITE_DIR_PERMISSIONS_FIX: 1
 
   crond:
     container_name: ildeposito_stage_backend_crond

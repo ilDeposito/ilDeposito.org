@@ -4,15 +4,18 @@ import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
 import PagefindList from '../../components/ui/PagefindList.astro';
 import Icon from '../../components/base/Icon.astro';
+import { getPageMeta } from '../../lib/pages.js';
+
+const meta = getPageMeta('eventi.elenco');
 ---
-<BaseLayout title="Gli eventi dell'archivio" description="Elenco completo degli eventi dell'archivio in ordine alfabetico">
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription}>
 
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Eventi', href: '/eventi' }, { label: 'Elenco' }]} />
 
-      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">Gli eventi dell'archivio</h1>
-      <p class="font-serif italic text-base text-base-content/60">L'elenco completo degli eventi dell'archivio</p>
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{meta.pageTitle}</h1>
+      <p class="font-serif italic text-base text-base-content/60">{meta.pageDescription}</p>
 
       <a href="/storia-cantata" class="inline-flex items-center gap-2 text-primary w-fit">
         <span class="border border-primary rounded p-1 inline-flex">

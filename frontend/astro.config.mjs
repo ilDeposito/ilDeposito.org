@@ -1,6 +1,7 @@
 import { defineConfig } from 'astro/config';
 import { loadEnv } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
+import yaml from '@rollup/plugin-yaml';
 import sitemap from '@astrojs/sitemap';
 import node from '@astrojs/node';
 
@@ -53,6 +54,7 @@ export default defineConfig({
 
   vite: {
     plugins: [
+      yaml(),
       tailwindcss(),
       pagefindDevServer(),
     ],

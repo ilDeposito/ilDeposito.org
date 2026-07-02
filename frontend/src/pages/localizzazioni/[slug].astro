@@ -6,6 +6,7 @@ import { getLocalizzazioni } from '../../lib/api/index.js';
 import type { Tassonomia } from '../../lib/api/types.js';
 import { buildWebPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
 import { buildCanonical } from '../../lib/seo.js';
+import { getPageMeta } from '../../lib/pages.js';
 import { getOgImageFallback } from '../../lib/og-image.js';
 
 export async function getStaticPaths() {
@@ -18,10 +19,10 @@ export async function getStaticPaths() {
 
 const { localizzazione } = Astro.props as { localizzazione: Tassonomia };
 const titolo = localizzazione.titolo.charAt(0).toUpperCase() + localizzazione.titolo.slice(1);
+const meta = getPageMeta('localizzazioni.term', { titolo });
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
-const seoDescription = `Gli autori e gli eventi storici legati a ${titolo} nell'archivio di ilDeposito.org.`;
 const jsonLd = [
-  buildWebPageSchema(`${titolo} — Autori e eventi`, seoDescription, buildCanonical(Astro)),
+  buildWebPageSchema(meta.metaTitle, meta.metaDescription, buildCanonical(Astro)),
   buildBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
     { name: 'Localizzazioni', url: `${siteUrl}/localizzazioni` },
@@ -30,13 +31,13 @@ const jsonLd = [
 ];
 const ogImage = await getOgImageFallback();
 ---
-<BaseLayout title={`${titolo} — Autori e eventi`} description={seoDescription} jsonLd={jsonLd} ogImage={ogImage}>
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription} jsonLd={jsonLd} ogImage={ogImage}>
 
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Localizzazioni', href: '/localizzazioni' }, { label: titolo }]} />
-      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{titolo}</h1>
-      <p class="font-serif italic text-base text-base-content/60">I contenuti dell'archivio localizzati in {titolo}</p>
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{meta.pageTitle}</h1>
+      <p class="font-serif italic text-base text-base-content/60">{meta.pageDescription}</p>
     </div>
   </header>
   <div class="max-w-6xl mx-auto px-4 py-8">

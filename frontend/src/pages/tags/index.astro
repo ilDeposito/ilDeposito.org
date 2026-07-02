@@ -7,29 +7,30 @@ import { Image } from 'astro:assets';
 import { getTags, getContenutiByTagMap, getImageUrl } from '../../lib/api/index.js';
 import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
 import { buildCanonical } from '../../lib/seo.js';
+import { getPageMeta } from '../../lib/pages.js';
 
 const tags = await getTags();
 const contenutiMap = await getContenutiByTagMap();
 
+const meta = getPageMeta('tags.index');
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
-const seoDescription = 'Esplora i canti di protesta per argomento: lavoro, guerra, resistenza, emigrazione e altri temi.';
 const jsonLd = [
-  buildCollectionPageSchema('Argomenti — Canti per tema', seoDescription, buildCanonical(Astro)),
+  buildCollectionPageSchema(meta.metaTitle, meta.metaDescription, buildCanonical(Astro)),
   buildBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
     { name: 'Tags' },
   ]),
 ];
 ---
-<BaseLayout title="Argomenti — Canti per tema" description={seoDescription} jsonLd={jsonLd}>
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription} jsonLd={jsonLd}>
 
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Tags' }]} />
 
-      <h1 class="font-serif font-bold text-2xl md:text-3xl text-base-content">Tags</h1>
+      <h1 class="font-serif font-bold text-2xl md:text-3xl text-base-content">{meta.pageTitle}</h1>
 
-      <p class="font-serif italic text-base text-base-content/60">L'elenco dei tag con cui sono catalogati i contenuti</p>
+      <p class="font-serif italic text-base text-base-content/60">{meta.pageDescription}</p>
 
       <share-button data-title="Tags" class="contents">
         <button type="button" class="inline-flex items-center gap-1 cursor-pointer w-fit" aria-label="Condividi questa pagina">
