@@ -66,7 +66,11 @@ generate_htpasswd() {
     fi
     mkdir -p "${PROJECT_ROOT}/secrets"
     printf 'ildeposito:%s\n' "${BASIC_AUTH_HASH}" > "${PROJECT_ROOT}/secrets/htpasswd"
-    chmod 600 "${PROJECT_ROOT}/secrets/htpasswd"
+    # 644 e non 600: il file è letto ad ogni richiesta dal worker nginx nel
+    # container, che gira con un uid diverso da quello dell'host che lo scrive
+    # (nessun remap di ownership sui bind mount). Contiene solo un hash bcrypt,
+    # non la password in chiaro.
+    chmod 644 "${PROJECT_ROOT}/secrets/htpasswd"
 }
 
 cmd_up() {
