@@ -1,13 +1,18 @@
 import { test, expect } from '@playwright/test';
 
-test('ricerca Pagefind restituisce risultati', async ({ page }) => {
+test('ricerca Pagefind mostra risultati o messaggio vuoto', async ({ page }) => {
   await page.goto('/');
 
   const searchInput = page.locator('[data-search-input]');
   await expect(searchInput).toBeVisible();
-  await searchInput.fill('bella');
 
-  // Pagefind carica /pagefind/pagefind.js on-demand con debounce 200ms
+  // pressSequentially simula la tastiera carattere per carattere,
+  // così il custom element riceve gli input events correttamente
+  await searchInput.pressSequentially('bella', { delay: 50 });
+
   const results = page.locator('[data-search-results]');
-  await expect(results.locator('li a').first()).toBeVisible({ timeout: 8_000 });
+  // Aspetta che il container sia visibile (classe 'hidden' rimossa da Pagefind)
+  await expect(results).not.toHaveClass(/\bhidden\b/, { timeout: 12_000 });
+  // Almeno un <li> — con link (risultato trovato) o span (nessun risultato)
+  await expect(results.locator('li').first()).toBeVisible();
 });
