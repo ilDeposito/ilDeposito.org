@@ -33,6 +33,28 @@ PROJECT_NAME="ildeposito-${ENV}"
 export COMPOSE_PROJECT_NAME="${PROJECT_NAME}"
 COMPOSE="docker compose --project-directory ${PROJECT_ROOT}"
 
+# La dir dei file Drupal è sul bind mount del codebase (non sul volume /mnt/files
+# gestito da Wodby), quindi Wodby non ne corregge mai owner/permessi all'avvio.
+# PHP-FPM gira come www-data (uid 82) e drush come wodby (membro del gruppo
+# www-data): allineiamo owner a www-data + setgid, così scrivono entrambi e le
+# sottocartelle create dalle migrazioni ereditano il gruppo. Idempotente.
+fix_files_permissions() {
+    local files_dir="/var/www/html/web/sites/default/files"
+    info "Allineo permessi ${files_dir} (www-data)..."
+    for i in $(seq 1 10); do
+        if ${COMPOSE} exec -T -u root php sh -c "
+            chown -R www-data:www-data '${files_dir}' &&
+            find '${files_dir}' -type d -exec chmod 2775 {} + &&
+            find '${files_dir}' -type f -exec chmod 664 {} +" 2>/dev/null; then
+            ok "Permessi files allineati"
+            return 0
+        fi
+        info "php non ancora pronto, riprovo... (${i}/10)"
+        sleep 3
+    done
+    warn "Impossibile allineare i permessi di ${files_dir} (php non raggiungibile)"
+}
+
 cmd_up() {
     local extra_flags="${1:-}"
     info "Avvio ambiente ${ENV} (${PROJECT_NAME})..."
@@ -41,6 +63,7 @@ cmd_up() {
         || { info "Creazione rete ${internal_net}..."; docker network create "${internal_net}"; }
     ${COMPOSE} pull --quiet
     ${COMPOSE} up -d ${extra_flags}
+    fix_files_permissions
     ok "Ambiente ${ENV} avviato"
     info "Backend:  https://admin-${ENV}.ildeposito.org"
     info "Frontend: https://${ENV}.ildeposito.org"
@@ -92,6 +115,36 @@ cmd_drush() {
     ${COMPOSE} exec -T php drush -r /var/www/html/web "$@"
 }
 
+# Import delle migrazioni nell'ordine di dipendenza definito in
+# backend/script/migrate-import.sh (immagini/media prima, poi tassonomie,
+# autori, canti e relazioni, eventi, traduzioni). Eventuali flag extra
+# (es. --update) vengono passati a ogni singola migrazione.
+cmd_migrate() {
+    local -a migrations=(
+        immagini
+        media
+        termini_localizzazioni
+        termini_lingue
+        termini_periodi
+        termini_tags
+        termini_tematiche
+        autori
+        canti
+        canti_correlati
+        autori_correlati
+        eventi
+        traduzioni
+    )
+    info "Import migrazioni [${ENV}] (${#migrations[@]} migrazioni)..."
+    # immagini/media scrivono in public://: allinea prima i permessi.
+    fix_files_permissions
+    for migration in "${migrations[@]}"; do
+        info "Migrazione: ${migration}"
+        cmd_drush mim "${migration}" "$@"
+    done
+    ok "Import migrazioni completato"
+}
+
 cmd_composer() {
     ${COMPOSE} exec -T php composer --working-dir=/var/www/html "$@"
 }
@@ -128,6 +181,7 @@ ${BOLD}Comandi:${NC}
   restart           Riavvia l'ambiente
   build-frontend    Build Astro + deploy zero-downtime
   drush <args>      Esegui comando drush
+  migrate [flags]   Importa tutte le migrazioni (ordine di dipendenza)
   composer <args>   Esegui comando composer
   exec <srv> <cmd>  Esegui comando in un container
   shell [servizio]  Shell nel container (default: php)
@@ -143,6 +197,7 @@ case "${1:-}" in
     restart)         cmd_restart ;;
     build-frontend)  shift; cmd_build_frontend ;;
     drush)           shift; cmd_drush "$@" ;;
+    migrate)         shift; cmd_migrate "$@" ;;
     composer)        shift; cmd_composer "$@" ;;
     exec)            shift; cmd_exec "$@" ;;
     shell)           shift; cmd_shell "$@" ;;
