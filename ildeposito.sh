@@ -168,6 +168,23 @@ cmd_ps() {
     ${COMPOSE} ps
 }
 
+# Verifica link interni sul build statico servito da nginx. I file stanno nel
+# volume frontend_output (current/client): li analizziamo con un container
+# node usa-e-getta montando lo stesso script usato in locale.
+cmd_linkcheck() {
+    local vol="${PROJECT_NAME}_frontend_output"
+    local script="${PROJECT_ROOT}/frontend/scripts/linkcheck.mjs"
+    if ! docker volume inspect "${vol}" &>/dev/null; then
+        error "Volume ${vol} non trovato. Esegui prima: ./ildeposito.sh build-frontend"
+        exit 1
+    fi
+    info "Verifica link interni sul build statico [${ENV}]..."
+    docker run --rm \
+        -v "${vol}:/output:ro" \
+        -v "${script}:/linkcheck.mjs:ro" \
+        node:22-alpine node /linkcheck.mjs /output/current/client
+}
+
 usage() {
     cat <<EOF
 ${BOLD}Uso:${NC} ./ildeposito.sh <comando>
@@ -187,6 +204,7 @@ ${BOLD}Comandi:${NC}
   shell [servizio]  Shell nel container (default: php)
   logs [servizio]   Visualizza i log
   ps                Lista dei container attivi
+  linkcheck         Verifica link interni rotti nel build statico
 EOF
 }
 
@@ -203,6 +221,7 @@ case "${1:-}" in
     shell)           shift; cmd_shell "$@" ;;
     logs)            shift; cmd_logs "$@" ;;
     ps)              cmd_ps ;;
+    linkcheck)       cmd_linkcheck ;;
     -h|--help|help)  usage ;;
     "")              usage; exit 1 ;;
     *)               error "Comando sconosciuto: $1"; usage; exit 1 ;;

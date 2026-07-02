@@ -422,6 +422,17 @@ cmd_upgrade_frontend() {
     fi
 }
 
+cmd_linkcheck() {
+    local dist="${PROJECT_ROOT}/frontend/dist/client"
+    if [[ ! -d "$dist" ]]; then
+        error "Build statica non trovata in ${dist}"
+        info "Esegui prima: ./local.sh build"
+        exit 1
+    fi
+    info "Verifica link interni sul build statico..."
+    node "${PROJECT_ROOT}/frontend/scripts/linkcheck.mjs" "$dist"
+}
+
 cmd_allinea() {
     warn "Comando 'allinea' non ancora implementato"
     info "In futuro allineerà il database da produzione a locale"
@@ -435,6 +446,7 @@ usage() {
     printf "  %b%-22s%b %s\n" "$CYAN"   "stop"             "$NC" "Arresta l'ambiente locale"
     printf "  %b%-22s%b %s\n" "$CYAN"   "restart"          "$NC" "Riavvia l'ambiente locale"
     printf "  %b%-22s%b %s\n" "$CYAN"   "build"            "$NC" "Build statica del frontend Astro (con progresso)"
+    printf "  %b%-22s%b %s\n" "$CYAN"   "linkcheck"        "$NC" "Verifica link interni rotti nel build statico"
     printf "  %b%-22s%b %s\n" "$CYAN"   "outdated"    "$NC" "Verifica aggiornamenti backend e frontend"
     printf "  %b%-22s%b %s\n" "$CYAN"   "upgrade <target>" "$NC" "Aggiorna pacchetti (target: backend | frontend)"
     printf "  %b%-22s%b %s\n" "$YELLOW" "allinea"          "$NC" "Allinea il DB da produzione (non ancora implementato)"
@@ -448,6 +460,7 @@ _local_sh() {
         'stop:Arresta l'\''ambiente locale'
         'restart:Riavvia l'\''ambiente locale'
         'build:Build statica del frontend Astro'
+        'linkcheck:Verifica link interni rotti nel build statico'
         'outdated:Verifica aggiornamenti backend e frontend'
         'upgrade:Aggiorna pacchetti (backend | frontend)'
         'allinea:Allinea il DB da produzione'
@@ -471,6 +484,7 @@ case "${1:-}" in
     stop)              cmd_stop ;;
     restart)           cmd_restart ;;
     build)             cmd_build ;;
+    linkcheck)         cmd_linkcheck ;;
     outdated)     cmd_outdated ;;
     upgrade)           cmd_upgrade "${2:-}" ;;
     allinea)           cmd_allinea ;;

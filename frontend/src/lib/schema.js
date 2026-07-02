@@ -28,7 +28,7 @@ export function buildOrganizationSchema(siteUrl) {
     logo: `${siteUrl}/favicon.svg`,
     sameAs: [
       'https://www.facebook.com/ildeposito.org',
-      'https://www.youtube.com/ildeposito',
+      'https://www.youtube.com/user/ildeposito',
     ],
   };
 }
