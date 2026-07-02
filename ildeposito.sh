@@ -55,12 +55,27 @@ fix_files_permissions() {
     warn "Impossibile allineare i permessi di ${files_dir} (php non raggiungibile)"
 }
 
+# Genera secrets/htpasswd per la basic auth nginx del frontend stage, dalle
+# stesse credenziali già in uso per Caddy (username letterale "ildeposito",
+# come nella precedente label caddy.basicauth.ildeposito + BASIC_AUTH_HASH).
+# File non versionato (secrets/ in .gitignore), rigenerato ad ogni up.
+generate_htpasswd() {
+    if [[ -z "${BASIC_AUTH_HASH:-}" ]]; then
+        warn "BASIC_AUTH_HASH non impostato in .env, salto generazione htpasswd"
+        return 0
+    fi
+    mkdir -p "${PROJECT_ROOT}/secrets"
+    printf 'ildeposito:%s\n' "${BASIC_AUTH_HASH}" > "${PROJECT_ROOT}/secrets/htpasswd"
+    chmod 600 "${PROJECT_ROOT}/secrets/htpasswd"
+}
+
 cmd_up() {
     local extra_flags="${1:-}"
     info "Avvio ambiente ${ENV} (${PROJECT_NAME})..."
     local internal_net="ildeposito-${ENV}-internal"
     docker network inspect "${internal_net}" &>/dev/null \
         || { info "Creazione rete ${internal_net}..."; docker network create "${internal_net}"; }
+    generate_htpasswd
     ${COMPOSE} pull --quiet
     ${COMPOSE} up -d ${extra_flags}
     fix_files_permissions

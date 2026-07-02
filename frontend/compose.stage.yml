@@ -60,10 +60,10 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./nginx-ratelimit.conf:/etc/nginx/conf.d/ratelimit.conf:ro
       - ./nginx-security-headers.conf:/etc/nginx/conf.d/security-headers.conf:ro
+      - ./nginx-auth.conf:/etc/nginx/conf.d/auth.conf:ro
+      - ../secrets/htpasswd:/etc/nginx/.htpasswd:ro
     labels:
       caddy: stage.ildeposito.org
-      caddy.basicauth: "/*"
-      caddy.basicauth.ildeposito: "${BASIC_AUTH_HASH}"
       caddy.reverse_proxy: "{{upstreams 80}}"
     networks:
       - frontend-internal

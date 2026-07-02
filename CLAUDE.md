@@ -91,7 +91,7 @@ compose.yml (root)
 | frontend-api | node:22-alpine | Server SSR Astro (`server/entry.mjs`, porta 4321) — serve gli endpoint `/api/*` |
 | frontend-web | macbre/nginx-brotli | Serve i file statici da `current/client`, proxy di `/api/` verso `frontend-api` |
 
-Basic auth Caddy: **stage** protegge sia backend (`admin-stage`) sia frontend (`stage`); **prod** protegge solo il backend (`admin`), il frontend (`www`) è pubblico. Sul backend le label Caddy includono `header_up -Authorization` per non inoltrare l'header al modulo `basic_auth` di Drupal (che altrimenti risponderebbe 403).
+Basic auth: **stage** protegge sia backend sia frontend, **prod** protegge solo il backend (`www` è pubblico). Sul **backend** resta gestita da Caddy (label `caddy.basicauth`), con `header_up -Authorization` per non inoltrare l'header al modulo `basic_auth` di Drupal (che altrimenti risponderebbe 403 — il modulo è abilitato per l'autenticazione JSON:API di `frontend-api`, quindi l'header non può arrivare a Drupal invariato). Sul **frontend stage** è gestita direttamente da nginx (`frontend/nginx-auth.conf`, escluso in prod) con `auth_basic`/`auth_basic_user_file`, per evitare che una rete `caddy` condivisa con altri stack bypassi l'autenticazione. Le credenziali (`BASIC_AUTH_HASH` in `.env`) restano le stesse; l'htpasswd per nginx è generato da `generate_htpasswd()` in `ildeposito.sh` ad ogni `up` (file non versionato in `secrets/`).
 
 **Reti Docker**:
 - `internal` — comunicazione interna servizi
