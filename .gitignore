@@ -16,9 +16,6 @@ Thumbs.db
 # Env
 .env
 
-# Secrets generati a runtime (es. htpasswd nginx)
-secrets/
-
 # Backup
 backup/*
 !backup/.gitkeep
