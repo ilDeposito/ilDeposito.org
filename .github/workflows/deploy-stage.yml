@@ -63,6 +63,9 @@ jobs:
       - name: Build frontend
         run: ./ildeposito.sh build-frontend
 
+      - name: Link check
+        run: ./ildeposito.sh linkcheck
+
       - name: Smoke test
         run: |
           sleep 10
@@ -79,5 +82,8 @@ jobs:
         working-directory: /home/ubuntu/sergej/websites/ildeposito/stage/frontend
         run: |
           npm ci
-          npx playwright install chromium --with-deps
+          # Niente --with-deps: le dipendenze di sistema sono già sul runner
+          # (installate dai deploy precedenti); 'install' scarica il browser
+          # solo se la versione richiesta manca da ~/.cache/ms-playwright.
+          npx playwright install chromium
           npx playwright test

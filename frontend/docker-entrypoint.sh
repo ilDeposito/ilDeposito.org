@@ -23,18 +23,31 @@ BUILD_DATE=$(TZ=Europe/Rome date "+%Y.%m.%d - %H:%M:%S") npx astro build --outDi
 # Le immagini vengono scaricate da Drupal in public/uploads/ durante la build,
 # ma DOPO che Astro ha già copiato public/ nell'outDir. Vanno copiate manualmente.
 if [ -d /app/public/uploads ]; then
-  echo "→ Copying uploads to build dir ..."
-  # I file statici sono in client/ (output static + adapter node)
-  cp -r /app/public/uploads "$BUILD_DIR/client/"
-
-  # Aggiorna cache immagini sul volume per i prossimi build
+  # Aggiorna prima la cache sul volume, poi hardlink cache → release: cache e
+  # release stanno sullo stesso volume, quindi le N release condividono gli
+  # inode invece di duplicare i media. rsync scrive i file aggiornati come
+  # nuovi inode (tmp+rename), quindi le release precedenti restano intatte.
   echo "→ Updating image cache..."
   mkdir -p "$UPLOAD_CACHE"
   rsync -a --delete /app/public/uploads/ "$UPLOAD_CACHE/"
+
+  echo "→ Hardlinking uploads into build dir ..."
+  # I file statici sono in client/ (output static + adapter node)
+  cp -al "$UPLOAD_CACHE" "$BUILD_DIR/client/uploads"
 fi
 
 # Pagefind indicizza solo la parte statica (client/)
 npx pagefind --site "$BUILD_DIR/client"
+
+# Precompressione brotli+gzip degli asset testuali: nginx li serve con
+# brotli_static/gzip_static senza ricomprimere a runtime (e a livello 11 vs 6).
+# Escluso pagefind/: i suoi frammenti sono già compressi e serviti raw.
+echo "→ Precompressing static assets (brotli + gzip)..."
+find "$BUILD_DIR/client" -type f \
+  \( -name '*.html' -o -name '*.css' -o -name '*.js' -o -name '*.mjs' \
+     -o -name '*.svg' -o -name '*.xml' -o -name '*.json' -o -name '*.txt' \) \
+  -size +256c ! -path '*/pagefind/*' -print0 \
+  | xargs -0 -r -P "$(nproc)" -n 16 sh -c 'for f in "$@"; do brotli -q 11 -f "$f" && gzip -9 -kf "$f"; done' _
 
 # Sincronizza node_modules sul volume (solo se package-lock.json è cambiato).
 # frontend-api non ha filesystem proprio: Node risolve i moduli risalendo le

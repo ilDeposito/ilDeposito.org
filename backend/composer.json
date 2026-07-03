@@ -52,7 +52,8 @@
             "drupal/core-project-message": true,
             "oomphinc/composer-installers-extender": true,
             "php-http/discovery": true,
-            "phpstan/extension-installer": true
+            "phpstan/extension-installer": true,
+            "symfony/runtime": true
         },
         "sort-packages": true
     },

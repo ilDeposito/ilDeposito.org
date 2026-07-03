@@ -1,5 +1,7 @@
 FROM node:22-alpine
-RUN apk add --no-cache tzdata su-exec rsync
+# brotli/gzip/findutils: precompressione asset statici in docker-entrypoint.sh
+# (findutils/coreutils per find/xargs/cp GNU: -print0, -P, cp -al affidabili)
+RUN apk add --no-cache tzdata su-exec rsync brotli gzip findutils coreutils
 WORKDIR /app
 
 COPY entrypoint.sh /usr/local/bin/

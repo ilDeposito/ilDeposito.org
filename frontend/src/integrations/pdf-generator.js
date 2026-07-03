@@ -19,6 +19,12 @@ function extractSlug(alias) {
   return alias.split('/').pop() ?? '';
 }
 
+// Stessa strategia di src/lib/api/drupal/client.ts (che non possiamo importare
+// qui: le integration girano fuori dalla pipeline Vite): Drupal cappa
+// page[limit] a 50, quindi il passo si legge dal link next e le pagine
+// successive si scaricano a ondate parallele su page[offset].
+const PAGE_CONCURRENCY = 4;
+
 async function fetchAllPaginated(path, params = {}) {
   const baseUrl = process.env.DRUPAL_API_URL;
   if (!baseUrl) throw new Error('DRUPAL_API_URL deve essere definito');
@@ -27,21 +33,8 @@ async function fetchAllPaginated(path, params = {}) {
   const allIncluded = [];
   const seenIncluded = new Set();
 
-  const url = new URL(path, baseUrl);
-  for (const [key, value] of Object.entries(params)) {
-    url.searchParams.set(key, value);
-  }
-
-  let nextUrl = url.toString();
-  while (nextUrl) {
-    const res = await fetch(nextUrl, {
-      headers: { Accept: 'application/vnd.api+json' },
-    });
-    if (!res.ok) throw new Error(`JSON:API fetch fallito: ${res.status}`);
-
-    const json = await res.json();
+  const append = (json) => {
     allData.push(...(Array.isArray(json.data) ? json.data : [json.data]));
-
     for (const item of (json.included ?? [])) {
       const key = `${item.type}:${item.id}`;
       if (!seenIncluded.has(key)) {
@@ -49,7 +42,55 @@ async function fetchAllPaginated(path, params = {}) {
         allIncluded.push(item);
       }
     }
-    nextUrl = json.links?.next?.href || null;
+  };
+
+  const fetchPage = async (offset) => {
+    const url = new URL(path, baseUrl);
+    for (const [key, value] of Object.entries(params)) {
+      url.searchParams.set(key, value);
+    }
+    if (offset > 0) url.searchParams.set('page[offset]', String(offset));
+
+    const res = await fetch(url.toString(), {
+      headers: { Accept: 'application/vnd.api+json' },
+    });
+    if (!res.ok) throw new Error(`JSON:API fetch fallito: ${res.status}`);
+    return res.json();
+  };
+
+  const first = await fetchPage(0);
+  append(first);
+
+  const nextHref = first.links?.next?.href;
+  if (!nextHref) return { data: allData, included: allIncluded };
+
+  const step = Number(new URL(nextHref).searchParams.get('page[offset]'));
+  if (!Number.isFinite(step) || step <= 0) {
+    // Link next non basato su offset: fallback sequenziale.
+    let href = nextHref;
+    while (href) {
+      const res = await fetch(href, { headers: { Accept: 'application/vnd.api+json' } });
+      if (!res.ok) throw new Error(`JSON:API fetch fallito: ${res.status}`);
+      const json = await res.json();
+      append(json);
+      href = json.links?.next?.href || null;
+    }
+    return { data: allData, included: allIncluded };
+  }
+
+  let offset = step;
+  let done = false;
+  while (!done) {
+    const wave = [];
+    for (let i = 0; i < PAGE_CONCURRENCY; i++) {
+      wave.push(fetchPage(offset + i * step));
+    }
+    offset += PAGE_CONCURRENCY * step;
+
+    for (const json of await Promise.all(wave)) {
+      append(json);
+      if (!json.links?.next?.href) done = true;
+    }
   }
 
   return { data: allData, included: allIncluded };
@@ -174,7 +215,10 @@ export default function pdfGeneratorIntegration() {
         let manifest = {};
 
         try {
-          cacheDir = join(process.cwd(), '.cache', 'pdf');
+          // Nel builder Docker process.cwd() è filesystem effimero (compose run
+          // --rm): PDF_CACHE_DIR punta al volume frontend_output così il
+          // manifest sopravvive tra le build e si rigenerano solo i PDF cambiati.
+          cacheDir = process.env.PDF_CACHE_DIR || join(process.cwd(), '.cache', 'pdf');
           mkdirSync(cacheDir, { recursive: true });
           manifestPath = join(cacheDir, 'manifest.json');
           if (existsSync(manifestPath)) {
