@@ -20,6 +20,13 @@ $databases['default']['default'] = [
 
 $settings['container_yamls'][] = DRUPAL_ROOT . '/sites/default/services.prod.yml';
 
+// sites/default è gestita da git + composer scaffold: senza questo flag il
+// check runtime del status report la re-indurisce a 555 (chmod attivo, vedi
+// SystemRequirementsHooks) e il git reset del deploy fallisce con
+// "unable to unlink". La protezione reale resta: PHP-FPM (www-data, uid 82)
+// non è owner dei file sul bind mount e non può comunque scriverli.
+$settings['skip_permissions_hardening'] = TRUE;
+
 $config['system.logging']['error_level'] = 'hide';
 $config['system.performance']['css']['preprocess'] = TRUE;
 $config['system.performance']['css']['gzip'] = TRUE;

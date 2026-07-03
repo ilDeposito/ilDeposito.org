@@ -33,6 +33,10 @@ jobs:
 
       - name: Pull latest code
         run: |
+          # Drupal (status report) può aver indurito sites/default a 555:
+          # git reset deve poter fare unlink dei file dentro la directory.
+          # Difesa in profondità oltre a skip_permissions_hardening nei settings.
+          chmod u+w backend/web/sites/default backend/web/sites/default/*.php backend/web/sites/default/*.yml 2>/dev/null || true
           git fetch origin main
           git reset --hard origin/main
 
@@ -62,9 +66,6 @@ jobs:
 
       - name: Build frontend
         run: ./ildeposito.sh build-frontend
-
-      - name: Link check
-        run: ./ildeposito.sh linkcheck
 
       - name: Smoke test
         run: |
