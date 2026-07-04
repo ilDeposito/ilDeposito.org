@@ -21,6 +21,8 @@ ini_set('memory_limit', PHP_SAPI === 'cli' ? '1024M' : '256M');
 $settings['ildeposito_build_github_app_id'] = getenv('GITHUB_APP_ID') ?: '';
 $settings['ildeposito_build_github_installation_id'] = getenv('GITHUB_APP_INSTALLATION_ID') ?: '';
 
+$settings['enable_html5_validation'] = FALSE;
+
 $settings['trusted_host_patterns'] = [
   '^ildeposito-nginx$',
   '^ildeposito\.org$',

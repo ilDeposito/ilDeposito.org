@@ -20,7 +20,7 @@ const { cantoUrl } = Astro.props;
 
 <!-- Modal segnalazione -->
 <dialog id="modal-segnalazione" class="modal">
-  <div class="modal-box max-w-lg my-8">
+  <div class="modal-box max-w-lg my-12 max-h-[calc(100vh-6rem)]">
     <form method="dialog" class="absolute right-3 top-3">
       <button class="btn btn-sm btn-circle btn-ghost" aria-label="Chiudi">✕</button>
     </form>
@@ -125,7 +125,7 @@ const { cantoUrl } = Astro.props;
           />
           <span class="label-text">
             Ho letto e accetto la
-            <a href="/privacy" class="link link-primary font-semibold">Privacy Policy</a>
+            <a href="/informazioni/privacy" class="link link-primary font-semibold">Privacy Policy</a>
             <span class="text-error" aria-hidden="true"> *</span>
           </span>
         </label>

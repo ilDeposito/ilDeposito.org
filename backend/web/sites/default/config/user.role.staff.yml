@@ -2,7 +2,11 @@ uuid: da55f0cd-0835-4275-9d6c-25d1e3b41073
 langcode: it
 status: true
 dependencies:
+  config:
+    - filter.format.basic_html
+    - filter.format.restricted_html
   module:
+    - filter
     - ildeposito_build
     - ildeposito_contatti
 id: staff
@@ -11,4 +15,6 @@ weight: 4
 is_admin: null
 permissions:
   - 'trigger frontend build'
+  - 'use text format basic_html'
+  - 'use text format restricted_html'
   - 'view ildeposito contatti'

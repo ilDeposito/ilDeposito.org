@@ -2,7 +2,11 @@ uuid: b5e2c98e-dc1f-4375-8504-18be6004be59
 langcode: it
 status: true
 dependencies:
+  config:
+    - filter.format.basic_html
+    - filter.format.restricted_html
   module:
+    - filter
     - ildeposito_contatti
 id: api
 label: Api
@@ -10,3 +14,5 @@ weight: 5
 is_admin: false
 permissions:
   - 'create ildeposito contatti'
+  - 'use text format basic_html'
+  - 'use text format restricted_html'

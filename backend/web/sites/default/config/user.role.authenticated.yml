@@ -2,11 +2,8 @@ uuid: b5af1133-1482-46fd-881f-4fb6841b73b3
 langcode: it
 status: true
 dependencies:
-  config:
-    - filter.format.basic_html
   module:
     - file
-    - filter
     - media
     - shortcut
     - system
@@ -20,5 +17,4 @@ permissions:
   - 'access content'
   - 'access shortcuts'
   - 'delete own files'
-  - 'use text format basic_html'
   - 'view media'
