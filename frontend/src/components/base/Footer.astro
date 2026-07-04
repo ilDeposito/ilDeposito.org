@@ -43,7 +43,7 @@ const buildDate = import.meta.env.BUILD_DATE;
         <div class="flex flex-col">
           <a href="/eventi">Eventi</a>
           <a href="/tags">Tag</a>
-          <a href="/storia-cantata">Storia cantata</a>
+          <a href="/archivio/storia-cantata">Storia cantata</a>
         </div>
       </div>
     </nav>
@@ -62,7 +62,7 @@ const buildDate = import.meta.env.BUILD_DATE;
         </div>
         <div class="flex flex-col">
           <a href="/staff">Staff</a>
-          <a href="/contatti">Contatti</a>
+          <a href="/informazioni/contatti">Contatti</a>
         </div>
       </div>
     </nav>
@@ -85,10 +85,10 @@ const buildDate = import.meta.env.BUILD_DATE;
     <hr class="border-none h-px bg-neutral-content/20" />
 
     <!-- Copyright -->
-    <p class="text-neutral-content/60 text-sm leading-relaxed">
-      ilDeposito.org è un progetto collettivo.
-      I contenuti sono rilasciati sotto licenza CC BY-NC-SA 4.0.
-      I diritti dei testi e degli accordi sono dei rispettivi autori.
+    <p class="text-neutral-content/60 text-sm leading-relaxed text-center">
+      ilDeposito.org è un progetto collettivo, online dal 4 ottobre 2004<br />
+      I diritti dei testi e degli accordi sono dei rispettivi autori<br />
+      <a href="/informazioni">informazioni</a> · <a href="/informazioni/privacy">privacy</a> · <a href="/informazioni/contatti">contatti</a>
     </p>
 
     <p class="text-neutral-content/30 text-xs text-right">{buildDate ? `Last build: ${buildDate}` : 'build dev'}</p>
