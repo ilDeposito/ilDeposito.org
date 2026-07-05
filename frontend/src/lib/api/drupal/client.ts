@@ -10,6 +10,30 @@ export interface JsonApiResponse {
   links?: { next?: { href: string } };
 }
 
+// Limite globale, non per-collezione: store.ts lancia tutti i content type
+// in parallelo al primo warmAll() e ognuno pagina con più richieste
+// concorrenti, quindi senza un tetto condiviso il fan-out reale verso
+// Drupal può arrivare a decine di richieste simultanee e saturare il pool
+// PHP-FPM (che ne va in OOM/crash sotto carico) → nginx risponde 502.
+const GLOBAL_CONCURRENCY = 4;
+let activeRequests = 0;
+const waitQueue: (() => void)[] = [];
+
+async function acquireSlot(): Promise<void> {
+  if (activeRequests < GLOBAL_CONCURRENCY) {
+    activeRequests++;
+    return;
+  }
+  await new Promise<void>((resolve) => waitQueue.push(resolve));
+  activeRequests++;
+}
+
+function releaseSlot(): void {
+  activeRequests--;
+  const next = waitQueue.shift();
+  if (next) next();
+}
+
 export async function fetchJsonApi(path: string, params?: URLSearchParams): Promise<JsonApiResponse> {
   const url = new URL(path, DRUPAL_API_URL);
   if (params) {
@@ -18,20 +42,25 @@ export async function fetchJsonApi(path: string, params?: URLSearchParams): Prom
     }
   }
 
-  const res = await fetch(url.toString(), {
-    headers: { Accept: 'application/vnd.api+json' },
-  });
+  await acquireSlot();
+  try {
+    const res = await fetch(url.toString(), {
+      headers: { Accept: 'application/vnd.api+json' },
+    });
 
-  if (!res.ok) {
-    throw new Error(`Drupal JSON:API fetch fallito per "${path}": ${res.status} ${res.statusText}`);
+    if (!res.ok) {
+      throw new Error(`Drupal JSON:API fetch fallito per "${path}": ${res.status} ${res.statusText}`);
+    }
+
+    return res.json();
+  } finally {
+    releaseSlot();
   }
-
-  return res.json();
 }
 
-// Richieste parallele per collezione: Drupal regge bene 4 GET concorrenti
-// (page cache anonimo) e il tempo di fetch scala ~1/4 rispetto al seguire
-// i link `next` in serie.
+// Le waves di fetchAllJsonApi lanciano fino a PAGE_CONCURRENCY richieste,
+// ma passano comunque per il gate globale sopra: questo valore stabilisce
+// solo la granularità di paginazione, non il concorrenza reale verso Drupal.
 const PAGE_CONCURRENCY = 4;
 
 export async function fetchAllJsonApi(path: string, params?: URLSearchParams): Promise<JsonApiResponse> {
@@ -64,9 +93,15 @@ export async function fetchAllJsonApi(path: string, params?: URLSearchParams): P
     // Link next non basato su offset: fallback sequenziale.
     let href: string | undefined = nextHref;
     while (href) {
-      const res = await fetch(href, { headers: { Accept: 'application/vnd.api+json' } });
-      if (!res.ok) break;
-      const page: JsonApiResponse = await res.json();
+      await acquireSlot();
+      let page: JsonApiResponse;
+      try {
+        const res = await fetch(href, { headers: { Accept: 'application/vnd.api+json' } });
+        if (!res.ok) break;
+        page = await res.json();
+      } finally {
+        releaseSlot();
+      }
       append(page);
       href = page.links?.next?.href;
     }
