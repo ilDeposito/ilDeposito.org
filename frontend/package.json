@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build && pagefind --site dist/client",
+    "build:content": "SKIP_PDF=1 astro build && pagefind --site dist/client",
+    "build:pdf": "node scripts/generate-pdfs.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "test:e2e": "playwright test"

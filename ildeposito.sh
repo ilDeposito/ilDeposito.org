@@ -93,21 +93,29 @@ cmd_restart() {
 }
 
 cmd_build_frontend() {
-    info "Build frontend Astro [${ENV}] (zero-downtime)..."
+    local mode="${1:-full}"  # full (contenuti+pdf) | content (no pdf) | pdf (solo pdf, in-place)
+    case "${mode}" in
+        full|content|pdf) ;;
+        *) error "Modalità build-frontend sconosciuta: ${mode} (usa: full|content|pdf)"; exit 1 ;;
+    esac
+
+    info "Build frontend Astro [${ENV}] modalità: ${mode}..."
 
     info "Rebuild immagine astro-builder..."
     ${COMPOSE} build astro-builder
 
     info "Avvio build..."
-    ${COMPOSE} run --rm astro-builder
+    ${COMPOSE} run --rm astro-builder sh docker-entrypoint.sh "${mode}"
 
-    info "Ricarica configurazione nginx..."
-    ${COMPOSE} exec frontend-web nginx -s reload
+    if [[ "${mode}" != "pdf" ]]; then
+        info "Ricarica configurazione nginx..."
+        ${COMPOSE} exec frontend-web nginx -s reload
 
-    info "Riavvio server SSR (frontend-api)..."
-    ${COMPOSE} restart frontend-api
+        info "Riavvio server SSR (frontend-api)..."
+        ${COMPOSE} restart frontend-api
+    fi
 
-    ok "Build frontend completata"
+    ok "Build frontend completata (${mode})"
     info "Il sito è live su https://${ENV}.ildeposito.org"
 }
 
@@ -196,7 +204,9 @@ ${BOLD}Comandi:${NC}
   down              Rimuovi containers e reti
   stop              Arresta l'ambiente
   restart           Riavvia l'ambiente
-  build-frontend    Build Astro + deploy zero-downtime
+  build-frontend            Build Astro completa (contenuti + pdf) + deploy zero-downtime
+  build-frontend-content    Build Astro solo contenuti (no pdf) + deploy zero-downtime
+  build-frontend-pdf        Rigenera solo i pdf, in-place nella release corrente
   drush <args>      Esegui comando drush
   migrate [flags]   Importa tutte le migrazioni (ordine di dipendenza)
   composer <args>   Esegui comando composer
@@ -213,7 +223,9 @@ case "${1:-}" in
     down)            cmd_down ;;
     stop)            cmd_stop ;;
     restart)         cmd_restart ;;
-    build-frontend)  shift; cmd_build_frontend ;;
+    build-frontend)          shift; cmd_build_frontend full ;;
+    build-frontend-content)  shift; cmd_build_frontend content ;;
+    build-frontend-pdf)      shift; cmd_build_frontend pdf ;;
     drush)           shift; cmd_drush "$@" ;;
     migrate)         shift; cmd_migrate "$@" ;;
     composer)        shift; cmd_composer "$@" ;;

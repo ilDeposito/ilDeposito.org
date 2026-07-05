@@ -1,7 +1,26 @@
 #!/bin/sh
 set -e
 
+# Modalità: full (default, contenuti + pdf) | content (contenuti, no pdf) |
+# pdf (rigenera solo i pdf nella release "current" già live, in-place).
+MODE="${1:-full}"
 OUTPUT_DIR="/app/output"
+
+if [ "$MODE" = "pdf" ]; then
+  CURRENT_DIR="$OUTPUT_DIR/current"
+  if [ ! -f "$CURRENT_DIR/server/entry.mjs" ]; then
+    echo "✗ Nessuna release trovata in $CURRENT_DIR. Esegui prima una build contenuti/completa." >&2
+    exit 1
+  fi
+  echo "→ Rigenero i PDF nella release corrente ($CURRENT_DIR) ..."
+  PDF_OUT_DIR="$CURRENT_DIR/client/pdf/canti" node scripts/generate-pdfs.mjs
+  exit 0
+fi
+
+if [ "$MODE" = "content" ]; then
+  export SKIP_PDF=1
+fi
+
 RELEASES_DIR="$OUTPUT_DIR/releases"
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 BUILD_DIR="$RELEASES_DIR/$TIMESTAMP"
