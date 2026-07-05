@@ -55,6 +55,34 @@ fix_files_permissions() {
     warn "Impossibile allineare i permessi di ${files_dir} (php non raggiungibile)"
 }
 
+# Il builder Astro parte a freddo su una rete separata (app-internal) e
+# raggiunge nginx solo tramite l'alias drupal-api: nessuno step precedente
+# della pipeline (drush/composer girano via exec diretto nel container php,
+# bypassando nginx) verifica che nginx sia davvero pronto dopo un
+# force-recreate. Senza questa attesa, il prerendering può incappare in un
+# nginx ancora in avvio (o in restart-loop da autoheal) e ricevere
+# "SocketError: other side closed" a metà fetch.
+wait_for_nginx_healthy() {
+    local nginx_container
+    nginx_container="$(${COMPOSE} ps -q nginx)"
+    if [[ -z "${nginx_container}" ]]; then
+        warn "Container nginx non trovato, salto l'attesa di readiness"
+        return 0
+    fi
+    info "Attendo che nginx sia healthy..."
+    for i in $(seq 1 20); do
+        local status
+        status="$(docker inspect --format='{{.State.Health.Status}}' "${nginx_container}" 2>/dev/null || echo "unknown")"
+        if [[ "${status}" == "healthy" ]]; then
+            ok "nginx healthy"
+            return 0
+        fi
+        info "nginx non ancora healthy (${status}), riprovo... (${i}/20)"
+        sleep 3
+    done
+    warn "nginx non è diventato healthy in tempo, procedo comunque"
+}
+
 cmd_up() {
     local extra_flags="${1:-}"
     info "Avvio ambiente ${ENV} (${PROJECT_NAME})..."
@@ -103,6 +131,8 @@ cmd_build_frontend() {
 
     info "Rebuild immagine astro-builder..."
     ${COMPOSE} build astro-builder
+
+    wait_for_nginx_healthy
 
     info "Avvio build..."
     ${COMPOSE} run --rm astro-builder sh docker-entrypoint.sh "${mode}"
