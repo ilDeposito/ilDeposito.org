@@ -308,6 +308,28 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
           `;
         }
 
+        if (cardType === 'pagine') {
+          return `
+            <div class="flex flex-col gap-1.5 py-4 hover:bg-base-200 transition-colors rounded-lg px-2">
+              <h3 class="font-serif font-semibold text-lg text-primary">
+                <a href="${e(item.url)}" class="hover:underline">${e(meta.title)}</a>
+              </h3>
+              <p class="text-sm text-base-content/40 uppercase tracking-wide font-sans">Pagina</p>
+            </div>
+          `;
+        }
+
+        if (cardType === 'tags') {
+          return `
+            <div class="flex flex-col gap-1.5 py-4 hover:bg-base-200 transition-colors rounded-lg px-2">
+              <h3 class="font-serif font-semibold text-lg text-primary">
+                <a href="${e(item.url)}" class="hover:underline">${e(meta.title)}</a>
+              </h3>
+              <p class="text-sm text-base-content/40 uppercase tracking-wide font-sans">Tag</p>
+            </div>
+          `;
+        }
+
         const accordi = meta.accordi === 'sì';
         const audio   = meta.audio   === 'sì';
         return `

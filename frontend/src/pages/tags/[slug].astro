@@ -31,7 +31,7 @@ const jsonLd = [
 ];
 const ogImage = await getOgImageFallback();
 ---
-<BaseLayout title={meta.metaTitle} description={meta.metaDescription} jsonLd={jsonLd} ogImage={ogImage}>
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription} pagefindType="tags" jsonLd={jsonLd} ogImage={ogImage}>
 
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">
@@ -40,20 +40,22 @@ const ogImage = await getOgImageFallback();
       <p class="font-serif italic text-base text-base-content/60">{meta.pageDescription}</p>
     </div>
   </header>
-  <div class="max-w-6xl mx-auto px-4 py-8">
+  <div class="max-w-6xl mx-auto px-4 py-8" data-pagefind-body>
+    <span class="sr-only" data-pagefind-weight="10">{titolo}</span>
+    <span class="sr-only" data-pagefind-sort="titolo">{titolo}</span>
 
-  <div class="mt-6">
-    <PagefindList
-      presetFilter={{ tags: tag.titolo }}
-      filterKeys={["type", "periodi"]}
-      pageSize={15}
-      sortOptions={[
-        { field: 'titolo', label: 'A–Z', dir: 'asc' },
-        { field: 'visualizzazioni', label: 'Più visti', dir: 'desc' },
-        { field: 'visualizzazioni', label: 'Meno visti', dir: 'asc' },
-      ]}
-    />
-  </div>
+    <div class="mt-6" data-pagefind-ignore>
+      <PagefindList
+        presetFilter={{ tags: tag.titolo }}
+        filterKeys={["type", "periodi"]}
+        pageSize={15}
+        sortOptions={[
+          { field: 'titolo', label: 'A–Z', dir: 'asc' },
+          { field: 'visualizzazioni', label: 'Più visti', dir: 'desc' },
+          { field: 'visualizzazioni', label: 'Meno visti', dir: 'asc' },
+        ]}
+      />
+    </div>
 
   </div>
 </BaseLayout>

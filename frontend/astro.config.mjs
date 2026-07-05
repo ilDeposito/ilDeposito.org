@@ -37,6 +37,11 @@ export default defineConfig({
   output: 'static',
   adapter: node({ mode: 'standalone' }),
   trailingSlash: 'never',
+
+  // Default 1 (pagine generate in sequenza): il fetch layer verso Drupal ha
+  // già un gate a 4 richieste concorrenti (client.ts), quindi 4 pagine in
+  // parallelo sovrappongono le attese I/O senza saturare il backend.
+  build: { concurrency: 4 },
   // checkOrigin confronta Origin con url.origin, ma il Node adapter costruisce
   // sempre url come http:// dietro un proxy nginx (non legge X-Forwarded-Proto).
   // Anti-spam delegato al rate limit nginx (2r/min per IP) sull'endpoint /api/.

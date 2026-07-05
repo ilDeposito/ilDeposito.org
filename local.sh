@@ -446,8 +446,12 @@ cmd_linkcheck() {
         info "Esegui prima: ./local.sh build"
         exit 1
     fi
-    info "Verifica link interni sul build statico..."
-    node "${PROJECT_ROOT}/frontend/scripts/linkcheck.mjs" "$dist"
+    if [[ " $* " == *" --check-external "* ]]; then
+        info "Verifica link interni ed esterni sul build statico..."
+    else
+        info "Verifica link interni sul build statico..."
+    fi
+    node "${PROJECT_ROOT}/frontend/scripts/linkcheck.mjs" "$dist" "$@"
 }
 
 cmd_allinea() {
@@ -528,6 +532,8 @@ usage() {
     printf "  %b%-22s%b %s\n" "$CYAN"   "restart"          "$NC" "Riavvia l'ambiente locale"
     printf "  %b%-22s%b %s\n" "$CYAN"   "build"            "$NC" "Build statica del frontend Astro (con progresso)"
     printf "  %b%-22s%b %s\n" "$CYAN"   "linkcheck"        "$NC" "Verifica link interni rotti nel build statico"
+    printf "  %b%-22s%b %s\n" "$CYAN"   ""                 "$NC" "  --check-external verifica anche i link esterni via HTTP (YouTube via oEmbed)"
+    printf "  %b%-22s%b %s\n" "$CYAN"   ""                 "$NC" "  --timeout=ms --concurrency=n (default 8000ms, 8 richieste parallele)"
     printf "  %b%-22s%b %s\n" "$CYAN"   "outdated"    "$NC" "Verifica aggiornamenti backend e frontend"
     printf "  %b%-22s%b %s\n" "$CYAN"   "upgrade <target>" "$NC" "Aggiorna pacchetti (target: backend | frontend)"
     printf "  %b%-22s%b %s\n" "$CYAN"   "allinea <ambiente>" "$NC" "Allinea DB e file da stage (ambienti: stage)"
@@ -568,7 +574,7 @@ case "${1:-}" in
     stop)              cmd_stop ;;
     restart)           cmd_restart ;;
     build)             cmd_build ;;
-    linkcheck)         cmd_linkcheck ;;
+    linkcheck)         shift; cmd_linkcheck "$@" ;;
     outdated)     cmd_outdated ;;
     upgrade)           cmd_upgrade "${2:-}" ;;
     allinea)           cmd_allinea "${2:-}" ;;

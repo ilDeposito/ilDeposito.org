@@ -91,6 +91,15 @@ cmd_up() {
         || { info "Creazione rete ${internal_net}..."; docker network create "${internal_net}"; }
     ${COMPOSE} pull --quiet
     ${COMPOSE} up -d ${extra_flags}
+    # Restart mirato (non --force-recreate): 'up -d' ricrea da sé i container
+    # il cui config/immagine cambia (es. bump versione Wodby in .env), ma un
+    # git pull sul bind mount non tocca config/immagine, quindi senza questo
+    # restart l'opcache di PHP servirebbe bytecode del deploy precedente.
+    # A differenza di --force-recreate, un restart non distrugge il
+    # container: niente perdita della cache Composer né riavvio di
+    # mariadb/redis, che restano quindi disponibili durante il deploy.
+    info "Restart php (refresh opcache)..."
+    ${COMPOSE} restart php
     fix_files_permissions
     ok "Ambiente ${ENV} avviato"
     info "Backend:  https://admin-${ENV}.ildeposito.org"
@@ -216,11 +225,15 @@ cmd_linkcheck() {
         error "Volume ${vol} non trovato. Esegui prima: ./ildeposito.sh build-frontend"
         exit 1
     fi
-    info "Verifica link interni sul build statico [${ENV}]..."
+    if [[ " $* " == *" --check-external "* ]]; then
+        info "Verifica link interni ed esterni sul build statico [${ENV}]..."
+    else
+        info "Verifica link interni sul build statico [${ENV}]..."
+    fi
     docker run --rm \
         -v "${vol}:/output:ro" \
         -v "${script}:/linkcheck.mjs:ro" \
-        node:22-alpine node /linkcheck.mjs /output/current/client
+        node:22-alpine node /linkcheck.mjs /output/current/client "$@"
 }
 
 usage() {
@@ -245,6 +258,8 @@ ${BOLD}Comandi:${NC}
   logs [servizio]   Visualizza i log
   ps                Lista dei container attivi
   linkcheck         Verifica link interni rotti nel build statico
+                      --check-external verifica anche i link esterni via HTTP (YouTube via oEmbed)
+                      --timeout=ms --concurrency=n (default 8000ms, 8 richieste parallele)
 EOF
 }
 
@@ -263,7 +278,7 @@ case "${1:-}" in
     shell)           shift; cmd_shell "$@" ;;
     logs)            shift; cmd_logs "$@" ;;
     ps)              cmd_ps ;;
-    linkcheck)       cmd_linkcheck ;;
+    linkcheck)       shift; cmd_linkcheck "$@" ;;
     -h|--help|help)  usage ;;
     "")              usage; exit 1 ;;
     *)               error "Comando sconosciuto: $1"; usage; exit 1 ;;

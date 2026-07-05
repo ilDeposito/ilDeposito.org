@@ -30,7 +30,7 @@ const jsonLd = [
   ]),
 ];
 ---
-<BaseLayout title={pagina.titolo} description={description} jsonLd={jsonLd}>
+<BaseLayout title={pagina.titolo} description={description} pagefindType="pagine" jsonLd={jsonLd}>
 
   <header class="bg-base-200 border-b-2 border-secondary">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">
@@ -55,7 +55,9 @@ const jsonLd = [
     import '../scripts/share-button.js';
   </script>
 
-  <div class="max-w-6xl mx-auto px-4">
+  <div class="max-w-6xl mx-auto px-4" data-pagefind-body>
+    <span class="sr-only" data-pagefind-weight="10">{pagina.titolo}</span>
+    <span class="sr-only" data-pagefind-sort="titolo">{pagina.titolo}</span>
     {pagina.paragraphs.map((paragraph) => (
       <ParagraphRenderer paragraph={paragraph} />
     ))}

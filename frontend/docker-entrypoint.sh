@@ -59,14 +59,17 @@ fi
 npx pagefind --site "$BUILD_DIR/client"
 
 # Precompressione brotli+gzip degli asset testuali: nginx li serve con
-# brotli_static/gzip_static senza ricomprimere a runtime (e a livello 11 vs 6).
+# brotli_static/gzip_static senza ricomprimere a runtime (e a livello 10 vs 6).
+# q11 vs q10: guadagno di dimensione ~1-2%, ma quasi il doppio del tempo CPU;
+# con una release intera da ricomprimere ad ogni build (niente hardlink tra
+# release come per le uploads) q10 è il compromesso migliore.
 # Escluso pagefind/: i suoi frammenti sono già compressi e serviti raw.
 echo "→ Precompressing static assets (brotli + gzip)..."
 find "$BUILD_DIR/client" -type f \
   \( -name '*.html' -o -name '*.css' -o -name '*.js' -o -name '*.mjs' \
      -o -name '*.svg' -o -name '*.xml' -o -name '*.json' -o -name '*.txt' \) \
   -size +256c ! -path '*/pagefind/*' -print0 \
-  | xargs -0 -r -P "$(nproc)" -n 16 sh -c 'for f in "$@"; do brotli -q 11 -f "$f" && gzip -9 -kf "$f"; done' _
+  | xargs -0 -r -P "$(nproc)" -n 16 sh -c 'for f in "$@"; do brotli -q 10 -f "$f" && gzip -9 -kf "$f"; done' _
 
 # Sincronizza node_modules sul volume (solo se package-lock.json è cambiato).
 # frontend-api non ha filesystem proprio: Node risolve i moduli risalendo le

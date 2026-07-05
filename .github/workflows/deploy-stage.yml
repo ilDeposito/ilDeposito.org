@@ -41,7 +41,7 @@ jobs:
           git reset --hard origin/main
 
       - name: Update containers
-        run: ./ildeposito.sh up --force-recreate
+        run: ./ildeposito.sh up
 
       - name: Wait for DB ready
         run: |
@@ -82,7 +82,18 @@ jobs:
           STAGE_AUTH_PASS: ${{ secrets.STAGE_AUTH_PASS }}
         working-directory: /home/ubuntu/sergej/websites/ildeposito/stage/frontend
         run: |
-          npm ci
+          # npm ci cancella e reinstalla sempre node_modules: sul runner
+          # self-hosted (persistente tra deploy) lo eseguiamo solo se
+          # package-lock.json è cambiato dall'ultima volta, stesso pattern
+          # usato per il volume node_modules in docker-entrypoint.sh.
+          LOCK_HASH=$(md5sum package-lock.json | cut -d' ' -f1)
+          LOCK_MARKER=".node_modules_hash"
+          if [ ! -d node_modules ] || [ "$(cat "$LOCK_MARKER" 2>/dev/null)" != "$LOCK_HASH" ]; then
+            npm ci
+            echo "$LOCK_HASH" > "$LOCK_MARKER"
+          else
+            echo "package-lock.json invariato, skip npm ci."
+          fi
           # Niente --with-deps: le dipendenze di sistema sono già sul runner
           # (installate dai deploy precedenti); 'install' scarica il browser
           # solo se la versione richiesta manca da ~/.cache/ms-playwright.

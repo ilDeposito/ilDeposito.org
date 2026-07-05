@@ -128,21 +128,29 @@ const autoriConDati = autori.map((autore) => ({
           Seguici su Facebook
         </a>
       </div>
-      <form action="/cerca" method="get" class="w-full max-w-sm mt-4">
-        <div class="flex gap-2">
-          <input
-            type="search"
-            name="q"
-            placeholder="Cerca nell'archivio…"
-            autocomplete="off"
-            class="input flex-1 bg-base-100 text-base-content placeholder:text-base-content/40 border-0 text-base font-sans"
-          />
-          <button type="submit" class="btn btn-secondary border-0 gap-2 shrink-0 text-white">
-            <Icon name="magnifying-glass" />
-            <span class="hidden sm:inline">Cerca</span>
-          </button>
-        </div>
-      </form>
+      <search-modal class="relative w-full max-w-sm mt-4">
+        <form action="/cerca" method="get" data-search-form>
+          <div class="flex gap-2">
+            <input
+              type="search"
+              name="q"
+              data-search-input
+              placeholder="Cerca nell'archivio…"
+              autocomplete="off"
+              aria-label="Cerca canti o autori"
+              class="input flex-1 bg-base-100 text-base-content placeholder:text-base-content/40 border-0 text-base font-sans"
+            />
+            <button type="submit" class="btn btn-secondary border-0 gap-2 shrink-0 text-white">
+              <Icon name="magnifying-glass" />
+              <span class="hidden sm:inline">Cerca</span>
+            </button>
+          </div>
+        </form>
+        <ul
+          data-search-results
+          class="menu hidden absolute left-0 right-0 top-full mt-2 bg-base-100 text-base-content rounded-box shadow-lg border border-base-300 max-h-80 overflow-y-auto flex-nowrap z-50 text-left"
+        ></ul>
+      </search-modal>
     </div>
   </section>
 
