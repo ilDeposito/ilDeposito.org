@@ -11,6 +11,7 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
+      ENV: ${ENV}
       DRUPAL_API_URL: http://drupal-api:80
       # Cache PDF sul volume: sopravvive tra le build (il builder è usa-e-getta)
       PDF_CACHE_DIR: /app/output/.pdf-cache
@@ -97,10 +98,10 @@ services:
     labels:
       autoheal: "true"
       # In prod il frontend è pubblico: nessuna basic auth.
-      caddy: www.ildeposito.org
+      caddy: ${FRONTEND_DOMAIN}
       caddy.reverse_proxy: "{{upstreams 80}}"
       caddy_1: ildeposito.org
-      caddy_1.redir: "https://www.ildeposito.org{uri} permanent"
+      caddy_1.redir: "https://${FRONTEND_DOMAIN}{uri} permanent"
     networks:
       - frontend-internal
       - caddy

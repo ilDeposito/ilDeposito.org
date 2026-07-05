@@ -14,7 +14,7 @@ import { createHash } from 'node:crypto';
 // hash e una modifica a uno script inline non può rompere silenziosamente
 // la policy. 'unsafe-inline' resta SOLO come fallback per browser senza
 // supporto CSP2: quando sono presenti hash, i browser lo ignorano.
-const SCRIPT_SRC_BASE = "'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.youtube.com";
+const SCRIPT_SRC_BASE = "'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.youtube.com https://umami.ildeposito.org";
 
 // style-src mantiene 'unsafe-inline': gli attributi style="..." nei template
 // (honeypot nascosto, content-visibility, ecc.) e i fogli di stile che Astro
@@ -26,7 +26,7 @@ const DIRECTIVES = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https://tile.openstreetmap.org https://i.ytimg.com https://img.youtube.com",
   "font-src 'self'",
-  "connect-src 'self' https://tile.openstreetmap.org",
+  "connect-src 'self' https://tile.openstreetmap.org https://umami.ildeposito.org",
   "frame-src https://www.youtube.com https://www.youtube-nocookie.com",
   "worker-src 'self' blob:",
   "object-src 'none'",
