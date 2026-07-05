@@ -123,11 +123,15 @@ services:
       NGINX_SERVER_ROOT: /var/www/html/web
       NGINX_VHOST_PRESET: $NGINX_VHOST_PRESET
     healthcheck:
+      # /jsonapi invece di /: questo backend è headless, "/" dipende dalla
+      # Frontpage view legata a system.site:page.front (/node) che su questo
+      # sito non è mantenuta e può restituire 404 anche a stack sano,
+      # facendo fallire l'healthcheck e riavviare nginx da autoheal (anche a
+      # metà di una build frontend in corso). /jsonapi è l'endpoint che
+      # conta davvero (è quello che il builder Astro consuma).
       # Host esplicito: senza, wget manda "Host: 127.0.0.1", assente da
-      # trusted_host_patterns (settings.php) → Drupal risponde 400 e
-      # l'healthcheck fallisce sempre, facendo riavviare nginx da autoheal
-      # (anche a metà di una build frontend in corso).
-      test: ["CMD-SHELL", "wget -qO /dev/null --header='Host: localhost' http://127.0.0.1/ || exit 1"]
+      # trusted_host_patterns (settings.php) → Drupal risponderebbe 400.
+      test: ["CMD-SHELL", "wget -qO /dev/null --header='Host: localhost' http://127.0.0.1/jsonapi || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
