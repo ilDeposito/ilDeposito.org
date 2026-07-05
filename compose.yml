@@ -7,3 +7,24 @@ include:
       - backend/.env
   - path: frontend/compose.${ENV}.yml
     env_file: .env
+
+# Monitor unico per i container con label "autoheal: true" di entrambi gli
+# stack (backend e frontend): un healthcheck "unhealthy" da solo non fa
+# riavviare nulla in Docker Compose, autoheal chiude quel buco via socket.
+services:
+  autoheal:
+    container_name: ildeposito-${ENV}-autoheal
+    image: willfarrell/autoheal:1.2.0
+    restart: unless-stopped
+    mem_limit: 64m
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: autoheal
+      AUTOHEAL_INTERVAL: 30
+      AUTOHEAL_START_PERIOD: 30
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

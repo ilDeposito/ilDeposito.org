@@ -10,6 +10,9 @@ services:
   crond:
     container_name: ildeposito_stage_backend_crond
 
+  redis:
+    container_name: ildeposito_stage_backend_redis
+
   nginx:
     container_name: ildeposito_stage_backend_nginx
     labels:

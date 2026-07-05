@@ -81,6 +81,7 @@ compose.yml (root)
 | mariadb | `wodby/mariadb` | DB credentials in `backend/.env` |
 | php | `wodby/drupal-php` | APCu 64M, SameSite Strict, xhprof/spx disabilitati |
 | crond | `wodby/drupal-php` | `drush cron` ogni ora |
+| redis | `wodby/redis` | Cache Drupal, 256mb allkeys-lru, senza volume |
 | nginx | `wodby/nginx` | Alias di rete `drupal-api`, reverse proxy Caddy |
 
 **Servizi frontend**:
@@ -125,10 +126,12 @@ Steps: backup DB → git pull → `./ildeposito.sh up` → composer install (no-
 
 | Ambiente | File | DB Host | Cache |
 |---|---|---|---|
-| DDEV | `settings.ddev.php` + `settings.dev.php` | `db` (DDEV) | Disabilitata |
-| Staging | `settings.stage.php` | `mariadb` | Memcached |
-| Produzione | `settings.prod.php` | `mariadb` | Memcached |
-| Codespaces | `settings.codespace.php` | `db` | Memcached |
+| DDEV | `settings.ddev.php` + `settings.dev.php` | `db` (DDEV) | Redis (bin render/page/dynamic_page su null) |
+| Staging | `settings.stage.php` | `mariadb` | Redis |
+| Produzione | `settings.prod.php` | `mariadb` | Redis |
+| Codespaces | `settings.codespace.php` | `db` | DB |
+
+**Redis**: `settings.redis.php` (incluso in coda a `settings.php`) si attiva solo dove `REDIS_HOST` è definito — DDEV lo imposta via `web_environment` (add-on `ddev/ddev-redis`), stage/prod via compose. Copre cache default, container cache, lock, flood e cache-tags; il bin `form` resta su DB. In locale l'add-on va installato con `ddev add-on get ddev/ddev-redis` (`.ddev/` non è versionata).
 
 Config sync: `sites/default/config/`
 

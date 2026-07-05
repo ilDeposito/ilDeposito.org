@@ -8,6 +8,7 @@ import node from '@astrojs/node';
 const { DRUPAL_API_URL } = loadEnv(process.env.NODE_ENV ?? 'production', process.cwd(), '');
 const drupalHost = new URL(DRUPAL_API_URL || 'http://localhost').hostname;
 import pdfGenerator from './src/integrations/pdf-generator.js';
+import cspHashes from './src/integrations/csp-hashes.js';
 import { createReadStream, existsSync } from 'node:fs';
 import { join, normalize } from 'node:path';
 
@@ -49,6 +50,7 @@ export default defineConfig({
     sitemap({
       filter: (page) => !page.includes('/cerca') && !page.includes('/404'),
     }),
+    cspHashes(),
     pdfGenerator(),
   ],
 

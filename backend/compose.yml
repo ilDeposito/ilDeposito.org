@@ -10,6 +10,7 @@ services:
     stop_grace_period: 30s
     restart: unless-stopped
     logging: *logging
+    mem_limit: 1g
     environment:
       MYSQL_ROOT_PASSWORD: $DB_ROOT_PASSWORD
       MYSQL_DATABASE: $DB_NAME
@@ -19,6 +20,14 @@ services:
     volumes:
       - mariadb_data:/var/lib/mysql
       - ./mariadb-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -uroot -p$$MYSQL_ROOT_PASSWORD || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    labels:
+      autoheal: "true"
     networks:
       - backend-internal
 
@@ -26,6 +35,18 @@ services:
     image: wodby/drupal-php:$PHP_TAG
     restart: unless-stopped
     logging: *logging
+    mem_limit: 1g
+    healthcheck:
+      # cgi-fcgi contro un file inesistente: FPM risponde comunque (404 CGI),
+      # quindi l'exit code segnala solo se il master/worker FPM è raggiungibile
+      # su 127.0.0.1:9000, non lo stato applicativo di Drupal.
+      test: ["CMD-SHELL", "SCRIPT_FILENAME=/ping REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    labels:
+      autoheal: "true"
     environment:
       PHP_EXTENSIONS_DISABLE: xhprof,spx
       PHP_MAIL_MIXED_LF_AND_CRLF: On
@@ -43,6 +64,7 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
       MAIL_FROM: ${MAIL_FROM:-}
+      REDIS_HOST: redis
       PHP_FPM_CLEAR_ENV: "no"
     volumes:
     - ./:/var/www/html:cached
@@ -55,11 +77,13 @@ services:
     image: wodby/drupal-php:$PHP_TAG
     restart: unless-stopped
     logging: *logging
+    mem_limit: 512m
     environment:
       DB_NAME: $DB_NAME
       DB_USER: $DB_USER
       DB_PASSWORD: $DB_PASSWORD
       DB_HOST: $DB_HOST
+      REDIS_HOST: redis
       CRONTAB: "0 * * * * drush -r /var/www/html/web cron"
     command: sudo -E crond -f -d 0
     volumes:
@@ -67,16 +91,45 @@ services:
     networks:
       - backend-internal
 
+  redis:
+    image: wodby/redis:$REDIS_TAG
+    restart: unless-stopped
+    logging: *logging
+    mem_limit: 320m
+    environment:
+      # Solo cache: niente volume, un restart costa solo cache fredda.
+      REDIS_MAXMEMORY: 256mb
+      REDIS_MAXMEMORY_POLICY: allkeys-lru
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    labels:
+      autoheal: "true"
+    networks:
+      - backend-internal
+
   nginx:
     image: wodby/nginx:$NGINX_TAG
     restart: unless-stopped
     logging: *logging
+    mem_limit: 128m
     depends_on:
       - php
     environment:
       NGINX_BACKEND_HOST: php
       NGINX_SERVER_ROOT: /var/www/html/web
       NGINX_VHOST_PRESET: $NGINX_VHOST_PRESET
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    labels:
+      autoheal: "true"
     volumes:
     - ./:/var/www/html:cached
     networks:

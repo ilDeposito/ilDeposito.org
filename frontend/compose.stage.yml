@@ -52,12 +52,14 @@ services:
     healthcheck:
       # /api/altcha è una rotta SSR reale: fallisce se Node è morto o se
       # ALTCHA_HMAC_KEY manca (500) — GET / risponderebbe 404 sempre.
-      test: ["CMD-SHELL", "wget -qO /dev/null http://localhost:4321/api/altcha || exit 1"]
+      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:4321/api/altcha || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 30s
     logging: *logging
+    labels:
+      autoheal: "true"
     networks:
       - frontend-internal
       - app-internal
@@ -68,8 +70,19 @@ services:
     restart: unless-stopped
     mem_limit: 256m
     cpus: 1.0
+    environment:
+      # Subnet della rete docker "caddy": unico trusted proxy per X-Forwarded-For
+      # (real_ip → rate limit per IP reale). Vedi nginx-realip.conf.template.
+      CADDY_TRUSTED_SUBNET: ${CADDY_TRUSTED_SUBNET:?definire CADDY_TRUSTED_SUBNET in .env, vedi .env.example}
+    # L'immagine non ha /docker-entrypoint.d (template envsubst dell'immagine
+    # nginx ufficiale): genera realip.conf all'avvio, poi il CMD originale.
+    command: >
+      sh -c "envsubst '$$CADDY_TRUSTED_SUBNET'
+      < /etc/nginx/templates/realip.conf.template
+      > /etc/nginx/conf.d/realip.conf
+      && exec nginx -g 'daemon off;'"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO /dev/null http://localhost/ || exit 1"]
+      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1/ || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -79,8 +92,10 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./nginx-ratelimit.conf:/etc/nginx/conf.d/ratelimit.conf:ro
       - ./nginx-security-headers.conf:/etc/nginx/conf.d/security-headers.conf:ro
+      - ./nginx-realip.conf.template:/etc/nginx/templates/realip.conf.template:ro
     logging: *logging
     labels:
+      autoheal: "true"
       caddy: stage.ildeposito.org
       caddy.basicauth: "/*"
       caddy.basicauth.ildeposito: "${BASIC_AUTH_HASH}"

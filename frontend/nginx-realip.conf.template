@@ -1,0 +1,21 @@
+# Trusted proxy per il modulo real_ip. Questo file è un TEMPLATE: all'avvio
+# del container il command di frontend-web (vedi compose.*.yml) lo passa a
+# envsubst, che sostituisce CADDY_TRUSTED_SUBNET e scrive il risultato in
+# /etc/nginx/conf.d/realip.conf. L'immagine macbre/nginx-brotli non ha il
+# meccanismo /docker-entrypoint.d dell'immagine nginx ufficiale.
+#
+# Nginx riceve tutte le connessioni da Caddy (reverse proxy davanti), quindi
+# $remote_addr è sempre l'IP del container Caddy: senza real_ip, limit_req
+# aggregherebbe TUTTI i visitatori sotto lo stesso IP invece di limitarli
+# singolarmente. Caddy imposta X-Forwarded-For con l'IP reale del client e
+# scarta quello eventualmente inviato dal client (che non è un trusted proxy).
+#
+# La subnet DEVE essere quella reale della rete docker "caddy", non un range
+# ampio: chiunque origini traffico da un IP dentro il range trusted può
+# falsificare X-Forwarded-For e bypassare i rate limit per IP. Ricavarla con:
+#   docker network inspect caddy --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'
+# Nota: se la rete "caddy" viene ricreata la subnet può cambiare — aggiornare
+# CADDY_TRUSTED_SUBNET in .env e ricreare il container frontend-web.
+set_real_ip_from ${CADDY_TRUSTED_SUBNET};
+real_ip_header X-Forwarded-For;
+real_ip_recursive on;

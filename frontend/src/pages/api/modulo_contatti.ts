@@ -10,6 +10,33 @@ const json = (body: object, status = 200) =>
     headers: { 'Content-Type': 'application/json' },
   });
 
+// --- Anti-replay ALTCHA ---
+// verify() valida firma e scadenza ma non impedisce il riuso dello stesso
+// payload risolto entro la finestra di validità del challenge (5 min):
+// registriamo le firme dei challenge già consumati finché non scadono.
+// frontend-api è un processo singolo, quindi una Map in-memory basta; si
+// svuota al riavvio (deploy), accettabile perché la finestra è comunque breve.
+const CONSUMED_TTL_MS = 6 * 60 * 1000; // > expiresAt del challenge (5 min)
+const CONSUMED_MAX = 10_000; // tetto di sicurezza, mai raggiunto sotto rate limit
+const consumedChallenges = new Map<string, number>();
+
+// Ritorna false se la firma è già stata consumata (replay).
+function consumeChallenge(signature: string): boolean {
+  const now = Date.now();
+  // TTL uniforme → la Map è ordinata per scadenza: si pota dalla testa.
+  for (const [sig, expiry] of consumedChallenges) {
+    if (expiry > now) break;
+    consumedChallenges.delete(sig);
+  }
+  if (consumedChallenges.has(signature)) return false;
+  if (consumedChallenges.size >= CONSUMED_MAX) {
+    const oldest = consumedChallenges.keys().next().value;
+    if (oldest !== undefined) consumedChallenges.delete(oldest);
+  }
+  consumedChallenges.set(signature, now + CONSUMED_TTL_MS);
+  return true;
+}
+
 export const POST: APIRoute = async ({ request, clientAddress }) => {
   console.log(`${tag} POST ricevuto da ${clientAddress}`);
 
@@ -103,6 +130,13 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       const { error } = await verify(altchaPayload, deriveKey, hmacSignatureSecret, hmacKeySignatureSecret);
       if (error) {
         console.warn(`${tag} Altcha — verifica fallita: ${error}`);
+        return json({ ok: false, error: 'verifica_fallita' }, 400);
+      }
+      // La firma identifica univocamente il challenge (salt random + scadenza):
+      // un payload già consumato è un replay, anche se la firma è valida.
+      const { signature } = JSON.parse(Buffer.from(altchaPayload, 'base64').toString('utf-8')) as { signature?: string };
+      if (!signature || !consumeChallenge(signature)) {
+        console.warn(`${tag} Altcha — payload già utilizzato (replay)`);
         return json({ ok: false, error: 'verifica_fallita' }, 400);
       }
       console.log(`${tag} Altcha OK`);

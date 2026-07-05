@@ -48,3 +48,6 @@ if (isset($_SERVER['ILDEPOSITO_ENV']) && $_SERVER['ILDEPOSITO_ENV'] === 'prod') 
     }
   }
 }
+
+// Dopo gli include per ambiente: si attiva da solo dove REDIS_HOST è definito.
+include __DIR__ . '/settings.redis.php';

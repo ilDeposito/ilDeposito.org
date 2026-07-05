@@ -22,3 +22,6 @@ backup/*
 
 # GitHub App private key
 backend/private/
+
+# Playwright CLI (stato/sessione browser)
+.playwright-cli/
