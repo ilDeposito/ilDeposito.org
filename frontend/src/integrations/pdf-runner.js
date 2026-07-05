@@ -105,7 +105,10 @@ async function getAllCantiForPdf() {
     'fields[taxonomy_term--periodi]': 'name',
     'fields[taxonomy_term--tags]': 'name',
     'include': 'field_autori_testo,field_lingua,field_periodo,field_tags',
-    'sort': 'title',
+    // Tiebreaker su nid: "title" da solo non è univoco (10+ coppie di canti
+    // omonimi in archivio) e la paginazione concorrente può far "cadere" uno
+    // dei due tra un offset e l'altro, saltando la generazione del suo PDF.
+    'sort': 'title,drupal_internal__nid',
     'page[limit]': '200',
   });
 

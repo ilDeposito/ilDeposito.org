@@ -24,7 +24,7 @@ Gestito da `./local.sh` nella root del progetto.
 ./local.sh stop        # Arresta
 ./local.sh restart     # Riavvia
 ./local.sh build       # Build statica Astro con progresso % sui nodi
-./local.sh allinea     # (WIP) Allinea DB da produzione a locale
+./local.sh allinea stage  # Allinea DB + file da staging a locale (drop, import, rsync files, build)
 ```
 
 **DDEV** (`.ddev/config.yaml`):

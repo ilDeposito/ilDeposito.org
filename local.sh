@@ -15,6 +15,23 @@ ok()    { printf "${GREEN}✓${NC} %s\n" "$*"; }
 warn()  { printf "${YELLOW}⚠${NC} %s\n" "$*"; }
 error() { printf "${RED}✗${NC} %s\n" "$*" >&2; }
 
+# Esegue un comando silenziosamente: in caso di successo non stampa nulla,
+# in caso di errore mostra l'output catturato per permettere il debug.
+run_step() {
+    local desc="$1"; shift
+    local logfile
+    logfile=$(mktemp)
+    if "$@" >"$logfile" 2>&1; then
+        rm -f "$logfile"
+        return 0
+    fi
+    local code=$?
+    error "${desc} fallito"
+    cat "$logfile" >&2
+    rm -f "$logfile"
+    exit "$code"
+}
+
 cmd_up() {
     info "Avvio ambiente locale..."
     local logfile
@@ -434,8 +451,72 @@ cmd_linkcheck() {
 }
 
 cmd_allinea() {
-    warn "Comando 'allinea' non ancora implementato"
-    info "In futuro allineerà il database da produzione a locale"
+    local env="${1:-}"
+
+    if [[ "$env" != "stage" ]]; then
+        error "Specificare l'ambiente: stage (unico supportato per ora)"
+        info "Uso: ./local.sh allinea stage"
+        exit 1
+    fi
+
+    local remote_host="ubuntu@ildeposito.org"
+    local remote_root="/home/ubuntu/sergej/websites/ildeposito/${env}"
+    local remote_dump="${remote_root}/backup/backup.sql"
+    local remote_files="${remote_root}/backend/web/sites/default/files/"
+    local local_files="${PROJECT_ROOT}/backend/web/sites/default/files/"
+
+    warn "Questo sovrascrive il database e i file locali con quelli di '${env}'."
+    read -r -p "Continuare? [y/N] " reply
+    [[ "$reply" =~ ^[Yy]$ ]] || { info "Annullato"; exit 0; }
+
+    info "Avvio DDEV (se non già attivo)..."
+    run_step "Avvio DDEV" ddev start
+    ok "DDEV attivo"
+
+    info "Scarico il dump da ${env}..."
+    local tmp_dump
+    tmp_dump=$(mktemp /tmp/ildeposito-allinea-XXXX).sql
+    run_step "Download dump (${remote_host}:${remote_dump})" scp "${remote_host}:${remote_dump}" "$tmp_dump"
+    ok "Dump scaricato"
+
+    info "Svuoto il database locale..."
+    run_step "Svuotamento database" ddev drush sql:drop -y
+    ok "Database locale svuotato"
+
+    info "Importo il dump di ${env}..."
+    run_step "Import dump" ddev import-db --file="$tmp_dump"
+    rm -f "$tmp_dump"
+    ok "Dump importato"
+
+    info "Sincronizzo sites/default/files da ${env} (rsync, con --delete)..."
+    run_step "Sincronizzazione file" rsync -az --delete "${remote_host}:${remote_files}" "$local_files"
+    ok "File sincronizzati"
+
+    info "Sistemo i permessi di sites/default/files..."
+    run_step "Fix permessi" ddev exec -u root sh -c "
+        chown -R www-data:www-data backend/web/sites/default/files &&
+        find backend/web/sites/default/files -type d -exec chmod 2775 {} + &&
+        find backend/web/sites/default/files -type f -exec chmod 664 {} +"
+    ok "Permessi sistemati"
+
+    info "Composer install..."
+    run_step "Composer install" ddev composer install
+    ok "Dipendenze installate"
+
+    info "Database update..."
+    run_step "Database update" ddev drush updatedb -y
+    ok "Database aggiornato"
+
+    info "Import configurazione..."
+    run_step "Import configurazione" ddev drush config:import -y
+    ok "Configurazione importata"
+
+    info "Cache rebuild..."
+    run_step "Cache rebuild" ddev drush cr
+    ok "Cache pulita"
+
+    ok "Allineamento da ${env} completato, avvio build frontend..."
+    cmd_build
 }
 
 usage() {
@@ -449,7 +530,7 @@ usage() {
     printf "  %b%-22s%b %s\n" "$CYAN"   "linkcheck"        "$NC" "Verifica link interni rotti nel build statico"
     printf "  %b%-22s%b %s\n" "$CYAN"   "outdated"    "$NC" "Verifica aggiornamenti backend e frontend"
     printf "  %b%-22s%b %s\n" "$CYAN"   "upgrade <target>" "$NC" "Aggiorna pacchetti (target: backend | frontend)"
-    printf "  %b%-22s%b %s\n" "$YELLOW" "allinea"          "$NC" "Allinea il DB da produzione (non ancora implementato)"
+    printf "  %b%-22s%b %s\n" "$CYAN"   "allinea <ambiente>" "$NC" "Allinea DB e file da stage (ambienti: stage)"
 }
 
 cmd_completions() {
@@ -463,7 +544,7 @@ _local_sh() {
         'linkcheck:Verifica link interni rotti nel build statico'
         'outdated:Verifica aggiornamenti backend e frontend'
         'upgrade:Aggiorna pacchetti (backend | frontend)'
-        'allinea:Allinea il DB da produzione'
+        'allinea:Allinea DB e file da stage'
         'help:Mostra l'\''aiuto'
     )
 
@@ -472,6 +553,9 @@ _local_sh() {
     elif (( CURRENT == 3 )) && [[ "${words[2]}" == "upgrade" ]]; then
         local targets=('backend:Aggiorna drupal/*' 'frontend:Aggiorna pacchetti npm')
         _describe 'target' targets
+    elif (( CURRENT == 3 )) && [[ "${words[2]}" == "allinea" ]]; then
+        local envs=('stage:Allinea da staging')
+        _describe 'ambiente' envs
     fi
 }
 compdef _local_sh local.sh
@@ -487,7 +571,7 @@ case "${1:-}" in
     linkcheck)         cmd_linkcheck ;;
     outdated)     cmd_outdated ;;
     upgrade)           cmd_upgrade "${2:-}" ;;
-    allinea)           cmd_allinea ;;
+    allinea)           cmd_allinea "${2:-}" ;;
     completions)       cmd_completions ;;
     -h | --help | help) usage ;;
     "")                usage; exit 1 ;;
