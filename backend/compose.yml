@@ -123,7 +123,11 @@ services:
       NGINX_SERVER_ROOT: /var/www/html/web
       NGINX_VHOST_PRESET: $NGINX_VHOST_PRESET
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1/ || exit 1"]
+      # Host esplicito: senza, wget manda "Host: 127.0.0.1", assente da
+      # trusted_host_patterns (settings.php) → Drupal risponde 400 e
+      # l'healthcheck fallisce sempre, facendo riavviare nginx da autoheal
+      # (anche a metà di una build frontend in corso).
+      test: ["CMD-SHELL", "wget -qO /dev/null --header='Host: localhost' http://127.0.0.1/ || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
