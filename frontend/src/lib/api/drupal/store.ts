@@ -41,7 +41,7 @@ export function fetchAllCantiRaw(): Promise<RawStore> {
       'fields[node--canto]': [
         'drupal_internal__nid', 'title', 'path', 'created',
         'field_anno', 'field_capoverso', 'field_canto_testo', 'field_canto_accordi',
-        'field_audio', 'field_fonte', 'field_informazioni',
+        'field_audio', 'field_fonte', 'field_informazioni', 'field_altri_titoli',
         'field_autori_testo', 'field_autori_musica',
         'field_lingua', 'field_periodo', 'field_tags', 'field_tematiche',
         'field_visualizzazioni',
@@ -66,7 +66,7 @@ export function fetchAllAutoriRaw(): Promise<RawStore> {
       'fields[node--autore]': [
         'drupal_internal__nid', 'title', 'path',
         'field_nome', 'field_cognome', 'field_informazioni', 'field_immagine',
-        'field_localizzazione', 'field_periodo',
+        'field_localizzazione', 'field_periodo', 'field_links',
         'field_anno_di_nascita', 'field_anno_di_morte', 'field_visualizzazioni',
       ].join(','),
       'fields[taxonomy_term--localizzazioni]': 'name,path',
@@ -89,7 +89,7 @@ export function fetchAllEventiRaw(): Promise<RawStore> {
         'drupal_internal__nid', 'title', 'path',
         'field_data_evento', 'field_informazioni', 'field_immagine',
         'field_geofield', 'field_localizzazione', 'field_periodo',
-        'field_tags', 'field_tematiche', 'field_canti_correlati',
+        'field_tags', 'field_tematiche', 'field_canti_correlati', 'field_links',
         'field_visualizzazioni',
       ].join(','),
       'fields[node--canto]': 'drupal_internal__nid,title,path,field_anno,field_capoverso,field_audio,field_canto_accordi,status',

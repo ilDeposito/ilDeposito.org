@@ -1,0 +1,15 @@
+ildeposito_redirects.form:
+  path: '/admin/config/search/redirects'
+  defaults:
+    _form: '\Drupal\ildeposito_redirects\Form\RedirectsForm'
+    _title: 'Redirect'
+  requirements:
+    _permission: 'administer ildeposito redirects'
+
+ildeposito_redirects.api:
+  path: '/api/redirects.json'
+  defaults:
+    _controller: '\Drupal\ildeposito_redirects\Controller\RedirectsApiController::list'
+  requirements:
+    _access: 'TRUE'
+  methods: [GET]

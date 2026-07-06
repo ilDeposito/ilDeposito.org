@@ -1,0 +1,5 @@
+name: 'ilDeposito Redirects'
+description: 'Redirect legacy dal vecchio sito e report periodico dei 404, per la migrazione dal monolite Drupal 8.'
+package: 'ilDeposito'
+core_version_requirement: ^11 || ^12
+type: module

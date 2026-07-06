@@ -55,6 +55,11 @@ if [ -d /app/public/uploads ]; then
   cp -al "$UPLOAD_CACHE" "$BUILD_DIR/client/uploads"
 fi
 
+# Redirect legacy (Drupal → nginx): scrive sempre il file, anche vuoto, per
+# non rompere l'`include` in frontend/nginx.conf (vedi Task 4, PLAN_SEO_2.md).
+echo "→ Generating legacy redirects (_redirects.conf) ..."
+node scripts/generate-redirects.mjs "$BUILD_DIR/_redirects.conf"
+
 # Pagefind indicizza solo la parte statica (client/)
 npx pagefind --site "$BUILD_DIR/client"
 

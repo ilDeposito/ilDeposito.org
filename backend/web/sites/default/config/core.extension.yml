@@ -23,6 +23,7 @@ module:
   geofield: 0
   ildeposito_build: 0
   ildeposito_contatti: 0
+  ildeposito_redirects: 0
   ildeposito_utils: 0
   image: 0
   inline_form_errors: 0

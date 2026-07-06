@@ -39,7 +39,7 @@
 # ─── Home ────────────────────────────────────────────────────────────────────
 # La home ha un hero dedicato: qui si gestiscono solo i meta tag.
 home:
-  metaTitle: "ilDeposito.org - Canti di protesta politica e sociale"
+  metaTitle: "ilDeposito.org — Canti di protesta italiani"
   metaDescription: "Archivio online di canti di protesta politica e sociale: testi, accordi, traduzioni, autori e eventi storici."
 
 
@@ -128,14 +128,15 @@ eventi.elenco:
   pageTitle: "Gli eventi dell'archivio"
   pageDescription: "L'elenco completo degli eventi dell'archivio"
 
-# Pagina singolo evento — token: {titolo} {anno} {info} {data} {loc}
-#   anno: anno dell'evento (per il titolo)
-#   info: informazioni (descrizione) se presenti
-#   data: data formattata ("5 marzo 1946")
-#   loc:  prima localizzazione
+# Pagina singolo evento — token: {titolo} {anno} {info} {data} {loc} {count}
+#   anno:   anno dell'evento (per il titolo)
+#   info:   informazioni (descrizione) se presenti
+#   data:   data formattata ("5 marzo 1946")
+#   loc:    prima localizzazione
+#   count:  numero di canti collegati all'evento
 eventi.detail:
   metaTitle: "{titolo}{?anno} ({anno}){/anno}"
-  metaDescription: "{?info}{info}{/info}{^info}{titolo}{?data}, {data}{/data}{?loc} — {loc}{/loc}. Evento storico nell'archivio di ilDeposito.org.{/info}"
+  metaDescription: "{?info}{info}{/info}{^info}{titolo}{?data}, {data}{/data}{?loc} — {loc}{/loc}. Evento storico nell'archivio di ilDeposito.org.{?count} {count} {count|canto collegato|canti collegati}.{/count}{/info}"
 
 
 # ─── Traduzioni ──────────────────────────────────────────────────────────────

@@ -1,0 +1,4 @@
+administer ildeposito redirects:
+  title: 'Amministra redirect ilDeposito'
+  description: 'Gestisce i redirect legacy dal vecchio sito verso il nuovo, e i destinatari del report 404.'
+  restrict access: true

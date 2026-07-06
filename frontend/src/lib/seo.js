@@ -135,6 +135,7 @@ function eventoVars(evento) {
     info: evento.informazioni ? stripHtml(evento.informazioni) : '',
     data: evento.dataEvento ? formatDataIT(evento.dataEvento) : '',
     loc: evento.localizzazioni?.[0]?.titolo || '',
+    count: evento.cantiCollegati?.length ?? 0,
   };
 }
 

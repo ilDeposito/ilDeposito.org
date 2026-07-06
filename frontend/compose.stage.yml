@@ -92,8 +92,16 @@ services:
       - frontend_output:/usr/share/nginx/html:ro
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./nginx-ratelimit.conf:/etc/nginx/conf.d/ratelimit.conf:ro
+      # Ordine alfabetico conf.d: "00-" garantisce che log_format sia dichiarato
+      # prima di default.conf che lo referenzia (access_log ... notfound) — a
+      # differenza di limit_req_zone, log_format richiede dichiarazione
+      # lessicale prima dell'uso (verificato empiricamente con nginx -t).
+      - ./nginx-log-formats.conf:/etc/nginx/conf.d/00-log-formats.conf:ro
       - ./nginx-security-headers.conf:/etc/nginx/conf.d/security-headers.conf:ro
       - ./nginx-realip.conf.template:/etc/nginx/templates/realip.conf.template:ro
+      # Log 404 dedicato, condiviso in read-write con php/crond (backend/compose.yml):
+      # il drush command di report tronca il file dopo l'invio (Report404Command).
+      - ildeposito_404_log:/var/log/nginx
     logging: *logging
     labels:
       autoheal: "true"
@@ -111,6 +119,9 @@ services:
 volumes:
   frontend_output:
   astro_cache:
+  ildeposito_404_log:
+    name: ildeposito-${ENV}-404-log
+    external: true
 
 networks:
   frontend-internal:

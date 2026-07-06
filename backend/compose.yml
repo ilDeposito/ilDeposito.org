@@ -69,6 +69,11 @@ services:
     volumes:
     - ./:/var/www/html:cached
     - ../backup:/var/backup_migrate
+    # Read-write (non :ro): drush ildeposito:report-404 tronca il log dopo
+    # l'invio (copytruncate, sicuro con nginx che scrive in append — vedi
+    # frontend/nginx.conf, location @log404). Serve scrittura anche qui per
+    # l'uso manuale via ./ildeposito.sh drush.
+    - ildeposito_404_log:/var/log/frontend-nginx
     networks:
       - backend-internal
 
@@ -84,10 +89,13 @@ services:
       DB_PASSWORD: $DB_PASSWORD
       DB_HOST: $DB_HOST
       REDIS_HOST: redis
-      CRONTAB: "0 * * * * drush -r /var/www/html/web cron"
+      CRONTAB: |
+        0 * * * * drush -r /var/www/html/web cron
+        0 */6 * * * drush -r /var/www/html/web ildeposito:report-404
     command: sudo -E crond -f -d 0
     volumes:
       - ./:/var/www/html:cached
+      - ildeposito_404_log:/var/log/frontend-nginx
     networks:
       - backend-internal
 
@@ -149,6 +157,9 @@ services:
 
 volumes:
   mariadb_data:
+  ildeposito_404_log:
+    name: ildeposito-${ENV}-404-log
+    external: true
 
 networks:
   backend-internal:

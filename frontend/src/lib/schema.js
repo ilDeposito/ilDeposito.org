@@ -64,6 +64,10 @@ export function buildCreativeWorkSchema(canto, siteUrl) {
     schema.description = canto.capoverso;
   }
 
+  if (canto.altriTitoli) {
+    schema.alternateName = canto.altriTitoli;
+  }
+
   if (canto.testo) {
     let lyricsText = canto.testo;
     if (lyricsText.length > 500) {
@@ -156,6 +160,8 @@ export function buildPersonSchema(autore, siteUrl, ogImagePath) {
     };
   }
 
+  if (autore.links?.[0]?.uri) schema.sameAs = [autore.links[0].uri];
+
   return schema;
 }
 
@@ -165,7 +171,6 @@ export function buildEventSchema(evento, siteUrl) {
     '@type': 'Event',
     name: evento.titolo,
     url: `${siteUrl}/eventi/${evento.slug}`,
-    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
   };
 
   if (evento.informazioni) {
@@ -200,6 +205,8 @@ export function buildEventSchema(evento, siteUrl) {
     }));
   }
 
+  if (evento.links?.[0]?.uri) schema.sameAs = [evento.links[0].uri];
+
   return schema;
 }
 
@@ -219,6 +226,10 @@ export function buildTranslationSchema(traduzione, siteUrl) {
       url: `${siteUrl}/canti/${traduzione.cantoOriginale.slug}`,
       inLanguage: linguaToIso(traduzione.cantoOriginale.lingue?.[0]?.titolo),
     };
+  }
+
+  if (traduzione.informazioni) {
+    schema.description = stripHtml(traduzione.informazioni).substring(0, 200);
   }
 
   return schema;

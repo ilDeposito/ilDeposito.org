@@ -1,5 +1,5 @@
 import type {
-  Ref,
+  Ref, LinkRef,
   CantoRecente, CantoCard, CantoDetail, CantoInAutore, CantoCollegato,
   AutoreCard, AutoreDetail,
   EventoForCanto, EventoDelGiorno, EventoMese, EventoCard, EventoCalendario, EventoGeo, EventoDetail,
@@ -18,6 +18,13 @@ function parseYear(raw: string | null | undefined): number | null {
 function extractVideoUrl(fieldAudio: any[] | null | undefined): string | null {
   if (!fieldAudio?.length) return null;
   return fieldAudio[0].uri?.trim() || null;
+}
+
+function mapLinks(raw: any[] | undefined): LinkRef[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((l) => typeof l?.uri === 'string' && l.uri.startsWith('http'))
+    .map((l) => ({ uri: l.uri, title: l.title || null }));
 }
 
 const ALLOWED_TAGS = new Set([
@@ -108,6 +115,7 @@ export function mapCantoDetail(raw: any, included: IncludedMap): CantoDetail {
     audio: null,
     fonte: textValue(a.field_fonte),
     informazioni: textValue(a.field_informazioni),
+    altriTitoli: a.field_altri_titoli || null,
     lingue: resolveRefs(r.field_lingua, included),
     periodi: resolveRefs(r.field_periodo, included),
     tags: resolveRefs(r.field_tags, included),
@@ -174,6 +182,7 @@ export function mapAutoreDetail(raw: any, included: IncludedMap): AutoreDetail {
     periodi: resolveRefs(r.field_periodo, included),
     annoNascita: a.field_anno_di_nascita ?? null,
     annoMorte: a.field_anno_di_morte ?? null,
+    links: mapLinks(a.field_links),
   };
 }
 
@@ -274,6 +283,7 @@ export function mapEventoDetail(raw: any, included: IncludedMap): EventoDetail {
     tags: resolveRefs(r.field_tags, included),
     tematiche: resolveRefs(r.field_tematiche, included),
     cantiCollegati: cantiRaw.map(mapCantoCollegato),
+    links: mapLinks(a.field_links),
   };
 }
 

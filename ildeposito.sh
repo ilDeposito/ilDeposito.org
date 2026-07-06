@@ -89,6 +89,9 @@ cmd_up() {
     local internal_net="ildeposito-${ENV}-internal"
     docker network inspect "${internal_net}" &>/dev/null \
         || { info "Creazione rete ${internal_net}..."; docker network create "${internal_net}"; }
+    local log_vol="ildeposito-${ENV}-404-log"
+    docker volume inspect "${log_vol}" &>/dev/null \
+        || { info "Creazione volume ${log_vol}..."; docker volume create "${log_vol}"; }
     ${COMPOSE} pull --quiet
     ${COMPOSE} up -d ${extra_flags}
     # Restart mirato (non --force-recreate): 'up -d' ricrea da sé i container
@@ -147,6 +150,18 @@ cmd_build_frontend() {
     ${COMPOSE} run --rm astro-builder sh docker-entrypoint.sh "${mode}"
 
     if [[ "${mode}" != "pdf" ]]; then
+        # I redirect legacy generati a build time (_redirects.conf, vedi
+        # generate-redirects.mjs) possono in teoria contenere una riga
+        # malformata sfuggita alla validazione Drupal: mai ricaricare nginx
+        # senza aver prima verificato la config, e mai silenziare l'esito.
+        info "Verifica configurazione nginx..."
+        if ${COMPOSE} exec -T frontend-web nginx -t; then
+            ok "Configurazione nginx valida"
+        else
+            error "Configurazione nginx NON valida — reload ANNULLATO, nginx resta sulla config precedente"
+            exit 1
+        fi
+
         info "Ricarica configurazione nginx..."
         ${COMPOSE} exec frontend-web nginx -s reload
 

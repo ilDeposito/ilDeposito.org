@@ -1,0 +1,6 @@
+ildeposito_redirects.form:
+  title: 'Redirect'
+  description: 'Gestisci i redirect legacy dal vecchio sito verso il nuovo.'
+  parent: system.admin_config_search
+  route_name: ildeposito_redirects.form
+  weight: 0

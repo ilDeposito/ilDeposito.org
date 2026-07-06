@@ -5,6 +5,11 @@ export interface Ref {
   slug: string;
 }
 
+export interface LinkRef {
+  uri: string;
+  title: string | null;
+}
+
 // ── Canti ──────────────────────────────────────────────
 
 export interface CantoPath {
@@ -38,6 +43,7 @@ export interface CantoDetail extends CantoCard {
   audio: string | null;
   fonte: string | null;
   informazioni: string | null;
+  altriTitoli: string | null;
   lingue: Ref[];
   periodi: Ref[];
   tags: Ref[];
@@ -95,6 +101,7 @@ export interface AutoreDetail {
   periodi: Ref[];
   annoNascita: number | null;
   annoMorte: number | null;
+  links: LinkRef[];
 }
 
 // ── Eventi ─────────────────────────────────────────────
@@ -170,6 +177,7 @@ export interface EventoDetail {
   tags: Ref[];
   tematiche: Ref[];
   cantiCollegati: CantoCollegato[];
+  links: LinkRef[];
 }
 
 // ── Traduzioni ─────────────────────────────────────────
