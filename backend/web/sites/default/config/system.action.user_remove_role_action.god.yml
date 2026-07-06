@@ -1,0 +1,14 @@
+uuid: e04a5a6d-1f1d-4a5d-955f-7a50be1210f1
+langcode: it
+status: true
+dependencies:
+  config:
+    - user.role.god
+  module:
+    - user
+id: user_remove_role_action.god
+label: 'Remove the God role from the selected user(s)'
+type: user
+plugin: user_remove_role_action
+configuration:
+  rid: god

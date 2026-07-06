@@ -1,0 +1,45 @@
+uuid: 34b6e5e8-609a-4f88-b2f1-eff8a85f70b2
+langcode: it
+status: true
+dependencies:
+  config:
+    - block_content.type.card
+    - field.field.block_content.card.field_categoria
+    - field.field.block_content.card.field_descrizione
+    - field.field.block_content.card.field_link
+  module:
+    - link
+    - options
+id: block_content.card.default
+targetEntityType: block_content
+bundle: card
+mode: default
+content:
+  field_categoria:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  field_descrizione:
+    type: basic_string
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_link:
+    type: link
+    label: hidden
+    settings:
+      trim_length: 80
+      url_only: false
+      url_plain: false
+      rel: ''
+      target: ''
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden:
+  langcode: true

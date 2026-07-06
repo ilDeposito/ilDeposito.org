@@ -1,0 +1,19 @@
+uuid: 2b44c754-18ef-48e5-82d9-be1a10d8233d
+langcode: it
+status: true
+dependencies:
+  config:
+    - block_content.type.card
+    - field.storage.block_content.field_descrizione
+id: block_content.card.field_descrizione
+field_name: field_descrizione
+entity_type: block_content
+bundle: card
+label: Descrizione
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

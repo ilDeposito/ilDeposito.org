@@ -1,0 +1,21 @@
+uuid: d3e0b34e-58b1-4d1e-8888-576819dc75ae
+langcode: it
+status: true
+dependencies:
+  config:
+    - block_content.type.card
+    - field.storage.block_content.field_categoria
+  module:
+    - options
+id: block_content.card.field_categoria
+field_name: field_categoria
+entity_type: block_content
+bundle: card
+label: Categoria
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

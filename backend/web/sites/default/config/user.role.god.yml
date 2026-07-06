@@ -1,0 +1,9 @@
+uuid: 04280c3c-e1cb-438f-92f6-f2db407c68ed
+langcode: it
+status: true
+dependencies: {  }
+id: god
+label: God
+weight: 6
+is_admin: false
+permissions: {  }

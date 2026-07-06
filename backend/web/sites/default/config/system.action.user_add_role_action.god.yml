@@ -1,0 +1,14 @@
+uuid: 15644a0b-765e-415a-a8cf-642c4d51be47
+langcode: it
+status: true
+dependencies:
+  config:
+    - user.role.god
+  module:
+    - user
+id: user_add_role_action.god
+label: 'Add the God role to the selected user(s)'
+type: user
+plugin: user_add_role_action
+configuration:
+  rid: god
