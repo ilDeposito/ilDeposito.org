@@ -63,24 +63,25 @@ fix_files_permissions() {
 # nginx ancora in avvio (o in restart-loop da autoheal) e ricevere
 # "SocketError: other side closed" a metà fetch.
 wait_for_nginx_healthy() {
+    local service="${1:-nginx}"
     local nginx_container
-    nginx_container="$(${COMPOSE} ps -q nginx)"
+    nginx_container="$(${COMPOSE} ps -q "${service}")"
     if [[ -z "${nginx_container}" ]]; then
-        warn "Container nginx non trovato, salto l'attesa di readiness"
+        warn "Container ${service} non trovato, salto l'attesa di readiness"
         return 0
     fi
-    info "Attendo che nginx sia healthy..."
+    info "Attendo che ${service} sia healthy..."
     for i in $(seq 1 20); do
         local status
         status="$(docker inspect --format='{{.State.Health.Status}}' "${nginx_container}" 2>/dev/null || echo "unknown")"
         if [[ "${status}" == "healthy" ]]; then
-            ok "nginx healthy"
+            ok "${service} healthy"
             return 0
         fi
-        info "nginx non ancora healthy (${status}), riprovo... (${i}/20)"
+        info "${service} non ancora healthy (${status}), riprovo... (${i}/20)"
         sleep 3
     done
-    warn "nginx non è diventato healthy in tempo, procedo comunque"
+    warn "${service} non è diventato healthy in tempo, procedo comunque"
 }
 
 cmd_up() {
@@ -150,6 +151,14 @@ cmd_build_frontend() {
     ${COMPOSE} run --rm astro-builder sh docker-entrypoint.sh "${mode}"
 
     if [[ "${mode}" != "pdf" ]]; then
+        # frontend-web può essere stato ricreato pochi secondi prima da
+        # './ildeposito.sh up' (es. dopo un pull immagine): il suo healthcheck
+        # ha start_period 10s + 3 retries da 30s, quindi può risultare ancora
+        # "restarting" (autoheal) quando arriviamo qui, facendo fallire
+        # l'exec sottostante con "Container is restarting, wait until the
+        # container is running" pur essendo la config nginx valida.
+        wait_for_nginx_healthy frontend-web
+
         # I redirect legacy generati a build time (_redirects.conf, vedi
         # generate-redirects.mjs) possono in teoria contenere una riga
         # malformata sfuggita alla validazione Drupal: mai ricaricare nginx
