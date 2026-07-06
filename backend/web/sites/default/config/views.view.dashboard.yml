@@ -336,15 +336,20 @@ display:
           plugin_id: boolean
           value: '1'
       style:
-        type: default
+        type: grid
         options:
           grouping:
             -
               field: field_categoria
               rendered: true
               rendered_strip: false
-          row_class: admin-item
-          default_row_class: true
+          columns: 4
+          automatic_width: true
+          alignment: horizontal
+          row_class_custom: ''
+          row_class_default: true
+          col_class_custom: ''
+          col_class_default: true
       row:
         type: fields
       query:
