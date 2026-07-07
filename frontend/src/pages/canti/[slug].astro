@@ -182,23 +182,13 @@ const jsonLd = [
       ) : (
         <pre lang={linguaToIso(canto.lingue?.[0]?.titolo)} class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{canto.testo}</pre>
       )}
-      <div data-pagefind-ignore class="flex justify-end mt-2">
+      <div data-pagefind-ignore class="flex justify-start mt-4">
         <a href={`/pdf/canti/${canto.slug}.pdf`} download class="inline-flex items-center gap-1 text-base text-base-content">
           <Icon name="file-pdf" />
           Scarica PDF
         </a>
       </div>
     </section>
-
-    <!-- Tematiche -->
-    {canto.tematiche.length > 0 && (
-      <section class="flex flex-col gap-2">
-        <h2 class="font-serif font-bold text-base md:text-lg text-base-content">Tematiche</h2>
-        <div class="flex flex-wrap gap-2">
-          {canto.tematiche.map((t) => <span class="badge badge-secondary">{t.titolo}</span>)}
-        </div>
-      </section>
-    )}
 
     <!-- Fonte -->
     {canto.fonte && (
@@ -242,6 +232,20 @@ const jsonLd = [
         </p>
       )}
 
+      {periodo && (
+        <p class="text-base">
+          <span class="text-base-content">Periodo: </span>
+          <a href={`/periodi/${periodo.slug}`} class="text-primary hover:underline">{periodo.titolo}</a>
+        </p>
+      )}
+
+      {canto.tematiche.length > 0 && (
+        <p class="text-base">
+          <span class="text-base-content">Tematiche: </span>
+          <span class="text-primary">{canto.tematiche.map((t) => t.titolo).join(', ')}</span>
+        </p>
+      )}
+
       {canto.anno && (
         <p class="text-base">
           <span class="text-base-content">Anno: </span>
@@ -260,13 +264,6 @@ const jsonLd = [
         </p>
       )}
 
-      {periodo && (
-        <p class="text-base">
-          <span class="text-base-content">Periodo: </span>
-          <a href={`/periodi/${periodo.slug}`} class="text-primary hover:underline">{periodo.titolo}</a>
-        </p>
-      )}
-
       {canto.tags.length > 0 && (
         <p class="text-base">
           <span class="text-base-content">Tags: </span>
@@ -275,13 +272,6 @@ const jsonLd = [
               <>{i > 0 && ', '}<a href={`/tags/${t.slug}`} class="hover:underline">{t.titolo}</a></>
             ))}
           </span>
-        </p>
-      )}
-
-      {canto.audio && (
-        <p class="text-base">
-          <span class="text-base-content">Audio: </span>
-          <a href={canto.audio} target="_blank" rel="noopener noreferrer" class="text-primary underline break-all">{canto.audio}</a>
         </p>
       )}
 

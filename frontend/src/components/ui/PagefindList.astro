@@ -260,7 +260,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
               <h3 class="font-serif font-semibold text-lg text-primary">
                 <a href="${e(item.url)}" class="hover:underline">${e(meta.title)}</a>
               </h3>
-              ${cantoLink ? `<p class="font-serif italic text-base text-base-content/60">${cantoLink}</p>` : ''}
+              ${cantoLink ? `<p class="font-serif italic text-base text-base-content/60">Canto originale: ${cantoLink}</p>` : ''}
             </div>
           `;
         }

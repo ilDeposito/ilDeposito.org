@@ -60,6 +60,7 @@ const jsonLd = [
     <!-- Metadati Pagefind (nascosti, per facet e display nell'elenco) -->
     <span class="sr-only" data-pagefind-weight="10" data-pagefind-meta="title">{autore.titolo}</span>
     <span class="sr-only" data-pagefind-sort="titolo">{autore.titolo}</span>
+    <span class="sr-only" data-pagefind-sort="cognome">{autore.cognome}</span>
     <span class="sr-only" data-pagefind-sort={`visualizzazioni:${String(autore.visualizzazioni).padStart(10, '0')}`}></span>
     <span class="sr-only" data-pagefind-meta={`num_canti:${tuttiCanti.length}`}></span>
     {autore.localizzazioni.length > 0 && (

@@ -68,10 +68,8 @@ const ogImage = await getOgImageForEvento(evento);
         {' · '}{evento.dataEvento && formatData(evento.dataEvento)}
       </p>
 
-      <a href="/archivio/storia-cantata" class="inline-flex items-center gap-2 text-primary w-fit">
-        <span class="border border-primary rounded p-1 inline-flex">
-          <Icon name="calendar-star" />
-        </span>
+      <a href="/archivio/storia-cantata" class="btn btn-primary gap-2 w-fit border-0">
+        <Icon name="calendar-star" />
         <span class="font-serif italic font-bold uppercase text-sm">La storia cantata</span>
       </a>
 
@@ -153,7 +151,7 @@ const ogImage = await getOgImageForEvento(evento);
           data-lat={evento.latitude}
           data-lng={evento.longitude}
           data-title={evento.titolo}
-          class="block h-64 w-full rounded-lg overflow-hidden border border-base-300"
+          class="isolate block h-64 w-full rounded-lg overflow-hidden border border-base-300"
         ></event-map>
       </section>
     )}
