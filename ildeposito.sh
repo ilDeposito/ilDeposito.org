@@ -84,6 +84,15 @@ wait_for_nginx_healthy() {
     warn "${service} non è diventato healthy in tempo, procedo comunque"
 }
 
+# Domini pubblici: stage segue il pattern admin-${ENV}/${ENV}, prod usa domini
+# dedicati (admin.ildeposito.org, FRONTEND_DOMAIN) senza prefisso ambiente.
+public_backend_url() {
+    [[ "${ENV}" == "prod" ]] && echo "https://admin.ildeposito.org" || echo "https://admin-${ENV}.ildeposito.org"
+}
+public_frontend_url() {
+    [[ "${ENV}" == "prod" ]] && echo "https://${FRONTEND_DOMAIN:-www.ildeposito.org}" || echo "https://${ENV}.ildeposito.org"
+}
+
 cmd_up() {
     local extra_flags="${1:-}"
     info "Avvio ambiente ${ENV} (${PROJECT_NAME})..."
@@ -106,8 +115,8 @@ cmd_up() {
     ${COMPOSE} restart php
     fix_files_permissions
     ok "Ambiente ${ENV} avviato"
-    info "Backend:  https://admin-${ENV}.ildeposito.org"
-    info "Frontend: https://${ENV}.ildeposito.org"
+    info "Backend:  $(public_backend_url)"
+    info "Frontend: $(public_frontend_url)"
     echo ""
     if ! docker volume inspect "${PROJECT_NAME}_frontend_output" &>/dev/null || \
        [ -z "$(docker run --rm -v "${PROJECT_NAME}_frontend_output:/data" alpine ls /data/current 2>/dev/null)" ]; then
@@ -179,7 +188,7 @@ cmd_build_frontend() {
     fi
 
     ok "Build frontend completata (${mode})"
-    info "Il sito è live su https://${ENV}.ildeposito.org"
+    info "Il sito è live su $(public_frontend_url)"
 }
 
 cmd_drush() {
