@@ -40,6 +40,7 @@ jobs:
           chmod u+w backend/web/sites/default backend/web/sites/default/*.php backend/web/sites/default/*.yml 2>/dev/null || true
           git fetch origin --tags --prune
           git reset --hard "tags/${{ github.ref_name }}"
+          git describe --tags --always > backend/.deploy-version
 
       - name: Update containers
         run: ./ildeposito.sh up
@@ -71,23 +72,29 @@ jobs:
       - name: Smoke test
         run: |
           sleep 10
+          # Letto da .env invece che hardcoded: FRONTEND_DOMAIN è temporaneamente
+          # prod.ildeposito.org durante il cutover, diventerà www.ildeposito.org
+          # al go-live pubblico, senza bisogno di ritoccare questo workflow.
+          FRONTEND_DOMAIN=$(grep -m1 '^FRONTEND_DOMAIN=' .env | cut -d= -f2-)
           STATUS=$(curl -sk -o /dev/null -w "%{http_code}" \
             -u "${{ secrets.PROD_FRONTEND_AUTH_USER }}:${{ secrets.PROD_FRONTEND_AUTH_PASS }}" \
-            https://www.ildeposito.org/)
-          echo "HTTP status: $STATUS"
+            "https://${FRONTEND_DOMAIN}/")
+          echo "HTTP status: $STATUS (dominio: ${FRONTEND_DOMAIN})"
           [ "$STATUS" = "200" ] || exit 1
 
       - name: E2E tests (Playwright)
         env:
-          # playwright.config.ts punta a stage.ildeposito.org di default:
-          # PLAYWRIGHT_BASE_URL è l'override necessario per testare prod.
           # STAGE_AUTH_USER/PASS restano questi nomi perché è la variabile
           # letta da playwright.config.ts, non è specifica dell'ambiente stage.
-          PLAYWRIGHT_BASE_URL: https://www.ildeposito.org
           STAGE_AUTH_USER: ${{ secrets.PROD_FRONTEND_AUTH_USER }}
           STAGE_AUTH_PASS: ${{ secrets.PROD_FRONTEND_AUTH_PASS }}
         working-directory: /home/ubuntu/sergej/websites/ildeposito/prod/frontend
         run: |
+          # playwright.config.ts punta a stage.ildeposito.org di default:
+          # PLAYWRIGHT_BASE_URL è l'override, letto da .env invece che hardcoded
+          # (FRONTEND_DOMAIN è temporaneamente prod.ildeposito.org durante il
+          # cutover, diventerà www.ildeposito.org al go-live).
+          export PLAYWRIGHT_BASE_URL="https://$(grep -m1 '^FRONTEND_DOMAIN=' ../.env | cut -d= -f2-)"
           # npm ci cancella e reinstalla sempre node_modules: sul runner
           # self-hosted (persistente tra deploy) lo eseguiamo solo se
           # package-lock.json è cambiato dall'ultima volta, stesso pattern
