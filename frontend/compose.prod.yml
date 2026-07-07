@@ -105,8 +105,14 @@ services:
     logging: *logging
     labels:
       autoheal: "true"
-      # In prod il frontend è pubblico: nessuna basic auth.
+      # TEMPORANEO: basic auth ancora attiva sul frontend prod durante il
+      # cutover (dominio non ancora annunciato pubblicamente). Hash separata
+      # da BASIC_AUTH_HASH del backend (PROD_FRONTEND_BASIC_AUTH_HASH) così
+      # da poter ruotare/rimuovere l'una senza toccare l'altra. Da rimuovere,
+      # insieme a PROD_FRONTEND_BASIC_AUTH_HASH in .env, al go-live pubblico.
       caddy: ${FRONTEND_DOMAIN}
+      caddy.basicauth: "/*"
+      caddy.basicauth.ildeposito: "${PROD_FRONTEND_BASIC_AUTH_HASH}"
       caddy.reverse_proxy: "{{upstreams 80}}"
       caddy_1: ildeposito.org
       caddy_1.redir: "https://${FRONTEND_DOMAIN}{uri} permanent"
