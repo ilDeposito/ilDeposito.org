@@ -39,7 +39,10 @@ jobs:
           chmod u+w backend/web/sites/default backend/web/sites/default/*.php backend/web/sites/default/*.yml 2>/dev/null || true
           git fetch origin main
           git reset --hard origin/main
-          git describe --tags --always > backend/.deploy-version
+          {
+            git describe --tags --always
+            git log -1 --pretty=%s
+          } > backend/.deploy-version
 
       - name: Update containers
         run: ./ildeposito.sh up

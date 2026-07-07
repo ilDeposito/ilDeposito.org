@@ -25,39 +25,51 @@ final class IldepositoBuildHooks {
    */
   #[Hook('runtime_requirements')]
   public function runtimeRequirements(): array {
-    $version = $this->resolveGitVersion();
+    $info = $this->resolveGitInfo();
 
     return [
       'ildeposito_git_version' => [
-        'title' => $this->t('Versione applicativa (git)'),
-        'value' => $version ?? $this->t('Non disponibile'),
-        'severity' => $version !== NULL ? RequirementSeverity::Info : RequirementSeverity::Warning,
+        'title' => $this->t('Versione ilDeposito.org'),
+        'value' => $info['ref'] ?? $this->t('Non disponibile'),
+        'description' => $info['message'],
+        'severity' => $info['ref'] !== NULL ? RequirementSeverity::Info : RequirementSeverity::Warning,
       ],
     ];
   }
 
   /**
-   * Risolve il riferimento git della versione deployata.
+   * Risolve il riferimento git (tag o SHA) e il messaggio dell'ultimo commit.
    *
    * In stage/prod il container php monta solo backend/, senza .git (che
-   * sta nella root del monorepo): il valore arriva da un file scritto dai
-   * workflow di deploy subito dopo il checkout. In locale (DDEV) l'intero
-   * repo è montato, quindi si può interrogare git direttamente.
+   * sta nella root del monorepo): i valori arrivano da un file scritto dai
+   * workflow di deploy subito dopo il checkout (prima riga: ref, seconda
+   * riga: oggetto del commit). In locale (DDEV) l'intero repo è montato,
+   * quindi si può interrogare git direttamente.
+   *
+   * @return array{ref: string|null, message: string|null}
    */
-  private function resolveGitVersion(): ?string {
+  private function resolveGitInfo(): array {
     $deployFile = DRUPAL_ROOT . '/../.deploy-version';
     if (is_readable($deployFile)) {
-      $value = trim((string) file_get_contents($deployFile));
-      return $value !== '' ? $value : NULL;
+      $lines = explode("\n", trim((string) file_get_contents($deployFile)));
+      return [
+        'ref' => $lines[0] !== '' ? $lines[0] : NULL,
+        'message' => $lines[1] ?? NULL,
+      ];
     }
 
     $repoRoot = DRUPAL_ROOT . '/../..';
     if (is_dir($repoRoot . '/.git')) {
-      $output = trim((string) shell_exec('git -C ' . escapeshellarg($repoRoot) . ' describe --tags --always 2>/dev/null'));
-      return $output !== '' ? $output : NULL;
+      $repo = escapeshellarg($repoRoot);
+      $ref = trim((string) shell_exec("git -C $repo describe --tags --always 2>/dev/null"));
+      $message = trim((string) shell_exec("git -C $repo log -1 --pretty=%s 2>/dev/null"));
+      return [
+        'ref' => $ref !== '' ? $ref : NULL,
+        'message' => $message !== '' ? $message : NULL,
+      ];
     }
 
-    return NULL;
+    return ['ref' => NULL, 'message' => NULL];
   }
 
   #[Hook('toolbar')]
