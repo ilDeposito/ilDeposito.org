@@ -43,6 +43,7 @@ fix_files_permissions() {
     info "Allineo permessi ${files_dir} (www-data)..."
     for i in $(seq 1 10); do
         if ${COMPOSE} exec -T -u root php sh -c "
+            mkdir -p '${files_dir}' &&
             chown -R www-data:www-data '${files_dir}' &&
             find '${files_dir}' -type d -exec chmod 2775 {} + &&
             find '${files_dir}' -type f -exec chmod 664 {} +" 2>/dev/null; then
