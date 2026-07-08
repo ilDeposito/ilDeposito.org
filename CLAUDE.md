@@ -129,7 +129,6 @@ Steps: backup DB → git pull → `./ildeposito.sh up` → composer install (no-
 | DDEV | `settings.ddev.php` + `settings.dev.php` | `db` (DDEV) | Redis (bin render/page/dynamic_page su null) |
 | Staging | `settings.stage.php` | `mariadb` | Redis |
 | Produzione | `settings.prod.php` | `mariadb` | Redis |
-| Codespaces | `settings.codespace.php` | `db` | DB |
 
 **Redis**: `settings.redis.php` (incluso in coda a `settings.php`) si attiva solo dove `REDIS_HOST` è definito — DDEV lo imposta via `web_environment` (add-on `ddev/ddev-redis`), stage/prod via compose. Copre cache default, container cache, lock, flood e cache-tags; il bin `form` resta su DB. In locale l'add-on va installato con `ddev add-on get ddev/ddev-redis` (`.ddev/` non è versionata).
 
@@ -158,7 +157,7 @@ backend/
     │   └── ildeposito/                  # Tema custom (Radix 6 / Bootstrap 5)
     └── sites/default/
         ├── settings.php                 # Entry point + env detection
-        ├── settings.{dev,stage,prod,codespace,ddev}.php
+        ├── settings.{dev,stage,prod,ddev}.php
         └── config/                      # ~300 file YAML config export
 ```
 

@@ -12,7 +12,7 @@ Tema: `ildeposito` (dichiarato come subtheme Radix 6 / Bootstrap 5.3 in `compose
 backend/
 ├── web/modules/custom/     # moduli custom (vedi sotto)
 ├── web/themes/custom/ildeposito/   # tema Radix 6, SDC + preprocess in includes/*.theme
-└── web/sites/default/settings.{php,dev,stage,prod,ddev,codespace}.php
+└── web/sites/default/settings.{php,dev,stage,prod,ddev}.php
 ```
 
 Vocabolario: content type `canto`, `autore`, `evento`, `traduzione`, `pagina`; tassonomie `lingue`, `localizzazioni`, `periodi`, `tags`, `tematiche`.
@@ -62,7 +62,3 @@ Utility trasversali per il setup headless: dashboard editor, firewall di accesso
 
 ### `migrando`
 Migrazione one-time dal vecchio Drupal 8 monolitico (canti, autori, eventi, media, tassonomie, utenti, traduzioni), via `migrate` + `migrate_plus` + `migrate_tools`. 14 configurazioni di migrazione sorgenti da JSON/XML in `files/`. Plugin custom: source `Utenti` (XML legacy), process `GetNode`, `GetTerm`, `FilePath`/`FileSubstr`, `DateSubstr`, `Timestamp`, `Encode`, `GetMigrationId`. Stile di codice più datato rispetto agli altri moduli (no `strict_types`, plugin ad annotazioni) — scaffolding di migrazione, non logica runtime corrente.
-
-## ⚠️ Nota: `ildeposito_raw` mancante
-
-Il modulo `ildeposito_raw` (servizio `RawEntityManager`, usato per fornire dati "raw" delle entità ai componenti header) **non esiste più in `modules/custom`**, ma è ancora richiamato attivamente da `web/themes/custom/ildeposito/includes/page.theme` (`\Drupal::service('ildeposito_raw.manager')->getRawData($entity)`) e documentato nel README del componente SDC `content-header-canto`. Risulta installato nel dump DB (`mariadb-init/backup.sql`, `ildeposito_raw.settings`), ma assente dal codice e dalla vendor — verificare se va ripristinato o se `page.theme` va aggiornato per rimuovere la dipendenza, altrimenti le pagine nodo/termine rischiano un fatal error a runtime.
