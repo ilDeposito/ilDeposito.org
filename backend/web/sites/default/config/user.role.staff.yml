@@ -36,6 +36,7 @@ permissions:
   - 'access media overview'
   - 'access taxonomy overview'
   - 'access toolbar'
+  - 'administer node published status'
   - 'create autore content'
   - 'create canto content'
   - 'create evento content'

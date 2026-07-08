@@ -5,7 +5,6 @@ dependencies:
   config:
     - core.entity_view_mode.node.full
     - field.field.node.canto.field_altri_titoli
-    - field.field.node.canto.field_anno
     - field.field.node.canto.field_audio
     - field.field.node.canto.field_autore_originale
     - field.field.node.canto.field_autori_musica
@@ -29,7 +28,6 @@ dependencies:
     - field.field.node.canto.field_visualizzazioni_totali
     - node.type.canto
   module:
-    - datetime
     - link
     - text
     - user
@@ -45,15 +43,6 @@ content:
       link_to_entity: false
     third_party_settings: {  }
     weight: 3
-    region: content
-  field_anno:
-    type: datetime_default
-    label: above
-    settings:
-      timezone_override: ''
-      format_type: medium
-    third_party_settings: {  }
-    weight: 1
     region: content
   field_audio:
     type: link

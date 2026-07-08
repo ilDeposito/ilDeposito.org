@@ -12,7 +12,6 @@ dependencies:
     - taxonomy.vocabulary.tematiche
   module:
     - media_library
-    - path
     - text
 id: taxonomy_term.tematiche.default
 targetEntityType: taxonomy_term
@@ -29,24 +28,10 @@ content:
     third_party_settings: {  }
   field_immagine:
     type: media_library_widget
-    weight: 3
-    region: content
-    settings:
-      media_types: {  }
-    third_party_settings: {  }
-  field_old_id:
-    type: number
-    weight: 6
-    region: content
-    settings:
-      placeholder: ''
-    third_party_settings: {  }
-  langcode:
-    type: language_select
     weight: 2
     region: content
     settings:
-      include_locked: true
+      media_types: {  }
     third_party_settings: {  }
   name:
     type: string_textfield
@@ -56,26 +41,17 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-  path:
-    type: path
-    weight: 4
-    region: content
-    settings: {  }
-    third_party_settings: {  }
-  status:
-    type: boolean_checkbox
-    weight: 5
-    region: content
-    settings:
-      display_label: true
-    third_party_settings: {  }
   translation:
     weight: 10
     region: content
     settings: {  }
     third_party_settings: {  }
 hidden:
+  field_old_id: true
   field_visualizzazioni_24ore: true
   field_visualizzazioni_6ore: true
   field_visualizzazioni_settimana: true
   field_visualizzazioni_totali: true
+  langcode: true
+  path: true
+  status: true

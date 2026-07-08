@@ -3,7 +3,6 @@ langcode: it
 status: true
 dependencies:
   config:
-    - field.storage.node.field_anno
     - field.storage.node.field_audio
     - field.storage.node.field_autori_testo
     - field.storage.node.field_canti_correlati
@@ -32,14 +31,6 @@ field_settings:
     dependencies:
       module:
         - node
-  field_anno:
-    label: Anno
-    datasource_id: 'entity:node'
-    property_path: field_anno
-    type: decimal
-    dependencies:
-      config:
-        - field.storage.node.field_anno
   field_audio:
     label: Audio
     datasource_id: 'entity:node'
