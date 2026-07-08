@@ -1,13 +1,13 @@
 ---
 import { Image } from 'astro:assets';
-import { getPeriodoWatermarkCasuale } from '../../lib/api/index.js';
+import { getWatermarkImageUrl } from '../../lib/api/index.js';
 
-const watermark = await getPeriodoWatermarkCasuale();
+const watermarkUrl = await getWatermarkImageUrl();
 ---
 
-{watermark && (
+{watermarkUrl && (
   <Image
-    src={watermark.url}
+    src={watermarkUrl}
     alt=""
     width={1600}
     height={400}

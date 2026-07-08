@@ -8,8 +8,9 @@ export { getTraduzioni, getTraduzione, getAllTraduzioniDetail } from './traduzio
 export {
   getLingue, getContenutiByLinguaMap,
   getLocalizzazioni, getContenutiByLocalizzazioneMap,
-  getPeriodi, getContenutiByPeriodoMap, getPeriodoWatermarkCasuale,
+  getPeriodi, getContenutiByPeriodoMap,
   getTags, getContenutiByTagMap,
 } from './tassonomie.js';
 export { getAllPagineDetail, getPagina } from './pagine.js';
 export { getAutoreImageUrl, getEventoImageUrl, getPeriodoImageUrl, getImageUrl } from './assets.js';
+export { getWatermarkImageUrl } from './media.js';

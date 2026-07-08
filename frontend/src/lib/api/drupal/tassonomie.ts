@@ -106,13 +106,13 @@ export async function getPeriodi(): Promise<Periodo[]> {
   }));
 }
 
-export async function getPeriodoWatermarkCasuale(): Promise<{ url: string; titolo: string } | null> {
+export async function getPeriodoWatermarkCasuale(): Promise<string | null> {
   const periodi = await getPeriodi();
   const conImmagine = periodi.filter((p) => p.immagine);
   if (conImmagine.length === 0) return null;
 
   const scelto = conImmagine[Math.floor(Math.random() * conImmagine.length)];
-  return { url: getImageUrl(scelto.immagine)!, titolo: scelto.titolo };
+  return getImageUrl(scelto.immagine);
 }
 
 export async function getContenutiByPeriodoMap(): Promise<Map<number | string, ContenutiPeriodo>> {

@@ -18,6 +18,7 @@ let linguePromise: Promise<RawStore> | null = null;
 let localizzazioniPromise: Promise<RawStore> | null = null;
 let periodiPromise: Promise<RawStore> | null = null;
 let tagsPromise: Promise<RawStore> | null = null;
+let mediaHeaderPromise: Promise<RawStore> | null = null;
 
 let warmTriggered = false;
 function triggerWarmAll(): void {
@@ -32,6 +33,7 @@ function triggerWarmAll(): void {
   fetchAllLocalizzazioniRaw();
   fetchAllPeriodiRaw();
   fetchAllTagsRaw();
+  fetchAllMediaHeaderRaw();
 }
 
 export function fetchAllCantiRaw(): Promise<RawStore> {
@@ -192,6 +194,21 @@ export function fetchAllPeriodiRaw(): Promise<RawStore> {
     triggerWarmAll();
   }
   return periodiPromise;
+}
+
+export function fetchAllMediaHeaderRaw(): Promise<RawStore> {
+  if (!mediaHeaderPromise) {
+    mediaHeaderPromise = fetchAllJsonApi('/jsonapi/media/image', new URLSearchParams({
+      'filter[status]': '1',
+      'filter[field_header]': '1',
+      'fields[media--image]': 'field_media_image',
+      'fields[file--file]': 'uri',
+      'include': 'field_media_image',
+      'page[limit]': '200',
+    })).then(toStore);
+    triggerWarmAll();
+  }
+  return mediaHeaderPromise;
 }
 
 export function fetchAllTagsRaw(): Promise<RawStore> {
