@@ -4,7 +4,7 @@
 
 Drupal 11 + PHP 8.3 in modalità **headless**: espone i contenuti via **JSON:API**, consumati dal frontend Astro a build time. Il backend è ad uso esclusivo degli editor — l'accesso anonimo alle rotte admin è bloccato da un firewall custom (`ildeposito_utils`), lasciando pubblici solo `/jsonapi`, `/api/*`, `/system/files` e le rotte di login.
 
-Tema: **Radix 6** (Bootstrap 5.3), build con Laravel Mix. Cache: **Redis** (bin render/page/dynamic_page/lock/flood/cache-tags; il bin `form` resta su DB).
+Tema: `ildeposito` (dichiarato come subtheme Radix 6 / Bootstrap 5.3 in `composer.json`/`*.info.yml`, build Laravel Mix) — ma **Radix/Bootstrap non sono più realmente in uso**: dato che il frontend pubblico è interamente Astro SSG e il backend serve solo gli editor autenticati (vedi firewall sopra), le dipendenze da `drupal/radix` e `bootstrap` in composer/npm sono vestigiali e rimovibili. Cache: **Redis** (bin render/page/dynamic_page/lock/flood/cache-tags; il bin `form` resta su DB).
 
 ## Path principali
 

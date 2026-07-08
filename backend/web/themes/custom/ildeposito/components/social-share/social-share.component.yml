@@ -1,7 +1,0 @@
-$schema: https://git.drupalcode.org/project/drupal/-/raw/10.1.x/core/modules/sdc/src/metadata.schema.json
-name: Social Share
-status: stable
-description: 'Pulsante di condivisione: share nativo su mobile, popover Bootstrap su desktop.'
-group: atoms
-
-
