@@ -2,7 +2,7 @@ import { join, dirname } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import PDFDocument from 'pdfkit';
-import QRCode from 'qrcode';
+import { withUtm } from './utm.js';
 
 const SITE_URL = 'https://www.ildeposito.org';
 const HEADER_TEXT = 'ilDeposito.org - Canti di protesta politica e sociale';
@@ -88,15 +88,6 @@ function registerFonts(doc) {
   for (const [name, buffer] of Object.entries(getFontBuffers())) {
     doc.registerFont(name, buffer);
   }
-}
-
-export async function generateQrBuffer(slug) {
-  return QRCode.toBuffer(`${SITE_URL}/canti/${slug}`, {
-    width: 100,
-    errorCorrectionLevel: 'M',
-    margin: 1,
-    color: { dark: '#000000', light: '#ffffff' },
-  });
 }
 
 /**
@@ -197,11 +188,12 @@ function renderCantoPage(doc, canto, { autoriTesto, periodo, lingue, tags, pageU
 
   y += 2;
   const addrFull = `Indirizzo: ${pageUrl}`;
+  const addrLink = withUtm(pageUrl, { source: 'pdf_canto', medium: 'link', campaign: 'pdf' });
   doc.font('SourceSans').fontSize(10).fillColor(COLOR_RED);
   doc.text(addrFull, MARGIN.left, y, {
     width: titleMaxWidth,
     align: 'center',
-    link: pageUrl,
+    link: addrLink,
     underline: true,
   });
 

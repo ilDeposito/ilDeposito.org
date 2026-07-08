@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import { Worker } from 'node:worker_threads';
 import { availableParallelism } from 'node:os';
 import QRCode from 'qrcode';
+import { withUtm } from '../lib/utm.js';
 
 function resolveNames(rel, includedMap) {
   const refs = Array.isArray(rel?.data) ? rel.data : rel?.data ? [rel.data] : [];
@@ -154,12 +155,19 @@ async function generateQrBuffers(canti) {
   for (let i = 0; i < canti.length; i += BATCH_SIZE) {
     const batch = canti.slice(i, i + BATCH_SIZE);
     const buffers = await Promise.all(
-      batch.map((c) => QRCode.toBuffer(`https://www.ildeposito.org/canti/${c.slug}`, {
-        width: 100,
-        errorCorrectionLevel: 'M',
-        margin: 1,
-        color: { dark: '#000000', light: '#ffffff' },
-      }))
+      batch.map((c) => {
+        const qrUrl = withUtm(`https://www.ildeposito.org/canti/${c.slug}`, {
+          source: 'pdf_canto',
+          medium: 'qr_code',
+          campaign: 'pdf',
+        });
+        return QRCode.toBuffer(qrUrl, {
+          width: 100,
+          errorCorrectionLevel: 'M',
+          margin: 1,
+          color: { dark: '#000000', light: '#ffffff' },
+        });
+      })
     );
     for (let j = 0; j < batch.length; j++) {
       results.set(batch[j].slug, buffers[j]);

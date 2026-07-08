@@ -1,10 +1,18 @@
 ---
 import Icon from '../base/Icon.astro';
 import { generateQrSvg } from '../../lib/generate-qrcode.js';
+import { withUtm } from '../../lib/utm.js';
+
+interface Props {
+  pageType?: string;
+}
+
+const { pageType = 'sito' } = Astro.props;
 
 const site = import.meta.env.SITE || 'https://www.ildeposito.org';
 const pageUrl = new URL(Astro.url.pathname, site).href;
-const qrSvg = await generateQrSvg(pageUrl);
+const qrUrl = withUtm(pageUrl, { source: pageType, medium: 'qr_code', campaign: 'condividi' });
+const qrSvg = await generateQrSvg(qrUrl);
 ---
 
 <template data-share-template>
