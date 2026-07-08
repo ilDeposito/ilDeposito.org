@@ -5,6 +5,7 @@ dependencies:
   config:
     - field.field.node.pagina.field_descrizione_header
     - field.field.node.pagina.field_paragraphs
+    - field.field.node.pagina.field_visualizzazioni_totali
     - node.type.pagina
   module:
     - entity_reference_revisions
@@ -30,6 +31,15 @@ content:
       link: ''
     third_party_settings: {  }
     weight: 117
+    region: content
+  field_visualizzazioni_totali:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 118
     region: content
   links:
     settings: {  }

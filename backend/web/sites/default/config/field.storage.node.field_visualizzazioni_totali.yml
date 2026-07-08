@@ -1,11 +1,11 @@
-uuid: 88dfe43f-4613-45d7-b337-af7fccf6c3ed
+uuid: 213aa10c-0516-4fd0-8995-3af6971863e2
 langcode: it
 status: true
 dependencies:
   module:
     - node
-id: node.field_visualizzazioni
-field_name: field_visualizzazioni
+id: node.field_visualizzazioni_totali
+field_name: field_visualizzazioni_totali
 entity_type: node
 type: integer
 settings:

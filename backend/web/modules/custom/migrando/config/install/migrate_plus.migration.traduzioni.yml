@@ -75,7 +75,8 @@ process:
   field_canto_testo:
     plugin: encode
     source: testo
-  field_visualizzazioni: visualizzazioni
+  field_visualizzazioni_originali: visualizzazioni
+  field_visualizzazioni_totali: visualizzazioni  
   'field_informazioni/value': informazioni
   'field_informazioni/format':
     plugin: default_value

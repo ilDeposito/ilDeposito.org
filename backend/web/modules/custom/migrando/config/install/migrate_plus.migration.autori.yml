@@ -107,7 +107,8 @@ process:
     -
       plugin: get_migration_id
       importer: 'termini_localizzazioni'
-  field_visualizzazioni: visualizzazioni
+  field_visualizzazioni_originali: visualizzazioni
+  field_visualizzazioni_totali: visualizzazioni
   field_nome:
     plugin: encode
     source: nome

@@ -1,0 +1,23 @@
+uuid: 6a8c8723-9a6b-448a-a0ee-35325a6d4b3f
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_visualizzazioni_totali
+    - taxonomy.vocabulary.tags
+id: taxonomy_term.tags.field_visualizzazioni_totali
+field_name: field_visualizzazioni_totali
+entity_type: taxonomy_term
+bundle: tags
+label: Visualizzazioni_totali
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

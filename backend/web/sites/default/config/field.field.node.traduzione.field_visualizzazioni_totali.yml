@@ -1,15 +1,15 @@
-uuid: d452566b-7144-42d9-9f32-c39fe9570f4b
+uuid: 8e40127e-bdaa-497f-922a-59418b03154b
 langcode: it
 status: true
 dependencies:
   config:
-    - field.storage.node.field_visualizzazioni
+    - field.storage.node.field_visualizzazioni_totali
     - node.type.traduzione
-id: node.traduzione.field_visualizzazioni
-field_name: field_visualizzazioni
+id: node.traduzione.field_visualizzazioni_totali
+field_name: field_visualizzazioni_totali
 entity_type: node
 bundle: traduzione
-label: Visualizzazioni
+label: 'Visualizzazioni totali'
 description: ''
 required: false
 translatable: false

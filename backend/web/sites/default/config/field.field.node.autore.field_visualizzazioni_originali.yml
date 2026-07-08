@@ -1,15 +1,15 @@
-uuid: 11606f3a-bedf-495f-b537-47154dde4267
+uuid: 39f05c4c-8ebb-4c8a-bb8d-465fad1a9eda
 langcode: it
 status: true
 dependencies:
   config:
-    - field.storage.node.field_visualizzazioni
+    - field.storage.node.field_visualizzazioni_originali
     - node.type.autore
-id: node.autore.field_visualizzazioni
-field_name: field_visualizzazioni
+id: node.autore.field_visualizzazioni_originali
+field_name: field_visualizzazioni_originali
 entity_type: node
 bundle: autore
-label: Visualizzazioni
+label: 'Visualizzazioni originali'
 description: ''
 required: false
 translatable: false

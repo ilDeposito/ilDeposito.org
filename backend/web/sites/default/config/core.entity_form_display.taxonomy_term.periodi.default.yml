@@ -6,6 +6,7 @@ dependencies:
     - field.field.taxonomy_term.periodi.field_anno_periodo
     - field.field.taxonomy_term.periodi.field_immagine
     - field.field.taxonomy_term.periodi.field_old_id
+    - field.field.taxonomy_term.periodi.field_visualizzazioni_totali
     - taxonomy.vocabulary.periodi
   module:
     - media_library
@@ -60,6 +61,7 @@ content:
     third_party_settings: {  }
 hidden:
   field_old_id: true
+  field_visualizzazioni_totali: true
   path: true
   status: true
   translation: true

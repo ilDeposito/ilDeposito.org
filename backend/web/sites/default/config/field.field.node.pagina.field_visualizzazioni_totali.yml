@@ -1,0 +1,23 @@
+uuid: 6820ed6f-2f84-4647-a481-f4ae7d177383
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_visualizzazioni_totali
+    - node.type.pagina
+id: node.pagina.field_visualizzazioni_totali
+field_name: field_visualizzazioni_totali
+entity_type: node
+bundle: pagina
+label: 'Visualizzazioni totali'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

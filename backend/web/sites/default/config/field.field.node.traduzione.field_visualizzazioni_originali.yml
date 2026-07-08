@@ -1,0 +1,23 @@
+uuid: c7dc2cf8-380d-4367-8bc8-b3a0ec132f22
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_visualizzazioni_originali
+    - node.type.traduzione
+id: node.traduzione.field_visualizzazioni_originali
+field_name: field_visualizzazioni_originali
+entity_type: node
+bundle: traduzione
+label: 'Visualizzazioni originali'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

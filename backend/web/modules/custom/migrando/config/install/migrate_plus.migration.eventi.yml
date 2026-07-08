@@ -211,8 +211,8 @@ process:
     source:
       - 'latitude'
       - 'longitude'
-  field_visualizzazioni: visualizzazioni
-
+  field_visualizzazioni_originali: visualizzazioni
+  field_visualizzazioni_totali: visualizzazioni
 
 destination:
   plugin: entity:node

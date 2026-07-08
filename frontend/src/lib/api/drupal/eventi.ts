@@ -88,7 +88,7 @@ export async function getEventiPiuVisti(limit = 10): Promise<EventoCard[]> {
   const { data, included } = await fetchAllEventiRaw();
   const map = buildIncludedMap(included);
   return [...data]
-    .sort((a: any, b: any) => (b.attributes.field_visualizzazioni ?? 0) - (a.attributes.field_visualizzazioni ?? 0))
+    .sort((a: any, b: any) => (b.attributes.field_visualizzazioni_totali ?? 0) - (a.attributes.field_visualizzazioni_totali ?? 0))
     .slice(0, limit)
     .map((item: any) => mapEventoCard(item, map));
 }
@@ -103,7 +103,7 @@ export async function getEventiByPeriodo(periodoId: number | string, limit = 5):
         (ref: any) => ref.meta?.drupal_internal__target_id === tid
       )
     )
-    .sort((a: any, b: any) => (b.attributes.field_visualizzazioni ?? 0) - (a.attributes.field_visualizzazioni ?? 0))
+    .sort((a: any, b: any) => (b.attributes.field_visualizzazioni_totali ?? 0) - (a.attributes.field_visualizzazioni_totali ?? 0))
     .slice(0, limit)
     .map((item: any) => mapEventoCard(item, map));
 }

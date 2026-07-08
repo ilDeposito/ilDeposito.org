@@ -1,15 +1,15 @@
-uuid: 69ebf858-c4c7-4013-91a5-6c9aef291747
+uuid: 0176b2e1-fede-4adb-a1ca-8308dd45f56d
 langcode: it
 status: true
 dependencies:
   config:
-    - field.storage.node.field_visualizzazioni
+    - field.storage.node.field_visualizzazioni_originali
     - node.type.evento
-id: node.evento.field_visualizzazioni
-field_name: field_visualizzazioni
+id: node.evento.field_visualizzazioni_originali
+field_name: field_visualizzazioni_originali
 entity_type: node
 bundle: evento
-label: Visualizzazioni
+label: 'Visualizzazioni originali'
 description: ''
 required: false
 translatable: false

@@ -1,15 +1,15 @@
-uuid: ff177c2a-3173-431f-b5f7-76f6ba933a23
+uuid: 7172bfc6-31df-41d8-933d-135cc28efb0e
 langcode: it
 status: true
 dependencies:
   config:
-    - field.storage.node.field_visualizzazioni
+    - field.storage.node.field_visualizzazioni_originali
     - node.type.canto
-id: node.canto.field_visualizzazioni
-field_name: field_visualizzazioni
+id: node.canto.field_visualizzazioni_originali
+field_name: field_visualizzazioni_originali
 entity_type: node
 bundle: canto
-label: Visualizzazioni
+label: 'Visualizzazioni originali'
 description: ''
 required: false
 translatable: false

@@ -1,0 +1,20 @@
+uuid: 3abde2d6-290b-4752-a8b2-22ea8ac644fa
+langcode: it
+status: true
+dependencies:
+  module:
+    - taxonomy
+id: taxonomy_term.field_visualizzazioni_totali
+field_name: field_visualizzazioni_totali
+entity_type: taxonomy_term
+type: integer
+settings:
+  unsigned: false
+  size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

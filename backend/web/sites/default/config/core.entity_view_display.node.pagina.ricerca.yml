@@ -6,6 +6,7 @@ dependencies:
     - core.entity_view_mode.node.ricerca
     - field.field.node.pagina.field_descrizione_header
     - field.field.node.pagina.field_paragraphs
+    - field.field.node.pagina.field_visualizzazioni_totali
     - node.type.pagina
   module:
     - user
@@ -22,5 +23,6 @@ content:
 hidden:
   field_descrizione_header: true
   field_paragraphs: true
+  field_visualizzazioni_totali: true
   langcode: true
   search_api_excerpt: true

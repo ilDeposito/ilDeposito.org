@@ -137,7 +137,8 @@ process:
     plugin: encode
     source: altri_titoli
   field_audio/uri: video_url
-  field_visualizzazioni: visualizzazioni
+  field_visualizzazioni_originali: visualizzazioni
+  field_visualizzazioni_totali: visualizzazioni
 
   field_autore_originale:
     plugin: encode

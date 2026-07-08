@@ -5,6 +5,7 @@ dependencies:
   config:
     - core.entity_view_mode.taxonomy_term.ricerca
     - field.field.taxonomy_term.localizzazioni.field_old_id
+    - field.field.taxonomy_term.localizzazioni.field_visualizzazioni_totali
     - taxonomy.vocabulary.localizzazioni
   module:
     - text
@@ -30,5 +31,6 @@ content:
     weight: 3
     region: content
 hidden:
+  field_visualizzazioni_totali: true
   langcode: true
   search_api_excerpt: true

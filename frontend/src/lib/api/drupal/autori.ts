@@ -15,7 +15,7 @@ export async function getAutoriPiuVisti(limit = 20): Promise<AutoreCard[]> {
   const { data, included } = await fetchAllAutoriRaw();
   const map = buildIncludedMap(included);
   return [...data]
-    .sort((a: any, b: any) => (b.attributes.field_visualizzazioni ?? 0) - (a.attributes.field_visualizzazioni ?? 0))
+    .sort((a: any, b: any) => (b.attributes.field_visualizzazioni_totali ?? 0) - (a.attributes.field_visualizzazioni_totali ?? 0))
     .slice(0, limit)
     .map((item: any) => mapAutoreCard(item, map));
 }
@@ -56,7 +56,7 @@ export async function getAutoriByPeriodo(periodoId: number | string, limit = 5):
         (ref: any) => ref.meta?.drupal_internal__target_id === tid
       )
     )
-    .sort((a: any, b: any) => (b.attributes.field_visualizzazioni ?? 0) - (a.attributes.field_visualizzazioni ?? 0))
+    .sort((a: any, b: any) => (b.attributes.field_visualizzazioni_totali ?? 0) - (a.attributes.field_visualizzazioni_totali ?? 0))
     .slice(0, limit)
     .map((item: any) => mapAutoreCard(item, map));
 }

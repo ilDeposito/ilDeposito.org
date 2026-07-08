@@ -4,19 +4,13 @@ status: true
 dependencies:
   config:
     - field.field.taxonomy_term.localizzazioni.field_old_id
+    - field.field.taxonomy_term.localizzazioni.field_visualizzazioni_totali
     - taxonomy.vocabulary.localizzazioni
 id: taxonomy_term.localizzazioni.default
 targetEntityType: taxonomy_term
 bundle: localizzazioni
 mode: default
 content:
-  langcode:
-    type: language_select
-    weight: 1
-    region: content
-    settings:
-      include_locked: true
-    third_party_settings: {  }
   name:
     type: string_textfield
     weight: 0
@@ -33,6 +27,8 @@ content:
 hidden:
   description: true
   field_old_id: true
+  field_visualizzazioni_totali: true
+  langcode: true
   path: true
   status: true
   translation: true

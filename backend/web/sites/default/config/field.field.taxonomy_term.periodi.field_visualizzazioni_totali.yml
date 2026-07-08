@@ -1,0 +1,23 @@
+uuid: b5a29816-eaee-415a-822f-a264acf109e3
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_visualizzazioni_totali
+    - taxonomy.vocabulary.periodi
+id: taxonomy_term.periodi.field_visualizzazioni_totali
+field_name: field_visualizzazioni_totali
+entity_type: taxonomy_term
+bundle: periodi
+label: Visualizzazioni_totali
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

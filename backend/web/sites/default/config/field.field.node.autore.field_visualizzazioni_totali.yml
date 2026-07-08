@@ -1,0 +1,23 @@
+uuid: 10e6ae6a-8e1e-48ab-bab0-828467b889cd
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_visualizzazioni_totali
+    - node.type.autore
+id: node.autore.field_visualizzazioni_totali
+field_name: field_visualizzazioni_totali
+entity_type: node
+bundle: autore
+label: 'Visualizzazioni totali'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

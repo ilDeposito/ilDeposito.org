@@ -42,7 +42,7 @@ export async function getCantiPiuVisti(limit = 10): Promise<CantoCard[]> {
   const { data, included } = await fetchAllCantiRaw();
   const map = buildIncludedMap(included);
   return [...data]
-    .sort((a: any, b: any) => (b.attributes.field_visualizzazioni ?? 0) - (a.attributes.field_visualizzazioni ?? 0))
+    .sort((a: any, b: any) => (b.attributes.field_visualizzazioni_totali ?? 0) - (a.attributes.field_visualizzazioni_totali ?? 0))
     .slice(0, limit)
     .map((item: any) => mapCantoCard(item, map));
 }
@@ -57,7 +57,7 @@ export async function getCantiByPeriodo(periodoId: number | string, limit = 5): 
         (ref: any) => ref.meta?.drupal_internal__target_id === tid
       )
     )
-    .sort((a: any, b: any) => (b.attributes.field_visualizzazioni ?? 0) - (a.attributes.field_visualizzazioni ?? 0))
+    .sort((a: any, b: any) => (b.attributes.field_visualizzazioni_totali ?? 0) - (a.attributes.field_visualizzazioni_totali ?? 0))
     .slice(0, limit)
     .map((item: any) => mapCantoCard(item, map));
 }

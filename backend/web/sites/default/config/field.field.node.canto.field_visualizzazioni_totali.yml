@@ -1,0 +1,23 @@
+uuid: e0f61e35-3828-47b2-a800-42cb46df6784
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_visualizzazioni_totali
+    - node.type.canto
+id: node.canto.field_visualizzazioni_totali
+field_name: field_visualizzazioni_totali
+entity_type: node
+bundle: canto
+label: 'Visualizzazioni totali'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

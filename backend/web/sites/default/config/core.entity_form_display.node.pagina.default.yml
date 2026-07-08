@@ -5,6 +5,7 @@ dependencies:
   config:
     - field.field.node.pagina.field_descrizione_header
     - field.field.node.pagina.field_paragraphs
+    - field.field.node.pagina.field_visualizzazioni_totali
     - node.type.pagina
   module:
     - paragraphs
@@ -41,6 +42,13 @@ content:
         collapse_edit_all: collapse_edit_all
         convert: '0'
         duplicate: '0'
+    third_party_settings: {  }
+  field_visualizzazioni_totali:
+    type: number
+    weight: 51
+    region: content
+    settings:
+      placeholder: ''
     third_party_settings: {  }
   path:
     type: path

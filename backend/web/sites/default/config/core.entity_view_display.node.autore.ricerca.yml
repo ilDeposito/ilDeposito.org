@@ -16,7 +16,8 @@ dependencies:
     - field.field.node.autore.field_nome
     - field.field.node.autore.field_old_id
     - field.field.node.autore.field_periodo
-    - field.field.node.autore.field_visualizzazioni
+    - field.field.node.autore.field_visualizzazioni_originali
+    - field.field.node.autore.field_visualizzazioni_totali
     - node.type.autore
   module:
     - link
@@ -113,6 +114,7 @@ hidden:
   field_anno_di_morte: true
   field_anno_di_nascita: true
   field_autori_correlati: true
-  field_visualizzazioni: true
+  field_visualizzazioni_originali: true
+  field_visualizzazioni_totali: true
   langcode: true
   search_api_excerpt: true

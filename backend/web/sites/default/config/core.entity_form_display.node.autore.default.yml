@@ -15,7 +15,8 @@ dependencies:
     - field.field.node.autore.field_nome
     - field.field.node.autore.field_old_id
     - field.field.node.autore.field_periodo
-    - field.field.node.autore.field_visualizzazioni
+    - field.field.node.autore.field_visualizzazioni_originali
+    - field.field.node.autore.field_visualizzazioni_totali
     - node.type.autore
   module:
     - link
@@ -118,9 +119,16 @@ content:
     region: content
     settings: {  }
     third_party_settings: {  }
-  field_visualizzazioni:
+  field_visualizzazioni_originali:
     type: number
-    weight: 30
+    weight: 52
+    region: content
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
+  field_visualizzazioni_totali:
+    type: number
+    weight: 51
     region: content
     settings:
       placeholder: ''
