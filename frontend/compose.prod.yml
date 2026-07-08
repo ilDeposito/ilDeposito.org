@@ -15,6 +15,13 @@ services:
       DRUPAL_API_URL: http://drupal-api:80
       # Cache PDF sul volume: sopravvive tra le build (il builder è usa-e-getta)
       PDF_CACHE_DIR: /app/output/.pdf-cache
+      # Download media direttamente nella cache sul volume, fuori da public/
+      # (vedi assets.ts): docker-entrypoint.sh la hardlinka nella release.
+      UPLOADS_DIR: /app/output/.uploads-cache
+    # Tetto CPU/RAM: la build (sharp, worker PDF, brotli) non deve saturare
+    # l'host, che serve anche il traffico live. Node rispetta la quota cgroup.
+    cpus: 3.0
+    mem_limit: 4g
     volumes:
       - frontend_output:/app/output
       - astro_cache:/app/.astro

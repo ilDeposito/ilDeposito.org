@@ -1,4 +1,4 @@
-import { mkdirSync, existsSync, copyFileSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, existsSync, copyFileSync, linkSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
@@ -177,6 +177,19 @@ async function generateQrBuffers(canti) {
   return results;
 }
 
+// Cache e outDir stanno sullo stesso volume (frontend_output): hardlink
+// invece di copia, così le release condividono gli inode dei PDF invariati.
+// La rimozione preventiva mantiene intatto l'inode precedente per le release
+// che ancora lo referenziano. Fallback a copia su filesystem diversi (EXDEV).
+function linkOrCopy(src, dest) {
+  rmSync(dest, { force: true });
+  try {
+    linkSync(src, dest);
+  } catch {
+    copyFileSync(src, dest);
+  }
+}
+
 function readFontBuffers() {
   const __dirname = dirname(fileURLToPath(import.meta.url));
   const fontsDir = join(__dirname, '../assets/fonts');
@@ -255,11 +268,15 @@ export async function runPdfGeneration({ outDir, cacheDir: cacheDirInput, logger
     if (cacheDir && manifest[canto.slug] === hash) {
       const cachedPdf = join(cacheDir, `${canto.slug}.pdf`);
       if (existsSync(cachedPdf)) {
-        copyFileSync(cachedPdf, join(outDir, `${canto.slug}.pdf`));
+        linkOrCopy(cachedPdf, join(outDir, `${canto.slug}.pdf`));
         cachedCount++;
         continue;
       }
     }
+    // In-place (mode pdf): il file esistente può essere un hardlink condiviso
+    // con cache e release precedenti — writeFile (O_TRUNC) riscriverebbe
+    // l'inode condiviso, quindi va rimosso per far creare un inode nuovo.
+    rmSync(join(outDir, `${canto.slug}.pdf`), { force: true });
     changedCanti.push(canto);
   }
 
@@ -314,7 +331,7 @@ export async function runPdfGeneration({ outDir, cacheDir: cacheDirInput, logger
       for (const canto of changedCanti) {
         const pdfPath = join(outDir, `${canto.slug}.pdf`);
         if (existsSync(pdfPath)) {
-          copyFileSync(pdfPath, join(cacheDir, `${canto.slug}.pdf`));
+          linkOrCopy(pdfPath, join(cacheDir, `${canto.slug}.pdf`));
         }
       }
       if (manifestPath) {

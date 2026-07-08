@@ -3,7 +3,12 @@ import { createHash } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { DRUPAL_API_URL } from './client.js';
 
-const PUBLIC_DIR = join(process.cwd(), 'public');
+// Nel builder Docker UPLOADS_DIR punta alla cache sul volume frontend_output
+// (vedi compose.stage/prod.yml): i download atterrano direttamente lì e
+// docker-entrypoint.sh li hardlinka nella release a fine build, senza passare
+// da public/ (che Astro copierebbe nell'outDir duplicando tutti i media).
+// In locale resta public/uploads, servita dal dev server e copiata in dist/.
+const UPLOADS_DIR = process.env.UPLOADS_DIR || join(process.cwd(), 'public', 'uploads');
 const DIST_DIR = join(process.cwd(), 'dist');
 
 function stableFilename(url: string): string {
@@ -17,9 +22,9 @@ async function downloadAsset(relativeUrl: string, category: string): Promise<str
 
   const filename = stableFilename(relativeUrl);
   const relPath = `uploads/${category}/${filename}`;
-  const publicPath = join(PUBLIC_DIR, relPath);
+  const localPath = join(UPLOADS_DIR, category, filename);
 
-  if (!existsSync(publicPath)) {
+  if (!existsSync(localPath)) {
     const absoluteUrl = new URL(relativeUrl, DRUPAL_API_URL);
     const allowedHost = new URL(DRUPAL_API_URL).hostname;
     if (absoluteUrl.hostname !== allowedHost) return null;
@@ -28,8 +33,8 @@ async function downloadAsset(relativeUrl: string, category: string): Promise<str
       const res = await fetch(absoluteUrl.toString());
       if (!res.ok) return null;
       const buffer = Buffer.from(await res.arrayBuffer());
-      mkdirSync(dirname(publicPath), { recursive: true });
-      writeFileSync(publicPath, buffer);
+      mkdirSync(dirname(localPath), { recursive: true });
+      writeFileSync(localPath, buffer);
 
       if (existsSync(DIST_DIR)) {
         const distPath = join(DIST_DIR, relPath);

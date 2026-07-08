@@ -8,7 +8,9 @@ COPY entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 COPY package.json package-lock.json ./
-RUN npm ci && chown -R node:node node_modules
+# Cache mount BuildKit: al cambio del lock npm riusa la cache dei pacchetti
+# del daemon invece di riscaricare tutto (la cache non finisce nell'immagine).
+RUN --mount=type=cache,target=/root/.npm npm ci && chown -R node:node node_modules
 
 COPY --chown=node:node . .
 

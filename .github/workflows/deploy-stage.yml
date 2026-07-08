@@ -73,12 +73,16 @@ jobs:
 
       - name: Smoke test
         run: |
-          sleep 10
-          STATUS=$(curl -sk -o /dev/null -w "%{http_code}" \
-            -u "${{ secrets.STAGE_AUTH_USER }}:${{ secrets.STAGE_AUTH_PASS }}" \
-            https://stage.ildeposito.org/)
-          echo "HTTP status: $STATUS"
-          [ "$STATUS" = "200" ] || exit 1
+          # Poll invece di sleep fisso: esce al primo 200, fallisce dopo ~30s.
+          for i in $(seq 1 10); do
+            STATUS=$(curl -sk -o /dev/null -w "%{http_code}" \
+              -u "${{ secrets.STAGE_AUTH_USER }}:${{ secrets.STAGE_AUTH_PASS }}" \
+              https://stage.ildeposito.org/)
+            echo "HTTP status: $STATUS (tentativo $i/10)"
+            [ "$STATUS" = "200" ] && exit 0
+            sleep 3
+          done
+          exit 1
 
       - name: E2E tests (Playwright)
         env:

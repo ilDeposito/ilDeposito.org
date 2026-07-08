@@ -38,6 +38,12 @@ export default defineConfig({
   adapter: node({ mode: 'standalone' }),
   trailingSlash: 'never',
 
+  // Default: node_modules/.astro, effimero nel builder Docker (compose run
+  // --rm). Qui invece la cache delle trasformazioni astro:assets finisce in
+  // /app/.astro, dove i compose stage/prod montano il volume astro_cache:
+  // le immagini remote non vengono riscaricate/ritrasformate a ogni build.
+  cacheDir: './.astro',
+
   // Default 1 (pagine generate in sequenza): il fetch layer verso Drupal ha
   // già un gate a 4 richieste concorrenti (client.ts), quindi 4 pagine in
   // parallelo sovrappongono le attese I/O senza saturare il backend.
