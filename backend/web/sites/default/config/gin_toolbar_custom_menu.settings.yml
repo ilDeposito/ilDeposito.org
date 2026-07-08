@@ -16,8 +16,7 @@ settings:
       staff: '0'
       api: '0'
       god: '0'
-    icons:
-      'menu_link_content:256fb95e-623f-4a2c-aa99-cbaf9e814344': structure-view
+    icons: {  }
     admin_menu: use_global
     actions:
       remove_setting: 'Remove rule'
