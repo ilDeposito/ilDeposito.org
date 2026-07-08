@@ -3,6 +3,7 @@ import {
   fetchAllCantiRaw, fetchAllAutoriRaw, fetchAllEventiRaw, fetchAllTraduzioniRaw,
 } from './store.js';
 import { extractSlug, buildIncludedMap, resolveImageUrl } from './resolvers.js';
+import { getImageUrl } from './assets.js';
 import type {
   Tassonomia, Periodo, Tag,
   ContenutiLingua, ContenutiLocalizzazione, ContenutiPeriodo, ContenutiTag,
@@ -103,6 +104,15 @@ export async function getPeriodi(): Promise<Periodo[]> {
     sort: item.attributes.weight ?? 0,
     immagine: resolveImageUrl(item.relationships?.field_immagine, map),
   }));
+}
+
+export async function getPeriodoWatermarkCasuale(): Promise<{ url: string; titolo: string } | null> {
+  const periodi = await getPeriodi();
+  const conImmagine = periodi.filter((p) => p.immagine);
+  if (conImmagine.length === 0) return null;
+
+  const scelto = conImmagine[Math.floor(Math.random() * conImmagine.length)];
+  return { url: getImageUrl(scelto.immagine)!, titolo: scelto.titolo };
 }
 
 export async function getContenutiByPeriodoMap(): Promise<Map<number | string, ContenutiPeriodo>> {

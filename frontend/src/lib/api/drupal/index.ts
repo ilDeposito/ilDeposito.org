@@ -8,7 +8,7 @@ export { getTraduzioni, getTraduzione, getAllTraduzioniDetail } from './traduzio
 export {
   getLingue, getContenutiByLinguaMap,
   getLocalizzazioni, getContenutiByLocalizzazioneMap,
-  getPeriodi, getContenutiByPeriodoMap,
+  getPeriodi, getContenutiByPeriodoMap, getPeriodoWatermarkCasuale,
   getTags, getContenutiByTagMap,
 } from './tassonomie.js';
 export { getAllPagineDetail, getPagina } from './pagine.js';

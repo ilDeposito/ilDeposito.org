@@ -3,6 +3,7 @@ import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/base/Icon.astro';
 import MonthCalendar from '../components/ui/MonthCalendar.astro';
+import HeaderWatermark from '../components/ui/HeaderWatermark.astro';
 import {
   getCantiPiuVisti,
   getAutoriImmaginiMap,
@@ -105,8 +106,9 @@ const autoriConDati = autori.map((autore) => ({
 >
 
   <!-- ═══ 1. HERO ═══ bg-neutral -->
-  <section class="bg-neutral text-neutral-content">
-    <div class="max-w-6xl mx-auto px-4 py-8 md:py-12 flex flex-col items-center text-center gap-5">
+  <section class="relative overflow-hidden bg-neutral text-neutral-content">
+    <HeaderWatermark />
+    <div class="relative z-10 max-w-6xl mx-auto px-4 py-8 md:py-12 flex flex-col items-center text-center gap-5">
       <h1 class="font-serif font-bold text-4xl md:text-5xl lg:text-6xl leading-tight">
         ilDeposito
       </h1>

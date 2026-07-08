@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
+import HeaderWatermark from '../../components/ui/HeaderWatermark.astro';
 import { getPageMeta } from '../../lib/pages.js';
 
 const meta = getPageMeta('contatti');
@@ -10,8 +11,9 @@ const meta = getPageMeta('contatti');
   description={meta.metaDescription}
   noindex={meta.noindex}
 >
-  <header class="bg-base-200 border-b-2 border-secondary">
-    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
+  <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">
+    <HeaderWatermark />
+    <div class="relative z-10 max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Contatti' }]} />
       <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{meta.pageTitle}</h1>
       <p class="font-sans text-base-content/70">{meta.pageDescription}</p>

@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
+import HeaderWatermark from '../../components/ui/HeaderWatermark.astro';
 import PagefindList from '../../components/ui/PagefindList.astro';
 import { getLocalizzazioni } from '../../lib/api/index.js';
 import type { Tassonomia } from '../../lib/api/types.js';
@@ -33,8 +34,9 @@ const ogImage = await getOgImageFallback();
 ---
 <BaseLayout title={meta.metaTitle} description={meta.metaDescription} jsonLd={jsonLd} ogImage={ogImage}>
 
-  <header class="bg-base-200 border-b-2 border-secondary">
-    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">
+  <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">
+    <HeaderWatermark />
+    <div class="relative z-10 max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Localizzazioni', href: '/localizzazioni' }, { label: titolo }]} />
       <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{meta.pageTitle}</h1>
       <p class="font-serif italic text-base text-base-content/60">{meta.pageDescription}</p>
