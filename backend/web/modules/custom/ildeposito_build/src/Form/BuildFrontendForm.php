@@ -14,6 +14,8 @@ final class BuildFrontendForm extends FormBase {
   private const WORKFLOWS = [
     'stage' => 'build-frontend-stage.yml',
     'prod' => 'build-frontend-prod.yml',
+    // In locale non esiste una build: si aggancia al workflow di stage.
+    'local' => 'build-frontend-stage.yml',
   ];
   private const MAX_POLLS = 120;
   private const POLL_INTERVAL = 3;
@@ -25,7 +27,7 @@ final class BuildFrontendForm extends FormBase {
 
   private static function getEnvironment(): string {
     $env = (string) \Drupal::request()->server->get('ILDEPOSITO_ENV', '');
-    return in_array($env, ['stage', 'prod'], TRUE) ? $env : '';
+    return in_array($env, ['stage', 'prod', 'local'], TRUE) ? $env : '';
   }
 
   private static function getWorkflow(): string {

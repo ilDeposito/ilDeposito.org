@@ -4,6 +4,7 @@ status: true
 dependencies:
   config:
     - field.field.node.canto.field_altri_titoli
+    - field.field.node.canto.field_anno
     - field.field.node.canto.field_audio
     - field.field.node.canto.field_autore_originale
     - field.field.node.canto.field_autori_musica
@@ -42,35 +43,22 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
+  field_anno:
+    type: number
+    weight: 2
+    region: content
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
   field_audio:
     type: link_default
-    weight: 9
+    weight: 10
     region: content
     settings:
       placeholder_url: ''
       placeholder_title: ''
     third_party_settings: {  }
   field_autori_musica:
-    type: entity_reference_autocomplete
-    weight: 5
-    region: content
-    settings:
-      match_operator: CONTAINS
-      match_limit: 10
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  field_autori_testo:
-    type: entity_reference_autocomplete
-    weight: 4
-    region: content
-    settings:
-      match_operator: CONTAINS
-      match_limit: 10
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  field_canti_correlati:
     type: entity_reference_autocomplete
     weight: 6
     region: content
@@ -80,51 +68,9 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-  field_canto_accordi:
-    type: string_textarea
-    weight: 14
-    region: content
-    settings:
-      rows: 20
-      placeholder: ''
-    third_party_settings: {  }
-  field_canto_testo:
-    type: string_textarea
-    weight: 12
-    region: content
-    settings:
-      rows: 20
-      placeholder: ''
-    third_party_settings: {  }
-  field_capoverso:
-    type: string_textfield
-    weight: 13
-    region: content
-    settings:
-      size: 255
-      placeholder: ''
-    third_party_settings: {  }
-  field_fonte:
-    type: text_textarea
-    weight: 11
-    region: content
-    settings:
-      rows: 3
-      placeholder: ''
-    third_party_settings: {  }
-  field_informazioni:
-    type: text_textarea_with_summary
-    weight: 10
-    region: content
-    settings:
-      rows: 5
-      summary_rows: 3
-      placeholder: ''
-      show_summary: false
-    third_party_settings: {  }
-  field_lingua:
+  field_autori_testo:
     type: entity_reference_autocomplete
-    weight: 3
+    weight: 5
     region: content
     settings:
       match_operator: CONTAINS
@@ -132,13 +78,7 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-  field_periodo:
-    type: options_select
-    weight: 2
-    region: content
-    settings: {  }
-    third_party_settings: {  }
-  field_tags:
+  field_canti_correlati:
     type: entity_reference_autocomplete
     weight: 7
     region: content
@@ -148,9 +88,77 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-  field_tematiche:
+  field_canto_accordi:
+    type: string_textarea
+    weight: 15
+    region: content
+    settings:
+      rows: 20
+      placeholder: ''
+    third_party_settings: {  }
+  field_canto_testo:
+    type: string_textarea
+    weight: 13
+    region: content
+    settings:
+      rows: 20
+      placeholder: ''
+    third_party_settings: {  }
+  field_capoverso:
+    type: string_textfield
+    weight: 14
+    region: content
+    settings:
+      size: 255
+      placeholder: ''
+    third_party_settings: {  }
+  field_fonte:
+    type: text_textarea
+    weight: 12
+    region: content
+    settings:
+      rows: 3
+      placeholder: ''
+    third_party_settings: {  }
+  field_informazioni:
+    type: text_textarea_with_summary
+    weight: 11
+    region: content
+    settings:
+      rows: 5
+      summary_rows: 3
+      placeholder: ''
+      show_summary: false
+    third_party_settings: {  }
+  field_lingua:
+    type: entity_reference_autocomplete
+    weight: 4
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_periodo:
+    type: options_select
+    weight: 3
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_tags:
     type: entity_reference_autocomplete
     weight: 8
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_tematiche:
+    type: entity_reference_autocomplete
+    weight: 9
     region: content
     settings:
       match_operator: CONTAINS
@@ -165,7 +173,7 @@ content:
     third_party_settings: {  }
   status:
     type: boolean_checkbox
-    weight: 15
+    weight: 16
     region: content
     settings:
       display_label: true

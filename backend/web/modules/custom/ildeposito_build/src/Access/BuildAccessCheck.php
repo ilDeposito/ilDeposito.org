@@ -17,7 +17,7 @@ final class BuildAccessCheck {
 
   public function access(): AccessResultInterface {
     $env = (string) $this->requestStack->getCurrentRequest()?->server->get('ILDEPOSITO_ENV', '');
-    return AccessResult::allowedIf(in_array($env, ['stage', 'prod'], TRUE))
+    return AccessResult::allowedIf(in_array($env, ['stage', 'prod', 'local'], TRUE))
       ->setCacheMaxAge(Cache::PERMANENT);
   }
 

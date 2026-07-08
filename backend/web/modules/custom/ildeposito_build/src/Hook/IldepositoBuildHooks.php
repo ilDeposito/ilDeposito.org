@@ -75,7 +75,7 @@ final class IldepositoBuildHooks {
   #[Hook('toolbar')]
   public function toolbar(): array {
     $env = (string) $this->requestStack->getCurrentRequest()?->server->get('ILDEPOSITO_ENV', '');
-    if (!in_array($env, ['stage', 'prod'], TRUE)) {
+    if (!in_array($env, ['stage', 'prod', 'local'], TRUE)) {
       return [];
     }
 

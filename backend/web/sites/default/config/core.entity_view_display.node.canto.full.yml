@@ -5,6 +5,7 @@ dependencies:
   config:
     - core.entity_view_mode.node.full
     - field.field.node.canto.field_altri_titoli
+    - field.field.node.canto.field_anno
     - field.field.node.canto.field_audio
     - field.field.node.canto.field_autore_originale
     - field.field.node.canto.field_autori_musica
@@ -164,6 +165,7 @@ content:
     weight: 0
     region: content
 hidden:
+  field_anno: true
   field_autore_originale: true
   field_tematiche: true
   field_visualizzazioni_24ore: true

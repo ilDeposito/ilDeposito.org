@@ -1,0 +1,23 @@
+uuid: 7ea15957-78bb-450c-89e2-dcbb2f63dd9c
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_anno
+    - node.type.canto
+id: node.canto.field_anno
+field_name: field_anno
+entity_type: node
+bundle: canto
+label: Anno
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer
