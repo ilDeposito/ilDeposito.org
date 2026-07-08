@@ -85,33 +85,37 @@ jobs:
           echo "HTTP status: $STATUS (dominio: ${FRONTEND_DOMAIN})"
           [ "$STATUS" = "200" ] || exit 1
 
-      - name: E2E tests (Playwright)
-        env:
-          # STAGE_AUTH_USER/PASS restano questi nomi perché è la variabile
-          # letta da playwright.config.ts, non è specifica dell'ambiente stage.
-          STAGE_AUTH_USER: ${{ secrets.PROD_FRONTEND_AUTH_USER }}
-          STAGE_AUTH_PASS: ${{ secrets.PROD_FRONTEND_AUTH_PASS }}
-        working-directory: /home/ubuntu/sergej/websites/ildeposito/prod/frontend
-        run: |
-          # playwright.config.ts punta a stage.ildeposito.org di default:
-          # PLAYWRIGHT_BASE_URL è l'override, letto da .env invece che hardcoded
-          # (FRONTEND_DOMAIN è temporaneamente prod.ildeposito.org durante il
-          # cutover, diventerà www.ildeposito.org al go-live).
-          export PLAYWRIGHT_BASE_URL="https://$(grep -m1 '^FRONTEND_DOMAIN=' ../.env | cut -d= -f2-)"
-          # npm ci cancella e reinstalla sempre node_modules: sul runner
-          # self-hosted (persistente tra deploy) lo eseguiamo solo se
-          # package-lock.json è cambiato dall'ultima volta, stesso pattern
-          # usato per il volume node_modules in docker-entrypoint.sh.
-          LOCK_HASH=$(md5sum package-lock.json | cut -d' ' -f1)
-          LOCK_MARKER=".node_modules_hash"
-          if [ ! -d node_modules ] || [ "$(cat "$LOCK_MARKER" 2>/dev/null)" != "$LOCK_HASH" ]; then
-            npm ci
-            echo "$LOCK_HASH" > "$LOCK_MARKER"
-          else
-            echo "package-lock.json invariato, skip npm ci."
-          fi
-          # Niente --with-deps: le dipendenze di sistema sono già sul runner
-          # (installate dai deploy precedenti); 'install' scarica il browser
-          # solo se la versione richiesta manca da ~/.cache/ms-playwright.
-          npx playwright install chromium
-          npx playwright test
+      # E2E tests (Playwright) disabilitati temporaneamente: canto.spec.ts,
+      # homepage.spec.ts e ricerca.spec.ts assumono la presenza di contenuti
+      # (canti pubblicati) che in prod non ci sono ancora durante il cutover.
+      # Riattivare dopo l'import dei contenuti / go-live.
+      # - name: E2E tests (Playwright)
+      #   env:
+      #     # STAGE_AUTH_USER/PASS restano questi nomi perché è la variabile
+      #     # letta da playwright.config.ts, non è specifica dell'ambiente stage.
+      #     STAGE_AUTH_USER: ${{ secrets.PROD_FRONTEND_AUTH_USER }}
+      #     STAGE_AUTH_PASS: ${{ secrets.PROD_FRONTEND_AUTH_PASS }}
+      #   working-directory: /home/ubuntu/sergej/websites/ildeposito/prod/frontend
+      #   run: |
+      #     # playwright.config.ts punta a stage.ildeposito.org di default:
+      #     # PLAYWRIGHT_BASE_URL è l'override, letto da .env invece che hardcoded
+      #     # (FRONTEND_DOMAIN è temporaneamente prod.ildeposito.org durante il
+      #     # cutover, diventerà www.ildeposito.org al go-live).
+      #     export PLAYWRIGHT_BASE_URL="https://$(grep -m1 '^FRONTEND_DOMAIN=' ../.env | cut -d= -f2-)"
+      #     # npm ci cancella e reinstalla sempre node_modules: sul runner
+      #     # self-hosted (persistente tra deploy) lo eseguiamo solo se
+      #     # package-lock.json è cambiato dall'ultima volta, stesso pattern
+      #     # usato per il volume node_modules in docker-entrypoint.sh.
+      #     LOCK_HASH=$(md5sum package-lock.json | cut -d' ' -f1)
+      #     LOCK_MARKER=".node_modules_hash"
+      #     if [ ! -d node_modules ] || [ "$(cat "$LOCK_MARKER" 2>/dev/null)" != "$LOCK_HASH" ]; then
+      #       npm ci
+      #       echo "$LOCK_HASH" > "$LOCK_MARKER"
+      #     else
+      #       echo "package-lock.json invariato, skip npm ci."
+      #     fi
+      #     # Niente --with-deps: le dipendenze di sistema sono già sul runner
+      #     # (installate dai deploy precedenti); 'install' scarica il browser
+      #     # solo se la versione richiesta manca da ~/.cache/ms-playwright.
+      #     npx playwright install chromium
+      #     npx playwright test
