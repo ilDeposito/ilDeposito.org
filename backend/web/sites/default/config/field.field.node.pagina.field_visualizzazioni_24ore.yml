@@ -1,0 +1,23 @@
+uuid: cd2fc500-d136-4ad8-ae9e-4a2022db3e0d
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_visualizzazioni_24ore
+    - node.type.pagina
+id: node.pagina.field_visualizzazioni_24ore
+field_name: field_visualizzazioni_24ore
+entity_type: node
+bundle: pagina
+label: 'Visualizzazioni 24 ore'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

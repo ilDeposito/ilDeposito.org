@@ -4,6 +4,9 @@ status: true
 dependencies:
   config:
     - field.field.taxonomy_term.lingue.field_old_id
+    - field.field.taxonomy_term.lingue.field_visualizzazioni_24ore
+    - field.field.taxonomy_term.lingue.field_visualizzazioni_6ore
+    - field.field.taxonomy_term.lingue.field_visualizzazioni_settimana
     - field.field.taxonomy_term.lingue.field_visualizzazioni_totali
     - taxonomy.vocabulary.lingue
   module:
@@ -28,6 +31,33 @@ content:
       prefix_suffix: true
     third_party_settings: {  }
     weight: 3
+    region: content
+  field_visualizzazioni_24ore:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 6
+    region: content
+  field_visualizzazioni_6ore:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 5
+    region: content
+  field_visualizzazioni_settimana:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 7
     region: content
   field_visualizzazioni_totali:
     type: number_integer

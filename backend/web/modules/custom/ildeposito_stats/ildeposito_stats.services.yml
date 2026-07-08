@@ -1,0 +1,14 @@
+services:
+  ildeposito_stats.umami_client:
+    class: Drupal\ildeposito_stats\Service\UmamiClient
+    arguments: ['@http_client']
+
+  Drupal\ildeposito_stats\Service\UmamiClient:
+    alias: ildeposito_stats.umami_client
+
+  ildeposito_stats.entity_url_matcher:
+    class: Drupal\ildeposito_stats\Service\EntityUrlMatcher
+    arguments: ['@entity_type.manager']
+
+  Drupal\ildeposito_stats\Service\EntityUrlMatcher:
+    alias: ildeposito_stats.entity_url_matcher

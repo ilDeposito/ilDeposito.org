@@ -1,0 +1,23 @@
+uuid: 3c24b791-688f-450f-9cb3-4d4ee5b7915b
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_visualizzazioni_24ore
+    - node.type.traduzione
+id: node.traduzione.field_visualizzazioni_24ore
+field_name: field_visualizzazioni_24ore
+entity_type: node
+bundle: traduzione
+label: 'Visualizzazioni 24 ore'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

@@ -6,6 +6,9 @@ dependencies:
     - core.entity_view_mode.taxonomy_term.ricerca
     - field.field.taxonomy_term.tags.field_immagine
     - field.field.taxonomy_term.tags.field_old_id
+    - field.field.taxonomy_term.tags.field_visualizzazioni_24ore
+    - field.field.taxonomy_term.tags.field_visualizzazioni_6ore
+    - field.field.taxonomy_term.tags.field_visualizzazioni_settimana
     - field.field.taxonomy_term.tags.field_visualizzazioni_totali
     - taxonomy.vocabulary.tags
   module:
@@ -41,6 +44,9 @@ content:
     weight: 3
     region: content
 hidden:
+  field_visualizzazioni_24ore: true
+  field_visualizzazioni_6ore: true
+  field_visualizzazioni_settimana: true
   field_visualizzazioni_totali: true
   langcode: true
   search_api_excerpt: true

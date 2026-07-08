@@ -4,6 +4,9 @@ status: true
 dependencies:
   config:
     - field.field.taxonomy_term.localizzazioni.field_old_id
+    - field.field.taxonomy_term.localizzazioni.field_visualizzazioni_24ore
+    - field.field.taxonomy_term.localizzazioni.field_visualizzazioni_6ore
+    - field.field.taxonomy_term.localizzazioni.field_visualizzazioni_settimana
     - field.field.taxonomy_term.localizzazioni.field_visualizzazioni_totali
     - taxonomy.vocabulary.localizzazioni
 id: taxonomy_term.localizzazioni.default
@@ -27,6 +30,9 @@ content:
 hidden:
   description: true
   field_old_id: true
+  field_visualizzazioni_24ore: true
+  field_visualizzazioni_6ore: true
+  field_visualizzazioni_settimana: true
   field_visualizzazioni_totali: true
   langcode: true
   path: true

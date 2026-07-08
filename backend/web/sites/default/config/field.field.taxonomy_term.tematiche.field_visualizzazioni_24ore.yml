@@ -1,0 +1,23 @@
+uuid: 93b8edde-fd88-4d05-8ea1-b6742b4066c5
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_visualizzazioni_24ore
+    - taxonomy.vocabulary.tematiche
+id: taxonomy_term.tematiche.field_visualizzazioni_24ore
+field_name: field_visualizzazioni_24ore
+entity_type: taxonomy_term
+bundle: tematiche
+label: 'Visualizzazioni 24 ore'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

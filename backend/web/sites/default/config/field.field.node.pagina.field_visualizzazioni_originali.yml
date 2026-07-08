@@ -1,0 +1,23 @@
+uuid: 31eafdd3-f8e9-414b-861d-8f243115232c
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_visualizzazioni_originali
+    - node.type.pagina
+id: node.pagina.field_visualizzazioni_originali
+field_name: field_visualizzazioni_originali
+entity_type: node
+bundle: pagina
+label: 'Visualizzazioni originali'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

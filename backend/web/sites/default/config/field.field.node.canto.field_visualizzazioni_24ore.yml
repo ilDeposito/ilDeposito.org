@@ -1,0 +1,23 @@
+uuid: 04e12aae-732a-4013-9113-ca51f3e84d3e
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_visualizzazioni_24ore
+    - node.type.canto
+id: node.canto.field_visualizzazioni_24ore
+field_name: field_visualizzazioni_24ore
+entity_type: node
+bundle: canto
+label: 'Visualizzazioni 24 ore'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

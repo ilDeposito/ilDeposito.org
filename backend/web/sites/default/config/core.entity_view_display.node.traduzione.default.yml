@@ -8,7 +8,10 @@ dependencies:
     - field.field.node.traduzione.field_informazioni
     - field.field.node.traduzione.field_lingua
     - field.field.node.traduzione.field_old_id
+    - field.field.node.traduzione.field_visualizzazioni_24ore
+    - field.field.node.traduzione.field_visualizzazioni_6ore
     - field.field.node.traduzione.field_visualizzazioni_originali
+    - field.field.node.traduzione.field_visualizzazioni_settimana
     - field.field.node.traduzione.field_visualizzazioni_totali
     - node.type.traduzione
   module:
@@ -58,6 +61,24 @@ content:
     third_party_settings: {  }
     weight: 114
     region: content
+  field_visualizzazioni_24ore:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 121
+    region: content
+  field_visualizzazioni_6ore:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 120
+    region: content
   field_visualizzazioni_originali:
     type: number_integer
     label: above
@@ -66,6 +87,15 @@ content:
       prefix_suffix: true
     third_party_settings: {  }
     weight: 119
+    region: content
+  field_visualizzazioni_settimana:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 122
     region: content
   field_visualizzazioni_totali:
     type: number_integer

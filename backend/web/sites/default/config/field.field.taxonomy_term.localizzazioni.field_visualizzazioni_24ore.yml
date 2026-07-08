@@ -1,0 +1,23 @@
+uuid: 5a8a7c61-1135-415f-bb79-31d9b8732a76
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_visualizzazioni_24ore
+    - taxonomy.vocabulary.localizzazioni
+id: taxonomy_term.localizzazioni.field_visualizzazioni_24ore
+field_name: field_visualizzazioni_24ore
+entity_type: taxonomy_term
+bundle: localizzazioni
+label: 'Visualizzazioni 24 ore'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

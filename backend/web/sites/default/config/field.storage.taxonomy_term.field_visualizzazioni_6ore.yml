@@ -1,0 +1,20 @@
+uuid: 1d4ff46e-2c09-4158-962b-fe8aed3270e4
+langcode: it
+status: true
+dependencies:
+  module:
+    - taxonomy
+id: taxonomy_term.field_visualizzazioni_6ore
+field_name: field_visualizzazioni_6ore
+entity_type: taxonomy_term
+type: integer
+settings:
+  unsigned: false
+  size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

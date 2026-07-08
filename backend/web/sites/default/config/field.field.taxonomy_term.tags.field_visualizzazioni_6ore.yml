@@ -1,0 +1,23 @@
+uuid: 4ad1a06f-399a-4ba8-ad6c-086b016db837
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_visualizzazioni_6ore
+    - taxonomy.vocabulary.tags
+id: taxonomy_term.tags.field_visualizzazioni_6ore
+field_name: field_visualizzazioni_6ore
+entity_type: taxonomy_term
+bundle: tags
+label: 'Visualizzazioni 6 ore'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

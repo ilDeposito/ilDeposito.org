@@ -1,0 +1,23 @@
+uuid: adc503ea-abad-4a25-9c5b-edaee1b4cb86
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_visualizzazioni_settimana
+    - node.type.pagina
+id: node.pagina.field_visualizzazioni_settimana
+field_name: field_visualizzazioni_settimana
+entity_type: node
+bundle: pagina
+label: 'Visualizzazioni settimana'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

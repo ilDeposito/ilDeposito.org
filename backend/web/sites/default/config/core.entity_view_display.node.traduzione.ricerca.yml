@@ -9,7 +9,10 @@ dependencies:
     - field.field.node.traduzione.field_informazioni
     - field.field.node.traduzione.field_lingua
     - field.field.node.traduzione.field_old_id
+    - field.field.node.traduzione.field_visualizzazioni_24ore
+    - field.field.node.traduzione.field_visualizzazioni_6ore
     - field.field.node.traduzione.field_visualizzazioni_originali
+    - field.field.node.traduzione.field_visualizzazioni_settimana
     - field.field.node.traduzione.field_visualizzazioni_totali
     - node.type.traduzione
   module:
@@ -65,7 +68,10 @@ content:
     weight: 100
     region: content
 hidden:
+  field_visualizzazioni_24ore: true
+  field_visualizzazioni_6ore: true
   field_visualizzazioni_originali: true
+  field_visualizzazioni_settimana: true
   field_visualizzazioni_totali: true
   langcode: true
   search_api_excerpt: true

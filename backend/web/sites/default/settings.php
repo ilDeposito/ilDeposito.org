@@ -21,6 +21,13 @@ ini_set('memory_limit', PHP_SAPI === 'cli' ? '1024M' : '256M');
 $settings['ildeposito_build_github_app_id'] = getenv('GITHUB_APP_ID') ?: '';
 $settings['ildeposito_build_github_installation_id'] = getenv('GITHUB_APP_INSTALLATION_ID') ?: '';
 
+// Umami self-hosted per il modulo ildeposito_stats (import statistiche).
+// Self-hosted Umami non supporta API key (solo Umami Cloud): serve utente/password.
+$settings['ildeposito_stats_umami_api_url'] = getenv('UMAMI_API_URL') ?: '';
+$settings['ildeposito_stats_umami_username'] = getenv('UMAMI_USERNAME') ?: '';
+$settings['ildeposito_stats_umami_password'] = getenv('UMAMI_PASSWORD') ?: '';
+$settings['ildeposito_stats_umami_website_id'] = getenv('UMAMI_WEBSITE_ID') ?: '';
+
 $settings['enable_html5_validation'] = FALSE;
 
 $settings['trusted_host_patterns'] = [

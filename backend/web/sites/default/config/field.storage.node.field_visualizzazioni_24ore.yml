@@ -1,0 +1,20 @@
+uuid: b5c724bc-1a05-4eef-903f-5eb96a6642b7
+langcode: it
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_visualizzazioni_24ore
+field_name: field_visualizzazioni_24ore
+entity_type: node
+type: integer
+settings:
+  unsigned: false
+  size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

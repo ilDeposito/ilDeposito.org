@@ -1,0 +1,23 @@
+uuid: a98548d0-8f35-4176-a412-7d980a99d2f7
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_visualizzazioni_6ore
+    - node.type.evento
+id: node.evento.field_visualizzazioni_6ore
+field_name: field_visualizzazioni_6ore
+entity_type: node
+bundle: evento
+label: 'Visualizzazioni 6 ore'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

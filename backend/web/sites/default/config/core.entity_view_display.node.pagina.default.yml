@@ -5,6 +5,10 @@ dependencies:
   config:
     - field.field.node.pagina.field_descrizione_header
     - field.field.node.pagina.field_paragraphs
+    - field.field.node.pagina.field_visualizzazioni_24ore
+    - field.field.node.pagina.field_visualizzazioni_6ore
+    - field.field.node.pagina.field_visualizzazioni_originali
+    - field.field.node.pagina.field_visualizzazioni_settimana
     - field.field.node.pagina.field_visualizzazioni_totali
     - node.type.pagina
   module:
@@ -31,6 +35,42 @@ content:
       link: ''
     third_party_settings: {  }
     weight: 117
+    region: content
+  field_visualizzazioni_24ore:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 121
+    region: content
+  field_visualizzazioni_6ore:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 120
+    region: content
+  field_visualizzazioni_originali:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 119
+    region: content
+  field_visualizzazioni_settimana:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 122
     region: content
   field_visualizzazioni_totali:
     type: number_integer

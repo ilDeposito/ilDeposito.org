@@ -1,0 +1,23 @@
+uuid: fc82329a-7921-4a61-8837-f8fc4614b5d4
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_visualizzazioni_24ore
+    - node.type.evento
+id: node.evento.field_visualizzazioni_24ore
+field_name: field_visualizzazioni_24ore
+entity_type: node
+bundle: evento
+label: 'Visualizzazioni 24 ore'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

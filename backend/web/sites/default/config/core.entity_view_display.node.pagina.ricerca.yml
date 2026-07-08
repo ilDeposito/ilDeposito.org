@@ -6,6 +6,10 @@ dependencies:
     - core.entity_view_mode.node.ricerca
     - field.field.node.pagina.field_descrizione_header
     - field.field.node.pagina.field_paragraphs
+    - field.field.node.pagina.field_visualizzazioni_24ore
+    - field.field.node.pagina.field_visualizzazioni_6ore
+    - field.field.node.pagina.field_visualizzazioni_originali
+    - field.field.node.pagina.field_visualizzazioni_settimana
     - field.field.node.pagina.field_visualizzazioni_totali
     - node.type.pagina
   module:
@@ -23,6 +27,10 @@ content:
 hidden:
   field_descrizione_header: true
   field_paragraphs: true
+  field_visualizzazioni_24ore: true
+  field_visualizzazioni_6ore: true
+  field_visualizzazioni_originali: true
+  field_visualizzazioni_settimana: true
   field_visualizzazioni_totali: true
   langcode: true
   search_api_excerpt: true

@@ -1,0 +1,23 @@
+uuid: 54c8c2b0-e4d5-4a25-a4f4-8eee01056705
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_visualizzazioni_6ore
+    - node.type.traduzione
+id: node.traduzione.field_visualizzazioni_6ore
+field_name: field_visualizzazioni_6ore
+entity_type: node
+bundle: traduzione
+label: 'Visualizzazioni 6 ore'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

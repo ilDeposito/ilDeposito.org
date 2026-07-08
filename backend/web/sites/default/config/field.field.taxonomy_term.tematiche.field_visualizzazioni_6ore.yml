@@ -1,0 +1,23 @@
+uuid: 0ef46beb-c4f7-4ea0-8917-7bf72bef8393
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_visualizzazioni_6ore
+    - taxonomy.vocabulary.tematiche
+id: taxonomy_term.tematiche.field_visualizzazioni_6ore
+field_name: field_visualizzazioni_6ore
+entity_type: taxonomy_term
+bundle: tematiche
+label: 'Visualizzazioni 6 ore'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

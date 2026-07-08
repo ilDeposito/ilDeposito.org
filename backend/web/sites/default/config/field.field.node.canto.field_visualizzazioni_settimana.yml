@@ -1,0 +1,23 @@
+uuid: 0b303b17-a60d-4fc7-ae1f-1b450e75e677
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_visualizzazioni_settimana
+    - node.type.canto
+id: node.canto.field_visualizzazioni_settimana
+field_name: field_visualizzazioni_settimana
+entity_type: node
+bundle: canto
+label: 'Visualizzazioni settimana'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

@@ -1,0 +1,23 @@
+uuid: b51eed8a-a00b-4ab6-ad66-d3d30fb2a3f1
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_visualizzazioni_24ore
+    - taxonomy.vocabulary.lingue
+id: taxonomy_term.lingue.field_visualizzazioni_24ore
+field_name: field_visualizzazioni_24ore
+entity_type: taxonomy_term
+bundle: lingue
+label: 'Visualizzazioni 24 ore'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

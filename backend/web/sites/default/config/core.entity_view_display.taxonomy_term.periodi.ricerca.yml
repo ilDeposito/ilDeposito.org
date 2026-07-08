@@ -7,6 +7,9 @@ dependencies:
     - field.field.taxonomy_term.periodi.field_anno_periodo
     - field.field.taxonomy_term.periodi.field_immagine
     - field.field.taxonomy_term.periodi.field_old_id
+    - field.field.taxonomy_term.periodi.field_visualizzazioni_24ore
+    - field.field.taxonomy_term.periodi.field_visualizzazioni_6ore
+    - field.field.taxonomy_term.periodi.field_visualizzazioni_settimana
     - field.field.taxonomy_term.periodi.field_visualizzazioni_totali
     - taxonomy.vocabulary.periodi
   module:
@@ -50,6 +53,9 @@ content:
     weight: 3
     region: content
 hidden:
+  field_visualizzazioni_24ore: true
+  field_visualizzazioni_6ore: true
+  field_visualizzazioni_settimana: true
   field_visualizzazioni_totali: true
   langcode: true
   search_api_excerpt: true

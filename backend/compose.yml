@@ -64,6 +64,10 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
       MAIL_FROM: ${MAIL_FROM:-}
+      UMAMI_API_URL: ${UMAMI_API_URL:-}
+      UMAMI_USERNAME: ${UMAMI_USERNAME:-}
+      UMAMI_PASSWORD: ${UMAMI_PASSWORD:-}
+      UMAMI_WEBSITE_ID: ${UMAMI_WEBSITE_ID:-}
       REDIS_HOST: redis
       PHP_FPM_CLEAR_ENV: "no"
     volumes:

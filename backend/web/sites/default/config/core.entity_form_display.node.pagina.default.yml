@@ -5,6 +5,10 @@ dependencies:
   config:
     - field.field.node.pagina.field_descrizione_header
     - field.field.node.pagina.field_paragraphs
+    - field.field.node.pagina.field_visualizzazioni_24ore
+    - field.field.node.pagina.field_visualizzazioni_6ore
+    - field.field.node.pagina.field_visualizzazioni_originali
+    - field.field.node.pagina.field_visualizzazioni_settimana
     - field.field.node.pagina.field_visualizzazioni_totali
     - node.type.pagina
   module:
@@ -42,13 +46,6 @@ content:
         collapse_edit_all: collapse_edit_all
         convert: '0'
         duplicate: '0'
-    third_party_settings: {  }
-  field_visualizzazioni_totali:
-    type: number
-    weight: 51
-    region: content
-    settings:
-      placeholder: ''
     third_party_settings: {  }
   path:
     type: path
@@ -88,6 +85,11 @@ content:
     third_party_settings: {  }
 hidden:
   created: true
+  field_visualizzazioni_24ore: true
+  field_visualizzazioni_6ore: true
+  field_visualizzazioni_originali: true
+  field_visualizzazioni_settimana: true
+  field_visualizzazioni_totali: true
   langcode: true
   promote: true
   sticky: true

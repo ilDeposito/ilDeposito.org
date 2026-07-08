@@ -1,0 +1,23 @@
+uuid: 28a9f40a-4cf0-4104-814c-62e1f961af0a
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_visualizzazioni_settimana
+    - taxonomy.vocabulary.lingue
+id: taxonomy_term.lingue.field_visualizzazioni_settimana
+field_name: field_visualizzazioni_settimana
+entity_type: taxonomy_term
+bundle: lingue
+label: Visualizzazioni_settimana
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

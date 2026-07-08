@@ -1,0 +1,23 @@
+uuid: 488dbefb-305e-4808-a9c8-17e213facc56
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_visualizzazioni_6ore
+    - taxonomy.vocabulary.localizzazioni
+id: taxonomy_term.localizzazioni.field_visualizzazioni_6ore
+field_name: field_visualizzazioni_6ore
+entity_type: taxonomy_term
+bundle: localizzazioni
+label: 'Visualizzazioni 6 ore'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

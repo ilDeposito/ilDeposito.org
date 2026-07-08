@@ -1,0 +1,23 @@
+uuid: 73c1c2dd-592e-4b91-8e32-1128e28a5409
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_visualizzazioni_6ore
+    - taxonomy.vocabulary.periodi
+id: taxonomy_term.periodi.field_visualizzazioni_6ore
+field_name: field_visualizzazioni_6ore
+entity_type: taxonomy_term
+bundle: periodi
+label: 'Visualizzazioni 6 ore'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

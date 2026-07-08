@@ -1,0 +1,23 @@
+uuid: 48312eb1-8c8f-4f4f-94e2-a9b274abfc72
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_visualizzazioni_settimana
+    - taxonomy.vocabulary.tematiche
+id: taxonomy_term.tematiche.field_visualizzazioni_settimana
+field_name: field_visualizzazioni_settimana
+entity_type: taxonomy_term
+bundle: tematiche
+label: Visualizzazioni_settimana
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

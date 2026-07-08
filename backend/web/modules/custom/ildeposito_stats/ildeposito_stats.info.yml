@@ -1,0 +1,5 @@
+name: 'ilDeposito Statistiche'
+description: 'Importazione statistiche di visualizzazione da Umami (self-hosted) verso i contatori Drupal.'
+package: 'ilDeposito'
+core_version_requirement: ^11 || ^12
+type: module

@@ -1,0 +1,23 @@
+uuid: 3280b54d-a385-434e-9f36-aa03a7be8f86
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_visualizzazioni_6ore
+    - node.type.canto
+id: node.canto.field_visualizzazioni_6ore
+field_name: field_visualizzazioni_6ore
+entity_type: node
+bundle: canto
+label: 'Visualizzazioni 6 ore'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer
