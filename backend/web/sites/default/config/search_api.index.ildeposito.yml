@@ -1,0 +1,192 @@
+uuid: 2b281348-0658-4806-a5ab-a0614f50fa6a
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_anno
+    - field.storage.node.field_audio
+    - field.storage.node.field_autori_testo
+    - field.storage.node.field_canti_correlati
+    - field.storage.node.field_informazioni
+    - field.storage.node.field_periodo
+    - field.storage.node.field_tags
+    - field.storage.node.field_tematiche
+    - field.storage.node.field_visualizzazioni_24ore
+    - field.storage.node.field_visualizzazioni_6ore
+    - field.storage.node.field_visualizzazioni_settimana
+    - field.storage.node.field_visualizzazioni_totali
+    - search_api.server.ildeposito_db
+  module:
+    - ildeposito_utils
+    - node
+id: ildeposito
+name: ilDeposito
+description: ''
+read_only: false
+field_settings:
+  changed:
+    label: Modificato
+    datasource_id: 'entity:node'
+    property_path: changed
+    type: date
+    dependencies:
+      module:
+        - node
+  field_anno:
+    label: Anno
+    datasource_id: 'entity:node'
+    property_path: field_anno
+    type: decimal
+    dependencies:
+      config:
+        - field.storage.node.field_anno
+  field_audio:
+    label: Audio
+    datasource_id: 'entity:node'
+    property_path: field_audio
+    type: string
+    dependencies:
+      config:
+        - field.storage.node.field_audio
+  field_autori_testo:
+    label: 'Autori testo'
+    datasource_id: 'entity:node'
+    property_path: field_autori_testo
+    type: integer
+    dependencies:
+      config:
+        - field.storage.node.field_autori_testo
+  field_canti_correlati:
+    label: 'Canti correlati'
+    datasource_id: 'entity:node'
+    property_path: field_canti_correlati
+    type: integer
+    dependencies:
+      config:
+        - field.storage.node.field_canti_correlati
+  field_contenuti_staff:
+    label: 'Contenuti staff'
+    property_path: field_contenuti_staff
+    type: string
+  field_informazioni:
+    label: Informazioni
+    datasource_id: 'entity:node'
+    property_path: field_informazioni
+    type: text
+    dependencies:
+      config:
+        - field.storage.node.field_informazioni
+  field_periodo:
+    label: Periodo
+    datasource_id: 'entity:node'
+    property_path: field_periodo
+    type: integer
+    dependencies:
+      config:
+        - field.storage.node.field_periodo
+  field_tags:
+    label: Tags
+    datasource_id: 'entity:node'
+    property_path: field_tags
+    type: integer
+    dependencies:
+      config:
+        - field.storage.node.field_tags
+  field_tematiche:
+    label: Tematiche
+    datasource_id: 'entity:node'
+    property_path: field_tematiche
+    type: integer
+    dependencies:
+      config:
+        - field.storage.node.field_tematiche
+  field_visualizzazioni_24ore:
+    label: 'Visualizzazioni 24 ore'
+    datasource_id: 'entity:node'
+    property_path: field_visualizzazioni_24ore
+    type: integer
+    dependencies:
+      config:
+        - field.storage.node.field_visualizzazioni_24ore
+  field_visualizzazioni_6ore:
+    label: 'Visualizzazioni 6 ore'
+    datasource_id: 'entity:node'
+    property_path: field_visualizzazioni_6ore
+    type: integer
+    dependencies:
+      config:
+        - field.storage.node.field_visualizzazioni_6ore
+  field_visualizzazioni_settimana:
+    label: 'Visualizzazioni settimana'
+    datasource_id: 'entity:node'
+    property_path: field_visualizzazioni_settimana
+    type: integer
+    dependencies:
+      config:
+        - field.storage.node.field_visualizzazioni_settimana
+  field_visualizzazioni_totali:
+    label: 'Visualizzazioni totali'
+    datasource_id: 'entity:node'
+    property_path: field_visualizzazioni_totali
+    type: integer
+    dependencies:
+      config:
+        - field.storage.node.field_visualizzazioni_totali
+  status:
+    label: Pubblicato
+    datasource_id: 'entity:node'
+    property_path: status
+    type: boolean
+    dependencies:
+      module:
+        - node
+  title:
+    label: Titolo
+    datasource_id: 'entity:node'
+    property_path: title
+    type: string
+    dependencies:
+      module:
+        - node
+  title_1:
+    label: 'Titolo Full'
+    datasource_id: 'entity:node'
+    property_path: title
+    type: text
+    boost: 21.0
+    dependencies:
+      module:
+        - node
+  type:
+    label: 'Tipo di contenuto'
+    datasource_id: 'entity:node'
+    property_path: type
+    type: string
+    dependencies:
+      module:
+        - node
+datasource_settings:
+  'entity:node':
+    bundles:
+      default: true
+      selected: {  }
+    languages:
+      default: true
+      selected: {  }
+processor_settings:
+  add_url: {  }
+  aggregated_field: {  }
+  custom_value: {  }
+  entity_type: {  }
+  ildeposito_contenuti_staff: {  }
+  language_with_fallback: {  }
+  rendered_item: {  }
+tracker_settings:
+  default:
+    indexing_order: fifo
+options:
+  cron_limit: 50
+  delete_on_fail: true
+  index_directly: true
+  track_changes_in_references: true
+server: ildeposito_db

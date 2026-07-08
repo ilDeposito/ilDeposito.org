@@ -5,3 +5,4 @@ core_version_requirement: ^11 || ^12
 type: module
 dependencies:
   - drupal:jsonapi
+  - search_api:search_api

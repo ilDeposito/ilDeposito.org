@@ -1,0 +1,15 @@
+uuid: 8b643551-b7b1-4ccd-9344-2bbd37803e42
+langcode: it
+status: true
+dependencies:
+  module:
+    - search_api_db
+id: ildeposito_db
+name: 'ilDeposito DB'
+description: ''
+backend: search_api_db
+backend_config:
+  database: 'default:default'
+  min_chars: 1
+  matching: words
+  phrase: bigram
