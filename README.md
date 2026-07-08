@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" alt="ilDeposito.org" width="120">
+  <img src="logo.png" alt="ilDeposito.org" width="300">
 </p>
 
 <h1 align="center">ilDeposito.org</h1>
