@@ -2,8 +2,6 @@
   <img src="logo.png" alt="ilDeposito.org" width="300">
 </p>
 
-<h1 align="center">ilDeposito.org</h1>
-
 <p align="center">
   Archivio online di canti di protesta politica e sociale.
 </p>
