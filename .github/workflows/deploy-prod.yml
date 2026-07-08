@@ -69,6 +69,16 @@ jobs:
           ./ildeposito.sh drush sset system.maintenance_mode 0
           ./ildeposito.sh drush cache:rebuild
 
+      - name: Rebuild Search API index
+        run: |
+          # config:import crea/aggiorna l'indice tracciando solo la prima
+          # pagina di item (tracking_page_size=100): il totale resta monco e
+          # il cron (50/ora) non recupera mai. Il rebuild ritraccia tutto e
+          # forza il reindex completo; la ricerca continua a servire i dati
+          # già indicizzati finché i nodi non vengono riprocessati.
+          ./ildeposito.sh drush search-api:rebuild-tracker ildeposito
+          ./ildeposito.sh drush search-api:index ildeposito
+
       - name: Build frontend
         run: ./ildeposito.sh build-frontend
 
