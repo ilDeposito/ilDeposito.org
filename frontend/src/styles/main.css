@@ -1,7 +1,11 @@
 /* ═══════════════════════════════════════════════
    1. Tailwind v4 + DaisyUI v5
    ═══════════════════════════════════════════════ */
-@import "tailwindcss";
+/* source(): senza, l'auto-detection parte dalla project root e nel builder
+   Docker scansiona anche /app/output (release già buildate, non gitignorate)
+   → il CSS conteneva classi pescate dall'HTML delle release precedenti,
+   cambiando hash a ogni build. Le classi vivono tutte in src/. */
+@import "tailwindcss" source("../");
 
 @plugin "daisyui" {
   themes: false;

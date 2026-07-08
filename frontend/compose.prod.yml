@@ -19,8 +19,9 @@ services:
       # (vedi assets.ts): docker-entrypoint.sh la hardlinka nella release.
       UPLOADS_DIR: /app/output/.uploads-cache
     # Tetto CPU/RAM: la build (sharp, worker PDF, brotli) non deve saturare
-    # l'host, che serve anche il traffico live. Node rispetta la quota cgroup.
-    cpus: 3.0
+    # l'host (12 core), che serve anche il traffico live. Node rispetta la
+    # quota cgroup. Con 3.0 la precompressione era 4× più lenta del baseline.
+    cpus: 6.0
     mem_limit: 4g
     volumes:
       - frontend_output:/app/output

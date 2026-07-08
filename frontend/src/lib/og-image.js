@@ -21,8 +21,12 @@ async function getRandomPeriodoImage() {
   if (randomPeriodoImageCache !== null) return randomPeriodoImageCache;
   const map = await getPeriodoImageMap();
   const values = [...map.values()];
+  // "Casuale" ma deterministico (ruota col giorno, non con la build):
+  // Math.random() cambiava l'og:image di fallback a ogni build, rendendo
+  // gli HTML mai byte-identici e vanificando la cache di precompressione.
+  const day = Number(new Date().toISOString().slice(0, 10).replaceAll('-', ''));
   randomPeriodoImageCache = values.length > 0
-    ? values[Math.floor(Math.random() * values.length)]
+    ? values[day % values.length]
     : null;
   return randomPeriodoImageCache;
 }

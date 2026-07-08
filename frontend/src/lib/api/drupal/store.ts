@@ -183,7 +183,10 @@ export function fetchAllPeriodiRaw(): Promise<RawStore> {
       'fields[media--image]': 'field_media_image',
       'fields[file--file]': 'uri',
       'include': 'field_immagine,field_immagine.field_media_image',
-      'sort': 'weight',
+      // Tiebreaker su tid: a parità di weight MariaDB restituisce ordine
+      // arbitrario → l'HTML cambierebbe a ogni build (cache .br/.gz sempre
+      // fredda). Stesso problema del tiebreaker nid in pdf-runner.js.
+      'sort': 'weight,drupal_internal__tid',
       'page[limit]': '200',
     })).then(toStore);
     triggerWarmAll();
