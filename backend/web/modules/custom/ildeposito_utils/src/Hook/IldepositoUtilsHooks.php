@@ -17,23 +17,33 @@ final class IldepositoUtilsHooks {
     }
   }
 
-  #[Hook('mail_alter')]
-  public function mailAlter(array &$message): void {
-    $from = getenv('MAIL_FROM');
-    if ($from === false || $from === '') {
+  /**
+   * Implements hook_preprocess_menu_region__middle().
+   *
+   * Nella voce "Crea" del toolbar Gin, per il ruolo staff mostra solo i link
+   * di creazione contenuto (nodi), nascondendo media e termini di tassonomia
+   * che compaiono automaticamente in base ai permessi di editing.
+   *
+   * @see \Drupal\gin\GinNavigation::getNavigationCreateMenuItems()
+   */
+  #[Hook('preprocess_menu_region__middle')]
+  public function preprocessMenuRegionMiddle(array &$variables): void {
+    if (($variables['menu_name'] ?? NULL) !== 'create') {
       return;
     }
-    $message['from'] = $from;
-    $message['headers']['From'] = $from;
-    $message['headers']['Sender'] = $from;
-    $message['headers']['Return-Path'] = $from;
-  }
 
-  private function setAutoreTitle(NodeInterface $node): void {
-    $cognome = trim((string) $node->get('field_cognome')->value);
-    $nome = trim((string) $node->get('field_nome')->value);
+    if (!\in_array('staff', \Drupal::currentUser()->getRoles(), TRUE)) {
+      return;
+    }
 
-    $node->setTitle($nome !== '' ? "$nome $cognome" : $cognome);
+    if (!isset($variables['items']['create']['below'])) {
+      return;
+    }
+
+    $variables['items']['create']['below'] = array_filter(
+      $variables['items']['create']['below'],
+      static fn (array $item): bool => !\in_array($item['class'] ?? NULL, ['media', 'taxonomy'], TRUE),
+    );
   }
 
 }
