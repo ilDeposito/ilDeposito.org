@@ -230,6 +230,57 @@ cmd_composer() {
     ${COMPOSE} exec -T php composer --working-dir=/var/www/html "$@"
 }
 
+# Allinea stage a prod: DB + file caricati. Prod e stage vivono sullo stesso
+# host (vedi working-directory in deploy-{stage,prod}.yml), quindi si legge
+# direttamente il backup.sql di prod da filesystem, senza scp. Pensato per
+# girare da cron ogni notte: nessuna conferma interattiva.
+cmd_allinea_prod() {
+    if [[ "${ENV}" != "stage" ]]; then
+        error "allinea-prod va eseguito solo in ambiente stage (ENV=${ENV})"
+        exit 1
+    fi
+
+    local prod_root
+    prod_root="$(cd "${PROJECT_ROOT}/../prod" && pwd)"
+    local prod_dump="${prod_root}/backup/backup.sql"
+    local prod_files="${prod_root}/backend/web/sites/default/files/"
+    local stage_files="${PROJECT_ROOT}/backend/web/sites/default/files/"
+
+    if [[ ! -f "${prod_dump}" ]]; then
+        error "Dump non trovato: ${prod_dump} (verifica il cron di backup su prod)"
+        exit 1
+    fi
+
+    info "Svuoto il database stage..."
+    cmd_drush sql:drop -y
+    ok "Database stage svuotato"
+
+    info "Importo il dump di prod (${prod_dump})..."
+    cmd_drush sql:cli < "${prod_dump}"
+    ok "Dump importato"
+
+    info "Sincronizzo sites/default/files da prod (rsync, con --delete)..."
+    rsync -a --delete "${prod_files}" "${stage_files}"
+    ok "File sincronizzati"
+
+    fix_files_permissions
+
+    info "Database update..."
+    cmd_drush updatedb -y
+    ok "Database aggiornato"
+
+    info "Import configurazione..."
+    cmd_drush config:import -y
+    ok "Configurazione importata"
+
+    info "Cache rebuild..."
+    cmd_drush cache:rebuild
+    ok "Cache pulita"
+
+    ok "Allineamento da prod completato, avvio build frontend..."
+    cmd_build_frontend full
+}
+
 cmd_exec() {
     local service="$1"
     shift
@@ -286,6 +337,7 @@ ${BOLD}Comandi:${NC}
   build-frontend-pdf        Rigenera solo i pdf, in-place nella release corrente
   drush <args>      Esegui comando drush
   migrate [flags]   Importa tutte le migrazioni (ordine di dipendenza)
+  allinea-prod      [solo stage] Allinea DB e file da prod (backup.sql + rsync), no conferma (uso da cron)
   composer <args>   Esegui comando composer
   exec <srv> <cmd>  Esegui comando in un container
   shell [servizio]  Shell nel container (default: php)
@@ -307,6 +359,7 @@ case "${1:-}" in
     build-frontend-pdf)      shift; cmd_build_frontend pdf ;;
     drush)           shift; cmd_drush "$@" ;;
     migrate)         shift; cmd_migrate "$@" ;;
+    allinea-prod)    cmd_allinea_prod ;;
     composer)        shift; cmd_composer "$@" ;;
     exec)            shift; cmd_exec "$@" ;;
     shell)           shift; cmd_shell "$@" ;;
