@@ -5,10 +5,26 @@ declare(strict_types=1);
 namespace Drupal\ildeposito_utils\Hook;
 
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Hook\Attribute\Hook;
 use Drupal\node\NodeInterface;
 
 final class IldepositoUtilsHooks {
+
+  /**
+   * Font monospace su testo/accordi per allineare a colpo d'occhio i versi.
+   */
+  private const MONOSPACE_FIELDS = ['field_canto_testo', 'field_canto_accordi'];
+
+  #[Hook('field_widget_single_element_form_alter')]
+  public function fieldWidgetSingleElementFormAlter(array &$element, FormStateInterface $form_state, array $context): void {
+    if (!\in_array($context['items']->getName(), self::MONOSPACE_FIELDS, TRUE)) {
+      return;
+    }
+
+    $element['value']['#attributes']['class'][] = 'ildeposito-monospace-field';
+    $element['#attached']['library'][] = 'ildeposito_utils/monospace-field';
+  }
 
   #[Hook('entity_presave')]
   public function entityPresave(EntityInterface $entity): void {

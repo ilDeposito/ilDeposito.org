@@ -1,0 +1,4 @@
+monospace-field:
+  css:
+    theme:
+      css/monospace-field.css: {}
