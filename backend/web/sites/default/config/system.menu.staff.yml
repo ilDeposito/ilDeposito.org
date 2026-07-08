@@ -1,0 +1,8 @@
+uuid: bb584564-ebd8-4adc-a1f1-ed1503146b05
+langcode: it
+status: true
+dependencies: {  }
+id: staff
+label: Staff
+description: ''
+locked: false
