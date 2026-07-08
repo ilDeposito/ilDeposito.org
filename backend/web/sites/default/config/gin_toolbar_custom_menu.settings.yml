@@ -1,0 +1,21 @@
+keep_admin_menu: 0
+settings:
+  -
+    menu: staff
+    role:
+      staff: staff
+      god: god
+      anonymous: '0'
+      authenticated: '0'
+      administrator: '0'
+      api: '0'
+    excluded_role:
+      anonymous: '0'
+      authenticated: '0'
+      administrator: '0'
+      staff: '0'
+      api: '0'
+      god: '0'
+    admin_menu: use_global
+    actions:
+      remove_setting: 'Remove rule'

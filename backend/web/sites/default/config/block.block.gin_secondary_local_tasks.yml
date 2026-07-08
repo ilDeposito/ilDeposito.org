@@ -1,0 +1,22 @@
+uuid: b72cb44e-e9f0-4d0f-ae91-bd03d7a02ca6
+langcode: it
+status: true
+dependencies:
+  theme:
+    - gin
+_core:
+  default_config_hash: BCWhood0xXFQYqxFgL1spXdb9KeIuXH1YvTdjIEedDg
+id: gin_secondary_local_tasks
+theme: gin
+region: pre_content
+weight: 0
+provider: null
+plugin: local_tasks_block
+settings:
+  id: local_tasks_block
+  label: 'Schede secondarie'
+  label_display: '0'
+  provider: core
+  primary: false
+  secondary: true
+visibility: {  }

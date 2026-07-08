@@ -1,0 +1,22 @@
+uuid: af1f8e9c-66ec-4098-8474-48631b1d35de
+langcode: it
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - gin
+_core:
+  default_config_hash: hBHXB7hC05XU7pDYzETt-GUcpFlogK1gkjyAsg0Ym58
+id: gin_content
+theme: gin
+region: content
+weight: 0
+provider: null
+plugin: system_main_block
+settings:
+  id: system_main_block
+  label: 'Contenuto della pagina principale'
+  label_display: '0'
+  provider: system
+visibility: {  }

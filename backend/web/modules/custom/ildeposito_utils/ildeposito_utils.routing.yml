@@ -1,0 +1,7 @@
+ildeposito_utils.dashboard:
+  path: '/dashboard'
+  defaults:
+    _controller: '\Drupal\ildeposito_utils\Controller\DashboardController::build'
+    _title: 'Dashboard'
+  requirements:
+    _user_is_logged_in: 'TRUE'

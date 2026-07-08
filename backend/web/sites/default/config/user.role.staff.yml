@@ -5,16 +5,63 @@ dependencies:
   config:
     - filter.format.basic_html
     - filter.format.restricted_html
+    - media.type.image
+    - node.type.autore
+    - node.type.canto
+    - node.type.evento
+    - node.type.pagina
+    - node.type.traduzione
+    - taxonomy.vocabulary.lingue
+    - taxonomy.vocabulary.localizzazioni
+    - taxonomy.vocabulary.periodi
+    - taxonomy.vocabulary.tags
+    - taxonomy.vocabulary.tematiche
   module:
     - filter
     - ildeposito_build
     - ildeposito_contatti
+    - media
+    - node
+    - path
+    - system
+    - taxonomy
+    - toolbar
 id: staff
 label: Staff
 weight: 4
 is_admin: null
 permissions:
+  - 'access content'
+  - 'access content overview'
+  - 'access media overview'
+  - 'access taxonomy overview'
+  - 'access toolbar'
+  - 'create autore content'
+  - 'create canto content'
+  - 'create evento content'
+  - 'create image media'
+  - 'create media'
+  - 'create pagina content'
+  - 'create terms in lingue'
+  - 'create terms in localizzazioni'
+  - 'create terms in periodi'
+  - 'create terms in tags'
+  - 'create terms in tematiche'
+  - 'create traduzione content'
+  - 'create url aliases'
+  - 'edit any autore content'
+  - 'edit any canto content'
+  - 'edit any evento content'
+  - 'edit any pagina content'
+  - 'edit any traduzione content'
   - 'trigger frontend build'
   - 'use text format basic_html'
   - 'use text format restricted_html'
+  - 'view all revisions'
   - 'view ildeposito contatti'
+  - 'view term revisions in lingue'
+  - 'view term revisions in localizzazioni'
+  - 'view term revisions in periodi'
+  - 'view term revisions in tags'
+  - 'view term revisions in tematiche'
+  - 'view the administration theme'
