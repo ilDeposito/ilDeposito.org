@@ -2,10 +2,20 @@ services:
   Drupal\ildeposito_contatti\Hook\IldepositoContattiHooks:
     arguments:
       - '@request_stack'
-      - '@plugin.manager.mail'
-      - '@state'
-      - '@language_manager'
+      - '@queue'
 
   Drupal\ildeposito_contatti\Config\JsonApiWriteOverride:
     tags:
       - { name: config.factory.override, priority: 5 }
+
+  logger.channel.ildeposito_contatti:
+    parent: logger.channel_base
+    arguments: ['ildeposito_contatti']
+
+  Drupal\ildeposito_contatti\EventSubscriber\ContattiQueueTerminateSubscriber:
+    arguments:
+      - '@queue'
+      - '@plugin.manager.queue_worker'
+      - '@logger.channel.ildeposito_contatti'
+    tags:
+      - { name: event_subscriber }

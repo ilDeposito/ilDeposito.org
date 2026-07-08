@@ -29,10 +29,12 @@ class IldepositoContattoAccessControlHandler extends EntityAccessControlHandler 
   }
 
   protected function checkCreateAccess(AccountInterface $account, array $context, $entity_bundle = NULL): AccessResultInterface {
-    // Il controller API bypassa questo check salvando l'entity direttamente
-    // via storage (senza passare per EntityManager::create con access check).
-    // La vera barriera di sicurezza per le submission API è il basic auth Caddy.
-    // Questo permesso serve per eventuali form admin manuali.
+    // Le submission arrivano via JSON:API standard (vedi routing.yml), che
+    // invoca questo check prima di creare l'entity: è la vera barriera che
+    // autorizza le scritture, non solo un permesso per eventuali form admin
+    // manuali. Chi arriva a valutarlo è autenticato via HTTP Basic Auth
+    // (Astro server-side, sopra al basic auth Caddy infrastrutturale); vedi
+    // JsonApiWriteFirewall (ildeposito_utils) per il blocco degli anonimi.
     return AccessResult::allowedIfHasPermission($account, 'administer ildeposito contatti')
       ->orIf(AccessResult::allowedIfHasPermission($account, 'create ildeposito contatti'));
   }

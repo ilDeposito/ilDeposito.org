@@ -93,9 +93,10 @@ services:
       DB_PASSWORD: $DB_PASSWORD
       DB_HOST: $DB_HOST
       REDIS_HOST: redis
-      CRONTAB: |
-        0 * * * * drush -r /var/www/html/web cron
-        0 */6 * * * drush -r /var/www/html/web ildeposito:report-404
+      # Scheduling spostato sul crontab della macchina (coordina meglio i job
+      # cross-stack, es. gli orari sfalsati dei backup stage/prod sullo
+      # stesso host). Il servizio resta attivo/pronto per un uso futuro.
+      CRONTAB: ""
     command: sudo -E crond -f -d 0
     volumes:
       - ./:/var/www/html:cached

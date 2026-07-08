@@ -22,6 +22,15 @@ final class EntityUrlMatcher {
   private const NODE_BUNDLES = ['canto', 'autore', 'evento', 'traduzione', 'pagina'];
   private const TAXONOMY_VOCABULARIES = ['lingue', 'localizzazioni', 'periodi', 'tags', 'tematiche'];
 
+  /**
+   * Cache di processo: match() viene chiamato fino a 4 volte per lo stesso
+   * URL nello stesso run (delta/6h/24h/settimana si sovrappongono molto),
+   * ogni volta con una query path_alias altrimenti ripetuta.
+   *
+   * @var array<string, \Drupal\Core\Entity\ContentEntityInterface|null>
+   */
+  private array $matchCache = [];
+
   public function __construct(
     private readonly EntityTypeManagerInterface $entityTypeManager,
   ) {}
@@ -69,8 +78,17 @@ final class EntityUrlMatcher {
   }
 
   public function match(string $path): ?ContentEntityInterface {
+    $normalized = $this->normalize($path);
+    if (array_key_exists($normalized, $this->matchCache)) {
+      return $this->matchCache[$normalized];
+    }
+
+    return $this->matchCache[$normalized] = $this->resolveMatch($normalized);
+  }
+
+  private function resolveMatch(string $normalized): ?ContentEntityInterface {
     $aliases = $this->entityTypeManager->getStorage('path_alias')
-      ->loadByProperties(['alias' => $this->normalize($path)]);
+      ->loadByProperties(['alias' => $normalized]);
     $alias = reset($aliases);
     if ($alias === FALSE) {
       return NULL;

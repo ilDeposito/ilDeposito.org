@@ -6,9 +6,7 @@ namespace Drupal\ildeposito_contatti\Hook;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Hook\Attribute\Hook;
-use Drupal\Core\Language\LanguageManagerInterface;
-use Drupal\Core\Mail\MailManagerInterface;
-use Drupal\Core\State\StateInterface;
+use Drupal\Core\Queue\QueueFactory;
 use Drupal\ildeposito_contatti\Entity\IldepositoContatto;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -16,9 +14,7 @@ final class IldepositoContattiHooks {
 
   public function __construct(
     private readonly RequestStack $requestStack,
-    private readonly MailManagerInterface $mailManager,
-    private readonly StateInterface $state,
-    private readonly LanguageManagerInterface $languageManager,
+    private readonly QueueFactory $queueFactory,
   ) {}
 
   #[Hook('entity_presave')]
@@ -42,39 +38,13 @@ final class IldepositoContattiHooks {
       return;
     }
 
-    $destinatari = (string) $this->state->get('contatti_destinatari', '');
-    if ($destinatari === '') {
-      return;
-    }
-
-    // Valida ogni indirizzo e ricomponi la stringa ripulita.
-    $indirizzi = array_filter(
-      array_map('trim', explode(',', $destinatari)),
-      static fn(string $addr): bool => filter_var($addr, FILTER_VALIDATE_EMAIL) !== FALSE,
-    );
-    if (empty($indirizzi)) {
-      return;
-    }
-
-    $nome = (string) ($entity->get('field_nome')->value ?? '');
-    $email = (string) ($entity->get('field_email')->value ?? '');
-    $messaggio = (string) ($entity->get('field_messaggio')->value ?? '');
-    $titolo = (string) ($entity->get('field_titolo')->value ?? '');
-    $link = (string) ($entity->get('field_link')->uri ?? '');
-
-    $this->mailManager->mail(
-      module: 'ildeposito_contatti',
-      key: 'notifica_contatto',
-      to: implode(', ', $indirizzi),
-      langcode: $this->languageManager->getDefaultLanguage()->getId(),
-      params: [
-        'nome' => $nome,
-        'email' => $email,
-        'messaggio' => $messaggio,
-        'titolo' => $titolo,
-        'link' => $link,
-      ],
-    );
+    // Accodata invece di inviata subito: il form contatti Astro è SSR e resta
+    // in attesa della risposta JSON:API, che non deve dipendere dal
+    // round-trip SMTP. Vedi NotificaContattoWorker per l'invio effettivo e
+    // ContattiQueueTerminateSubscriber per il drenaggio a fine request.
+    $this->queueFactory->get('ildeposito_contatti_notifica')->createItem([
+      'contatto_id' => $entity->id(),
+    ]);
   }
 
   #[Hook('mail')]
@@ -83,17 +53,18 @@ final class IldepositoContattiHooks {
       return;
     }
 
-    $message['subject'] = sprintf(
-      '[Contatti] Messaggio ricevuto da %s (%s)',
-      $params['nome'],
-      $params['email'],
-    );
+    // Difesa in profondità: pur affidandoci a symfony_mailer (che già
+    // sanitizza gli header), non ci fidiamo implicitamente del mailer
+    // configurato per dati liberi finiti in Subject/Reply-To.
+    $nome = $this->sanitizeHeaderValue((string) $params['nome']);
+    $email = $this->sanitizeHeaderValue((string) $params['email']);
 
-    $message['headers']['Reply-To'] = $params['nome'] . ' <' . $params['email'] . '>';
+    $message['subject'] = \sprintf('[Contatti] Messaggio ricevuto da %s (%s)', $nome, $email);
+    $message['headers']['Reply-To'] = $nome . ' <' . $email . '>';
 
     $lines = [
-      'Nome: ' . $params['nome'],
-      'Email: ' . $params['email'],
+      'Nome: ' . $nome,
+      'Email: ' . $email,
     ];
 
     if (!empty($params['titolo'])) {
@@ -109,6 +80,10 @@ final class IldepositoContattiHooks {
     $lines[] = $params['messaggio'];
 
     $message['body'][] = implode("\n", $lines);
+  }
+
+  private function sanitizeHeaderValue(string $value): string {
+    return trim(str_replace(["\r", "\n"], '', $value));
   }
 
 }
