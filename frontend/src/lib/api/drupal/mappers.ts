@@ -160,6 +160,8 @@ export function mapAutoreCard(raw: any, included: IncludedMap): AutoreCard {
     id: a.drupal_internal__nid,
     titolo: a.title,
     slug: extractSlug(a.path?.alias),
+    nome: a.field_nome || null,
+    cognome: a.field_cognome || null,
     immagine: resolveImageUrl(r.field_immagine, included),
     visualizzazioni: a.field_visualizzazioni_totali ?? 0,
     localizzazioni: resolveRefs(r.field_localizzazione, included),

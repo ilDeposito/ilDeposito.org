@@ -4,6 +4,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Icon from '../../components/base/Icon.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import HeaderWatermark from '../../components/ui/HeaderWatermark.astro';
+import AutorePlaceholder from '../../components/ui/AutorePlaceholder.astro';
 import { getPeriodi, getAutoriByPeriodo, getCantiByAutoreMap, getImageUrl } from '../../lib/api/index.js';
 import { buildCollectionPageSchema, buildBreadcrumbSchema, buildItemListSchema } from '../../lib/schema.js';
 import { buildCanonical } from '../../lib/seo.js';
@@ -88,9 +89,12 @@ const jsonLd = [
                       class="w-32 h-32 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
                     />
                   ) : (
-                    <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">
-                      <Icon name="user" class="text-base-content/50 text-5xl" />
-                    </div>
+                    <AutorePlaceholder
+                      nome={autore.nome}
+                      cognome={autore.cognome}
+                      titolo={autore.titolo}
+                      class="w-32 h-32 md:w-36 md:h-36"
+                    />
                   )}
                 </div>
 

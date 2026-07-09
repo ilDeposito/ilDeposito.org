@@ -4,6 +4,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../../components/ui/Breadcrumb.astro';
 import HeaderWatermark from '../../../components/ui/HeaderWatermark.astro';
 import Icon from '../../../components/base/Icon.astro';
+import AutorePlaceholder from '../../../components/ui/AutorePlaceholder.astro';
+import PlaceholderCerchio from '../../../components/ui/PlaceholderCerchio.astro';
 import {
   getPeriodi, getContenutiByPeriodoMap,
   getCantiByPeriodo, getAutoriByPeriodo, getEventiByPeriodo,
@@ -142,10 +144,15 @@ const ogImage = await getOgImageForPeriodo(periodo);
                     loading={i < 4 ? 'eager' : 'lazy'}
                     class="w-32 h-32 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
                   />
+                ) : autori.length > 0 ? (
+                  <AutorePlaceholder
+                    titolo={autori[0].titolo}
+                    class="w-32 h-32 md:w-36 md:h-36"
+                  />
                 ) : (
-                  <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">
+                  <PlaceholderCerchio label={canto.titolo} class="w-32 h-32 md:w-36 md:h-36">
                     <Icon name="user" class="text-base-content/50 text-5xl" />
-                  </div>
+                  </PlaceholderCerchio>
                 )}
               </div>
 
@@ -204,9 +211,12 @@ const ogImage = await getOgImageForPeriodo(periodo);
                       class="w-32 h-32 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
                     />
                   ) : (
-                    <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">
-                      <Icon name="user" class="text-base-content/50 text-5xl" />
-                    </div>
+                    <AutorePlaceholder
+                      nome={autore.nome}
+                      cognome={autore.cognome}
+                      titolo={autore.titolo}
+                      class="w-32 h-32 md:w-36 md:h-36"
+                    />
                   )}
                 </div>
 

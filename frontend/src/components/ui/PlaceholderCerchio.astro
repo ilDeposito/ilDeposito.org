@@ -1,0 +1,20 @@
+---
+import logoRaw from '../../assets/images/ildeposito-logo.svg?raw';
+
+interface Props {
+  label: string;
+  class?: string;
+}
+
+const { label, class: className = '' } = Astro.props;
+---
+<div
+  class:list={['relative rounded-full bg-base-200 border-2 border-base-300 flex items-center justify-center overflow-hidden', className]}
+  role="img"
+  aria-label={label}
+>
+  <span aria-hidden="true" class="absolute inset-0 flex items-center justify-center text-secondary/5 [&_svg]:w-4/5 [&_svg]:h-4/5">
+    <Fragment set:html={logoRaw} />
+  </span>
+  <span class="relative" aria-hidden="true"><slot /></span>
+</div>

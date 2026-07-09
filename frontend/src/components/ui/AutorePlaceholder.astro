@@ -1,0 +1,27 @@
+---
+import PlaceholderCerchio from './PlaceholderCerchio.astro';
+
+interface Props {
+  nome?: string | null;
+  cognome?: string | null;
+  titolo: string;
+  class?: string;
+  textClass?: string;
+}
+
+const { nome, cognome, titolo, class: className = '', textClass = 'text-4xl md:text-5xl' } = Astro.props;
+
+function iniziali(nome: string | null | undefined, cognome: string | null | undefined, titolo: string): string {
+  if (cognome) return (nome ? nome[0] + cognome[0] : cognome[0]).toUpperCase();
+
+  const parole = titolo.trim().split(/\s+/).filter(Boolean);
+  if (parole.length === 0) return '';
+  if (parole.length === 1) return parole[0][0].toUpperCase();
+  return (parole[0][0] + parole[parole.length - 1][0]).toUpperCase();
+}
+
+const testo = iniziali(nome, cognome, titolo);
+---
+<PlaceholderCerchio label={`Iniziali di ${titolo}`} class={className}>
+  <span class:list={['font-serif font-bold text-primary/70 select-none', textClass]}>{testo}</span>
+</PlaceholderCerchio>

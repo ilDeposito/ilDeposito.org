@@ -89,6 +89,8 @@ export interface AutoreCard {
   id: number | string;
   titolo: string;
   slug: string;
+  nome: string | null;
+  cognome: string | null;
   immagine: string | null;
   visualizzazioni: number;
   localizzazioni: Ref[];
