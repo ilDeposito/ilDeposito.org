@@ -48,6 +48,8 @@ export interface CantoDetail extends CantoCard {
   periodi: Ref[];
   tags: Ref[];
   tematiche: Ref[];
+  dataCreazione: string | null;
+  dataModifica: string | null;
 }
 
 export interface CantoInAutore {
@@ -102,6 +104,8 @@ export interface AutoreDetail {
   annoNascita: number | null;
   annoMorte: number | null;
   links: LinkRef[];
+  dataCreazione: string | null;
+  dataModifica: string | null;
 }
 
 // ── Eventi ─────────────────────────────────────────────
@@ -178,6 +182,8 @@ export interface EventoDetail {
   tematiche: Ref[];
   cantiCollegati: CantoCollegato[];
   links: LinkRef[];
+  dataCreazione: string | null;
+  dataModifica: string | null;
 }
 
 // ── Traduzioni ─────────────────────────────────────────

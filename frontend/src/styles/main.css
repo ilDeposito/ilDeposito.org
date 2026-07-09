@@ -38,8 +38,8 @@
   --font-mono:  'IBM Plex Mono', monospace;
 
   --color-primary:   oklch(0.45 0.165 27);
-  --color-secondary: oklch(0.63 0.111 86);
-  --color-accent:    oklch(0.63 0.111 86);
+  --color-secondary: oklch(0.50 0.111 86);  /* scurito per contrasto AA come testo (era 0.63) */
+  --color-accent:    oklch(0.50 0.111 86);
   --color-neutral:   oklch(0.35 0.025 40);
   --color-base-100:  oklch(0.96 0.013 92); /* #f4f1e8 — sfondo pagina */
 }
@@ -52,10 +52,10 @@
 [data-theme="ildeposito"] {
   --color-primary:           oklch(0.45 0.165 27);  /* #9E1B1B */
   --color-primary-content:   oklch(0.97 0.008 75);
-  --color-secondary:         oklch(0.63 0.111 86);  /* #A8842C */
-  --color-secondary-content: oklch(0.18 0.025 40);
-  --color-accent:            oklch(0.63 0.111 86);  /* = secondary */
-  --color-accent-content:    oklch(0.18 0.025 40);
+  --color-secondary:         oklch(0.50 0.111 86);  /* #7f5d00 — scurito per contrasto AA come testo */
+  --color-secondary-content: oklch(0.97 0.008 75);  /* invertito a chiaro */
+  --color-accent:            oklch(0.50 0.111 86);  /* = secondary */
+  --color-accent-content:    oklch(0.97 0.008 75);
   --color-neutral:           oklch(0.35 0.025 40);
   --color-neutral-content:   oklch(0.97 0.008 75);
   --color-base-100:          oklch(0.96 0.013 92);  /* #f4f1e8 — pergamena */
@@ -104,4 +104,49 @@
   --altcha-spinner-color:         oklch(0.45 0.165 27);
   --altcha-checkbox-border-color: var(--form-border-color);
   --altcha-input-background-color: oklch(0.92 0.013 92);
+}
+
+/* ═══════════════════════════════════════════════
+   8. Dialog nativi (menu mobile, drawer filtri)
+   ─ Transizione con progressive enhancement:
+   ─ senza supporto @starting-style, il dialog
+   ─ appare/scompare senza animazione (comunque
+   ─ corretto per prefers-reduced-motion).
+   ═══════════════════════════════════════════════ */
+dialog[data-menu-panel],
+dialog[data-filter-drawer] {
+  opacity: 0;
+  transform: scale(0.98);
+  transition: opacity 250ms ease-out, transform 250ms ease-out, overlay 250ms ease-out allow-discrete, display 250ms ease-out allow-discrete;
+}
+
+dialog[data-filter-drawer]::backdrop {
+  background: color-mix(in oklab, var(--color-base-content) 30%, transparent);
+}
+
+dialog[data-menu-panel][open],
+dialog[data-filter-drawer][open] {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@starting-style {
+  dialog[data-menu-panel][open],
+  dialog[data-filter-drawer][open] {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   9. Movimento ridotto — disattiva animazioni e
+   ─ transizioni per chi lo richiede a livello OS.
+   ═══════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

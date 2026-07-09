@@ -21,14 +21,15 @@ const meta = getPageMeta('cerca');
           name="q"
           data-cerca-input
           placeholder="Cerca canti, autori, eventi…"
+          aria-label="Cerca canti, autori, eventi"
           autocomplete="off"
           class="input input-bordered flex-1 font-sans text-base"
         />
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-primary" aria-label="Cerca">
           <Icon name="magnifying-glass" />
         </button>
       </form>
-      <p data-cerca-label class="font-serif italic text-sm text-base-content/60 hidden"></p>
+      <p data-cerca-label class="font-serif italic text-sm text-base-content/70 hidden"></p>
     </div>
   </header>
   <div class="max-w-6xl mx-auto px-4 py-8">

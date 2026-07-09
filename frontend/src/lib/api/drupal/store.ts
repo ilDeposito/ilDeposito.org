@@ -41,7 +41,7 @@ export function fetchAllCantiRaw(): Promise<RawStore> {
     cantiPromise = fetchAllJsonApi('/jsonapi/node/canto', new URLSearchParams({
       'filter[status]': '1',
       'fields[node--canto]': [
-        'drupal_internal__nid', 'title', 'path', 'created',
+        'drupal_internal__nid', 'title', 'path', 'created', 'changed',
         'field_anno', 'field_capoverso', 'field_canto_testo', 'field_canto_accordi',
         'field_audio', 'field_fonte', 'field_informazioni', 'field_altri_titoli',
         'field_autori_testo', 'field_autori_musica',
@@ -66,7 +66,7 @@ export function fetchAllAutoriRaw(): Promise<RawStore> {
     autoriPromise = fetchAllJsonApi('/jsonapi/node/autore', new URLSearchParams({
       'filter[status]': '1',
       'fields[node--autore]': [
-        'drupal_internal__nid', 'title', 'path',
+        'drupal_internal__nid', 'title', 'path', 'created', 'changed',
         'field_nome', 'field_cognome', 'field_informazioni', 'field_immagine',
         'field_localizzazione', 'field_periodo', 'field_links',
         'field_anno_di_nascita', 'field_anno_di_morte', 'field_visualizzazioni_totali',
@@ -88,7 +88,7 @@ export function fetchAllEventiRaw(): Promise<RawStore> {
     eventiPromise = fetchAllJsonApi('/jsonapi/node/evento', new URLSearchParams({
       'filter[status]': '1',
       'fields[node--evento]': [
-        'drupal_internal__nid', 'title', 'path',
+        'drupal_internal__nid', 'title', 'path', 'created', 'changed',
         'field_data_evento', 'field_informazioni', 'field_immagine',
         'field_geofield', 'field_localizzazione', 'field_periodo',
         'field_tags', 'field_tematiche', 'field_canti_correlati', 'field_links',

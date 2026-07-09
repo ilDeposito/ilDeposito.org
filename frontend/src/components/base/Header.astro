@@ -1,6 +1,9 @@
 ---
 import logoRaw from '../../assets/images/ildeposito-logo.svg?raw';
 import Icon from './Icon.astro';
+
+const { pathname } = Astro.url;
+const isCurrent = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 ---
 <header class="sticky top-0 z-50 w-full bg-primary">
   <div class="max-w-6xl mx-auto flex items-center gap-3 px-4 h-14 md:h-16">
@@ -11,7 +14,7 @@ import Icon from './Icon.astro';
       aria-label="ilDeposito - home"
       class="shrink-0 inline-flex items-center gap-2 text-primary-content [&>svg]:h-8 [&>svg]:w-auto md:[&>svg]:h-10"
     >
-      <Fragment set:html={logoRaw} />
+      <span aria-hidden="true" class="contents"><Fragment set:html={logoRaw} /></span>
       <span class="hidden md:inline font-serif font-bold text-2xl tracking-wide">ilDeposito.org</span>
     </a>
 
@@ -20,10 +23,10 @@ import Icon from './Icon.astro';
 
     <!-- Nav desktop -->
     <nav aria-label="Navigazione principale" class="hidden md:flex items-center gap-3">
-      <a href="/canti" class="px-4 py-1.5 rounded text-xl font-serif uppercase tracking-wide text-primary-content hover:bg-primary-content/15 transition-colors">Canti</a>
-      <a href="/autori" class="px-4 py-1.5 rounded text-xl font-serif uppercase tracking-wide text-primary-content hover:bg-primary-content/15 transition-colors">Autori</a>
-      <a href="/periodi" class="px-4 py-1.5 rounded text-xl font-serif uppercase tracking-wide text-primary-content hover:bg-primary-content/15 transition-colors">Periodi</a>
-      <a href="/eventi" class="px-4 py-1.5 rounded text-xl font-serif uppercase tracking-wide text-primary-content hover:bg-primary-content/15 transition-colors">Eventi</a>
+      <a href="/canti" aria-current={isCurrent('/canti') ? 'page' : undefined} class="px-4 py-1.5 rounded text-xl font-serif uppercase tracking-wide text-primary-content hover:bg-primary-content/15 transition-colors">Canti</a>
+      <a href="/autori" aria-current={isCurrent('/autori') ? 'page' : undefined} class="px-4 py-1.5 rounded text-xl font-serif uppercase tracking-wide text-primary-content hover:bg-primary-content/15 transition-colors">Autori</a>
+      <a href="/periodi" aria-current={isCurrent('/periodi') ? 'page' : undefined} class="px-4 py-1.5 rounded text-xl font-serif uppercase tracking-wide text-primary-content hover:bg-primary-content/15 transition-colors">Periodi</a>
+      <a href="/eventi" aria-current={isCurrent('/eventi') ? 'page' : undefined} class="px-4 py-1.5 rounded text-xl font-serif uppercase tracking-wide text-primary-content hover:bg-primary-content/15 transition-colors">Eventi</a>
     </nav>
 
     <!-- Spacer dx -->
@@ -32,7 +35,7 @@ import Icon from './Icon.astro';
     <!-- Search -->
     <search-modal class="relative flex-1 md:w-64 md:flex-none">
       <form action="/cerca" method="get" data-search-form>
-        <div class="flex items-center bg-primary-content/15 rounded-lg px-3 h-9 gap-2">
+        <div class="flex items-center bg-primary-content/15 rounded-lg px-3 h-9 gap-2 focus-within:ring-2 focus-within:ring-primary-content">
           <input
             type="search"
             name="q"
@@ -41,14 +44,14 @@ import Icon from './Icon.astro';
             placeholder="cerca canti, autori.."
             aria-label="Cerca canti o autori"
             class="
-              flex-1 bg-transparent text-primary-content placeholder:text-primary-content/70
+              flex-1 bg-transparent text-primary-content placeholder:text-primary-content/85
               placeholder:italic text-base font-sans focus:outline-none min-w-0
             "
           />
           <button
             type="submit"
             aria-label="Cerca"
-            class="shrink-0 text-primary-content cursor-pointer bg-transparent border-0 p-0 m-0 inline-flex items-center focus:outline-none"
+            class="shrink-0 text-primary-content cursor-pointer bg-transparent border-0 p-0 m-0 inline-flex items-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-content rounded"
           >
             <Icon name="magnifying-glass" />
           </button>
@@ -58,6 +61,7 @@ import Icon from './Icon.astro';
         data-search-results
         class="menu hidden absolute left-0 right-0 top-full mt-2 bg-base-100 text-base-content rounded-box shadow-lg border border-base-300 max-h-80 overflow-y-auto flex-nowrap z-50"
       ></ul>
+      <span data-search-status role="status" class="sr-only"></span>
     </search-modal>
 
     <!-- Hamburger -->
@@ -73,18 +77,11 @@ import Icon from './Icon.astro';
         <Icon name="list" class="text-2xl" />
       </button>
 
-      <div
+      <dialog
         id="mobile-menu-panel"
         data-menu-panel
-        role="dialog"
-        aria-modal="true"
         aria-label="Menu"
-        aria-hidden="true"
-        class="
-          fixed inset-0 z-[60] flex flex-col bg-base-100 text-base-content
-          invisible opacity-0 scale-95 pointer-events-none
-          transition-all duration-300 ease-out
-        "
+        class="m-0 p-0 max-w-none max-h-none w-full h-full flex flex-col bg-base-100 text-base-content"
       >
         <div class="border-b border-base-300">
           <div class="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
@@ -106,37 +103,37 @@ import Icon from './Icon.astro';
               <li>
                 <a href="/canti" class="block py-3 group">
                   <span class="font-serif font-bold text-2xl md:text-3xl text-base-content group-hover:text-primary transition-colors">Canti</span>
-                  <span class="block text-sm font-sans text-base-content/50 mt-0.5">Testi, accordi e informazioni dei canti di protesta</span>
+                  <span class="block text-sm font-sans text-base-content/70 mt-0.5">Testi, accordi e informazioni dei canti di protesta</span>
                 </a>
               </li>
               <li>
                 <a href="/autori" class="block py-3 group">
                   <span class="font-serif font-bold text-2xl md:text-3xl text-base-content group-hover:text-primary transition-colors">Autori</span>
-                  <span class="block text-sm font-sans text-base-content/50 mt-0.5">Compositori e autori dei canti dell'archivio</span>
+                  <span class="block text-sm font-sans text-base-content/70 mt-0.5">Compositori e autori dei canti dell'archivio</span>
                 </a>
               </li>
               <li>
                 <a href="/eventi" class="block py-3 group">
                   <span class="font-serif font-bold text-2xl md:text-3xl text-base-content group-hover:text-primary transition-colors">Eventi</span>
-                  <span class="block text-sm font-sans text-base-content/50 mt-0.5">Gli eventi storici legati ai canti di protesta</span>
+                  <span class="block text-sm font-sans text-base-content/70 mt-0.5">Gli eventi storici legati ai canti di protesta</span>
                 </a>
               </li>
               <li>
                 <a href="/archivio/storia-cantata" class="block py-3 group">
                   <span class="font-serif font-bold text-2xl md:text-3xl text-base-content group-hover:text-primary transition-colors">La storia cantata</span>
-                  <span class="block text-sm font-sans text-base-content/50 mt-0.5">Esplora la storia attraverso i canti e gli eventi</span>
+                  <span class="block text-sm font-sans text-base-content/70 mt-0.5">Esplora la storia attraverso i canti e gli eventi</span>
                 </a>
               </li>
               <li>
                 <a href="/periodi" class="block py-3 group">
                   <span class="font-serif font-bold text-2xl md:text-3xl text-base-content group-hover:text-primary transition-colors">Periodi</span>
-                  <span class="block text-sm font-sans text-base-content/50 mt-0.5">I periodi storici dell'archivio</span>
+                  <span class="block text-sm font-sans text-base-content/70 mt-0.5">I periodi storici dell'archivio</span>
                 </a>
               </li>
               <li>
                 <a href="/tags" class="block py-3 group">
                   <span class="font-serif font-bold text-2xl md:text-3xl text-base-content group-hover:text-primary transition-colors">Tags</span>
-                  <span class="block text-sm font-sans text-base-content/50 mt-0.5">I temi e gli argomenti dei canti</span>
+                  <span class="block text-sm font-sans text-base-content/70 mt-0.5">I temi e gli argomenti dei canti</span>
                 </a>
               </li>
             </ul>
@@ -153,14 +150,14 @@ import Icon from './Icon.astro';
             <div class="border-t border-base-300 my-5"></div>
 
             <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
-              <li><a href="/informazioni" class="block py-2 text-lg font-sans text-base-content/50 hover:text-primary transition-colors">Informazioni</a></li>
-              <li><a href="/informazioni/collabora" class="block py-2 text-lg font-sans text-base-content/50 hover:text-primary transition-colors">Collabora</a></li>
-              <li><a href="/informazioni/contatti" class="block py-2 text-lg font-sans text-base-content/50 hover:text-primary transition-colors">Contatti</a></li>
-              <li><a href="/informazioni/social" class="block py-2 text-lg font-sans text-base-content/50 hover:text-primary transition-colors">Canali Social</a></li>
+              <li><a href="/informazioni" class="block py-2 text-lg font-sans text-base-content/70 hover:text-primary transition-colors">Informazioni</a></li>
+              <li><a href="/informazioni/collabora" class="block py-2 text-lg font-sans text-base-content/70 hover:text-primary transition-colors">Collabora</a></li>
+              <li><a href="/informazioni/contatti" class="block py-2 text-lg font-sans text-base-content/70 hover:text-primary transition-colors">Contatti</a></li>
+              <li><a href="/informazioni/social" class="block py-2 text-lg font-sans text-base-content/70 hover:text-primary transition-colors">Canali Social</a></li>
             </ul>
           </div>
         </nav>
-      </div>
+      </dialog>
     </nav-hamburger>
 
   </div>
@@ -171,5 +168,70 @@ import Icon from './Icon.astro';
 </script>
 
 <script is:inline>
-if(!customElements.get('search-modal')){const _e=s=>{if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML};class S extends HTMLElement{connectedCallback(){const init=()=>{const i=this.querySelector('[data-search-input]'),r=this.querySelector('[data-search-results]'),f=this.querySelector('[data-search-form]');let p,t;const c=()=>{r.classList.add('hidden');r.innerHTML=''};f?.addEventListener('submit',e=>{if(!i.value.trim())e.preventDefault()});i.addEventListener('input',()=>{clearTimeout(t);const q=i.value.trim();if(!q){c();return}t=setTimeout(async()=>{if(!p){p=await import('/pagefind/pagefind.js');await p.init()}const s=await p.search(q),d=await Promise.all(s.results.slice(0,8).map(x=>x.data()));r.innerHTML=d.length?d.map(x=>`<li><a href="${_e(x.url)}">${_e(x.meta.title)} <span class="text-base-content/50">[${_e(x.meta.type)}]</span></a></li>`).join(''):'<li><span class="text-base-content/60">Nessun risultato</span></li>';r.classList.remove('hidden')},200)});document.addEventListener('click',e=>{if(!this.contains(e.target))c()})};document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init,{once:true}):init()}}customElements.define('search-modal',S)}
+if (!customElements.get('search-modal')) {
+  const _esc = (s) => {
+    if (!s) return '';
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  };
+
+  class SearchModal extends HTMLElement {
+    connectedCallback() {
+      const init = () => {
+        const input   = this.querySelector('[data-search-input]');
+        const results = this.querySelector('[data-search-results]');
+        const form    = this.querySelector('[data-search-form]');
+        const status  = this.querySelector('[data-search-status]');
+        let pf, debounce;
+
+        const close = () => {
+          results.classList.add('hidden');
+          results.innerHTML = '';
+          if (status) status.textContent = '';
+        };
+
+        form?.addEventListener('submit', (e) => {
+          if (!input.value.trim()) e.preventDefault();
+        });
+
+        input.addEventListener('input', () => {
+          clearTimeout(debounce);
+          const q = input.value.trim();
+          if (!q) { close(); return; }
+          debounce = setTimeout(async () => {
+            if (!pf) {
+              pf = await import('/pagefind/pagefind.js');
+              await pf.init();
+            }
+            const search = await pf.search(q);
+            const data   = await Promise.all(search.results.slice(0, 8).map((x) => x.data()));
+            results.innerHTML = data.length
+              ? data.map((x) => `<li><a href="${_esc(x.url)}">${_esc(x.meta.title)} <span class="text-base-content/70">[${_esc(x.meta.type)}]</span></a></li>`).join('')
+              : '<li><span class="text-base-content/70">Nessun risultato</span></li>';
+            results.classList.remove('hidden');
+            if (status) status.textContent = data.length ? `${data.length} suggeriment${data.length === 1 ? 'o' : 'i'} disponibil${data.length === 1 ? 'e' : 'i'}` : 'Nessun suggerimento disponibile';
+          }, 200);
+        });
+
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && !results.classList.contains('hidden')) {
+            e.stopPropagation();
+            close();
+          }
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!this.contains(e.target)) close();
+        });
+      };
+
+      document.readyState === 'loading'
+        ? document.addEventListener('DOMContentLoaded', init, { once: true })
+        : init();
+    }
+  }
+
+  customElements.define('search-modal', SearchModal);
+}
 </script>

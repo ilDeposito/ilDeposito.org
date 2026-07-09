@@ -55,7 +55,7 @@ const { cantoUrl } = Astro.props;
           type="url"
           id="seg-link"
           value={cantoUrl}
-          disabled
+          readonly
           class="input input-bordered form-border bg-base-200 w-full opacity-60 cursor-not-allowed"
         />
         <input type="hidden" name="link" value={cantoUrl} />
@@ -72,9 +72,11 @@ const { cantoUrl } = Astro.props;
           required
           maxlength="255"
           autocomplete="name"
+          aria-describedby="err-seg-nome"
           class="input input-bordered form-border bg-base-200 w-full"
           placeholder="Il tuo nome"
         />
+        <p id="err-seg-nome" class="text-error text-sm mt-1 hidden"></p>
       </div>
 
       <div class="form-control">
@@ -88,9 +90,11 @@ const { cantoUrl } = Astro.props;
           required
           maxlength="254"
           autocomplete="email"
+          aria-describedby="err-seg-email"
           class="input input-bordered form-border bg-base-200 w-full"
           placeholder="la-tua@email.it"
         />
+        <p id="err-seg-email" class="text-error text-sm mt-1 hidden"></p>
       </div>
 
       <div class="form-control">
@@ -102,14 +106,16 @@ const { cantoUrl } = Astro.props;
           name="messaggio"
           required
           rows="5"
+          aria-describedby="seg-messaggio-hint err-seg-messaggio"
           class="textarea textarea-bordered form-border bg-base-200 w-full font-sans text-base leading-relaxed"
           placeholder="Descrivi l'errore o la correzione suggerita…"
         ></textarea>
         <div class="label">
-          <span class="label-text-alt text-base-content/50">
-            <span id="seg-count">0</span>/200 righe
+          <span id="seg-messaggio-hint" class="label-text-alt text-base-content/70">
+            <span id="seg-count">0</span>/200 righe (massimo 200 righe)
           </span>
         </div>
+        <p id="err-seg-messaggio" class="text-error text-sm mt-1 hidden"></p>
       </div>
 
       <!-- Altcha: auto="onload" forza il solve immediato, necessario dentro un dialog chiuso -->
@@ -121,14 +127,16 @@ const { cantoUrl } = Astro.props;
             type="checkbox"
             id="seg-privacy"
             name="privacy"
+            aria-describedby="err-seg-privacy"
             class="checkbox checkbox-primary form-border shrink-0"
           />
           <span class="label-text">
             Ho letto e accetto la
-            <a href="/informazioni/privacy" target="_blank" rel="noopener noreferrer" class="link link-primary font-semibold">Privacy Policy</a>
+            <a href="/informazioni/privacy" target="_blank" rel="noopener noreferrer" class="link link-primary font-semibold">Privacy Policy<span class="sr-only"> (si apre in una nuova finestra)</span></a>
             <span class="text-error" aria-hidden="true"> *</span>
           </span>
         </label>
+        <p id="err-seg-privacy" class="text-error text-sm mt-1 hidden"></p>
       </div>
 
       <div class="mt-2">
@@ -180,6 +188,38 @@ const { cantoUrl } = Astro.props;
   const privacyCheck = document.getElementById('seg-privacy');
   const messaggioArea = document.getElementById('seg-messaggio');
   const messaggioCount = document.getElementById('seg-count');
+  const nomeInput = document.getElementById('seg-nome');
+
+  const fieldErrors = {
+    nome: [nomeInput, document.getElementById('err-seg-nome')],
+    email: [emailInput, document.getElementById('err-seg-email')],
+    messaggio: [messaggioArea, document.getElementById('err-seg-messaggio')],
+    privacy: [privacyCheck, document.getElementById('err-seg-privacy')],
+  };
+
+  function setFieldError(field, msg) {
+    const [input, errEl] = fieldErrors[field];
+    input.setAttribute('aria-invalid', 'true');
+    errEl.textContent = msg;
+    errEl.classList.remove('hidden');
+  }
+
+  function clearFieldErrors() {
+    Object.values(fieldErrors).forEach(([input, errEl]) => {
+      input.removeAttribute('aria-invalid');
+      errEl.classList.add('hidden');
+      errEl.textContent = '';
+    });
+  }
+
+  Object.values(fieldErrors).forEach(([input, errEl]) => {
+    const clear = () => {
+      input.removeAttribute('aria-invalid');
+      errEl.classList.add('hidden');
+    };
+    input.addEventListener('input', clear);
+    input.addEventListener('change', clear);
+  });
 
   openBtn.addEventListener('click', function () {
     modal.showModal();
@@ -206,7 +246,8 @@ const { cantoUrl } = Astro.props;
   function showError(msg) {
     errorMsg.textContent = msg;
     errorBox.classList.remove('hidden');
-    errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    errorBox.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
   }
 
   function hideError() {
@@ -216,6 +257,7 @@ const { cantoUrl } = Astro.props;
   form.addEventListener('submit', async function (e) {
     e.preventDefault();
     hideError();
+    clearFieldErrors();
 
     const fd = new FormData(form);
     const nome = String(fd.get('nome') || '').trim();
@@ -224,19 +266,23 @@ const { cantoUrl } = Astro.props;
 
     if (nome.length < 2) {
       showError('Il nome deve contenere almeno 2 caratteri.');
+      setFieldError('nome', 'Il nome deve contenere almeno 2 caratteri.');
       return;
     }
     if (!emailInput.checkValidity()) {
       showError('Inserisci un indirizzo email valido.');
+      setFieldError('email', 'Inserisci un indirizzo email valido.');
       return;
     }
     const righe = messaggio === '' ? 0 : messaggio.split('\n').length;
     if (righe > 200) {
       showError(`Il messaggio non può superare le 200 righe (attualmente ${righe}).`);
+      setFieldError('messaggio', `Il messaggio non può superare le 200 righe (attualmente ${righe}).`);
       return;
     }
     if (!privacyAccettata) {
       showError('Devi accettare la Privacy Policy per inviare il modulo.');
+      setFieldError('privacy', 'Devi accettare la Privacy Policy per inviare la segnalazione.');
       return;
     }
     if (!fd.get('altcha')) {

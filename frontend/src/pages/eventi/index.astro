@@ -71,7 +71,7 @@ const eventiConDati = eventiPiuVisti.map((evento) => ({
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Eventi' }]} />
 
       <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{meta.pageTitle}</h1>
-      <p class="font-serif italic text-base text-base-content/60">{meta.pageDescription}</p>
+      <p class="font-serif italic text-base text-base-content/70">{meta.pageDescription}</p>
 
       <a href="/eventi/elenco" class="btn btn-primary gap-2 w-fit border-0">
         Tutti gli eventi
@@ -101,7 +101,11 @@ const eventiConDati = eventiPiuVisti.map((evento) => ({
         <image-carousel
           data-initial={String(startIndex)}
           class="block relative max-w-3xl mx-auto w-full"
+          role="group"
+          aria-roledescription="carosello"
+          aria-label="Eventi del mese"
         >
+          <span data-carousel-live role="status" class="sr-only"></span>
           <!-- Viewport -->
           <div data-viewport class="overflow-hidden relative">
             <!-- Track -->
@@ -109,7 +113,7 @@ const eventiConDati = eventiPiuVisti.map((evento) => ({
               {eventiMese.map((evento, i) => {
                 const loc = evento.localizzazioni[0];
                 return (
-                  <div data-item class="min-w-full">
+                  <div data-item inert={i !== startIndex} class="min-w-full">
                     <a href={`/eventi/${evento.slug}`} class="block relative h-64">
                       {imgUrls[i] ? (
                         <Image
@@ -124,7 +128,7 @@ const eventiConDati = eventiPiuVisti.map((evento) => ({
                         />
                       ) : (
                         <div class="w-full h-full bg-base-300 flex items-center justify-center">
-                          <Icon name="image-broken" class="text-4xl text-base-content/30" />
+                          <Icon name="image-broken" class="text-4xl text-base-content/50" />
                         </div>
                       )}
                       <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"></div>
@@ -167,14 +171,17 @@ const eventiConDati = eventiPiuVisti.map((evento) => ({
 
           <!-- Dots -->
           {eventiMese.length > 1 && (
-            <div class="flex justify-center gap-2 mt-3 px-4">
+            <div class="flex flex-wrap justify-center gap-2 mt-3 px-4">
               {eventiMese.map((_, i) => (
                 <button
                   data-dot
                   type="button"
                   aria-label={`Vai all'evento ${i + 1}`}
-                  class={`w-2 h-2 rounded-full bg-primary transition-opacity ${i === startIndex ? 'opacity-100' : 'opacity-30'}`}
-                ></button>
+                  aria-current={i === startIndex ? 'true' : 'false'}
+                  class="w-6 h-6 shrink-0 flex items-center justify-center"
+                >
+                  <span class={`w-2 h-2 rounded-full bg-primary transition-opacity ${i === startIndex ? 'opacity-100' : 'opacity-30'}`}></span>
+                </button>
               ))}
             </div>
           )}
@@ -188,9 +195,9 @@ const eventiConDati = eventiPiuVisti.map((evento) => ({
         Gli eventi più visti
       </h2>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+      <ul role="list" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
         {eventiConDati.map(({ evento, immagineUrl }, i) => (
-          <div class="flex items-start gap-5 group relative">
+          <li class="flex items-start gap-5 group relative">
             <div class="shrink-0">
               {immagineUrl ? (
                 <Image
@@ -205,7 +212,7 @@ const eventiConDati = eventiPiuVisti.map((evento) => ({
                 />
               ) : (
                 <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">
-                  <Icon name="calendar-star" class="text-base-content/30 text-5xl" />
+                  <Icon name="calendar-star" class="text-base-content/50 text-5xl" />
                 </div>
               )}
             </div>
@@ -216,14 +223,14 @@ const eventiConDati = eventiPiuVisti.map((evento) => ({
               </h3>
 
               {evento.dataEvento && (
-                <p class="text-base text-base-content/50 flex items-center gap-2">
+                <p class="text-base text-base-content/70 flex items-center gap-2">
                   <Icon name="calendar-blank" class="text-sm shrink-0" />
                   {formatData(evento.dataEvento)}
                 </p>
               )}
 
               {evento.localizzazioni.length > 0 && (
-                <p class="text-base text-base-content/60 flex items-center gap-2 relative z-10">
+                <p class="text-base text-base-content/70 flex items-center gap-2 relative z-10">
                   <Icon name="map-pin" class="text-sm shrink-0" />
                   <span>
                     {evento.localizzazioni.map((l, j) => (
@@ -234,7 +241,7 @@ const eventiConDati = eventiPiuVisti.map((evento) => ({
               )}
 
               {evento.periodi.length > 0 && (
-                <p class="text-base text-base-content/50 flex items-center gap-2 relative z-10">
+                <p class="text-base text-base-content/70 flex items-center gap-2 relative z-10">
                   <Icon name="calendar-star" class="text-sm shrink-0" />
                   <span>
                     {evento.periodi.map((p, j) => (
@@ -244,9 +251,9 @@ const eventiConDati = eventiPiuVisti.map((evento) => ({
                 </p>
               )}
             </div>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
 
       <a href="/eventi/elenco" class="btn btn-primary self-center mt-4 gap-2">
         Tutti gli eventi
@@ -262,6 +269,8 @@ const eventiConDati = eventiPiuVisti.map((evento) => ({
         </h2>
         <events-map
           data-eventi={eventiGeoJson}
+          role="region"
+          aria-label="Mappa degli eventi"
           class="isolate block w-full rounded-lg overflow-hidden border border-base-300"
           style="height: 24rem;"
         ></events-map>

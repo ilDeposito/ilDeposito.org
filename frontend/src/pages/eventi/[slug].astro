@@ -60,7 +60,7 @@ const ogImage = await getOgImageForEvento(evento);
 
       <h1 class="font-serif font-bold text-2xl md:text-3xl text-base-content">{evento.titolo}</h1>
 
-      <p class="font-serif italic text-base text-base-content/60">
+      <p class="font-serif italic text-base text-base-content/70">
         {evento.localizzazioni.map((l, i) => (
           <>
             {i > 0 && ', '}
@@ -117,24 +117,24 @@ const ogImage = await getOgImageForEvento(evento);
           Canti collegati
         </h2>
 
-        <div class="flex flex-col divide-y divide-base-300">
+        <ul role="list" class="flex flex-col divide-y divide-base-300">
           {evento.cantiCollegati.map((canto) => (
-            <div class="flex flex-col gap-1 py-3 hover:bg-base-200 transition-colors rounded-lg">
-              <p class="text-sm text-base-content/50 flex items-center gap-2">
+            <li class="flex flex-col gap-1 py-3 hover:bg-base-200 transition-colors rounded-lg">
+              <p class="text-sm text-base-content/70 flex items-center gap-2">
                 {canto.anno && <span class="italic">{canto.anno}</span>}
-                {canto.anno && <span>·</span>}
-                <Icon name="headphones" class={canto.videoUrl ? 'text-primary' : 'text-base-content/30'} />
-                <Icon name="guitar" class={canto.accordi ? 'text-primary' : 'text-base-content/30'} />
+                {canto.anno && <span aria-hidden="true">·</span>}
+                <Icon name="headphones" class={canto.videoUrl ? 'text-primary' : 'text-base-content/50'} label={canto.videoUrl ? 'Audio disponibile' : undefined} />
+                <Icon name="guitar" class={canto.accordi ? 'text-primary' : 'text-base-content/50'} label={canto.accordi ? 'Accordi disponibili' : undefined} />
               </p>
               <h3 class="font-serif font-bold text-primary">
                 <a href={`/canti/${canto.slug}`} class="hover:underline">{canto.titolo}</a>
               </h3>
               {canto.capoverso && (
-                <p class="italic text-base text-base-content/60">{canto.capoverso}</p>
+                <p class="italic text-base text-base-content/70">{canto.capoverso}</p>
               )}
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       </section>
     )}
 
@@ -153,6 +153,8 @@ const ogImage = await getOgImageForEvento(evento);
           data-lat={evento.latitude}
           data-lng={evento.longitude}
           data-title={evento.titolo}
+          role="region"
+          aria-label={`Mappa: ${evento.titolo}`}
           class="isolate block h-64 w-full rounded-lg overflow-hidden border border-base-300"
         ></event-map>
       </section>

@@ -124,9 +124,10 @@ const autoriConDati = autori.map((autore) => ({
           <Icon name="users-three" />
           Esplora gli autori
         </a>
-        <a href="https://www.facebook.com/ildeposito.org" target="_blank" rel="noopener noreferrer" class="btn btn-secondary border-0 gap-2 text-white">
+        <a href="https://www.facebook.com/ildeposito.org" target="_blank" rel="noopener noreferrer" class="btn btn-secondary border-0 gap-2">
           <Icon name="facebook-logo-fill" />
           Seguici su Facebook
+          <span class="sr-only"> (si apre in una nuova finestra)</span>
         </a>
       </div>
       <search-modal class="relative w-full max-w-sm mt-4">
@@ -139,11 +140,11 @@ const autoriConDati = autori.map((autore) => ({
               placeholder="Cerca nell'archivio…"
               autocomplete="off"
               aria-label="Cerca canti o autori"
-              class="input flex-1 bg-base-100 text-base-content placeholder:text-base-content/40 border-0 text-base font-sans"
+              class="input flex-1 bg-base-100 text-base-content placeholder:text-base-content/70 border-0 text-base font-sans"
             />
-            <button type="submit" class="btn btn-secondary border-0 gap-2 shrink-0 text-white">
+            <button type="submit" aria-label="Cerca" class="btn btn-secondary border-0 gap-2 shrink-0">
               <Icon name="magnifying-glass" />
-              <span class="hidden sm:inline">Cerca</span>
+              <span class="hidden sm:inline" aria-hidden="true">Cerca</span>
             </button>
           </div>
         </form>
@@ -151,6 +152,7 @@ const autoriConDati = autori.map((autore) => ({
           data-search-results
           class="menu hidden absolute left-0 right-0 top-full mt-2 bg-base-100 text-base-content rounded-box shadow-lg border border-base-300 max-h-80 overflow-y-auto flex-nowrap z-50 text-left"
         ></ul>
+        <span data-search-status role="status" class="sr-only"></span>
       </search-modal>
     </div>
   </section>
@@ -179,25 +181,25 @@ const autoriConDati = autori.map((autore) => ({
                 />
               ) : (
                 <div class="w-28 h-28 md:w-32 md:h-32 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">
-                  <Icon name="music-notes" class="text-base-content/30 text-4xl" />
+                  <Icon name="music-notes" class="text-base-content/50 text-4xl" />
                 </div>
               )}
             </div>
             <div class="flex flex-col gap-1 min-w-0 pt-1">
-              <p class="text-sm text-base-content/40 flex items-center gap-2">
+              <p class="text-sm text-base-content/70 flex items-center gap-2">
                 {canto.anno && <span class="italic">{canto.anno}</span>}
                 {canto.anno && <span aria-hidden="true">&middot;</span>}
-                <Icon name="headphones" class={canto.videoUrl ? 'text-primary' : 'text-base-content/30'} />
-                <Icon name="guitar" class={canto.accordi ? 'text-primary' : 'text-base-content/30'} />
+                <Icon name="headphones" class={canto.videoUrl ? 'text-primary' : 'text-base-content/50'} />
+                <Icon name="guitar" class={canto.accordi ? 'text-primary' : 'text-base-content/50'} />
               </p>
               <h3 class="font-serif font-bold text-lg md:text-xl text-primary leading-tight">
                 <a href={`/canti/${canto.slug}`} class="hover:underline after:absolute after:inset-0">{canto.titolo}</a>
               </h3>
               {canto.capoverso && (
-                <p class="italic text-base text-base-content/50 line-clamp-2">{canto.capoverso}</p>
+                <p class="italic text-base text-base-content/70 line-clamp-2">{canto.capoverso}</p>
               )}
               {autori.length > 0 && (
-                <p class="text-sm text-base-content/60 relative z-10">
+                <p class="text-sm text-base-content/70 relative z-10">
                   {autori.map((a, j) => (
                     <>{j > 0 && ', '}<a href={`/autori/${a.slug}`} class="hover:text-primary hover:underline">{a.titolo}</a></>
                   ))}
@@ -241,14 +243,14 @@ const autoriConDati = autori.map((autore) => ({
                 />
               ) : (
                 <div class="w-24 h-24 md:w-28 md:h-28 rounded-full bg-base-100 flex items-center justify-center border-2 border-base-300 group-hover:border-primary transition-colors">
-                  <Icon name="user" class="text-base-content/30 text-3xl" />
+                  <Icon name="user" class="text-base-content/50 text-3xl" />
                 </div>
               )}
             </div>
             <div class="text-center">
               <h3 class="font-serif font-semibold text-sm md:text-base text-base-content group-hover:text-primary transition-colors leading-tight">{autore.titolo}</h3>
               {(autore.annoNascita || autore.annoMorte) && (
-                <p class="text-xs text-base-content/40 mt-0.5">
+                <p class="text-xs text-base-content/70 mt-0.5">
                   {autore.annoNascita ?? '?'}–{autore.annoMorte ?? ''}
                 </p>
               )}
@@ -293,13 +295,13 @@ const autoriConDati = autori.map((autore) => ({
                   />
                 ) : (
                   <div class="w-24 h-24 md:w-28 md:h-28 rounded-full bg-primary-content/10 flex items-center justify-center border-2 border-secondary/50">
-                    <Icon name="calendar-star" class="text-primary-content/50 text-3xl" />
+                    <Icon name="calendar-star" class="text-primary-content/80 text-3xl" />
                   </div>
                 )}
               </div>
               <div class="text-center">
                 <h3 class="font-serif font-bold text-sm md:text-base leading-tight group-hover:underline">{periodo.titolo}</h3>
-                <p class="text-xs text-primary-content/60 mt-1">
+                <p class="text-xs text-primary-content/80 mt-1">
                   {canti > 0 && <span>{canti} {canti === 1 ? 'canto' : 'canti'}</span>}
                   {canti > 0 && autori > 0 && <span> &middot; </span>}
                   {autori > 0 && <span>{autori} {autori === 1 ? 'autore' : 'autori'}</span>}
@@ -330,13 +332,17 @@ const autoriConDati = autori.map((autore) => ({
         <image-carousel
           data-initial={String(startIndex)}
           class="block relative max-w-3xl mx-auto w-full"
+          role="group"
+          aria-roledescription="carosello"
+          aria-label="Eventi del mese"
         >
+          <span data-carousel-live role="status" class="sr-only"></span>
           <div data-viewport class="overflow-hidden relative rounded-lg">
             <div data-track class="flex">
               {eventiMese.map((evento, i) => {
                 const loc = evento.localizzazioni[0];
                 return (
-                  <div data-item class="min-w-full">
+                  <div data-item inert={i !== startIndex} class="min-w-full">
                     <a href={`/eventi/${evento.slug}`} class="block relative h-56 md:h-72">
                       {imgUrls[i] ? (
                         <Image
@@ -351,7 +357,7 @@ const autoriConDati = autori.map((autore) => ({
                         />
                       ) : (
                         <div class="w-full h-full bg-base-300 flex items-center justify-center">
-                          <Icon name="image-broken" class="text-4xl text-base-content/30" />
+                          <Icon name="image-broken" class="text-4xl text-base-content/50" />
                         </div>
                       )}
                       <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"></div>
@@ -380,14 +386,17 @@ const autoriConDati = autori.map((autore) => ({
             )}
           </div>
           {eventiMese.length > 1 && (
-            <div class="flex justify-center gap-2 mt-3">
+            <div class="flex flex-wrap justify-center gap-2 mt-3">
               {eventiMese.map((_, i) => (
                 <button
                   data-dot
                   type="button"
                   aria-label={`Vai all'evento ${i + 1}`}
-                  class={`w-2 h-2 rounded-full bg-primary transition-opacity ${i === startIndex ? 'opacity-100' : 'opacity-30'}`}
-                ></button>
+                  aria-current={i === startIndex ? 'true' : 'false'}
+                  class="w-6 h-6 shrink-0 flex items-center justify-center"
+                >
+                  <span class={`w-2 h-2 rounded-full bg-primary transition-opacity ${i === startIndex ? 'opacity-100' : 'opacity-30'}`}></span>
+                </button>
               ))}
             </div>
           )}
@@ -411,7 +420,7 @@ const autoriConDati = autori.map((autore) => ({
           <h2 class="font-serif font-bold text-xl md:text-2xl text-base-content">
             <Icon name="calendar-blank" class="text-secondary mr-2" />Il calendario cantato
           </h2>
-          <p class="font-serif italic text-base text-base-content/60">
+          <p class="font-serif italic text-base text-base-content/70">
             Ogni giorno dell'anno ha la sua storia. Esplora gli eventi che hanno segnato la lotta sociale e
             scopri i canti che li raccontano.
           </p>
@@ -450,7 +459,7 @@ const autoriConDati = autori.map((autore) => ({
                 ]}
               >
                 {t.titolo}
-                <span class="text-xs opacity-50 ml-1">{t.total}</span>
+                <span class="text-xs opacity-70 ml-1">{t.total}</span>
               </a>
             );
           })}

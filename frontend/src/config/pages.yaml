@@ -39,9 +39,9 @@
 # ─── Home ────────────────────────────────────────────────────────────────────
 # La home ha un hero dedicato: pageDescription ne è il sottotitolo.
 home:
-  metaTitle: "ilDeposito.org — Canti di protesta italiani"
+  metaTitle: "ilDeposito.org — Canti di protesta e sociale"
   metaDescription: "Archivio online di canti di protesta politica e sociale: testi, accordi, traduzioni, autori e eventi storici."
-  pageDescription: "Archivio online di canti di protesta politica e sociale italiani. Testi, accordi, traduzioni, autori e gli eventi storici che li hanno ispirati."
+  pageDescription: "Archivio online di canti di protesta politica e sociale. Testi, accordi, traduzioni, autori e gli eventi storici che li hanno ispirati."
 
 
 # ─── Pagine di servizio ──────────────────────────────────────────────────────
@@ -50,7 +50,6 @@ contatti:
   metaDescription: "Scrivici per segnalazioni, collaborazioni o informazioni sull'archivio ilDeposito.org"
   pageTitle: "Contatti"
   pageDescription: "Scrivici per segnalazioni, collaborazioni o informazioni sull'archivio."
-  noindex: true
 
 cerca:
   metaTitle: "Cerca nell'archivio"
@@ -68,66 +67,68 @@ notFound:
 
 # ─── Canti ───────────────────────────────────────────────────────────────────
 canti.index:
-  metaTitle: "Canti di protesta — Archivio completo"
+  metaTitle: "Canti di protesta — Elenco canti"
   metaDescription: "Esplora l'archivio completo dei canti di protesta politica e sociale: testi, accordi, traduzioni e informazioni storiche."
-  pageTitle: "I canti dell'archivio"
-  pageDescription: "La pagina di accesso all'archivio dei canti"
+  pageTitle: "I canti de ilDeposito.org"
+  pageDescription: "I canti più importanti e più visti"
 
 canti.elenco:
-  metaTitle: "I canti dell'archivio"
+  metaTitle: "Canti di protesta - L'archivio completo"
   metaDescription: "Tutti i canti dell'archivio in ordine alfabetico"
   pageTitle: "I canti dell'archivio"
-  pageDescription: "Elenco completo in ordine alfabetico"
+  pageDescription: "L'elenco completo e navigabile dei canti dell'archivio"
 
-# Pagina singolo canto — token: {titolo} {accordi} {autori} {anno} {extra}
-#   accordi: valorizzata se il canto ha gli accordi
-#   autori:  autori di testo e musica, già uniti ("Tizio e Caio")
-#   anno:    anno del canto
-#   extra:   capoverso o informazioni (frase di apertura)
+# Pagina singolo canto — token: {titolo} {accordi} {autori} {autoriTesto} {anno} {extra}
+#   accordi:     valorizzata se il canto ha gli accordi
+#   autori:      autori di testo e musica, già uniti ("Tizio e Caio")
+#   autoriTesto: solo autori del testo (field_autori_testo), uniti da virgola ("Tizio, Caio")
+#   anno:        anno del canto
+#   extra:       capoverso o informazioni (frase di apertura)
 canti.detail:
-  metaTitle: "{titolo} — Testo{?accordi} e accordi{/accordi}"
+  metaTitle: "{titolo}{?autoriTesto} — {autoriTesto}{/autoriTesto} — Testo{?accordi} e accordi{/accordi}"
   metaDescription: "Testo{?accordi}, accordi{/accordi} di {titolo}{?autori} di {autori}{/autori}{?anno} ({anno}){/anno}.{?extra} {extra}{/extra}"
 
 
 # ─── Autori ──────────────────────────────────────────────────────────────────
 autori.index:
-  metaTitle: "Autori e compositori — Archivio"
-  metaDescription: "Gli autori e compositori dei canti di protesta dell'archivio: biografie, discografie e opere."
-  pageTitle: "Gli autori dell'archivio"
+  metaTitle: "Gli autori dell'archivio"
+  metaDescription: "Gli autori e compositori dei canti di protesta dell'archivio"
+  pageTitle: "Gli autori più visti e importanti dell'archivio"
   pageDescription: "I compositori e autori dei canti"
 
 autori.elenco:
-  metaTitle: "Gli autori dell'archivio"
+  metaTitle: "Gli autori: elenco completo"
   metaDescription: "Elenco completo degli autori in ordine alfabetico"
-  pageTitle: "Gli autori dell'archivio"
-  pageDescription: "L'elenco completo degli autori in ordine alfabetico"
+  pageTitle: "Tutti gli autori dell'archivio"
+  pageDescription: "L'elenco completo e navigabile degli autori presenti nell'archivio"
 
-# Pagina singolo autore — token: {titolo} {bio} {count} {loc}
+# Pagina singolo autore — token: {titolo} {bio} {count} {loc} {anni}
 #   bio:   biografia (informazioni) se presente
 #   count: numero di canti dell'autore nell'archivio
 #   loc:   prima localizzazione (luogo d'origine)
+#   anni:  anno di nascita-morte ("1920 - 1985"), o solo uno dei due se l'altro manca
 autori.detail:
   metaTitle: "{titolo} — Canti e biografia"
-  metaDescription: "{?bio}{bio}{?count} {count} {count|canto|canti} nell'archivio.{/count}{/bio}{^bio}Biografia e canti di {titolo}{?loc}, da {loc}{/loc}.{?count} {count} {count|canto|canti} con testo e accordi nell'archivio di ilDeposito.org.{/count}{^count} Nell'archivio di ilDeposito.org.{/count}{/bio}"
+  metaDescription: "{?bio}{?anni}{titolo} ({anni}). {/anni}{bio}{?count} {count} {count|canto|canti} nell'archivio.{/count}{/bio}{^bio}Biografia e canti di {titolo}{?anni} ({anni}){/anni}{?loc}, da {loc}{/loc}.{?count} {count} {count|canto|canti} con testo e accordi nell'archivio di ilDeposito.org.{/count}{^count} Nell'archivio di ilDeposito.org.{/count}{/bio}"
 
 # Elenco completo canti di un autore (autori/[slug]/canti) — token: {titolo}
 autori.canti:
   metaTitle: "Tutti i canti di {titolo}"
-  metaDescription: "L'elenco completo dei canti di {titolo} nell'archivio di ilDeposito.org: testi, accordi e informazioni."
+  metaDescription: "L'elenco completo dei canti di {titolo} presenti nell'archivio."
 
 
 # ─── Eventi ──────────────────────────────────────────────────────────────────
 eventi.index:
-  metaTitle: "Eventi storici — Archivio"
+  metaTitle: "Gli eventi della Storia Cantata"
   metaDescription: "Gli eventi storici legati ai canti di protesta: date, luoghi e canti collegati nell'archivio di ilDeposito.org."
   pageTitle: "Gli eventi dell'archivio"
   pageDescription: "La dashboard degli eventi"
 
 eventi.elenco:
-  metaTitle: "Gli eventi dell'archivio"
-  metaDescription: "Elenco completo degli eventi dell'archivio in ordine alfabetico"
+  metaTitle: "Gli eventi dell'archivio - Elenco completo"
+  metaDescription: "L'elenco completo degli eventi presenti nell'archivio"
   pageTitle: "Gli eventi dell'archivio"
-  pageDescription: "L'elenco completo degli eventi dell'archivio"
+  pageDescription: "L'elenco completo degli eventi presenti nell'archivio."
 
 # Pagina singolo evento — token: {titolo} {anno} {info} {data} {loc} {count}
 #   anno:   anno dell'evento (per il titolo)
@@ -136,7 +137,7 @@ eventi.elenco:
 #   loc:    prima localizzazione
 #   count:  numero di canti collegati all'evento
 eventi.detail:
-  metaTitle: "{titolo}{?anno} ({anno}){/anno}"
+  metaTitle: "{titolo}{?data} ({data}){/anno}"
   metaDescription: "{?info}{info}{/info}{^info}{titolo}{?data}, {data}{/data}{?loc} — {loc}{/loc}. Evento storico nell'archivio di ilDeposito.org.{?count} {count} {count|canto collegato|canti collegati}.{/count}{/info}"
 
 
@@ -158,31 +159,31 @@ traduzioni.detail:
 
 # ─── Lingue (tassonomia) ─────────────────────────────────────────────────────
 lingue.index:
-  metaTitle: "Canti per lingua"
-  metaDescription: "Esplora i canti di protesta per lingua: italiano, francese, inglese, spagnolo e altre lingue nell'archivio."
-  pageTitle: "Lingue"
-  pageDescription: "Le lingue dei canti e delle traduzioni dell'archivio"
+  metaTitle: "Le lingue presenti nell'archivio"
+  metaDescription: "L'elenco completo delle lingue dei canti e delle traduzioni: italiano, francese, inglese, spagnolo e altre lingue nell'archivio."
+  pageTitle: "Le lingue dell'archivio"
+  pageDescription: "L'elenco completo delle lingue dei canti e delle traduzioni"
 
 # Termine singolo — token: {titolo} (nome della lingua)
 lingue.term:
-  metaTitle: "Canti in {titolo}"
+  metaTitle: "Canti e traduzioni in {titolo}"
   metaDescription: "I canti di protesta e le traduzioni in {titolo} nell'archivio di ilDeposito.org."
-  pageTitle: "{titolo}"
+  pageTitle: "Canti e traduzioni in {titolo}"
   pageDescription: "I contenuti in {titolo} dell'archivio"
 
 
 # ─── Localizzazioni (tassonomia) ─────────────────────────────────────────────
 localizzazioni.index:
-  metaTitle: "Luoghi — Autori e eventi per luogo"
+  metaTitle: "I luoghi degli eventi e degli autori"
   metaDescription: "Autori e eventi storici per luogo di origine: esplora l'archivio di ilDeposito.org per località."
-  pageTitle: "Localizzazioni"
+  pageTitle: "Le localizzazioni di autori ed eventi"
   pageDescription: "Le localizzazioni per gli autori e gli eventi dell'archivio"
 
 # Termine singolo — token: {titolo} (nome del luogo)
 localizzazioni.term:
-  metaTitle: "{titolo} — Autori e eventi"
-  metaDescription: "Gli autori e gli eventi storici legati a {titolo} nell'archivio di ilDeposito.org."
-  pageTitle: "{titolo}"
+  metaTitle: "{titolo} — Autori ed eventi"
+  metaDescription: "Gli autori ed gli eventi storici legati a {titolo} nell'archivio di ilDeposito.org."
+  pageTitle: "{titolo} - Autori ed eventi"
   pageDescription: "I contenuti dell'archivio localizzati in {titolo}"
 
 
@@ -191,12 +192,12 @@ periodi.index:
   metaTitle: "Periodi storici — Archivio per epoca"
   metaDescription: "Esplora i canti di protesta per periodo storico: Risorgimento, Grande Guerra, Resistenza, anni '60-'70 e oltre."
   pageTitle: "Periodi storici"
-  pageDescription: "L'elenco dei periodi storici in cui sono divisi i contenuti"
+  pageDescription: "L'elenco dei periodi storici con cui sono catalogati i contenuti"
 
 # Termine singolo — token: {titolo} (nome del periodo)
 periodi.term:
   metaTitle: "{titolo} — Canti, autori e eventi"
-  metaDescription: "I canti, gli autori e gli eventi storici del periodo \"{titolo}\" nell'archivio di ilDeposito.org."
+  metaDescription: "I canti, gli autori e gli eventi storici principali del periodo \"{titolo}\" nell'archivio di ilDeposito.org."
   pageTitle: "{titolo}"
 
 # Tutti i contenuti di un periodo (periodi/[slug]/contenuti) — token: {titolo}
@@ -204,21 +205,21 @@ periodi.contenuti:
   metaTitle: "Tutti i contenuti del periodo {titolo}"
   metaDescription: "Canti, autori e eventi del periodo \"{titolo}\": esplora l'archivio completo di ilDeposito.org."
   pageTitle: "Contenuti: {titolo}"
-  pageDescription: "Tutti i canti, autori e eventi del periodo"
+  pageDescription: "Tutti i canti, gli autori e gli eventi del periodo"
 
 
 # ─── Tags (tassonomia) ───────────────────────────────────────────────────────
 tags.index:
-  metaTitle: "Argomenti — Canti per tema"
-  metaDescription: "Esplora i canti di protesta per argomento: lavoro, guerra, resistenza, emigrazione e altri temi."
+  metaTitle: "Tags - L'elenco dei tag dell'archivio"
+  metaDescription: "Esplora i canti di protesta e gli eventi per tag: lavoro, guerra, resistenza, emigrazione e altri temi."
   pageTitle: "Tags"
   pageDescription: "L'elenco dei tag con cui sono catalogati i contenuti"
 
 # Termine singolo — token: {titolo} (nome del tag)
 tags.term:
   metaTitle: "{titolo} — Canti e eventi"
-  metaDescription: "I canti di protesta e gli eventi storici sul tema \"{titolo}\" nell'archivio di ilDeposito.org."
-  pageTitle: "{titolo}"
+  metaDescription: "I canti di protesta e gli eventi storici del tag \"{titolo}\" nell'archivio di ilDeposito.org."
+  pageTitle: "{titolo} - Canti ed eventi"
   pageDescription: "I contenuti catalogati con {titolo}"
 
 

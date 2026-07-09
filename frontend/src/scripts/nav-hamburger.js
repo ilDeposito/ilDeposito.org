@@ -6,32 +6,15 @@ class NavHamburger extends HTMLElement {
 
     if (!toggle || !panel || !closeButtons.length) return;
 
-    const TRANSITION_MS = 300;
-
     const open = () => {
-      panel.classList.remove('invisible', 'pointer-events-none');
-      panel.setAttribute('aria-hidden', 'false');
+      panel.showModal();
       toggle.setAttribute('aria-expanded', 'true');
       document.body.classList.add('overflow-hidden');
-
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          panel.classList.remove('opacity-0', 'scale-95');
-        });
-      });
-
       closeButtons[closeButtons.length - 1].focus();
     };
 
     const closeMenu = () => {
-      panel.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
-      panel.setAttribute('aria-hidden', 'true');
-      toggle.setAttribute('aria-expanded', 'false');
-      document.body.classList.remove('overflow-hidden');
-
-      setTimeout(() => panel.classList.add('invisible'), TRANSITION_MS);
-
-      toggle.focus();
+      if (panel.open) panel.close();
     };
 
     toggle.addEventListener('click', open);
@@ -41,10 +24,16 @@ class NavHamburger extends HTMLElement {
       link.addEventListener('click', closeMenu);
     });
 
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && panel.getAttribute('aria-hidden') === 'false') {
-        closeMenu();
-      }
+    // Click sul backdrop nativo del dialog (fuori dal contenuto) chiude il menu
+    panel.addEventListener('click', (event) => {
+      if (event.target === panel) closeMenu();
+    });
+
+    // Copre sia Esc (evento 'cancel' nativo) sia close() esplicita
+    panel.addEventListener('close', () => {
+      toggle.setAttribute('aria-expanded', 'false');
+      document.body.classList.remove('overflow-hidden');
+      toggle.focus();
     });
   }
 }

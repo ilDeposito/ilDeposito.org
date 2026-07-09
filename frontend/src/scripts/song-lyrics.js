@@ -78,23 +78,39 @@ class SongLyrics extends HTMLElement {
     this._semitones = 0;
     this._originalAccordi = null;
 
-    const tabs = this.querySelectorAll('[data-tab]');
+    const tabs = Array.from(this.querySelectorAll('[data-tab]'));
     const panels = this.querySelectorAll('[data-panel]');
 
-    tabs.forEach((tab) => {
-      tab.addEventListener('click', () => {
-        tabs.forEach((t) => {
-          const active = t === tab;
-          t.setAttribute('aria-selected', String(active));
-          t.classList.toggle('border-secondary', active);
-          t.classList.toggle('text-base-content', active);
-          t.classList.toggle('border-transparent', !active);
-          t.classList.toggle('text-base-content/40', !active);
-        });
+    const activateTab = (tab, focus) => {
+      tabs.forEach((t) => {
+        const active = t === tab;
+        t.setAttribute('aria-selected', String(active));
+        t.setAttribute('tabindex', active ? '0' : '-1');
+        t.classList.toggle('border-secondary', active);
+        t.classList.toggle('text-base-content', active);
+        t.classList.toggle('border-transparent', !active);
+        t.classList.toggle('text-base-content/70', !active);
+      });
 
-        panels.forEach((panel) => {
-          panel.classList.toggle('hidden', panel.dataset.panel !== tab.dataset.tab);
-        });
+      panels.forEach((panel) => {
+        panel.classList.toggle('hidden', panel.dataset.panel !== tab.dataset.tab);
+      });
+
+      if (focus) tab.focus();
+    };
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => activateTab(tab, false));
+      tab.addEventListener('keydown', (e) => {
+        let next = null;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = tabs[(i + 1) % tabs.length];
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = tabs[(i - 1 + tabs.length) % tabs.length];
+        else if (e.key === 'Home') next = tabs[0];
+        else if (e.key === 'End') next = tabs[tabs.length - 1];
+        if (next) {
+          e.preventDefault();
+          activateTab(next, true);
+        }
       });
     });
 

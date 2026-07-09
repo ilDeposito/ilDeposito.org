@@ -98,7 +98,7 @@ const jsonLd = [
             </button>
 
             <dialog class="modal">
-              <div class="modal-box max-w-sm" style="background-color: #ece8d9;">
+              <div class="modal-box max-w-sm bg-base-200">
                 <h3 class="font-serif font-semibold text-lg text-primary mb-3">Contenuto esterno</h3>
                 <p class="text-sm text-base-content/80 mb-2">
                   Per riprodurre l'audio verrà caricato un player da YouTube.
@@ -115,7 +115,7 @@ const jsonLd = [
               <form method="dialog" class="modal-backdrop"><button>chiudi</button></form>
             </dialog>
 
-            <div data-yt-iframe-wrap class="absolute opacity-0 pointer-events-none w-0 h-0 overflow-hidden" aria-hidden="true"></div>
+            <div data-yt-iframe-wrap class="absolute opacity-0 pointer-events-none w-0 h-0 overflow-hidden" inert></div>
           </youtube-player>
         )}
 
@@ -168,16 +168,16 @@ const jsonLd = [
       {canto.accordi ? (
         <song-lyrics class="block">
           <div data-pagefind-ignore class="flex justify-center gap-4 mb-3" role="tablist">
-            <button type="button" data-tab="testo" role="tab" aria-selected="true" class="font-serif font-bold text-base px-4 pb-2 border-b-2 border-secondary text-base-content cursor-pointer">Testo</button>
-            <button type="button" data-tab="accordi" role="tab" aria-selected="false" class="font-serif font-bold text-base px-4 pb-2 border-b-2 border-transparent text-base-content/40 cursor-pointer">Accordi</button>
+            <button type="button" id="tab-testo" data-tab="testo" role="tab" aria-selected="true" aria-controls="panel-testo" tabindex="0" class="font-serif font-bold text-base px-4 pb-2 border-b-2 border-secondary text-base-content cursor-pointer">Testo</button>
+            <button type="button" id="tab-accordi" data-tab="accordi" role="tab" aria-selected="false" aria-controls="panel-accordi" tabindex="-1" class="font-serif font-bold text-base px-4 pb-2 border-b-2 border-transparent text-base-content/70 cursor-pointer">Accordi</button>
           </div>
-          <pre data-panel="testo" lang={linguaToIso(canto.lingue?.[0]?.titolo)} class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{canto.testo}</pre>
-          <div data-panel="accordi" data-pagefind-ignore class="hidden text-center">
+          <pre id="panel-testo" data-panel="testo" role="tabpanel" aria-labelledby="tab-testo" tabindex="0" lang={linguaToIso(canto.lingue?.[0]?.titolo)} class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{canto.testo}</pre>
+          <div id="panel-accordi" data-panel="accordi" role="tabpanel" aria-labelledby="tab-accordi" tabindex="0" data-pagefind-ignore class="hidden text-center">
             <div data-transpose-toolbar class="inline-flex items-center gap-3 mb-5 text-sm text-base-content/70 bg-base-200 rounded-lg px-4 py-2">
               <span class="font-serif font-semibold">Cambia la tonalità</span>
               <button type="button" data-transpose="-1" class="btn btn-xs border-0 bg-base-300 text-base-content/70 min-w-8" aria-label="Abbassa di mezzo tono">−1</button>
               <button type="button" data-transpose="+1" class="btn btn-xs border-0 bg-base-300 text-base-content/70 min-w-8" aria-label="Alza di mezzo tono">+1</button>
-              <button type="button" data-transpose-reset disabled class="btn btn-xs btn-ghost text-base-content/50 invisible" aria-label="Tonalità originale">Reset</button>
+              <button type="button" data-transpose-reset disabled class="btn btn-xs btn-ghost text-base-content/70 invisible" aria-label="Tonalità originale">Reset</button>
             </div>
             <pre class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap text-left [&>.chord-line]:font-bold [&>.chord-line]:text-base-content">{canto.accordi}</pre>
           </div>
@@ -288,7 +288,10 @@ const jsonLd = [
       {canto.videoUrl && (
         <p class="text-base">
           <span class="text-base-content">Video: </span>
-          <a href={canto.videoUrl} target="_blank" rel="noopener noreferrer" class="text-primary underline break-all">{canto.videoUrl}</a>
+          <a href={canto.videoUrl} target="_blank" rel="noopener noreferrer" class="text-primary underline break-all">
+            Guarda il video su YouTube
+            <span class="sr-only"> (si apre in una nuova finestra)</span>
+          </a>
         </p>
       )}
     </section>

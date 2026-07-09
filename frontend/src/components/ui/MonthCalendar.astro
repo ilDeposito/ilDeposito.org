@@ -4,12 +4,22 @@ interface Props {
   year: number;
   highlightedDays: number[];
   basePath?: string;
+  headingLevel?: 'h2' | 'h3';
 }
 
-const { month, year, highlightedDays, basePath = '/calendario-cantato' } = Astro.props;
+const { month, year, highlightedDays, basePath = '/calendario-cantato', headingLevel = 'h3' } = Astro.props;
+const Heading = headingLevel;
 
 const mesiIT = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
-const giorniSettimana = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
+const giorniSettimana = [
+  { short: 'L', full: 'lunedì' },
+  { short: 'M', full: 'martedì' },
+  { short: 'M', full: 'mercoledì' },
+  { short: 'G', full: 'giovedì' },
+  { short: 'V', full: 'venerdì' },
+  { short: 'S', full: 'sabato' },
+  { short: 'D', full: 'domenica' },
+];
 
 const meseNome = mesiIT[month - 1];
 const daysInMonth = new Date(year, month, 0).getDate();
@@ -24,12 +34,15 @@ const emptyCells = Array.from({ length: startOffset });
 ---
 
 <div class="flex flex-col gap-1">
-  <h3 class="font-serif font-bold text-center text-primary capitalize text-base py-1">
+  <Heading class="font-serif font-bold text-center text-primary capitalize text-base py-1">
     {meseNome}
-  </h3>
+  </Heading>
   <div class="grid grid-cols-7 text-center text-sm gap-y-1 gap-x-1">
     {giorniSettimana.map((g) => (
-      <span class="font-sans font-semibold text-base-content/50 text-xs py-1.5">{g}</span>
+      <span class="font-sans font-semibold text-base-content/70 text-xs py-1.5">
+        <span aria-hidden="true">{g.short}</span>
+        <span class="sr-only">{g.full}</span>
+      </span>
     ))}
     {emptyCells.map(() => <span></span>)}
     {days.map((day) => {
@@ -37,12 +50,13 @@ const emptyCells = Array.from({ length: startOffset });
       return hasEvent ? (
         <a
           href={`${basePath}/${day}-${meseNome}`}
+          aria-label={`${day} ${meseNome} — eventi del giorno`}
           class="w-8 h-8 flex items-center justify-center mx-auto font-bold text-primary hover:bg-primary hover:text-primary-content rounded-full transition-colors"
         >
-          {day}
+          <span aria-hidden="true">{day}</span>
         </a>
       ) : (
-        <span class="w-8 h-8 flex items-center justify-center mx-auto text-base-content/30">{day}</span>
+        <span class="w-8 h-8 flex items-center justify-center mx-auto text-base-content/70">{day}</span>
       );
     })}
   </div>

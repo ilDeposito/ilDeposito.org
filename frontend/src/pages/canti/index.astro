@@ -41,7 +41,7 @@ const cantiConDati = canti.map((canto) => {
 
       <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{meta.pageTitle}</h1>
 
-      <p class="font-serif italic text-base text-base-content/60">{meta.pageDescription}</p>
+      <p class="font-serif italic text-base text-base-content/70">{meta.pageDescription}</p>
 
       <a href="/canti/elenco" class="btn btn-primary gap-2 w-fit border-0">
         Tutti i canti dell'archivio
@@ -65,9 +65,9 @@ const cantiConDati = canti.map((canto) => {
         I canti più visti
       </h2>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+      <ul role="list" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
         {cantiConDati.map(({ canto, autori, immagineUrl }, i) => (
-          <div class="flex items-start gap-5 group relative">
+          <li class="flex items-start gap-5 group relative">
             <div class="shrink-0">
               {immagineUrl ? (
                 <Image
@@ -82,7 +82,7 @@ const cantiConDati = canti.map((canto) => {
                 />
               ) : (
                 <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">
-                  <Icon name="user" class="text-base-content/30 text-5xl" />
+                  <Icon name="user" class="text-base-content/50 text-5xl" />
                 </div>
               )}
             </div>
@@ -91,17 +91,17 @@ const cantiConDati = canti.map((canto) => {
               <h3 class="font-serif font-bold text-xl md:text-2xl text-primary leading-tight flex items-center gap-2">
                 <a href={`/canti/${canto.slug}`} class="hover:underline after:absolute after:inset-0">{canto.titolo}</a>
                 <span class="flex items-center gap-1 shrink-0 relative z-10">
-                  <Icon name="headphones" class={`text-sm ${canto.videoUrl ? 'text-primary' : 'text-base-content/30'}`} />
-                  <Icon name="guitar" class={`text-sm ${canto.accordi ? 'text-primary' : 'text-base-content/30'}`} />
+                  <Icon name="headphones" class={`text-sm ${canto.videoUrl ? 'text-primary' : 'text-base-content/50'}`} />
+                  <Icon name="guitar" class={`text-sm ${canto.accordi ? 'text-primary' : 'text-base-content/50'}`} />
                 </span>
               </h3>
 
               {canto.capoverso && (
-                <p class="italic text-base text-base-content/50 line-clamp-2">{canto.capoverso}</p>
+                <p class="italic text-base text-base-content/70 line-clamp-2">{canto.capoverso}</p>
               )}
 
               {autori.length > 0 && (
-                <p class="text-base text-base-content/60 flex items-center gap-2 relative z-10">
+                <p class="text-base text-base-content/70 flex items-center gap-2 relative z-10">
                   <Icon name="user" class="text-sm shrink-0" />
                   <span>
                     {autori.map((a, j) => (
@@ -112,7 +112,7 @@ const cantiConDati = canti.map((canto) => {
               )}
 
               {canto.periodi.length > 0 && (
-                <p class="text-base text-base-content/50 flex items-center gap-2 relative z-10">
+                <p class="text-base text-base-content/70 flex items-center gap-2 relative z-10">
                   <Icon name="calendar-blank" class="text-sm shrink-0" />
                   <span>
                     {canto.periodi.map((p, j) => (
@@ -122,9 +122,9 @@ const cantiConDati = canti.map((canto) => {
                 </p>
               )}
             </div>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
 
       <a href="/canti/elenco" class="btn btn-primary self-center mt-4 gap-2">
         Tutti i canti dell'archivio

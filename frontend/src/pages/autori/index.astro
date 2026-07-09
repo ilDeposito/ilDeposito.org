@@ -37,7 +37,7 @@ const autoriConDati = autori.map((autore) => {
 
       <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{meta.pageTitle}</h1>
 
-      <p class="font-serif italic text-base text-base-content/60">{meta.pageDescription}</p>
+      <p class="font-serif italic text-base text-base-content/70">{meta.pageDescription}</p>
 
       <a href="/autori/elenco" class="btn btn-primary gap-2 w-fit border-0">
         Tutti gli autori dell'archivio
@@ -53,9 +53,9 @@ const autoriConDati = autori.map((autore) => {
         Gli autori più visitati
       </h2>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+      <ul role="list" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
         {autoriConDati.map(({ autore, numCanti, immagineUrl, annoNascita, annoMorte }, i) => (
-          <div class="flex items-start gap-5 group relative">
+          <li class="flex items-start gap-5 group relative">
             <div class="shrink-0">
               {immagineUrl ? (
                 <Image
@@ -70,7 +70,7 @@ const autoriConDati = autori.map((autore) => {
                 />
               ) : (
                 <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">
-                  <Icon name="user" class="text-base-content/30 text-5xl" />
+                  <Icon name="user" class="text-base-content/50 text-5xl" />
                 </div>
               )}
             </div>
@@ -81,14 +81,14 @@ const autoriConDati = autori.map((autore) => {
               </h3>
 
               {(annoNascita || annoMorte) && (
-                <p class="text-base text-base-content/50 flex items-center gap-2">
+                <p class="text-base text-base-content/70 flex items-center gap-2">
                   <Icon name="calendar-blank" class="text-sm shrink-0" />
                   {annoNascita}{annoMorte ? ` — ${annoMorte}` : ''}
                 </p>
               )}
 
               {autore.localizzazioni.length > 0 && (
-                <p class="text-base text-base-content/60 flex items-center gap-2 relative z-10">
+                <p class="text-base text-base-content/70 flex items-center gap-2 relative z-10">
                   <Icon name="map-pin" class="text-sm shrink-0" />
                   <span>
                     {autore.localizzazioni.map((l, j) => (
@@ -99,15 +99,15 @@ const autoriConDati = autori.map((autore) => {
               )}
 
               {numCanti > 0 && (
-                <p class="text-base text-base-content/50 flex items-center gap-2">
+                <p class="text-base text-base-content/70 flex items-center gap-2">
                   <Icon name="music-notes" class="text-sm shrink-0" />
                   {numCanti} {numCanti === 1 ? 'canto' : 'canti'}
                 </p>
               )}
             </div>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
 
       <a href="/autori/elenco" class="btn btn-primary self-center mt-4 gap-2">
         Tutti gli autori dell'archivio

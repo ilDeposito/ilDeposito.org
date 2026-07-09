@@ -24,7 +24,7 @@ const formatData = (data: string) =>
     <a href={`/eventi/${evento.slug}`} class="hover:underline">{evento.titolo}</a>
   </h3>
   {(loc || evento.dataEvento) && (
-    <p class="font-serif italic text-base text-base-content/60">
+    <p class="font-serif italic text-base text-base-content/70">
       {loc && (
         <a href={`/localizzazioni/${loc.slug}`} class="hover:underline">
           {loc.titolo}
@@ -35,7 +35,7 @@ const formatData = (data: string) =>
     </p>
   )}
   {periodo && (
-    <p class="font-serif italic text-base text-base-content/60">
+    <p class="font-serif italic text-base text-base-content/70">
       <a href={`/periodi/${periodo.slug}`} class="hover:underline">{periodo.titolo}</a>
     </p>
   )}

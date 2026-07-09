@@ -91,9 +91,14 @@ const icons: Record<string, string> = {
 interface Props {
   name: string;
   class?: string;
+  label?: string;
 }
 
-const { name, class: className } = Astro.props;
+const { name, class: className, label } = Astro.props;
 const svg = icons[name] ?? '';
 ---
-<span class:list={["inline-flex items-center justify-center shrink-0 [&>svg]:w-[1em] [&>svg]:h-[1em]", className]} set:html={svg} />
+{label ? (
+  <span role="img" aria-label={label} class:list={["inline-flex items-center justify-center shrink-0 [&>svg]:w-[1em] [&>svg]:h-[1em]", className]} set:html={svg} />
+) : (
+  <span aria-hidden="true" class:list={["inline-flex items-center justify-center shrink-0 [&>svg]:w-[1em] [&>svg]:h-[1em]", className]} set:html={svg} />
+)}

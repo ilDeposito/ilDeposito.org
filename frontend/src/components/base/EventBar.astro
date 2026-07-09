@@ -1,5 +1,6 @@
 ---
 import { getEventiDelGiorno } from '../../lib/api/index.js';
+import Icon from './Icon.astro';
 
 const eventi = await getEventiDelGiorno();
 
@@ -13,13 +14,19 @@ function formatDate(dateStr: string) {
 ---
 {eventi.length > 0 && (
   <div class="w-full bg-neutral">
-    <event-carousel class="max-w-6xl mx-auto px-4 py-2 flex items-center justify-center gap-2 text-neutral-content">
+    <event-carousel
+      class="max-w-6xl mx-auto px-4 py-2 flex items-center justify-center gap-2 text-neutral-content"
+      role="group"
+      aria-roledescription="carosello"
+      aria-label="Evento del giorno"
+    >
       <span class="hidden md:inline shrink-0 font-serif font-bold text-sm uppercase tracking-wide">Evento del giorno &mdash;</span>
       <div class="grid">
         {eventi.map((evento, i) => (
           <a
             href={`/eventi/${evento.slug}`}
             data-event-slide
+            inert={i !== 0}
             class:list={[
               "col-start-1 row-start-1 flex items-center gap-2 text-neutral-content hover:underline transition-opacity duration-500",
               i === 0 ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -31,9 +38,20 @@ function formatDate(dateStr: string) {
         ))}
       </div>
       {eventi.length > 1 && (
-        <span class="shrink-0 text-neutral-content/60 text-xs">
-          <span data-event-counter>1</span>/{eventi.length}
-        </span>
+        <>
+          <button
+            type="button"
+            data-event-toggle
+            aria-label="Metti in pausa la rotazione degli eventi"
+            class="shrink-0 text-neutral-content cursor-pointer inline-flex items-center"
+          >
+            <span data-event-icon-pause class="leading-none"><Icon name="pause" /></span>
+            <span data-event-icon-play class="hidden leading-none"><Icon name="play-fill" /></span>
+          </button>
+          <span class="shrink-0 text-neutral-content/60 text-xs">
+            <span data-event-counter>1</span>/{eventi.length}
+          </span>
+        </>
       )}
     </event-carousel>
   </div>

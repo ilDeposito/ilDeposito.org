@@ -4,11 +4,13 @@ class ImageCarousel extends HTMLElement {
     this._track    = this.querySelector('[data-track]');
     this._items    = Array.from(this.querySelectorAll('[data-item]'));
     this._dots     = Array.from(this.querySelectorAll('[data-dot]'));
+    this._live     = this.querySelector('[data-carousel-live]');
     this._current  = parseInt(this.dataset.initial ?? '0', 10) || 0;
+    this._reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     if (this._items.length === 0) return;
 
-    this._track.style.transition = 'transform 300ms ease-in-out';
+    this._track.style.transition = this._reduceMotion ? 'none' : 'transform 300ms ease-in-out';
     this._update(false);
 
     this.querySelector('[data-prev]')?.addEventListener('click', () => this._go(this._current - 1));
@@ -32,17 +34,25 @@ class ImageCarousel extends HTMLElement {
   }
 
   _update(animate) {
-    if (!animate) this._track.style.transition = 'none';
+    const useTransition = animate && !this._reduceMotion;
+    if (!useTransition) this._track.style.transition = 'none';
     this._track.style.transform = `translateX(-${this._current * 100}%)`;
-    if (!animate) {
-      // Force reflow then re-enable transition
+    if (!useTransition) {
+      // Force reflow then re-enable transition (se il movimento non è ridotto)
       void this._track.offsetWidth;
-      this._track.style.transition = 'transform 300ms ease-in-out';
+      if (!this._reduceMotion) this._track.style.transition = 'transform 300ms ease-in-out';
     }
+    this._items.forEach((item, i) => item.toggleAttribute('inert', i !== this._current));
     this._dots.forEach((dot, i) => {
-      dot.classList.toggle('opacity-100', i === this._current);
-      dot.classList.toggle('opacity-30', i !== this._current);
+      const active = i === this._current;
+      const indicator = dot.firstElementChild ?? dot;
+      indicator.classList.toggle('opacity-100', active);
+      indicator.classList.toggle('opacity-30', !active);
+      dot.setAttribute('aria-current', active ? 'true' : 'false');
     });
+    if (this._live && animate) {
+      this._live.textContent = `Diapositiva ${this._current + 1} di ${this._items.length}`;
+    }
   }
 }
 

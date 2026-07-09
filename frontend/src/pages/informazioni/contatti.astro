@@ -62,9 +62,11 @@ const meta = getPageMeta('contatti');
           required
           maxlength="255"
           autocomplete="name"
+          aria-describedby="err-nome"
           class="input input-bordered form-border bg-base-200 w-full"
           placeholder="Il tuo nome"
         />
+        <p id="err-nome" class="text-error text-sm mt-1 hidden"></p>
       </div>
 
       <div class="form-control">
@@ -78,9 +80,11 @@ const meta = getPageMeta('contatti');
           required
           maxlength="254"
           autocomplete="email"
+          aria-describedby="err-email"
           class="input input-bordered form-border bg-base-200 w-full"
           placeholder="la-tua@email.it"
         />
+        <p id="err-email" class="text-error text-sm mt-1 hidden"></p>
       </div>
 
       <div class="form-control">
@@ -92,14 +96,16 @@ const meta = getPageMeta('contatti');
           name="messaggio"
           required
           rows="6"
+          aria-describedby="messaggio-hint err-messaggio"
           class="textarea textarea-bordered form-border bg-base-200 w-full font-sans text-base leading-relaxed"
           placeholder="Scrivi il tuo messaggio…"
         ></textarea>
         <div class="label">
-          <span class="label-text-alt text-base-content/50">
-            <span id="messaggio-count">0</span>/200 righe
+          <span id="messaggio-hint" class="label-text-alt text-base-content/70">
+            <span id="messaggio-count">0</span>/200 righe (massimo 200 righe)
           </span>
         </div>
+        <p id="err-messaggio" class="text-error text-sm mt-1 hidden"></p>
       </div>
 
       <!-- Altcha: proof-of-work antispam, self-hosted, zero dati a terzi -->
@@ -111,6 +117,7 @@ const meta = getPageMeta('contatti');
             type="checkbox"
             id="privacy"
             name="privacy"
+            aria-describedby="err-privacy"
             class="checkbox checkbox-primary form-border shrink-0"
           />
           <span class="label-text">
@@ -119,6 +126,7 @@ const meta = getPageMeta('contatti');
             <span class="text-error" aria-hidden="true"> *</span>
           </span>
         </label>
+        <p id="err-privacy" class="text-error text-sm mt-1 hidden"></p>
       </div>
 
       <div class="mt-2">
@@ -171,6 +179,38 @@ const meta = getPageMeta('contatti');
   const emailInput = document.getElementById('email');
   const messaggioArea = document.getElementById('messaggio');
   const messaggioCount = document.getElementById('messaggio-count');
+  const nomeInput = document.getElementById('nome');
+
+  const fieldErrors = {
+    nome: [nomeInput, document.getElementById('err-nome')],
+    email: [emailInput, document.getElementById('err-email')],
+    messaggio: [messaggioArea, document.getElementById('err-messaggio')],
+    privacy: [privacyCheck, document.getElementById('err-privacy')],
+  };
+
+  function setFieldError(field, msg) {
+    const [input, errEl] = fieldErrors[field];
+    input.setAttribute('aria-invalid', 'true');
+    errEl.textContent = msg;
+    errEl.classList.remove('hidden');
+  }
+
+  function clearFieldErrors() {
+    Object.values(fieldErrors).forEach(([input, errEl]) => {
+      input.removeAttribute('aria-invalid');
+      errEl.classList.add('hidden');
+      errEl.textContent = '';
+    });
+  }
+
+  Object.values(fieldErrors).forEach(([input, errEl]) => {
+    const clear = () => {
+      input.removeAttribute('aria-invalid');
+      errEl.classList.add('hidden');
+    };
+    input.addEventListener('input', clear);
+    input.addEventListener('change', clear);
+  });
 
   // Contatore righe textarea
   messaggioArea.addEventListener('input', function () {
@@ -194,7 +234,8 @@ const meta = getPageMeta('contatti');
   function showError(msg) {
     errorMsg.textContent = msg;
     errorBox.classList.remove('hidden');
-    errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    errorBox.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
   }
 
   function hideError() {
@@ -204,6 +245,7 @@ const meta = getPageMeta('contatti');
   form.addEventListener('submit', async function (e) {
     e.preventDefault();
     hideError();
+    clearFieldErrors();
 
     const fd = new FormData(form);
     const privacyAccettata = privacyCheck.checked;
@@ -213,20 +255,24 @@ const meta = getPageMeta('contatti');
     // --- Validazione campi ---
     if (nome.length < 2) {
       showError('Il nome deve contenere almeno 2 caratteri.');
+      setFieldError('nome', 'Il nome deve contenere almeno 2 caratteri.');
       return;
     }
     if (!emailInput.checkValidity()) {
       showError('Inserisci un indirizzo email valido.');
+      setFieldError('email', 'Inserisci un indirizzo email valido.');
       return;
     }
     const righe = messaggio === '' ? 0 : messaggio.split('\n').length;
     if (righe > 200) {
       showError(`Il messaggio non può superare le 200 righe (attualmente ${righe}).`);
+      setFieldError('messaggio', `Il messaggio non può superare le 200 righe (attualmente ${righe}).`);
       return;
     }
 
     if (!privacyAccettata) {
       showError('Devi accettare la Privacy Policy per inviare il modulo.');
+      setFieldError('privacy', 'Devi accettare la Privacy Policy per inviare il modulo.');
       return;
     }
 

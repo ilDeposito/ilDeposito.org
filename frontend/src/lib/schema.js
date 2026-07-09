@@ -112,6 +112,9 @@ export function buildCreativeWorkSchema(canto, siteUrl) {
     schema.dateCreated = String(canto.anno);
   }
 
+  if (canto.dataCreazione) schema.datePublished = canto.dataCreazione;
+  if (canto.dataModifica) schema.dateModified = canto.dataModifica;
+
   if (canto.tematiche?.length > 0) {
     schema.genre = canto.tematiche.map((t) => t.titolo);
   }
@@ -160,7 +163,25 @@ export function buildPersonSchema(autore, siteUrl, ogImagePath) {
     };
   }
 
-  if (autore.links?.[0]?.uri) schema.sameAs = [autore.links[0].uri];
+  const sameAs = (autore.links ?? []).map((l) => l.uri).filter(Boolean);
+  if (sameAs.length > 0) schema.sameAs = sameAs;
+
+  return schema;
+}
+
+export function buildProfilePageSchema(autore, siteUrl, ogImagePath) {
+  const person = buildPersonSchema(autore, siteUrl, ogImagePath);
+  delete person['@context'];
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    url: `${siteUrl}/autori/${autore.slug}`,
+    mainEntity: person,
+  };
+
+  if (autore.dataCreazione) schema.datePublished = autore.dataCreazione;
+  if (autore.dataModifica) schema.dateModified = autore.dataModifica;
 
   return schema;
 }
@@ -206,6 +227,9 @@ export function buildEventSchema(evento, siteUrl) {
   }
 
   if (evento.links?.[0]?.uri) schema.sameAs = [evento.links[0].uri];
+
+  if (evento.dataCreazione) schema.datePublished = evento.dataCreazione;
+  if (evento.dataModifica) schema.dateModified = evento.dataModifica;
 
   return schema;
 }

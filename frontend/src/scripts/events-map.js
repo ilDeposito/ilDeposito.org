@@ -73,13 +73,14 @@ class EventsMap extends HTMLElement {
     }
 
     const cluster = L.markerClusterGroup({ chunkedLoading: true });
+    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim();
 
     for (const ev of eventi) {
       const d = new Date(ev.data_evento);
       const dateStr = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
-      L.marker([ev.latitude, ev.longitude])
+      L.marker([ev.latitude, ev.longitude], { alt: ev.titolo, title: ev.titolo })
         .bindPopup(
-          `<a href="/eventi/${_esc(ev.slug)}" style="font-weight:bold;color:#9E1B1B;text-decoration:none">${_esc(ev.titolo)}</a>` +
+          `<a href="/eventi/${_esc(ev.slug)}" style="font-weight:bold;color:${primaryColor};text-decoration:none">${_esc(ev.titolo)}</a>` +
           `<br><span style="font-size:0.85em">${_esc(dateStr)}</span>`
         )
         .addTo(cluster);

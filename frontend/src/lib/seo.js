@@ -114,17 +114,24 @@ function cantoVars(canto) {
     titolo: canto.titolo,
     accordi: canto.accordi ? '1' : '',
     autori: autori.map((a) => a.titolo).join(' e '),
+    autoriTesto: (canto.autoriTesto ?? []).map((a) => a.titolo).join(', '),
     anno: canto.anno || '',
     extra: canto.capoverso || stripHtml(canto.informazioni || ''),
   };
 }
 
 function autoreVars(autore, numCanti = 0) {
+  let anni = '';
+  if (autore.annoNascita && autore.annoMorte) anni = `${autore.annoNascita} - ${autore.annoMorte}`;
+  else if (autore.annoNascita) anni = `${autore.annoNascita}`;
+  else if (autore.annoMorte) anni = `${autore.annoMorte}`;
+
   return {
     titolo: autore.titolo,
     bio: autore.informazioni ? stripHtml(autore.informazioni) : '',
     count: numCanti,
     loc: autore.localizzazioni?.[0]?.titolo || '',
+    anni,
   };
 }
 

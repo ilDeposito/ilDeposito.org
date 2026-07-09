@@ -17,23 +17,23 @@ interface Props {
 const { canto, autori = [] } = Astro.props;
 ---
 <div class="flex flex-col gap-1 py-3 hover:bg-base-200 transition-colors rounded-lg">
-  <p class="text-sm text-base-content/50 flex items-center gap-2">
+  <p class="text-sm text-base-content/70 flex items-center gap-2">
     {canto.anno && <span class="italic">{canto.anno}</span>}
     {canto.anno && <span aria-hidden="true">·</span>}
-    <Icon name="headphones" class={canto.videoUrl ? 'text-primary' : 'text-base-content/30'} />
-    <Icon name="guitar" class={canto.accordi ? 'text-primary' : 'text-base-content/30'} />
+    <Icon name="headphones" class={canto.videoUrl ? 'text-primary' : 'text-base-content/50'} label={canto.videoUrl ? 'Audio disponibile' : undefined} />
+    <Icon name="guitar" class={canto.accordi ? 'text-primary' : 'text-base-content/50'} label={canto.accordi ? 'Accordi disponibili' : undefined} />
   </p>
   <h3 class="font-serif font-semibold text-primary">
     <a href={`/canti/${canto.slug}`} class="hover:underline">{canto.titolo}</a>
   </h3>
   {autori.length > 0 && (
-    <p class="text-base text-base-content/60">
+    <p class="text-base text-base-content/70">
       {autori.map((a, i) => (
         <>{i > 0 && ', '}<a href={`/autori/${a.slug}`} class="hover:underline hover:text-primary">{a.titolo}</a></>
       ))}
     </p>
   )}
   {canto.capoverso && (
-    <p class="italic text-base text-base-content/60">{canto.capoverso}</p>
+    <p class="italic text-base text-base-content/70">{canto.capoverso}</p>
   )}
 </div>

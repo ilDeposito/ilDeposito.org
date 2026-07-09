@@ -17,7 +17,7 @@ const qrSvg = await generateQrSvg(qrUrl);
 
 <template data-share-template>
   <dialog class="modal">
-    <div class="modal-box max-w-lg" style="background-color: #ece8d9;">
+    <div class="modal-box max-w-lg bg-base-200">
       <form method="dialog">
         <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" aria-label="Chiudi">
           <Icon name="x" />
@@ -44,7 +44,7 @@ const qrSvg = await generateQrSvg(qrUrl);
             class="flex flex-col items-center gap-1 transition-all duration-200 hover:text-primary hover:scale-110"
           >
             <Icon name="facebook-logo" class="text-2xl" />
-            <span class="text-sm">Facebook</span>
+            <span class="text-sm">Facebook<span class="sr-only"> (si apre in una nuova finestra)</span></span>
           </a>
 
           <a
@@ -54,7 +54,7 @@ const qrSvg = await generateQrSvg(qrUrl);
             class="flex flex-col items-center gap-1 transition-all duration-200 hover:text-primary hover:scale-110"
           >
             <Icon name="whatsapp-logo" class="text-2xl" />
-            <span class="text-sm">WhatsApp</span>
+            <span class="text-sm">WhatsApp<span class="sr-only"> (si apre in una nuova finestra)</span></span>
           </a>
 
           <a
@@ -72,7 +72,7 @@ const qrSvg = await generateQrSvg(qrUrl);
             class="flex flex-col items-center gap-1 transition-all duration-200 hover:text-primary hover:scale-110"
           >
             <Icon name="telegram-logo" class="text-2xl" />
-            <span class="text-sm">Telegram</span>
+            <span class="text-sm">Telegram<span class="sr-only"> (si apre in una nuova finestra)</span></span>
           </a>
 
           <a
@@ -82,7 +82,7 @@ const qrSvg = await generateQrSvg(qrUrl);
             class="flex flex-col items-center gap-1 transition-all duration-200 hover:text-primary hover:scale-110"
           >
             <Icon name="x-logo" class="text-2xl" />
-            <span class="text-sm">X</span>
+            <span class="text-sm">X<span class="sr-only"> (si apre in una nuova finestra)</span></span>
           </a>
         </div>
 

@@ -54,9 +54,9 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
     </div>
     <div class="flex items-center gap-4 flex-wrap">
       <div class="flex items-center gap-3">
-        <Icon name="funnel" class="text-base-content/40 text-lg shrink-0" />
+        <Icon name="funnel" class="text-base-content/50 text-lg shrink-0" />
         <div data-filter-panel class="flex flex-wrap gap-2">
-          <p class="text-base text-base-content/40 italic">Caricamento filtri…</p>
+          <p class="text-base text-base-content/70 italic">Caricamento filtri…</p>
         </div>
       </div>
       <div data-sort-panel-desktop class="pl-4"></div>
@@ -79,14 +79,11 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
   </div>
 
   <!-- Drawer filtri (mobile) -->
-  <div
+  <dialog
     data-filter-drawer
-    class="hidden fixed inset-0 z-50 sm:hidden"
-    role="dialog"
-    aria-modal="true"
     aria-label="Filtri"
+    class="sm:hidden m-0 p-0 max-w-none max-h-none w-full h-full bg-transparent"
   >
-    <div data-drawer-backdrop class="absolute inset-0 bg-base-content/30"></div>
     <div class="absolute inset-y-0 left-0 w-72 max-w-full bg-base-100 shadow-xl flex flex-col">
       <div class="flex items-center justify-between p-4 border-b border-base-300">
         <h2 class="font-serif font-bold text-base">Filtra l'elenco</h2>
@@ -98,24 +95,28 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
         ><Icon name="x" /></button>
       </div>
       <div data-filter-panel-mobile class="flex-1 overflow-y-auto p-4">
-        <p class="text-sm text-base-content/40 italic">Caricamento filtri…</p>
+        <p class="text-sm text-base-content/70 italic">Caricamento filtri…</p>
       </div>
       <div class="p-4 border-t border-base-300 flex gap-2">
         <button type="button" data-reset-filters class="btn btn-ghost btn-sm flex-1">Rimuovi filtri</button>
         <button type="button" data-drawer-close class="btn btn-primary btn-sm flex-1">Applica</button>
       </div>
     </div>
-  </div>
+  </dialog>
 
   <!-- Filtri attivi (badges) -->
   <div data-active-filters class="hidden flex-wrap gap-2 mb-5"></div>
 
+  <span data-result-count-live role="status" class="sr-only"></span>
+
+  <h2 class="sr-only">Risultati</h2>
+
   <!-- Lista risultati -->
-  <div data-results class="max-w-2xl mx-auto flex flex-col divide-y divide-secondary/30">
-    <div class="py-12 flex justify-center">
+  <ul data-results role="list" class="max-w-2xl mx-auto flex flex-col divide-y divide-secondary/30">
+    <li class="py-12 flex justify-center">
       <span class="loading loading-spinner loading-md text-primary"></span>
-    </div>
-  </div>
+    </li>
+  </ul>
 
   <!-- Paginazione -->
   <nav data-pagination aria-label="Paginazione" class="flex justify-center flex-wrap gap-2 mt-8"></nav>
@@ -125,7 +126,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
   // is:inline obbligatorio: dipende da /pagefind/pagefind.js generato a build-time,
   // non risolvibile da Vite/Rollup (stessa ragione di search-modal in Header.astro).
   (function () {
-    const _svg = (d) => `<span class="inline-flex items-center justify-center shrink-0 [&>svg]:w-[1em] [&>svg]:h-[1em]"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor">${d}</svg></span>`;
+    const _svg = (d) => `<span aria-hidden="true" class="inline-flex items-center justify-center shrink-0 [&>svg]:w-[1em] [&>svg]:h-[1em]"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor">${d}</svg></span>`;
     const ICO = {
       headphones: (cls) => `<span class="${cls}">${_svg('<path d="M201.89,54.66A103.43,103.43,0,0,0,128.79,24H128A104,104,0,0,0,24,128v56a24,24,0,0,0,24,24H64a24,24,0,0,0,24-24V144a24,24,0,0,0-24-24H40.36A88,88,0,0,1,128,40h.67a87.71,87.71,0,0,1,87,80H192a24,24,0,0,0-24,24v40a24,24,0,0,0,24,24h16a24,24,0,0,0,24-24V128A103.41,103.41,0,0,0,201.89,54.66ZM64,136a8,8,0,0,1,8,8v40a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V136Zm152,48a8,8,0,0,1-8,8H192a8,8,0,0,1-8-8V144a8,8,0,0,1,8-8h24Z"/>')}</span>`,
       guitar: (cls) => `<span class="${cls}">${_svg('<path d="M249.66,46.34l-40-40a8,8,0,0,0-11.31,11.32L200.69,20,140.52,80.16C117.73,68.3,92.21,69.29,76.75,84.74a42.27,42.27,0,0,0-9.39,14.37A8.24,8.24,0,0,1,59.81,104c-14.59.49-27.26,5.72-36.65,15.11C11.08,131.22,6,148.6,8.74,168.07,11.4,186.7,21.07,205.15,36,220s33.34,24.56,52,27.22A71.13,71.13,0,0,0,98.1,248c15.32,0,28.83-5.23,38.76-15.16,9.39-9.39,14.62-22.06,15.11-36.65a8.24,8.24,0,0,1,4.92-7.55,42.12,42.12,0,0,0,14.37-9.39c15.45-15.46,16.44-41,4.58-63.77L236,55.31l2.34,2.34a8,8,0,1,0,11.32-11.31ZM160,167.93a26.12,26.12,0,0,1-8.95,5.83,24.24,24.24,0,0,0-15,21.89c-.36,10.46-4,19.41-10.43,25.88-8.44,8.43-21,11.95-35.36,9.89C75,229.25,59.73,221.19,47.27,208.73S26.75,181,24.58,165.81c-2-14.37,1.46-26.92,9.89-35.36C40.94,124,49.89,120.37,60.35,120h0a24.22,24.22,0,0,0,21.89-15,26.12,26.12,0,0,1,5.83-9c5.49-5.49,13-8.13,21.38-8.13a49.38,49.38,0,0,1,19.13,4.19L108.5,112.19a32,32,0,1,0,35.31,35.31l20.08-20.08C170.41,142.71,169.47,158.41,160,167.93Zm-10.4-61.48a72.9,72.9,0,0,1,5.93,6.75l-15.42,15.42a32.22,32.22,0,0,0-12.68-12.68l15.42-15.43A73,73,0,0,1,149.55,106.45ZM112,128a16,16,0,0,1,16,16h0a16,16,0,1,1-16-16Zm48.85-32.85a86.94,86.94,0,0,0-6.68-6L176,67.31,188.69,80l-21.83,21.82A86.94,86.94,0,0,0,160.86,95.14ZM200,68.68,187.32,56,212,31.31,224.69,44ZM93.66,194.33a8,8,0,0,1-11.31,11.32l-32-32a8,8,0,0,1,11.32-11.31Z"/>')}</span>`,
@@ -227,8 +228,8 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
         );
         const el = this.querySelector('[data-results]');
         el.innerHTML = items.length === 0
-          ? '<p class="py-12 text-center font-serif italic text-lg text-base-content/50">Nessun risultato.</p>'
-          : items.map((item) => this._renderCard(item)).join('');
+          ? '<li class="py-12 text-center font-serif italic text-lg text-base-content/70">Nessun risultato.</li>'
+          : items.map((item) => `<li>${this._renderCard(item)}</li>`).join('');
         this._renderPagination();
       }
 
@@ -244,7 +245,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
               <h3 class="font-serif font-semibold text-lg text-primary">
                 <a href="${e(item.url)}" class="hover:underline">${e(meta.title)}</a>
               </h3>
-              <p class="text-sm text-base-content/40 uppercase tracking-wide font-sans">Periodo storico</p>
+              <p class="text-sm text-base-content/70 uppercase tracking-wide font-sans">Periodo storico</p>
             </div>
           `;
         }
@@ -260,7 +261,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
               <h3 class="font-serif font-semibold text-lg text-primary">
                 <a href="${e(item.url)}" class="hover:underline">${e(meta.title)}</a>
               </h3>
-              ${cantoLink ? `<p class="font-serif italic text-base text-base-content/60">Canto originale: ${cantoLink}</p>` : ''}
+              ${cantoLink ? `<p class="font-serif italic text-base text-base-content/70">Canto originale: ${cantoLink}</p>` : ''}
             </div>
           `;
         }
@@ -269,7 +270,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
           const numCanti = meta.num_canti ? parseInt(meta.num_canti, 10) : 0;
           const foto = meta.image
             ? `<img src="${e(meta.image)}" alt="Foto di ${e(meta.title)}" width="64" height="64" loading="lazy" class="w-16 h-16 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300" />`
-            : `<div class="w-16 h-16 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">${ICO.user('text-base-content/30 text-3xl')}</div>`;
+            : `<div class="w-16 h-16 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">${ICO.user('text-base-content/50 text-3xl')}</div>`;
           return `
             <div class="flex items-center gap-4 py-4 hover:bg-base-200 transition-colors rounded-lg px-2 group">
               <div class="shrink-0">${foto}</div>
@@ -277,8 +278,8 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
                 <h3 class="font-serif font-semibold text-lg text-primary">
                   <a href="${e(item.url)}" class="hover:underline">${e(meta.title)}</a>
                 </h3>
-                ${meta.localizzazioni ? `<p class="font-serif italic text-base text-base-content/60">${e(meta.localizzazioni)}</p>` : ''}
-                ${numCanti > 0 ? `<p class="text-sm text-base-content/40">${numCanti} ${numCanti === 1 ? 'canto' : 'canti'}</p>` : ''}
+                ${meta.localizzazioni ? `<p class="font-serif italic text-base text-base-content/70">${e(meta.localizzazioni)}</p>` : ''}
+                ${numCanti > 0 ? `<p class="text-sm text-base-content/70">${numCanti} ${numCanti === 1 ? 'canto' : 'canti'}</p>` : ''}
               </div>
             </div>
           `;
@@ -302,8 +303,8 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
               <h3 class="font-serif font-semibold text-lg text-primary">
                 <a href="${e(item.url)}" class="hover:underline">${e(meta.title)}</a>
               </h3>
-              ${metaLine1   ? `<p class="font-serif italic text-base text-base-content/60">${metaLine1}</p>`   : ''}
-              ${periodoHtml ? `<p class="font-serif italic text-base text-base-content/60">${periodoHtml}</p>` : ''}
+              ${metaLine1   ? `<p class="font-serif italic text-base text-base-content/70">${metaLine1}</p>`   : ''}
+              ${periodoHtml ? `<p class="font-serif italic text-base text-base-content/70">${periodoHtml}</p>` : ''}
             </div>
           `;
         }
@@ -314,7 +315,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
               <h3 class="font-serif font-semibold text-lg text-primary">
                 <a href="${e(item.url)}" class="hover:underline">${e(meta.title)}</a>
               </h3>
-              <p class="text-sm text-base-content/40 uppercase tracking-wide font-sans">Pagina</p>
+              <p class="text-sm text-base-content/70 uppercase tracking-wide font-sans">Pagina</p>
             </div>
           `;
         }
@@ -325,7 +326,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
               <h3 class="font-serif font-semibold text-lg text-primary">
                 <a href="${e(item.url)}" class="hover:underline">${e(meta.title)}</a>
               </h3>
-              <p class="text-sm text-base-content/40 uppercase tracking-wide font-sans">Tag</p>
+              <p class="text-sm text-base-content/70 uppercase tracking-wide font-sans">Tag</p>
             </div>
           `;
         }
@@ -334,16 +335,16 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
         const audio   = meta.audio   === 'sì';
         return `
           <div class="flex flex-col gap-1.5 py-4 hover:bg-base-200 transition-colors rounded-lg px-2">
-            <p class="text-sm text-base-content/40 flex items-center gap-2">
+            <p class="text-sm text-base-content/70 flex items-center gap-2">
               ${meta.anno ? `<span class="italic">${e(meta.anno)}</span><span aria-hidden="true">&middot;</span>` : ''}
-              ${ICO.headphones(audio ? 'text-primary' : 'text-base-content/20')}
-              ${ICO.guitar(accordi ? 'text-primary' : 'text-base-content/20')}
+              ${ICO.headphones(audio ? 'text-primary' : 'text-base-content/40')}${audio ? '<span class="sr-only">Audio disponibile</span>' : ''}
+              ${ICO.guitar(accordi ? 'text-primary' : 'text-base-content/40')}${accordi ? '<span class="sr-only">Accordi disponibili</span>' : ''}
             </p>
             <h3 class="font-serif font-semibold text-lg text-primary">
               <a href="${e(item.url)}" class="hover:underline">${e(meta.title)}</a>
             </h3>
-            ${meta.autori    ? `<p class="text-base text-base-content/60">${e(meta.autori)}</p>`    : ''}
-            ${meta.capoverso ? `<p class="italic text-base text-base-content/60">${e(meta.capoverso)}</p>` : ''}
+            ${meta.autori    ? `<p class="text-base text-base-content/70">${e(meta.autori)}</p>`    : ''}
+            ${meta.capoverso ? `<p class="italic text-base text-base-content/70">${e(meta.capoverso)}</p>` : ''}
           </div>
         `;
       }
@@ -359,9 +360,9 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
         const parts = [];
         const btn   = (n) => {
           const active = n === cur;
-          return `<button type="button" data-page="${n}" class="btn btn-sm ${active ? 'btn-primary' : 'btn-ghost !border-transparent'}" aria-current="${active}">${n + 1}</button>`;
+          return `<button type="button" data-page="${n}" aria-label="Pagina ${n + 1}"${active ? ' aria-current="page"' : ''} class="btn btn-sm ${active ? 'btn-primary' : 'btn-ghost !border-transparent'}">${n + 1}</button>`;
         };
-        const dots  = () => '<span class="px-2 self-center text-base-content/30">…</span>';
+        const dots  = () => '<span class="px-2 self-center text-base-content/50">…</span>';
 
         parts.push(btn(0));
         if (cur > 2) parts.push(dots());
@@ -374,7 +375,8 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
           b.addEventListener('click', async () => {
             this._page = parseInt(b.dataset.page, 10);
             await this._renderPage();
-            this.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            this.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
           })
         );
       }
@@ -391,7 +393,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
         if (desktopPanel) {
           desktopPanel.innerHTML = keys.length > 0
             ? keys.map((k) => this._dropdownButtonHtml(k)).join('')
-            : '<p class="text-sm text-base-content/40 italic">Nessun filtro disponibile.</p>';
+            : '<p class="text-sm text-base-content/70 italic">Nessun filtro disponibile.</p>';
           this._setupDropdowns();
         }
 
@@ -400,7 +402,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
         if (mobilePanel) {
           mobilePanel.innerHTML = keys.length > 0
             ? `<div class="flex flex-col gap-5">${keys.map((k) => this._checkboxGroupHtml(k)).join('')}</div>`
-            : '<p class="text-sm text-base-content/40 italic">Nessun filtro disponibile.</p>';
+            : '<p class="text-sm text-base-content/70 italic">Nessun filtro disponibile.</p>';
         }
 
         this._attachFilterEvents();
@@ -424,7 +426,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
               data-filter-val="${val}"
             />
             <span class="flex-1">${val}</span>
-            <span class="text-sm text-base-content/30">${count}</span>
+            <span class="text-sm text-base-content/70">${count}</span>
           </label>
         `;
 
@@ -433,12 +435,15 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
             <button
               type="button"
               data-dropdown-toggle="${key}"
+              aria-expanded="false"
+              aria-controls="pf-dropdown-${key}"
               class="btn btn-md btn-ghost border border-base-300 gap-1"
             >
               ${label}
               <span class="text-xs">${ICO.caretDown}</span>
             </button>
             <div
+              id="pf-dropdown-${key}"
               data-dropdown-panel="${key}"
               class="hidden absolute left-0 top-[calc(100%+4px)] z-50
                      bg-base-100 border border-base-300 rounded-box shadow-lg
@@ -481,14 +486,14 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
                 data-filter-val="${val}"
               />
               <span class="flex-1 group-hover:text-primary transition-colors">${val}</span>
-              <span class="text-sm text-base-content/30">${count}</span>
+              <span class="text-sm text-base-content/70">${count}</span>
             </label>
           </li>
         `;
 
         return `
           <div class="flex flex-col gap-1.5">
-            <h3 class="font-serif font-bold text-sm uppercase tracking-wide text-base-content/50">${label}</h3>
+            <h3 class="font-serif font-bold text-sm uppercase tracking-wide text-base-content/70">${label}</h3>
             <ul class="flex flex-col gap-0">
               ${visible.map(itemHtml).join('')}
               ${extra.length > 0 ? `
@@ -522,7 +527,10 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
             const dropPanel = panel.querySelector(`[data-dropdown-panel="${key}"]`);
             const isOpen   = !dropPanel.classList.contains('hidden');
             this._closeAllDropdowns();
-            if (!isOpen) dropPanel.classList.remove('hidden');
+            if (!isOpen) {
+              dropPanel.classList.remove('hidden');
+              btn.setAttribute('aria-expanded', 'true');
+            }
           });
         });
 
@@ -550,6 +558,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
 
       _closeAllDropdowns() {
         this.querySelectorAll('[data-dropdown-panel]').forEach((p) => p.classList.add('hidden'));
+        this.querySelectorAll('[data-dropdown-toggle]').forEach((btn) => btn.setAttribute('aria-expanded', 'false'));
       }
 
       // Aggiorna label e stile dei bottoni dropdown in base ai filtri attivi
@@ -614,7 +623,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
           <button
             type="button"
             data-remove-filter="${_esc(key)}"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-secondary/15 text-secondary-content rounded-full cursor-pointer hover:bg-secondary/25 transition-colors"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-secondary/15 text-base-content rounded-full cursor-pointer hover:bg-secondary/25 transition-colors"
             aria-label="Rimuovi filtro ${_esc(val)}"
           >
             ${_esc(val)} <span class="text-xs leading-none">${ICO.x}</span>
@@ -650,23 +659,28 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
         const n    = this._results.length;
         const text = n === 0 ? 'Nessun risultato' : `${n} risultat${n === 1 ? 'o' : 'i'}`;
         this.querySelectorAll('[data-result-count]').forEach((el) => { el.textContent = text; });
+        const live = this.querySelector('[data-result-count-live]');
+        if (live) live.textContent = text;
       }
 
       // ── Drawer (mobile) ──────────────────────────────────────────────────────
 
       _setupDrawer() {
-        const toggle   = this.querySelector('[data-filter-toggle]');
-        const drawer   = this.querySelector('[data-filter-drawer]');
-        const backdrop = this.querySelector('[data-drawer-backdrop]');
+        const toggle = this.querySelector('[data-filter-toggle]');
+        const drawer = this.querySelector('[data-filter-drawer]');
         if (!toggle || !drawer) return;
 
-        const open  = () => { drawer.classList.remove('hidden'); document.body.style.overflow = 'hidden'; };
-        const close = () => { drawer.classList.add('hidden');    document.body.style.overflow = '';       };
+        const open  = () => { drawer.showModal(); document.body.style.overflow = 'hidden'; };
+        const close = () => { if (drawer.open) drawer.close(); };
 
         toggle.addEventListener('click', open);
-        backdrop?.addEventListener('click', close);
         drawer.querySelectorAll('[data-drawer-close]').forEach((b) => b.addEventListener('click', close));
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+
+        // Click sull'area trasparente del dialog (fuori dal pannello) lo chiude
+        drawer.addEventListener('click', (e) => { if (e.target === drawer) close(); });
+
+        // Copre sia Esc (evento 'cancel' nativo) sia close() esplicita
+        drawer.addEventListener('close', () => { document.body.style.overflow = ''; });
       }
 
       // ── Sort controls ────────────────────────────────────────────────────────
@@ -681,12 +695,12 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
           const activeLabel = this._sortOptions.find(_isActiveSort)?.label ?? 'Ordina';
           desktopContainer.innerHTML = `
             <div class="flex items-center gap-3" data-sort-dropdown>
-              <span class="text-base-content/40 text-lg shrink-0">${ICO.sortAsc}</span>
+              <span class="text-base-content/50 text-lg shrink-0">${ICO.sortAsc}</span>
               <div class="relative">
-                <button type="button" data-sort-toggle class="btn btn-md btn-ghost border border-base-300 gap-1">
+                <button type="button" data-sort-toggle aria-expanded="false" aria-controls="pf-sort-dropdown-panel" class="btn btn-md btn-ghost border border-base-300 gap-1">
                   ${activeLabel} <span class="text-xs">${ICO.caretDown}</span>
                 </button>
-                <div data-sort-dropdown-panel class="hidden absolute right-0 top-[calc(100%+4px)] z-50
+                <div id="pf-sort-dropdown-panel" data-sort-dropdown-panel class="hidden absolute right-0 top-[calc(100%+4px)] z-50
                      bg-base-100 border border-base-300 rounded-box shadow-lg min-w-40 py-1">
                   ${this._sortOptions.map((o) => `
                     <button type="button" data-sort-select="${o.field}" data-sort-dir="${o.dir}"
@@ -707,7 +721,9 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
 
           toggle.addEventListener('click', (e) => {
             e.stopPropagation();
+            const willOpen = panel.classList.contains('hidden');
             panel.classList.toggle('hidden');
+            toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
           });
 
           dropdown.querySelectorAll('[data-sort-select]').forEach((btn) => {
@@ -715,13 +731,17 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
               this._sortField = btn.dataset.sortSelect;
               this._sortDir   = btn.dataset.sortDir;
               panel.classList.add('hidden');
+              toggle.setAttribute('aria-expanded', 'false');
               this._updateSortUI();
               await this._search();
             });
           });
 
           document.addEventListener('click', (e) => {
-            if (!dropdown.contains(e.target)) panel.classList.add('hidden');
+            if (!dropdown.contains(e.target)) {
+              panel.classList.add('hidden');
+              toggle.setAttribute('aria-expanded', 'false');
+            }
           });
         }
 
@@ -730,7 +750,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
         if (mobilePanel && !mobilePanel.querySelector('[data-sort-section-mobile]')) {
           mobilePanel.insertAdjacentHTML('afterbegin', `
             <div data-sort-section-mobile class="flex flex-col gap-1.5 pb-5 mb-5 border-b border-base-300">
-              <h3 class="font-serif font-bold text-xs uppercase tracking-wide text-base-content/50">Ordina</h3>
+              <h3 class="font-serif font-bold text-xs uppercase tracking-wide text-base-content/70">Ordina</h3>
               <div class="flex flex-col gap-0">
                 ${this._sortOptions.map((o) => `
                   <label class="flex items-center gap-2 cursor-pointer py-1 text-sm group">
@@ -779,7 +799,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
 
       _showError() {
         const el = this.querySelector('[data-results]');
-        if (el) el.innerHTML = '<p class="py-10 text-center text-base-content/50">Errore nel caricamento.</p>';
+        if (el) el.innerHTML = '<li class="py-10 text-center text-base-content/70">Errore nel caricamento.</li>';
       }
     }
 

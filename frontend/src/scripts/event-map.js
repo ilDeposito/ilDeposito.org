@@ -46,7 +46,8 @@ class EventMap extends HTMLElement {
       maxZoom: 19,
     }).addTo(map);
 
-    L.marker([lat, lng]).addTo(map);
+    const title = this.dataset.title || '';
+    L.marker([lat, lng], { alt: title, title }).addTo(map);
   }
 }
 

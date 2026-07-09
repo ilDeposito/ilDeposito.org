@@ -120,6 +120,8 @@ export function mapCantoDetail(raw: any, included: IncludedMap): CantoDetail {
     periodi: resolveRefs(r.field_periodo, included),
     tags: resolveRefs(r.field_tags, included),
     tematiche: resolveRefs(r.field_tematiche, included),
+    dataCreazione: a.created ?? null,
+    dataModifica: a.changed ?? null,
   };
 }
 
@@ -183,6 +185,8 @@ export function mapAutoreDetail(raw: any, included: IncludedMap): AutoreDetail {
     annoNascita: a.field_anno_di_nascita ?? null,
     annoMorte: a.field_anno_di_morte ?? null,
     links: mapLinks(a.field_links),
+    dataCreazione: a.created ?? null,
+    dataModifica: a.changed ?? null,
   };
 }
 
@@ -284,6 +288,8 @@ export function mapEventoDetail(raw: any, included: IncludedMap): EventoDetail {
     tematiche: resolveRefs(r.field_tematiche, included),
     cantiCollegati: cantiRaw.map(mapCantoCollegato),
     links: mapLinks(a.field_links),
+    dataCreazione: a.created ?? null,
+    dataModifica: a.changed ?? null,
   };
 }
 

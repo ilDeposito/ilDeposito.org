@@ -96,9 +96,13 @@ const isProduction = process.env.ENV === 'prod';
     )}
   </head>
   <body class="font-sans bg-base-100 text-base-content">
+    <a
+      href="#contenuto"
+      class="sr-only focus:not-sr-only focus:fixed focus:z-[100] focus:top-2 focus:left-2 focus:bg-base-100 focus:text-base-content focus:px-4 focus:py-2 focus:rounded focus:outline focus:outline-2 focus:outline-primary"
+    >Salta al contenuto</a>
     <Header />
     <EventBar />
-    <main>
+    <main id="contenuto">
       {pagefindType && (
         <span aria-hidden="true" class="sr-only">
           <span data-pagefind-meta="title">{pagefindTitle || title}</span>

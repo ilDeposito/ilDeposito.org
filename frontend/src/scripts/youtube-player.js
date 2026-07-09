@@ -104,11 +104,15 @@ class YouTubePlayer extends HTMLElement {
   }
 
   _setPlaying(playing) {
+    const btn = this.querySelector('[data-yt-toggle]');
     const playIcon = this.querySelector('[data-yt-icon-play]');
     const pauseIcon = this.querySelector('[data-yt-icon-pause]');
+    const label = this.querySelector('[data-yt-label]');
 
     playIcon.classList.toggle('hidden', playing);
     pauseIcon.classList.toggle('hidden', !playing);
+    btn.setAttribute('aria-label', playing ? 'Metti in pausa' : 'Ascolta questo canto');
+    if (label) label.textContent = playing ? 'Pausa' : 'Ascolta';
   }
 }
 
