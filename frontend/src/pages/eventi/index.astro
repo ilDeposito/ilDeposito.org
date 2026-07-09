@@ -7,22 +7,35 @@ import ShareModal from '../../components/ui/ShareModal.astro';
 import Icon from '../../components/base/Icon.astro';
 import {
   getEventiDelMese,
-  getEventiPiuVisti,
+  getPeriodi,
+  getEventiByPeriodo,
   getEventiGeo,
   getImageUrl,
 } from '../../lib/api/index.js';
-import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildCollectionPageSchema, buildBreadcrumbSchema, buildItemListSchema } from '../../lib/schema.js';
 import { buildCanonical } from '../../lib/seo.js';
 import { getPageMeta } from '../../lib/pages.js';
 
 const now   = new Date();
 const month = now.getUTCMonth() + 1;
 
-const [eventiMese, eventiPiuVisti, eventiGeo] = await Promise.all([
+const [eventiMese, periodiRaw, eventiGeo] = await Promise.all([
   getEventiDelMese(month),
-  getEventiPiuVisti(12),
+  getPeriodi(),
   getEventiGeo(),
 ]);
+
+const periodi = [...periodiRaw].sort((a, b) => a.sort - b.sort);
+
+const blocchi = (
+  await Promise.all(
+    periodi.map(async (periodo) => {
+      const eventi = await getEventiByPeriodo(periodo.id, 4);
+      const eventiConDati = eventi.map((evento) => ({ evento, immagineUrl: getImageUrl(evento.immagine) }));
+      return { periodo, eventiConDati };
+    })
+  )
+).filter((b) => b.eventiConDati.length > 0);
 
 const imgUrls = eventiMese.map((e) => getImageUrl(e.immagine));
 
@@ -46,6 +59,12 @@ const jsonLd = [
     { name: 'Home', url: siteUrl },
     { name: 'Eventi' },
   ]),
+  ...blocchi.map(({ periodo, eventiConDati }) =>
+    buildItemListSchema(
+      `Gli eventi più visti del periodo "${periodo.titolo}"`,
+      eventiConDati.map(({ evento }) => ({ name: evento.titolo, url: `${siteUrl}/eventi/${evento.slug}` }))
+    )
+  ),
 ];
 
 const eventiGeoJson = JSON.stringify(
@@ -57,11 +76,6 @@ const eventiGeoJson = JSON.stringify(
     longitude:   e.longitude,
   }))
 );
-
-const eventiConDati = eventiPiuVisti.map((evento) => ({
-  evento,
-  immagineUrl: getImageUrl(evento.immagine),
-}));
 ---
 <BaseLayout title={meta.metaTitle} description={meta.metaDescription} jsonLd={jsonLd} dnsPrefetch={['https://tile.openstreetmap.org']}>
 
@@ -189,77 +203,84 @@ const eventiConDati = eventiPiuVisti.map((evento) => ({
       </section>
     )}
 
-    <!-- Eventi più visti -->
-    <section class="flex flex-col gap-8">
-      <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
-        Gli eventi più visti
-      </h2>
+    <!-- Eventi più visti per periodo -->
+    <div class="flex flex-col gap-12">
+      {blocchi.map(({ periodo, eventiConDati }) => (
+        <section class="flex flex-col gap-8">
+          <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
+            <a href={`/periodi/${periodo.slug}`} class="hover:underline inline-flex items-center gap-2">
+              <Icon name="calendar-star" class="text-primary/70" />
+              {periodo.titolo}
+            </a>
+          </h2>
 
-      <ul role="list" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
-        {eventiConDati.map(({ evento, immagineUrl }, i) => (
-          <li class="flex items-start gap-5 group relative">
-            <div class="shrink-0">
-              {immagineUrl ? (
-                <Image
-                  src={immagineUrl}
-                  alt={"Immagine dell'evento: " + evento.titolo}
-                  width={240}
-                  height={240}
-                  format="webp"
-                  quality={80}
-                  loading={i < 4 ? 'eager' : 'lazy'}
-                  class="w-32 h-32 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
-                />
-              ) : (
-                <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">
-                  <Icon name="calendar-star" class="text-base-content/50 text-5xl" />
+          <ul role="list" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+            {eventiConDati.map(({ evento, immagineUrl }, i) => (
+              <li class="flex items-start gap-5 group relative">
+                <div class="shrink-0">
+                  {immagineUrl ? (
+                    <Image
+                      src={immagineUrl}
+                      alt={"Immagine dell'evento: " + evento.titolo}
+                      width={240}
+                      height={240}
+                      format="webp"
+                      quality={80}
+                      loading={i < 4 ? 'eager' : 'lazy'}
+                      class="w-32 h-32 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
+                    />
+                  ) : (
+                    <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">
+                      <Icon name="calendar-star" class="text-base-content/50 text-5xl" />
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            <div class="flex flex-col gap-1.5 min-w-0 pt-2">
-              <h3 class="font-serif font-bold text-xl md:text-2xl text-primary leading-tight">
-                <a href={`/eventi/${evento.slug}`} class="hover:underline after:absolute after:inset-0">{evento.titolo}</a>
-              </h3>
+                <div class="flex flex-col gap-1.5 min-w-0 pt-2">
+                  <h3 class="font-serif font-bold text-xl md:text-2xl text-primary leading-tight">
+                    <a href={`/eventi/${evento.slug}`} class="hover:underline after:absolute after:inset-0">{evento.titolo}</a>
+                  </h3>
 
-              {evento.dataEvento && (
-                <p class="text-base text-base-content/70 flex items-center gap-2">
-                  <Icon name="calendar-blank" class="text-sm shrink-0" />
-                  {formatData(evento.dataEvento)}
-                </p>
-              )}
+                  {evento.dataEvento && (
+                    <p class="text-base text-base-content/70 flex items-center gap-2">
+                      <Icon name="calendar-blank" class="text-sm shrink-0" />
+                      {formatData(evento.dataEvento)}
+                    </p>
+                  )}
 
-              {evento.localizzazioni.length > 0 && (
-                <p class="text-base text-base-content/70 flex items-center gap-2 relative z-10">
-                  <Icon name="map-pin" class="text-sm shrink-0" />
-                  <span>
-                    {evento.localizzazioni.map((l, j) => (
-                      <>{j > 0 && ', '}<a href={`/localizzazioni/${l.slug}`} class="hover:text-primary hover:underline">{l.titolo}</a></>
-                    ))}
-                  </span>
-                </p>
-              )}
+                  {evento.localizzazioni.length > 0 && (
+                    <p class="text-base text-base-content/70 flex items-center gap-2 relative z-10">
+                      <Icon name="map-pin" class="text-sm shrink-0" />
+                      <span>
+                        {evento.localizzazioni.map((l, j) => (
+                          <>{j > 0 && ', '}<a href={`/localizzazioni/${l.slug}`} class="hover:text-primary hover:underline">{l.titolo}</a></>
+                        ))}
+                      </span>
+                    </p>
+                  )}
 
-              {evento.periodi.length > 0 && (
-                <p class="text-base text-base-content/70 flex items-center gap-2 relative z-10">
-                  <Icon name="calendar-star" class="text-sm shrink-0" />
-                  <span>
-                    {evento.periodi.map((p, j) => (
-                      <>{j > 0 && ', '}<a href={`/periodi/${p.slug}`} class="hover:text-primary hover:underline">{p.titolo}</a></>
-                    ))}
-                  </span>
-                </p>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
+                  {evento.periodi.length > 0 && (
+                    <p class="text-base text-base-content/70 flex items-center gap-2 relative z-10">
+                      <Icon name="calendar-star" class="text-sm shrink-0" />
+                      <span>
+                        {evento.periodi.map((p, j) => (
+                          <>{j > 0 && ', '}<a href={`/periodi/${p.slug}`} class="hover:text-primary hover:underline">{p.titolo}</a></>
+                        ))}
+                      </span>
+                    </p>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
 
-      <a href="/eventi/elenco" class="btn btn-primary self-center mt-4 gap-2">
+      <a href="/eventi/elenco" class="btn btn-primary self-center gap-2">
         Tutti gli eventi
         <Icon name="arrow-right" />
       </a>
-    </section>
+    </div>
 
     <!-- Mappa degli eventi -->
     {eventiGeo.length > 0 && (

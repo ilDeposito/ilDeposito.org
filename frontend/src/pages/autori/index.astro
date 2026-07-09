@@ -4,13 +4,27 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Icon from '../../components/base/Icon.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import HeaderWatermark from '../../components/ui/HeaderWatermark.astro';
-import { getAutoriPiuVisti, getCantiByAutoreMap, getImageUrl } from '../../lib/api/index.js';
-import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { getPeriodi, getAutoriByPeriodo, getCantiByAutoreMap, getImageUrl } from '../../lib/api/index.js';
+import { buildCollectionPageSchema, buildBreadcrumbSchema, buildItemListSchema } from '../../lib/schema.js';
 import { buildCanonical } from '../../lib/seo.js';
 import { getPageMeta } from '../../lib/pages.js';
 
-const autori = await getAutoriPiuVisti(10);
+const periodi = [...(await getPeriodi())].sort((a, b) => a.sort - b.sort);
 const cantiMap = await getCantiByAutoreMap();
+
+const blocchi = (
+  await Promise.all(
+    periodi.map(async (periodo) => {
+      const autori = await getAutoriByPeriodo(periodo.id, 4);
+      const autoriConDati = autori.map((autore) => {
+        const canti = cantiMap.get(autore.id) ?? [];
+        const immagineUrl = getImageUrl(autore.immagine);
+        return { autore, numCanti: canti.length, immagineUrl, annoNascita: autore.annoNascita, annoMorte: autore.annoMorte };
+      });
+      return { periodo, autoriConDati };
+    })
+  )
+).filter((b) => b.autoriConDati.length > 0);
 
 const meta = getPageMeta('autori.index');
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
@@ -20,13 +34,13 @@ const jsonLd = [
     { name: 'Home', url: siteUrl },
     { name: 'Autori' },
   ]),
+  ...blocchi.map(({ periodo, autoriConDati }) =>
+    buildItemListSchema(
+      `Gli autori più visti del periodo "${periodo.titolo}"`,
+      autoriConDati.map(({ autore }) => ({ name: autore.titolo, url: `${siteUrl}/autori/${autore.slug}` }))
+    )
+  ),
 ];
-
-const autoriConDati = autori.map((autore) => {
-  const canti = cantiMap.get(autore.id) ?? [];
-  const immagineUrl = getImageUrl(autore.immagine);
-  return { autore, numCanti: canti.length, immagineUrl, annoNascita: autore.annoNascita, annoMorte: autore.annoMorte };
-});
 ---
 <BaseLayout title={meta.metaTitle} description={meta.metaDescription} jsonLd={jsonLd}>
 
@@ -48,72 +62,79 @@ const autoriConDati = autori.map((autore) => {
 
   <div class="max-w-6xl mx-auto px-4 py-8">
 
-    <section class="flex flex-col gap-8 mt-2">
-      <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
-        Gli autori più visitati
-      </h2>
+    <div class="flex flex-col gap-12 mt-2">
+      {blocchi.map(({ periodo, autoriConDati }) => (
+        <section class="flex flex-col gap-8">
+          <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
+            <a href={`/periodi/${periodo.slug}`} class="hover:underline inline-flex items-center gap-2">
+              <Icon name="calendar-star" class="text-primary/70" />
+              {periodo.titolo}
+            </a>
+          </h2>
 
-      <ul role="list" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
-        {autoriConDati.map(({ autore, numCanti, immagineUrl, annoNascita, annoMorte }, i) => (
-          <li class="flex items-start gap-5 group relative">
-            <div class="shrink-0">
-              {immagineUrl ? (
-                <Image
-                  src={immagineUrl}
-                  alt={"Foto di " + autore.titolo}
-                  width={240}
-                  height={240}
-                  format="webp"
-                  quality={80}
-                  loading={i < 4 ? 'eager' : 'lazy'}
-                  class="w-32 h-32 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
-                />
-              ) : (
-                <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">
-                  <Icon name="user" class="text-base-content/50 text-5xl" />
+          <ul role="list" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+            {autoriConDati.map(({ autore, numCanti, immagineUrl, annoNascita, annoMorte }, i) => (
+              <li class="flex items-start gap-5 group relative">
+                <div class="shrink-0">
+                  {immagineUrl ? (
+                    <Image
+                      src={immagineUrl}
+                      alt={"Foto di " + autore.titolo}
+                      width={240}
+                      height={240}
+                      format="webp"
+                      quality={80}
+                      loading={i < 4 ? 'eager' : 'lazy'}
+                      class="w-32 h-32 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
+                    />
+                  ) : (
+                    <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">
+                      <Icon name="user" class="text-base-content/50 text-5xl" />
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            <div class="flex flex-col gap-1.5 min-w-0 pt-2">
-              <h3 class="font-serif font-bold text-xl md:text-2xl text-primary leading-tight">
-                <a href={`/autori/${autore.slug}`} class="hover:underline after:absolute after:inset-0">{autore.titolo}</a>
-              </h3>
+                <div class="flex flex-col gap-1.5 min-w-0 pt-2">
+                  <h3 class="font-serif font-bold text-xl md:text-2xl text-primary leading-tight">
+                    <a href={`/autori/${autore.slug}`} class="hover:underline after:absolute after:inset-0">{autore.titolo}</a>
+                  </h3>
 
-              {(annoNascita || annoMorte) && (
-                <p class="text-base text-base-content/70 flex items-center gap-2">
-                  <Icon name="calendar-blank" class="text-sm shrink-0" />
-                  {annoNascita}{annoMorte ? ` — ${annoMorte}` : ''}
-                </p>
-              )}
+                  {(annoNascita || annoMorte) && (
+                    <p class="text-base text-base-content/70 flex items-center gap-2">
+                      <Icon name="calendar-blank" class="text-sm shrink-0" />
+                      {annoNascita}{annoMorte ? ` — ${annoMorte}` : ''}
+                    </p>
+                  )}
 
-              {autore.localizzazioni.length > 0 && (
-                <p class="text-base text-base-content/70 flex items-center gap-2 relative z-10">
-                  <Icon name="map-pin" class="text-sm shrink-0" />
-                  <span>
-                    {autore.localizzazioni.map((l, j) => (
-                      <>{j > 0 && ', '}<a href={`/localizzazioni/${l.slug}`} class="hover:text-primary hover:underline">{l.titolo}</a></>
-                    ))}
-                  </span>
-                </p>
-              )}
+                  {autore.localizzazioni.length > 0 && (
+                    <p class="text-base text-base-content/70 flex items-center gap-2 relative z-10">
+                      <Icon name="map-pin" class="text-sm shrink-0" />
+                      <span>
+                        {autore.localizzazioni.map((l, j) => (
+                          <>{j > 0 && ', '}<a href={`/localizzazioni/${l.slug}`} class="hover:text-primary hover:underline">{l.titolo}</a></>
+                        ))}
+                      </span>
+                    </p>
+                  )}
 
-              {numCanti > 0 && (
-                <p class="text-base text-base-content/70 flex items-center gap-2">
-                  <Icon name="music-notes" class="text-sm shrink-0" />
-                  {numCanti} {numCanti === 1 ? 'canto' : 'canti'}
-                </p>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
+                  {numCanti > 0 && (
+                    <p class="text-base text-base-content/70 flex items-center gap-2">
+                      <Icon name="music-notes" class="text-sm shrink-0" />
+                      {numCanti} {numCanti === 1 ? 'canto' : 'canti'}
+                    </p>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
 
-      <a href="/autori/elenco" class="btn btn-primary self-center mt-4 gap-2">
+      <a href="/autori/elenco" class="btn btn-primary self-center gap-2">
         Tutti gli autori dell'archivio
         <Icon name="arrow-right" />
       </a>
-    </section>
+    </div>
 
   </div>
 </BaseLayout>

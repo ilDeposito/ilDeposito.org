@@ -1,4 +1,4 @@
-import type { Ref } from '../types.js';
+import type { Ref, AutoreRef } from '../types.js';
 
 export interface IncludedMap {
   get(type: string, id: string): any | undefined;
@@ -20,6 +20,21 @@ export function resolveRefs(rel: any, included: IncludedMap): Ref[] {
     .map((item: any) => ({
       titolo: item.attributes.title ?? item.attributes.name,
       slug: extractSlug(item.attributes.path?.alias),
+    }));
+}
+
+// Come resolveRefs, ma per gli autori: aggiunge isPersona (individuo vs
+// collettivo/gruppo) letto da field_nome, per distinguere Person/Organization
+// nello schema.org generato sui canti.
+export function resolveAutoreRefs(rel: any, included: IncludedMap): AutoreRef[] {
+  const items = Array.isArray(rel?.data) ? rel.data : rel?.data ? [rel.data] : [];
+  return items
+    .map((ref: any) => included.get(ref.type, ref.id))
+    .filter(Boolean)
+    .map((item: any) => ({
+      titolo: item.attributes.title ?? item.attributes.name,
+      slug: extractSlug(item.attributes.path?.alias),
+      isPersona: Boolean(item.attributes.field_nome),
     }));
 }
 

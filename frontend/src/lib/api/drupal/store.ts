@@ -48,7 +48,7 @@ export function fetchAllCantiRaw(): Promise<RawStore> {
         'field_lingua', 'field_periodo', 'field_tags', 'field_tematiche',
         'field_visualizzazioni_totali',
       ].join(','),
-      'fields[node--autore]': 'drupal_internal__nid,title,path',
+      'fields[node--autore]': 'drupal_internal__nid,title,path,field_nome',
       'fields[taxonomy_term--lingue]': 'name,path',
       'fields[taxonomy_term--periodi]': 'name,path',
       'fields[taxonomy_term--tags]': 'name,path',

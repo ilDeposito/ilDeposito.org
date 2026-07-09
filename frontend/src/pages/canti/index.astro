@@ -5,13 +5,30 @@ import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import HeaderWatermark from '../../components/ui/HeaderWatermark.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
 import Icon from '../../components/base/Icon.astro';
-import { getCantiPiuVisti, getAutoriImmaginiMap, getImageUrl } from '../../lib/api/index.js';
-import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { getPeriodi, getCantiByPeriodo, getAutoriImmaginiMap, getImageUrl } from '../../lib/api/index.js';
+import { buildCollectionPageSchema, buildBreadcrumbSchema, buildItemListSchema } from '../../lib/schema.js';
 import { buildCanonical } from '../../lib/seo.js';
 import { getPageMeta } from '../../lib/pages.js';
 
-const canti = await getCantiPiuVisti(12);
+const periodi = [...(await getPeriodi())].sort((a, b) => a.sort - b.sort);
 const autoriImmagini = await getAutoriImmaginiMap();
+
+const blocchi = (
+  await Promise.all(
+    periodi.map(async (periodo) => {
+      const canti = await getCantiByPeriodo(periodo.id, 4);
+      const cantiConDati = canti.map((canto) => {
+        const autori = [...canto.autoriTesto, ...canto.autoriMusica].filter(
+          (a, i, arr) => arr.findIndex((x) => x.slug === a.slug) === i
+        );
+        const primoAutore = canto.autoriTesto[0] ?? null;
+        const immagineUrl = primoAutore ? getImageUrl(autoriImmagini.get(primoAutore.slug) ?? null) : null;
+        return { canto, autori, immagineUrl };
+      });
+      return { periodo, cantiConDati };
+    })
+  )
+).filter((b) => b.cantiConDati.length > 0);
 
 const meta = getPageMeta('canti.index');
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
@@ -21,16 +38,13 @@ const jsonLd = [
     { name: 'Home', url: siteUrl },
     { name: 'Canti' },
   ]),
+  ...blocchi.map(({ periodo, cantiConDati }) =>
+    buildItemListSchema(
+      `I canti più visti del periodo "${periodo.titolo}"`,
+      cantiConDati.map(({ canto }) => ({ name: canto.titolo, url: `${siteUrl}/canti/${canto.slug}` }))
+    )
+  ),
 ];
-
-const cantiConDati = canti.map((canto) => {
-  const autori = [...canto.autoriTesto, ...canto.autoriMusica].filter(
-    (a, i, arr) => arr.findIndex((x) => x.slug === a.slug) === i
-  );
-  const primoAutore = canto.autoriTesto[0] ?? null;
-  const immagineUrl = primoAutore ? getImageUrl(autoriImmagini.get(primoAutore.slug) ?? null) : null;
-  return { canto, autori, immagineUrl };
-});
 ---
 <BaseLayout title={meta.metaTitle} description={meta.metaDescription} jsonLd={jsonLd}>
 
@@ -60,77 +74,84 @@ const cantiConDati = canti.map((canto) => {
 
   <div class="max-w-6xl mx-auto px-4 py-8">
 
-    <section class="flex flex-col gap-8 mt-2">
-      <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
-        I canti più visti
-      </h2>
+    <div class="flex flex-col gap-12 mt-2">
+      {blocchi.map(({ periodo, cantiConDati }) => (
+        <section class="flex flex-col gap-8">
+          <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
+            <a href={`/periodi/${periodo.slug}`} class="hover:underline inline-flex items-center gap-2">
+              <Icon name="calendar-star" class="text-primary/70" />
+              {periodo.titolo}
+            </a>
+          </h2>
 
-      <ul role="list" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
-        {cantiConDati.map(({ canto, autori, immagineUrl }, i) => (
-          <li class="flex items-start gap-5 group relative">
-            <div class="shrink-0">
-              {immagineUrl ? (
-                <Image
-                  src={immagineUrl}
-                  alt={autori[0] ? "Foto di " + autori[0].titolo : canto.titolo}
-                  width={240}
-                  height={240}
-                  format="webp"
-                  quality={80}
-                  loading={i < 4 ? 'eager' : 'lazy'}
-                  class="w-32 h-32 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
-                />
-              ) : (
-                <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">
-                  <Icon name="user" class="text-base-content/50 text-5xl" />
+          <ul role="list" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+            {cantiConDati.map(({ canto, autori, immagineUrl }, i) => (
+              <li class="flex items-start gap-5 group relative">
+                <div class="shrink-0">
+                  {immagineUrl ? (
+                    <Image
+                      src={immagineUrl}
+                      alt={autori[0] ? "Foto di " + autori[0].titolo : canto.titolo}
+                      width={240}
+                      height={240}
+                      format="webp"
+                      quality={80}
+                      loading={i < 4 ? 'eager' : 'lazy'}
+                      class="w-32 h-32 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
+                    />
+                  ) : (
+                    <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">
+                      <Icon name="user" class="text-base-content/50 text-5xl" />
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            <div class="flex flex-col gap-1.5 min-w-0 pt-2">
-              <h3 class="font-serif font-bold text-xl md:text-2xl text-primary leading-tight flex items-center gap-2">
-                <a href={`/canti/${canto.slug}`} class="hover:underline after:absolute after:inset-0">{canto.titolo}</a>
-                <span class="flex items-center gap-1 shrink-0 relative z-10">
-                  <Icon name="headphones" class={`text-sm ${canto.videoUrl ? 'text-primary' : 'text-base-content/50'}`} />
-                  <Icon name="guitar" class={`text-sm ${canto.accordi ? 'text-primary' : 'text-base-content/50'}`} />
-                </span>
-              </h3>
+                <div class="flex flex-col gap-1.5 min-w-0 pt-2">
+                  <h3 class="font-serif font-bold text-xl md:text-2xl text-primary leading-tight flex items-center gap-2">
+                    <a href={`/canti/${canto.slug}`} class="hover:underline after:absolute after:inset-0">{canto.titolo}</a>
+                    <span class="flex items-center gap-1 shrink-0 relative z-10">
+                      <Icon name="headphones" class={`text-sm ${canto.videoUrl ? 'text-primary' : 'text-base-content/50'}`} />
+                      <Icon name="guitar" class={`text-sm ${canto.accordi ? 'text-primary' : 'text-base-content/50'}`} />
+                    </span>
+                  </h3>
 
-              {canto.capoverso && (
-                <p class="italic text-base text-base-content/70 line-clamp-2">{canto.capoverso}</p>
-              )}
+                  {canto.capoverso && (
+                    <p class="italic text-base text-base-content/70 line-clamp-2">{canto.capoverso}</p>
+                  )}
 
-              {autori.length > 0 && (
-                <p class="text-base text-base-content/70 flex items-center gap-2 relative z-10">
-                  <Icon name="user" class="text-sm shrink-0" />
-                  <span>
-                    {autori.map((a, j) => (
-                      <>{j > 0 && ', '}<a href={`/autori/${a.slug}`} class="hover:text-primary hover:underline">{a.titolo}</a></>
-                    ))}
-                  </span>
-                </p>
-              )}
+                  {autori.length > 0 && (
+                    <p class="text-base text-base-content/70 flex items-center gap-2 relative z-10">
+                      <Icon name="user" class="text-sm shrink-0" />
+                      <span>
+                        {autori.map((a, j) => (
+                          <>{j > 0 && ', '}<a href={`/autori/${a.slug}`} class="hover:text-primary hover:underline">{a.titolo}</a></>
+                        ))}
+                      </span>
+                    </p>
+                  )}
 
-              {canto.periodi.length > 0 && (
-                <p class="text-base text-base-content/70 flex items-center gap-2 relative z-10">
-                  <Icon name="calendar-blank" class="text-sm shrink-0" />
-                  <span>
-                    {canto.periodi.map((p, j) => (
-                      <>{j > 0 && ', '}<a href={`/periodi/${p.slug}`} class="hover:text-primary hover:underline">{p.titolo}</a></>
-                    ))}
-                  </span>
-                </p>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
+                  {canto.periodi.length > 0 && (
+                    <p class="text-base text-base-content/70 flex items-center gap-2 relative z-10">
+                      <Icon name="calendar-blank" class="text-sm shrink-0" />
+                      <span>
+                        {canto.periodi.map((p, j) => (
+                          <>{j > 0 && ', '}<a href={`/periodi/${p.slug}`} class="hover:text-primary hover:underline">{p.titolo}</a></>
+                        ))}
+                      </span>
+                    </p>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
 
-      <a href="/canti/elenco" class="btn btn-primary self-center mt-4 gap-2">
+      <a href="/canti/elenco" class="btn btn-primary self-center gap-2">
         Tutti i canti dell'archivio
         <Icon name="arrow-right" />
       </a>
-    </section>
+    </div>
 
   </div>
 

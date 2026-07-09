@@ -5,6 +5,12 @@ export interface Ref {
   slug: string;
 }
 
+// Riferimento leggero a un autore — isPersona distingue individuo (Person)
+// da collettivo/gruppo (Organization) per lo schema.org generato sui canti.
+export interface AutoreRef extends Ref {
+  isPersona: boolean;
+}
+
 export interface LinkRef {
   uri: string;
   title: string | null;
@@ -33,8 +39,8 @@ export interface CantoCard {
   videoUrl: string | null;
   accordi: string | null;
   visualizzazioni: number;
-  autoriTesto: Ref[];
-  autoriMusica: Ref[];
+  autoriTesto: AutoreRef[];
+  autoriMusica: AutoreRef[];
   periodi: Ref[];
 }
 

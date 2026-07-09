@@ -85,26 +85,20 @@ export function buildCreativeWorkSchema(canto, siteUrl) {
     (a, i, arr) => arr.findIndex((x) => x.slug === a.slug) === i
   );
 
+  const toEntityRef = (a) => ({
+    '@type': a.isPersona ? 'Person' : 'Organization',
+    name: a.titolo,
+    url: `${siteUrl}/autori/${a.slug}`,
+  });
+
   if (autori.length > 0) {
-    schema.author = autori.map((a) => ({
-      '@type': 'Person',
-      name: a.titolo,
-      url: `${siteUrl}/autori/${a.slug}`,
-    }));
+    schema.author = autori.map(toEntityRef);
 
     if (canto.autoriTesto?.length > 0) {
-      schema.lyricist = canto.autoriTesto.map((a) => ({
-        '@type': 'Person',
-        name: a.titolo,
-        url: `${siteUrl}/autori/${a.slug}`,
-      }));
+      schema.lyricist = canto.autoriTesto.map(toEntityRef);
     }
     if (canto.autoriMusica?.length > 0) {
-      schema.composer = canto.autoriMusica.map((a) => ({
-        '@type': 'Person',
-        name: a.titolo,
-        url: `${siteUrl}/autori/${a.slug}`,
-      }));
+      schema.composer = canto.autoriMusica.map(toEntityRef);
     }
   }
 
@@ -135,7 +129,7 @@ export function buildPersonSchema(autore, siteUrl, ogImagePath) {
 
   const schema = {
     '@context': 'https://schema.org',
-    '@type': 'Person',
+    '@type': isPersona ? 'Person' : 'Organization',
     name: autore.titolo,
     url: `${siteUrl}/autori/${autore.slug}`,
   };
@@ -153,14 +147,18 @@ export function buildPersonSchema(autore, siteUrl, ogImagePath) {
     schema.description = stripHtml(autore.informazioni).substring(0, 200);
   }
 
-  if (autore.annoNascita) schema.birthDate = String(autore.annoNascita);
-  if (autore.annoMorte) schema.deathDate = String(autore.annoMorte);
+  // birthDate/deathDate/birthPlace sono proprietà di Person: per i collettivi
+  // (Organization) non hanno un equivalente valido in schema.org, si omettono.
+  if (isPersona) {
+    if (autore.annoNascita) schema.birthDate = String(autore.annoNascita);
+    if (autore.annoMorte) schema.deathDate = String(autore.annoMorte);
 
-  if (autore.localizzazioni?.length > 0) {
-    schema.birthPlace = {
-      '@type': 'Place',
-      name: autore.localizzazioni[0].titolo,
-    };
+    if (autore.localizzazioni?.length > 0) {
+      schema.birthPlace = {
+        '@type': 'Place',
+        name: autore.localizzazioni[0].titolo,
+      };
+    }
   }
 
   const sameAs = (autore.links ?? []).map((l) => l.uri).filter(Boolean);
@@ -266,6 +264,21 @@ export function buildWebPageSchema(title, description, url) {
     name: title,
     description,
     url,
+  };
+}
+
+export function buildItemListSchema(name, items) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name,
+    numberOfItems: items.length,
+    itemListElement: items.map((item, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: item.name,
+      url: item.url,
+    })),
   };
 }
 

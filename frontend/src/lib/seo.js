@@ -114,7 +114,7 @@ function cantoVars(canto) {
     titolo: canto.titolo,
     accordi: canto.accordi ? '1' : '',
     autori: autori.map((a) => a.titolo).join(' e '),
-    autoriTesto: (canto.autoriTesto ?? []).map((a) => a.titolo).join(', '),
+    primoAutoreTesto: canto.autoriTesto?.[0]?.titolo || '',
     anno: canto.anno || '',
     extra: canto.capoverso || stripHtml(canto.informazioni || ''),
   };
@@ -156,7 +156,22 @@ function traduzioneVars(traduzione) {
 }
 
 export function buildCantoTitle(canto) {
-  return getPageMeta('canti.detail', cantoVars(canto)).metaTitle;
+  const vars = cantoVars(canto);
+  const descrittore = `Testo${canto.accordi ? ' e accordi' : ''}`;
+
+  // Se titolo + autore + descrittore ("Testo e accordi") non entrano nel
+  // limite SERP, il descrittore è il pezzo meno importante da sacrificare:
+  // meglio ometterlo del tutto che tagliarlo a metà (o peggio, tagliare il
+  // nome dell'autore).
+  const completo = getPageMeta('canti.detail', { ...vars, descrittore }).metaTitle;
+  if (completo.length <= MAX_TITLE_LEN) return completo;
+
+  const senzaDescrittore = getPageMeta('canti.detail', { ...vars, descrittore: '' }).metaTitle;
+  if (senzaDescrittore.length <= MAX_TITLE_LEN) return senzaDescrittore;
+
+  // Anche titolo + autore superano il limite (titolo di per sé molto lungo):
+  // meglio il solo titolo che un ulteriore taglio a metà nome.
+  return getPageMeta('canti.detail', { ...vars, primoAutoreTesto: '', descrittore: '' }).metaTitle;
 }
 export function buildCantoDescription(canto) {
   return getPageMeta('canti.detail', cantoVars(canto)).metaDescription;

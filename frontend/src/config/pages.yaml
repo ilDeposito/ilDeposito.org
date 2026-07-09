@@ -78,14 +78,16 @@ canti.elenco:
   pageTitle: "I canti dell'archivio"
   pageDescription: "L'elenco completo e navigabile dei canti dell'archivio"
 
-# Pagina singolo canto — token: {titolo} {accordi} {autori} {autoriTesto} {anno} {extra}
-#   accordi:     valorizzata se il canto ha gli accordi
-#   autori:      autori di testo e musica, già uniti ("Tizio e Caio")
-#   autoriTesto: solo autori del testo (field_autori_testo), uniti da virgola ("Tizio, Caio")
-#   anno:        anno del canto
-#   extra:       capoverso o informazioni (frase di apertura)
+# Pagina singolo canto — token: {titolo} {accordi} {autori} {primoAutoreTesto} {descrittore} {anno} {extra}
+#   accordi:          valorizzata se il canto ha gli accordi
+#   autori:           autori di testo e musica, già uniti ("Tizio e Caio")
+#   primoAutoreTesto: solo il primo autore del testo — usato nel metaTitle per evitare troncamenti
+#   descrittore:      "Testo" o "Testo e accordi" — calcolato in seo.js, omesso (stringa vuota)
+#                     se titolo+autore+descrittore superano il limite SERP
+#   anno:             anno del canto
+#   extra:            capoverso o informazioni (frase di apertura)
 canti.detail:
-  metaTitle: "{titolo}{?autoriTesto} — {autoriTesto}{/autoriTesto} — Testo{?accordi} e accordi{/accordi}"
+  metaTitle: "{titolo}{?primoAutoreTesto} — {primoAutoreTesto}{/primoAutoreTesto}{?descrittore} — {descrittore}{/descrittore}"
   metaDescription: "Testo{?accordi}, accordi{/accordi} di {titolo}{?autori} di {autori}{/autori}{?anno} ({anno}){/anno}.{?extra} {extra}{/extra}"
 
 

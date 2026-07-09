@@ -6,7 +6,7 @@ import type {
   TraduzioneDetail,
   ParagraphItem,
 } from '../types.js';
-import { type IncludedMap, resolveRefs, resolveMany, resolveImageUrl, extractSlug } from './resolvers.js';
+import { type IncludedMap, resolveRefs, resolveAutoreRefs, resolveMany, resolveImageUrl, extractSlug } from './resolvers.js';
 
 // ── Helpers ────────────────────────────────────────────
 
@@ -100,8 +100,8 @@ export function mapCantoCard(raw: any, included: IncludedMap): CantoCard {
     videoUrl: extractVideoUrl(a.field_audio),
     accordi: plainText(a.field_canto_accordi) || null,
     visualizzazioni: a.field_visualizzazioni_totali ?? 0,
-    autoriTesto: resolveRefs(r.field_autori_testo, included),
-    autoriMusica: resolveRefs(r.field_autori_musica, included),
+    autoriTesto: resolveAutoreRefs(r.field_autori_testo, included),
+    autoriMusica: resolveAutoreRefs(r.field_autori_musica, included),
     periodi: resolveRefs(r.field_periodo, included),
   };
 }

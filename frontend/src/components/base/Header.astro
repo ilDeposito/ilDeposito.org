@@ -12,7 +12,7 @@ const isCurrent = (href: string) => pathname === href || pathname.startsWith(`${
     <a
       href="/"
       aria-label="ilDeposito - home"
-      class="shrink-0 inline-flex items-center gap-2 text-primary-content [&>svg]:h-8 [&>svg]:w-auto md:[&>svg]:h-10"
+      class="shrink-0 inline-flex items-center gap-2 text-primary-content [&_svg]:h-8 [&_svg]:w-auto md:[&_svg]:h-10"
     >
       <span aria-hidden="true" class="contents"><Fragment set:html={logoRaw} /></span>
       <span class="hidden md:inline font-serif font-bold text-2xl tracking-wide">ilDeposito.org</span>
@@ -81,7 +81,7 @@ const isCurrent = (href: string) => pathname === href || pathname.startsWith(`${
         id="mobile-menu-panel"
         data-menu-panel
         aria-label="Menu"
-        class="m-0 p-0 max-w-none max-h-none w-full h-full flex flex-col bg-base-100 text-base-content"
+        class="hidden open:flex m-0 p-0 max-w-none max-h-none w-full h-full flex-col bg-base-100 text-base-content"
       >
         <div class="border-b border-base-300">
           <div class="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
