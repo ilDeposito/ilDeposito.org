@@ -45,13 +45,13 @@ const isCurrent = (href: string) => pathname === href || pathname.startsWith(`${
             aria-label="Cerca canti o autori"
             class="
               flex-1 bg-transparent text-primary-content placeholder:text-primary-content/85
-              placeholder:italic text-base font-sans focus:outline-none min-w-0
+              placeholder:italic text-base font-sans focus-visible:outline-none min-w-0
             "
           />
           <button
             type="submit"
             aria-label="Cerca"
-            class="shrink-0 text-primary-content cursor-pointer bg-transparent border-0 p-0 m-0 inline-flex items-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-content rounded"
+            class="shrink-0 text-primary-content cursor-pointer bg-transparent border-0 p-1.5 -m-1.5 inline-flex items-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-content rounded"
           >
             <Icon name="magnifying-glass" />
           </button>
@@ -72,7 +72,7 @@ const isCurrent = (href: string) => pathname === href || pathname.startsWith(`${
         aria-label="Apri menu"
         aria-expanded="false"
         aria-controls="mobile-menu-panel"
-        class="shrink-0 text-primary-content cursor-pointer"
+        class="shrink-0 text-primary-content cursor-pointer p-1.5 -m-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-content rounded"
       >
         <Icon name="list" class="text-2xl" />
       </button>
@@ -90,7 +90,7 @@ const isCurrent = (href: string) => pathname === href || pathname.startsWith(`${
               type="button"
               data-menu-close
               aria-label="Chiudi menu"
-              class="cursor-pointer"
+              class="cursor-pointer p-1.5 -m-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary rounded"
             >
               <Icon name="x" class="text-2xl" />
             </button>

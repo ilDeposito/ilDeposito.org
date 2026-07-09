@@ -174,7 +174,7 @@ const ogImage = await getOgImageForPeriodo(periodo);
                     <Icon name="user" class="text-sm shrink-0" />
                     <span>
                       {autori.map((a, j) => (
-                        <>{j > 0 && ', '}<a href={`/autori/${a.slug}`} class="hover:text-primary hover:underline">{a.titolo}</a></>
+                        <>{j > 0 && ', '}<a href={`/autori/${a.slug}`} class="text-primary underline hover:no-underline">{a.titolo}</a></>
                       ))}
                     </span>
                   </p>
@@ -230,7 +230,7 @@ const ogImage = await getOgImageForPeriodo(periodo);
                       <Icon name="map-pin" class="text-sm shrink-0" />
                       <span>
                         {autore.localizzazioni.map((l, j) => (
-                          <>{j > 0 && ', '}<a href={`/localizzazioni/${l.slug}`} class="hover:text-primary hover:underline">{l.titolo}</a></>
+                          <>{j > 0 && ', '}<a href={`/localizzazioni/${l.slug}`} class="text-primary underline hover:no-underline">{l.titolo}</a></>
                         ))}
                       </span>
                     </p>
@@ -291,7 +291,7 @@ const ogImage = await getOgImageForPeriodo(periodo);
                       <Icon name="map-pin" class="text-sm shrink-0" />
                       <span>
                         {evento.localizzazioni.map((l, j) => (
-                          <>{j > 0 && ', '}<a href={`/localizzazioni/${l.slug}`} class="hover:text-primary hover:underline">{l.titolo}</a></>
+                          <>{j > 0 && ', '}<a href={`/localizzazioni/${l.slug}`} class="text-primary underline hover:no-underline">{l.titolo}</a></>
                         ))}
                       </span>
                     </p>

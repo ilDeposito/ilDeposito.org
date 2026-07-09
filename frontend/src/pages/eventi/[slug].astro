@@ -64,7 +64,7 @@ const ogImage = await getOgImageForEvento(evento);
         {evento.localizzazioni.map((l, i) => (
           <>
             {i > 0 && ', '}
-            <a href={`/localizzazioni/${l.slug}`} class="hover:underline hover:text-primary">{l.titolo}</a>
+            <a href={`/localizzazioni/${l.slug}`} class="text-primary underline hover:no-underline">{l.titolo}</a>
           </>
         ))}
         {' · '}{evento.dataEvento && formatData(evento.dataEvento)}
@@ -169,7 +169,7 @@ const ogImage = await getOgImageForEvento(evento);
           <span class="text-base-content">Localizzazione: </span>
           <span class="text-primary">
             {evento.localizzazioni.map((l, i) => (
-              <>{i > 0 && ', '}<a href={`/localizzazioni/${l.slug}`} class="hover:underline">{l.titolo}</a></>
+              <>{i > 0 && ', '}<a href={`/localizzazioni/${l.slug}`} class="underline hover:no-underline">{l.titolo}</a></>
             ))}
           </span>
         </p>
@@ -185,7 +185,7 @@ const ogImage = await getOgImageForEvento(evento);
       {periodo && (
         <p class="text-base">
           <span class="text-base-content">Periodo: </span>
-          <a href={`/periodi/${periodo.slug}`} class="text-primary hover:underline">{periodo.titolo}</a>
+          <a href={`/periodi/${periodo.slug}`} class="text-primary underline hover:no-underline">{periodo.titolo}</a>
         </p>
       )}
 
@@ -201,7 +201,7 @@ const ogImage = await getOgImageForEvento(evento);
           <span class="text-base-content">Tag: </span>
           <span class="text-primary">
             {evento.tags.map((t, i) => (
-              <>{i > 0 && ', '}<a href={`/tags/${t.slug}`} class="hover:underline">{t.titolo}</a></>
+              <>{i > 0 && ', '}<a href={`/tags/${t.slug}`} class="underline hover:no-underline">{t.titolo}</a></>
             ))}
           </span>
         </p>

@@ -253,7 +253,7 @@ const eventiGeoJson = JSON.stringify(
                       <Icon name="map-pin" class="text-sm shrink-0" />
                       <span>
                         {evento.localizzazioni.map((l, j) => (
-                          <>{j > 0 && ', '}<a href={`/localizzazioni/${l.slug}`} class="hover:text-primary hover:underline">{l.titolo}</a></>
+                          <>{j > 0 && ', '}<a href={`/localizzazioni/${l.slug}`} class="text-primary underline hover:no-underline">{l.titolo}</a></>
                         ))}
                       </span>
                     </p>
@@ -264,7 +264,7 @@ const eventiGeoJson = JSON.stringify(
                       <Icon name="calendar-star" class="text-sm shrink-0" />
                       <span>
                         {evento.periodi.map((p, j) => (
-                          <>{j > 0 && ', '}<a href={`/periodi/${p.slug}`} class="hover:text-primary hover:underline">{p.titolo}</a></>
+                          <>{j > 0 && ', '}<a href={`/periodi/${p.slug}`} class="text-primary underline hover:no-underline">{p.titolo}</a></>
                         ))}
                       </span>
                     </p>

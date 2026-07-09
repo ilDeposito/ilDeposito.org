@@ -26,7 +26,7 @@ const formatData = (data: string) =>
   {(loc || evento.dataEvento) && (
     <p class="font-serif italic text-base text-base-content/70">
       {loc && (
-        <a href={`/localizzazioni/${loc.slug}`} class="hover:underline">
+        <a href={`/localizzazioni/${loc.slug}`} class="underline hover:no-underline">
           {loc.titolo}
         </a>
       )}

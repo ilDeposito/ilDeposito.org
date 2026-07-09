@@ -48,7 +48,7 @@ function formatDate(dateStr: string) {
             <span data-event-icon-pause class="leading-none"><Icon name="pause" /></span>
             <span data-event-icon-play class="hidden leading-none"><Icon name="play-fill" /></span>
           </button>
-          <span class="shrink-0 text-neutral-content/60 text-xs">
+          <span class="shrink-0 text-neutral-content/60 text-xs" aria-live="polite" aria-atomic="true">
             <span data-event-counter>1</span>/{eventi.length}
           </span>
         </>

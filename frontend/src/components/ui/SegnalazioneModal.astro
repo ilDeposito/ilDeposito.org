@@ -76,7 +76,7 @@ const { cantoUrl } = Astro.props;
           class="input input-bordered form-border bg-base-200 w-full"
           placeholder="Il tuo nome"
         />
-        <p id="err-seg-nome" class="text-error text-sm mt-1 hidden"></p>
+        <p id="err-seg-nome" role="alert" class="text-error text-sm mt-1 hidden"></p>
       </div>
 
       <div class="form-control">
@@ -94,7 +94,7 @@ const { cantoUrl } = Astro.props;
           class="input input-bordered form-border bg-base-200 w-full"
           placeholder="la-tua@email.it"
         />
-        <p id="err-seg-email" class="text-error text-sm mt-1 hidden"></p>
+        <p id="err-seg-email" role="alert" class="text-error text-sm mt-1 hidden"></p>
       </div>
 
       <div class="form-control">
@@ -115,7 +115,7 @@ const { cantoUrl } = Astro.props;
             <span id="seg-count">0</span>/200 righe (massimo 200 righe)
           </span>
         </div>
-        <p id="err-seg-messaggio" class="text-error text-sm mt-1 hidden"></p>
+        <p id="err-seg-messaggio" role="alert" class="text-error text-sm mt-1 hidden"></p>
       </div>
 
       <!-- Altcha: auto="onload" forza il solve immediato, necessario dentro un dialog chiuso -->
@@ -136,7 +136,7 @@ const { cantoUrl } = Astro.props;
             <span class="text-error" aria-hidden="true"> *</span>
           </span>
         </label>
-        <p id="err-seg-privacy" class="text-error text-sm mt-1 hidden"></p>
+        <p id="err-seg-privacy" role="alert" class="text-error text-sm mt-1 hidden"></p>
       </div>
 
       <div class="mt-2">

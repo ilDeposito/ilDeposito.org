@@ -56,7 +56,7 @@ const immagineUrl = getImageUrl(autore.immagine);
             {autore.localizzazioni.map((l, i) => (
               <>
                 {i > 0 && ', '}
-                <a href={`/localizzazioni/${l.slug}`} class="hover:underline hover:text-primary">{l.titolo}</a>
+                <a href={`/localizzazioni/${l.slug}`} class="text-primary underline hover:no-underline">{l.titolo}</a>
               </>
             ))}
             {anni && <> · {anni}</>}

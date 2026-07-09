@@ -17,6 +17,7 @@ class ShareButton extends HTMLElement {
         const clone = template.content.cloneNode(true);
         this.appendChild(clone);
         dialog = this.querySelector('dialog');
+        dialog.addEventListener('close', () => button.focus());
         this._bindDialog(dialog, title);
       }
 

@@ -73,7 +73,7 @@ const jsonLd = [
           <span class="text-base-content">Autori: </span>
           <span class="text-primary">
             {autoriUnici.map((a, i) => (
-              <>{i > 0 && ', '}<a href={`/autori/${a.slug}`} class="hover:underline">{a.titolo}</a></>
+              <>{i > 0 && ', '}<a href={`/autori/${a.slug}`} class="underline hover:no-underline">{a.titolo}</a></>
             ))}
           </span>
         </p>
@@ -82,7 +82,7 @@ const jsonLd = [
       {periodo && (
         <p class="font-serif italic font-bold text-base">
           <span class="text-base-content">Periodo: </span>
-          <a href={`/periodi/${periodo.slug}`} class="text-primary hover:underline">{periodo.titolo}</a>
+          <a href={`/periodi/${periodo.slug}`} class="text-primary underline hover:no-underline">{periodo.titolo}</a>
         </p>
       )}
 
@@ -225,7 +225,7 @@ const jsonLd = [
           <span class="text-base-content">Autori testo: </span>
           <span class="text-primary">
             {canto.autoriTesto.map((a, i) => (
-              <>{i > 0 && ', '}<a href={`/autori/${a.slug}`} class="hover:underline">{a.titolo}</a></>
+              <>{i > 0 && ', '}<a href={`/autori/${a.slug}`} class="underline hover:no-underline">{a.titolo}</a></>
             ))}
           </span>
         </p>
@@ -236,7 +236,7 @@ const jsonLd = [
           <span class="text-base-content">Autori musica: </span>
           <span class="text-primary">
             {canto.autoriMusica.map((a, i) => (
-              <>{i > 0 && ', '}<a href={`/autori/${a.slug}`} class="hover:underline">{a.titolo}</a></>
+              <>{i > 0 && ', '}<a href={`/autori/${a.slug}`} class="underline hover:no-underline">{a.titolo}</a></>
             ))}
           </span>
         </p>
@@ -245,7 +245,7 @@ const jsonLd = [
       {periodo && (
         <p class="text-base">
           <span class="text-base-content">Periodo: </span>
-          <a href={`/periodi/${periodo.slug}`} class="text-primary hover:underline">{periodo.titolo}</a>
+          <a href={`/periodi/${periodo.slug}`} class="text-primary underline hover:no-underline">{periodo.titolo}</a>
         </p>
       )}
 
@@ -268,7 +268,7 @@ const jsonLd = [
           <span class="text-base-content">Lingua: </span>
           <span class="text-primary">
             {canto.lingue.map((l, i) => (
-              <>{i > 0 && ', '}<a href={`/lingue/${l.slug}`} class="hover:underline">{l.titolo}</a></>
+              <>{i > 0 && ', '}<a href={`/lingue/${l.slug}`} class="underline hover:no-underline">{l.titolo}</a></>
             ))}
           </span>
         </p>
@@ -279,7 +279,7 @@ const jsonLd = [
           <span class="text-base-content">Tags: </span>
           <span class="text-primary">
             {canto.tags.map((t, i) => (
-              <>{i > 0 && ', '}<a href={`/tags/${t.slug}`} class="hover:underline">{t.titolo}</a></>
+              <>{i > 0 && ', '}<a href={`/tags/${t.slug}`} class="underline hover:no-underline">{t.titolo}</a></>
             ))}
           </span>
         </p>
