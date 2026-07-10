@@ -43,6 +43,10 @@ async function getAllCantiForPdf() {
   });
 }
 
+function pdfFilename(slug) {
+  return `ildeposito-${slug}.pdf`;
+}
+
 function computeHash(canto) {
   return createHash('md5').update(JSON.stringify({
     titolo: canto.titolo,
@@ -174,9 +178,9 @@ export async function runPdfGeneration({ outDir, cacheDir: cacheDirInput, logger
     newManifest[canto.slug] = hash;
 
     if (cacheDir && manifest[canto.slug] === hash) {
-      const cachedPdf = join(cacheDir, `${canto.slug}.pdf`);
+      const cachedPdf = join(cacheDir, pdfFilename(canto.slug));
       if (existsSync(cachedPdf)) {
-        linkOrCopy(cachedPdf, join(outDir, `${canto.slug}.pdf`));
+        linkOrCopy(cachedPdf, join(outDir, pdfFilename(canto.slug)));
         cachedCount++;
         continue;
       }
@@ -184,7 +188,7 @@ export async function runPdfGeneration({ outDir, cacheDir: cacheDirInput, logger
     // In-place (mode pdf): il file esistente può essere un hardlink condiviso
     // con cache e release precedenti — writeFile (O_TRUNC) riscriverebbe
     // l'inode condiviso, quindi va rimosso per far creare un inode nuovo.
-    rmSync(join(outDir, `${canto.slug}.pdf`), { force: true });
+    rmSync(join(outDir, pdfFilename(canto.slug)), { force: true });
     changedCanti.push(canto);
   }
 
@@ -237,9 +241,9 @@ export async function runPdfGeneration({ outDir, cacheDir: cacheDirInput, logger
   if (cacheDir) {
     try {
       for (const canto of changedCanti) {
-        const pdfPath = join(outDir, `${canto.slug}.pdf`);
+        const pdfPath = join(outDir, pdfFilename(canto.slug));
         if (existsSync(pdfPath)) {
-          linkOrCopy(pdfPath, join(cacheDir, `${canto.slug}.pdf`));
+          linkOrCopy(pdfPath, join(cacheDir, pdfFilename(canto.slug)));
         }
       }
       if (manifestPath) {

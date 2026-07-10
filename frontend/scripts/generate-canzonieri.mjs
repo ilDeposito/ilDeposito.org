@@ -28,18 +28,23 @@ function slugify(text) {
     .replace(/^-+|-+$/g, '');
 }
 
+function pdfFilename(slug) {
+  return `ildeposito-${slug}.pdf`;
+}
+
 async function scriviCanzoniere(manifest, slug, titolo, buildFn) {
-  console.log(`→ Genero ${slug}.pdf...`);
+  const file = pdfFilename(slug);
+  console.log(`→ Genero ${file}...`);
   const t0 = Date.now();
   const buffer = await buildFn();
-  writeFileSync(join(outDir, `${slug}.pdf`), buffer);
+  writeFileSync(join(outDir, file), buffer);
   manifest.canzonieri.push({
     slug,
     titolo,
-    file: `${slug}.pdf`,
+    file,
     dimensione: buffer.length,
   });
-  console.log(`  ✓ ${slug}.pdf (${(buffer.length / 1024 / 1024).toFixed(1)} MB, ${Math.round((Date.now() - t0) / 1000)}s)`);
+  console.log(`  ✓ ${file} (${(buffer.length / 1024 / 1024).toFixed(1)} MB, ${Math.round((Date.now() - t0) / 1000)}s)`);
 }
 
 async function main() {

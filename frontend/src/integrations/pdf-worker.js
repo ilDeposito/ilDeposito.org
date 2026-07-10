@@ -20,7 +20,7 @@ async function run() {
         tags: canto.tags,
         qrBuffer: Buffer.from(canto.qrBuffer),
       });
-      await writeFile(join(outDir, `${canto.slug}.pdf`), pdfBuffer);
+      await writeFile(join(outDir, `ildeposito-${canto.slug}.pdf`), pdfBuffer);
       count++;
     } catch (err) {
       parentPort.postMessage({ type: 'error', slug: canto.slug, message: err.message });

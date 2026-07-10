@@ -73,6 +73,21 @@ if [ -d "$UPLOAD_CACHE" ]; then
   cp -al "$UPLOAD_CACHE" "$BUILD_DIR/client/uploads"
 fi
 
+# I canzonieri collettivi vivono fuori dal ciclo di build Astro: li scrive in
+# place, con cadenza settimanale, il cron "canzonieri" (vedi sopra, modalità
+# "canzonieri") direttamente dentro la release che in quel momento è
+# "current". Questa build ne crea però una nuova e sposta lo symlink: senza
+# riportarli qui, i canzonieri generati dall'ultimo cron sparirebbero dalla
+# release nuova (404) finché il cron non gira di nuovo — indipendentemente
+# dall'ordine in cui build-frontend e build-canzonieri vengono lanciati.
+# Hardlink dalla release precedente (ancora "current" a questo punto dello script).
+PREV_CANZONIERI="$OUTPUT_DIR/current/client/pdf/canzonieri"
+if [ -d "$PREV_CANZONIERI" ]; then
+  phase "Carrying over canzonieri from previous release ($(du -sh "$PREV_CANZONIERI" | cut -f1))..."
+  mkdir -p "$BUILD_DIR/client/pdf"
+  cp -al "$PREV_CANZONIERI" "$BUILD_DIR/client/pdf/canzonieri"
+fi
+
 # Redirect legacy (Drupal → nginx): scrive sempre il file, anche vuoto, per
 # non rompere l'`include` in frontend/nginx.conf (vedi Task 4, PLAN_SEO_2.md).
 phase "Generating legacy redirects (_redirects.conf) ..."

@@ -186,7 +186,7 @@ const jsonLd = [
         <pre lang={linguaToIso(canto.lingue?.[0]?.titolo)} class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{canto.testo}</pre>
       )}
       <div data-pagefind-ignore class="flex justify-start mt-4">
-        <a href={`/pdf/canti/${canto.slug}.pdf`} download data-pdf-download={canto.slug} class="inline-flex items-center gap-1 text-base text-base-content">
+        <a href={`/pdf/canti/ildeposito-${canto.slug}.pdf`} download data-pdf-download={canto.slug} class="inline-flex items-center gap-1 text-base text-base-content">
           <Icon name="file-pdf" />
           Scarica PDF
         </a>
