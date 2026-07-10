@@ -2,7 +2,9 @@
 set -e
 
 # Modalità: full (default, contenuti + pdf) | content (contenuti, no pdf) |
-# pdf (rigenera solo i pdf nella release "current" già live, in-place).
+# pdf (rigenera solo i pdf dei canti nella release "current" già live,
+# in-place) | canzonieri (rigenera i canzonieri collettivi, in-place, uso da
+# cron settimanale — vedi ildeposito.sh build-canzonieri).
 MODE="${1:-full}"
 OUTPUT_DIR="/app/output"
 
@@ -24,6 +26,17 @@ if [ "$MODE" = "pdf" ]; then
   fi
   echo "→ Rigenero i PDF nella release corrente ($CURRENT_DIR) ..."
   PDF_OUT_DIR="$CURRENT_DIR/client/pdf/canti" node scripts/generate-pdfs.mjs
+  exit 0
+fi
+
+if [ "$MODE" = "canzonieri" ]; then
+  CURRENT_DIR="$OUTPUT_DIR/current"
+  if [ ! -f "$CURRENT_DIR/server/entry.mjs" ]; then
+    echo "✗ Nessuna release trovata in $CURRENT_DIR. Esegui prima una build contenuti/completa." >&2
+    exit 1
+  fi
+  echo "→ Rigenero i canzonieri nella release corrente ($CURRENT_DIR) ..."
+  CANZONIERI_OUT_DIR="$CURRENT_DIR/client/pdf/canzonieri" node scripts/generate-canzonieri.mjs
   exit 0
 fi
 

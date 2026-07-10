@@ -450,7 +450,24 @@ const autoriConDati = autori.map((autore) => ({
     </div>
   </section>
 
-  <!-- ═══ 7. TAG PIÙ USATI ═══ bg-base-100 -->
+  <!-- ═══ 7. CANZONIERI PDF ═══ bg-secondary -->
+  <section class="bg-secondary text-secondary-content">
+    <div class="max-w-2xl mx-auto px-4 py-12 md:py-16 text-center flex flex-col items-center gap-4">
+      <h2 class="font-serif font-bold text-xl md:text-2xl">
+        <Icon name="file-pdf" class="mr-2" />Canzonieri PDF
+      </h2>
+      <p class="font-serif italic text-base text-secondary-content/85">
+        Raccolte di più canti in un unico PDF, divise per periodo storico, con indice e indice analitico per
+        autore — anche nella versione con accordi.
+      </p>
+      <a href="/canzonieri" class="btn bg-secondary-content text-secondary border-0 hover:bg-secondary-content/90 gap-2">
+        Scarica i canzonieri
+        <Icon name="arrow-right" />
+      </a>
+    </div>
+  </section>
+
+  <!-- ═══ 8. TAG PIÙ USATI ═══ bg-base-100 -->
   {tagsSorted.length > 0 && (
     <section class="bg-base-100">
       <div class="max-w-4xl mx-auto px-4 py-12 md:py-16">
@@ -480,7 +497,7 @@ const autoriConDati = autori.map((autore) => ({
     </section>
   )}
 
-  <!-- ═══ 8. COLLABORA ═══ bg-base-300 -->
+  <!-- ═══ 9. COLLABORA ═══ bg-base-300 -->
   <section class="bg-base-300">
     <div class="max-w-2xl mx-auto px-4 py-12 md:py-16 text-center">
       <h2 class="font-serif font-bold text-xl md:text-2xl text-base-content mb-3">Collabora con noi</h2>

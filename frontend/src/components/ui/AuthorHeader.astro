@@ -66,10 +66,23 @@ const immagineUrl = getImageUrl(autore.immagine);
     </div>
 
     {cantiSlug && (
-      <a href={`/autori/${cantiSlug}`} class="btn btn-primary gap-1 w-fit border-0">
-        <Icon name="music-notes" />
-        Tutti i canti
-      </a>
+      <div class="flex flex-wrap gap-3">
+        <a href={`/autori/${cantiSlug}`} class="btn btn-primary gap-1 w-fit border-0">
+          <Icon name="music-notes" />
+          Tutti i canti
+        </a>
+        <a
+          href={`/pdf/canzonieri/autore-${autore.slug}.pdf`}
+          download
+          data-pdf-download={autore.slug}
+          data-pdf-download-event="canzoniere_download"
+          data-pdf-download-key="canzoniere"
+          class="btn btn-secondary gap-1 w-fit border-0"
+        >
+          <Icon name="file-pdf" />
+          Scarica canzoniere PDF
+        </a>
+      </div>
     )}
 
     <share-button data-title={autore.titolo} class="contents">
@@ -84,4 +97,5 @@ const immagineUrl = getImageUrl(autore.immagine);
 
 <script>
   import '../../scripts/share-button.js';
+  import '../../scripts/pdf-download.js';
 </script>

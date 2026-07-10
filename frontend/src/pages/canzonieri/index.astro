@@ -1,0 +1,136 @@
+---
+// SSR (non prerenderizzata): i canzonieri collettivi vengono rigenerati fuori
+// dal ciclo di build Astro da un cron settimanale (./ildeposito.sh
+// build-canzonieri, vedi docker-entrypoint.sh modalità "canzonieri"), quindi
+// una pagina statica non potrebbe mai riflettere lo stato corrente senza un
+// rebuild completo del sito. Stesso pattern SSR già usato per gli endpoint
+// in src/pages/api/ (Node adapter, frontend-api).
+export const prerender = false;
+
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/ui/Breadcrumb.astro';
+import HeaderWatermark from '../../components/ui/HeaderWatermark.astro';
+import Icon from '../../components/base/Icon.astro';
+import { getPageMeta } from '../../lib/pages.js';
+
+const meta = getPageMeta('canzonieri');
+
+// In dev locale, in assenza della env, punta a public/pdf/canzonieri/ per
+// poter testare la pagina con un manifest.json di prova.
+const canzonieriDir = (import.meta.env.CANZONIERI_DIR as string) || process.env.CANZONIERI_DIR
+  || join(process.cwd(), 'public', 'pdf', 'canzonieri');
+
+interface VoceManifest {
+  slug: string;
+  titolo: string;
+  file: string;
+  dimensione: number;
+}
+
+interface Gruppo {
+  titolo: string;
+  testo?: VoceManifest;
+  accordi?: VoceManifest;
+}
+
+let generatoIl: string | null = null;
+let gruppi: Gruppo[] = [];
+
+try {
+  const manifest = JSON.parse(readFileSync(join(canzonieriDir, 'manifest.json'), 'utf-8'));
+  generatoIl = manifest.generatoIl ?? null;
+
+  // I canzonieri per autore si scaricano dalla pagina dell'autore
+  // (autori/[slug].astro), non da qui. Ogni canzoniere ha una variante
+  // "-accordi" con lo stesso slug base: si raggruppano in una card con due
+  // pulsanti di download (testi / con accordi).
+  const gruppiMap = new Map<string, Gruppo>();
+  for (const voce of (manifest.canzonieri ?? []) as VoceManifest[]) {
+    if (voce.slug.startsWith('autore-')) continue;
+    const accordi = voce.slug.endsWith('-accordi');
+    const baseSlug = accordi ? voce.slug.slice(0, -'-accordi'.length) : voce.slug;
+    const baseTitolo = accordi ? voce.titolo.replace(/\s*\(con accordi\)$/, '') : voce.titolo;
+
+    if (!gruppiMap.has(baseSlug)) gruppiMap.set(baseSlug, { titolo: baseTitolo });
+    const gruppo = gruppiMap.get(baseSlug)!;
+    if (accordi) gruppo.accordi = voce;
+    else gruppo.testo = voce;
+  }
+  gruppi = [...gruppiMap.values()];
+} catch {
+  // Manifest non ancora generato (primo cron non ancora girato): pagina vuota
+  // con messaggio, nessun errore 500.
+}
+
+function formattaDimensione(bytes: number): string {
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+const dataGenerazione = generatoIl
+  ? new Date(generatoIl).toLocaleDateString('it-IT', { year: 'numeric', month: 'long', day: 'numeric' })
+  : null;
+---
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription} noindex={meta.noindex}>
+  <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">
+    <HeaderWatermark />
+    <div class="relative z-10 max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
+      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Canzonieri' }]} />
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{meta.pageTitle}</h1>
+      <p class="font-sans text-base-content/70">{meta.pageDescription}</p>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    {dataGenerazione && (
+      <p class="font-sans text-sm text-base-content/60 mb-6">Ultimo aggiornamento: {dataGenerazione}</p>
+    )}
+
+    {gruppi.length === 0 ? (
+      <p class="font-sans text-base-content/70">
+        Nessun canzoniere disponibile al momento: la prima generazione settimanale non è ancora avvenuta.
+      </p>
+    ) : (
+      <ul role="list" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+        {gruppi.map((g) => (
+          <li class="flex flex-col gap-2">
+            <h2 class="font-serif font-bold text-xl md:text-2xl text-primary leading-tight">{g.titolo}</h2>
+            <div class="flex flex-wrap gap-x-5 gap-y-1.5">
+              {g.testo && (
+                <a
+                  href={`/pdf/canzonieri/${g.testo.file}`}
+                  download
+                  data-pdf-download={g.testo.slug}
+                  data-pdf-download-event="canzoniere_download"
+                  data-pdf-download-key="canzoniere"
+                  class="text-lg text-base-content/70 hover:text-primary flex items-center gap-2 transition-colors"
+                >
+                  <Icon name="file-pdf" class="text-base text-primary/70 shrink-0" />
+                  Testi <span class="text-sm text-base-content/50">({formattaDimensione(g.testo.dimensione)})</span>
+                </a>
+              )}
+              {g.accordi && (
+                <a
+                  href={`/pdf/canzonieri/${g.accordi.file}`}
+                  download
+                  data-pdf-download={g.accordi.slug}
+                  data-pdf-download-event="canzoniere_download"
+                  data-pdf-download-key="canzoniere"
+                  class="text-lg text-base-content/70 hover:text-primary flex items-center gap-2 transition-colors"
+                >
+                  <Icon name="guitar" class="text-base text-primary/70 shrink-0" />
+                  Con accordi <span class="text-sm text-base-content/50">({formattaDimensione(g.accordi.dimensione)})</span>
+                </a>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+
+  <script>
+    import '../../scripts/pdf-download.js';
+  </script>
+</BaseLayout>

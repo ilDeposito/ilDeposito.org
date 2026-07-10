@@ -144,10 +144,10 @@ cmd_restart() {
 }
 
 cmd_build_frontend() {
-    local mode="${1:-full}"  # full (contenuti+pdf) | content (no pdf) | pdf (solo pdf, in-place)
+    local mode="${1:-full}"  # full (contenuti+pdf) | content (no pdf) | pdf (solo pdf, in-place) | canzonieri (solo canzonieri, in-place)
     case "${mode}" in
-        full|content|pdf) ;;
-        *) error "Modalità build-frontend sconosciuta: ${mode} (usa: full|content|pdf)"; exit 1 ;;
+        full|content|pdf|canzonieri) ;;
+        *) error "Modalità build-frontend sconosciuta: ${mode} (usa: full|content|pdf|canzonieri)"; exit 1 ;;
     esac
 
     info "Build frontend Astro [${ENV}] modalità: ${mode}..."
@@ -160,7 +160,7 @@ cmd_build_frontend() {
     info "Avvio build..."
     ${COMPOSE} run --rm astro-builder sh docker-entrypoint.sh "${mode}"
 
-    if [[ "${mode}" != "pdf" ]]; then
+    if [[ "${mode}" != "pdf" && "${mode}" != "canzonieri" ]]; then
         # frontend-web può essere stato ricreato pochi secondi prima da
         # './ildeposito.sh up' (es. dopo un pull immagine): il suo healthcheck
         # ha start_period 10s + 3 retries da 30s, quindi può risultare ancora
@@ -371,7 +371,8 @@ ${BOLD}Comandi:${NC}
   restart           Riavvia l'ambiente
   build-frontend            Build Astro completa (contenuti + pdf) + deploy zero-downtime
   build-frontend-content    Build Astro solo contenuti (no pdf) + deploy zero-downtime
-  build-frontend-pdf        Rigenera solo i pdf, in-place nella release corrente
+  build-frontend-pdf        Rigenera solo i pdf dei canti, in-place nella release corrente
+  build-canzonieri          Rigenera i canzonieri collettivi, in-place (uso da cron settimanale)
   drush <args>      Esegui comando drush
   migrate [flags]   Importa tutte le migrazioni (ordine di dipendenza)
   allinea-prod      [solo stage] Allinea DB e file da prod (backup.sql + rsync), no conferma (uso da cron)
@@ -396,6 +397,7 @@ case "${1:-}" in
     build-frontend)          shift; cmd_build_frontend full ;;
     build-frontend-content)  shift; cmd_build_frontend content ;;
     build-frontend-pdf)      shift; cmd_build_frontend pdf ;;
+    build-canzonieri)        shift; cmd_build_frontend canzonieri ;;
     drush)           shift; cmd_drush "$@" ;;
     migrate)         shift; cmd_migrate "$@" ;;
     allinea-prod)    cmd_allinea_prod ;;

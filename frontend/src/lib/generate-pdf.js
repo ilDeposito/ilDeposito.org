@@ -7,13 +7,13 @@ import { withUtm } from './utm.js';
 const SITE_URL = 'https://www.ildeposito.org';
 const HEADER_TEXT = 'ilDeposito.org - Canti di protesta politica e sociale';
 
-const PAGE = { width: 595.28, height: 841.89 }; // A4
-const MARGIN = { top: 50, bottom: 50, left: 50, right: 50 };
-const CONTENT_WIDTH = PAGE.width - MARGIN.left - MARGIN.right;
+export const PAGE = { width: 595.28, height: 841.89 }; // A4
+export const MARGIN = { top: 50, bottom: 50, left: 50, right: 50 };
+export const CONTENT_WIDTH = PAGE.width - MARGIN.left - MARGIN.right;
 
-const COLOR_RED = '#aa0000';
-const COLOR_BLACK = '#000000';
-const COLOR_GRAY = '#333333';
+export const COLOR_RED = '#aa0000';
+export const COLOR_BLACK = '#000000';
+export const COLOR_GRAY = '#333333';
 
 let FONT_BUFFERS = null;
 
@@ -37,7 +37,7 @@ function getFontBuffers() {
   return FONT_BUFFERS;
 }
 
-function sanitizeText(text) {
+export function sanitizeText(text) {
   if (!text) return '';
   return text
     .replace(/['']/g, "'")
@@ -48,7 +48,7 @@ function sanitizeText(text) {
     .replace(/ /g, ' ');
 }
 
-function stripHtml(html) {
+export function stripHtml(html) {
   if (!html) return '';
   return html
     .replace(/<br\s*\/?>/gi, '\n')
@@ -62,7 +62,7 @@ function stripHtml(html) {
     .replace(/&nbsp;/g, ' ');
 }
 
-function drawHeaderLine(doc) {
+export function drawHeaderLine(doc) {
   const y = MARGIN.top - 15;
   doc.save()
     .moveTo(MARGIN.left, y)
@@ -73,7 +73,7 @@ function drawHeaderLine(doc) {
     .restore();
 }
 
-function drawFooterLine(doc) {
+export function drawFooterLine(doc) {
   const y = PAGE.height - MARGIN.bottom + 15;
   doc.save()
     .moveTo(MARGIN.left, y)
@@ -84,7 +84,7 @@ function drawFooterLine(doc) {
     .restore();
 }
 
-function registerFonts(doc) {
+export function registerFonts(doc) {
   for (const [name, buffer] of Object.entries(getFontBuffers())) {
     doc.registerFont(name, buffer);
   }
@@ -152,9 +152,9 @@ export async function generateCantoPdf(canto, { autoriTesto, periodo, lingue, ta
   });
 }
 
-function renderCantoPage(doc, canto, { autoriTesto, periodo, lingue, tags, pageUrl, qrBuffer }) {
+export function renderCantoPage(doc, canto, { autoriTesto, periodo, lingue, tags, pageUrl, qrBuffer, columns = 2, textField = 'testo' }) {
   const anno = canto.anno ? new Date(canto.anno).getUTCFullYear() : null;
-  const testo = sanitizeText(stripHtml(canto.testo || ''));
+  const testo = sanitizeText(stripHtml(canto[textField] || ''));
   const informazioni = canto.informazioni ? sanitizeText(stripHtml(canto.informazioni)) : null;
 
   const qrSize = 65;
@@ -201,64 +201,96 @@ function renderCantoPage(doc, canto, { autoriTesto, periodo, lingue, tags, pageU
 
   doc.font('IBMPlexMono').fontSize(8).fillColor(COLOR_BLACK);
 
-  const colGap = 20;
-  const colWidth = (CONTENT_WIDTH - colGap) / 2;
-  const rightX = MARGIN.left + colWidth + colGap;
   const pageBottom = PAGE.height - MARGIN.bottom - 10;
   const LINE_GAP = 1;
   const STANZA_GAP = 5;
 
-  const lines = testo.split('\n');
-  const linesPerCol = Math.ceil(lines.length / 2);
+  let endY;
 
-  let rightStart = linesPerCol;
-  while (rightStart < lines.length && lines[rightStart].trim() === '') rightStart++;
-  const leftLines = lines.slice(0, linesPerCol);
-  const rightLines = lines.slice(rightStart);
+  if (columns === 1) {
+    // Colonna singola: usata per il testo con accordi, dove uno split a metà
+    // riga romperebbe l'allineamento verticale accordo/parola.
+    const colWidth = CONTENT_WIDTH;
+    let y = textStartY;
 
-  let ly = textStartY;
-  let ry = textStartY;
-  const maxRows = Math.max(leftLines.length, rightLines.length);
+    for (const rawLine of testo.split('\n')) {
+      const line = sanitizeText(rawLine);
+      const empty = !line || line.trim() === '';
 
-  for (let i = 0; i < maxRows; i++) {
-    const lLine = i < leftLines.length ? sanitizeText(leftLines[i]) : null;
-    const rLine = i < rightLines.length ? sanitizeText(rightLines[i]) : null;
+      if (empty) {
+        y += STANZA_GAP;
+        continue;
+      }
 
-    const lEmpty = !lLine || lLine.trim() === '';
-    const rEmpty = !rLine || rLine.trim() === '';
+      const h = doc.heightOfString(line, { width: colWidth, lineGap: 0 });
 
-    if (lEmpty && rEmpty) {
-      ly += STANZA_GAP;
-      ry += STANZA_GAP;
-      continue;
+      if (y + h > pageBottom) {
+        doc.addPage();
+        y = MARGIN.top + 10;
+      }
+
+      doc.text(line, MARGIN.left, y, { width: colWidth, lineGap: 0 });
+      y += h + LINE_GAP;
     }
 
-    const lH = lLine && !lEmpty ? doc.heightOfString(lLine, { width: colWidth, lineGap: 0 }) : 0;
-    const rH = rLine && !rEmpty ? doc.heightOfString(rLine, { width: colWidth, lineGap: 0 }) : 0;
-    const rowH = Math.max(lH, rH);
+    endY = y;
+  } else {
+    const colGap = 20;
+    const colWidth = (CONTENT_WIDTH - colGap) / 2;
+    const rightX = MARGIN.left + colWidth + colGap;
 
-    if (Math.max(ly, ry) + rowH > pageBottom) {
-      doc.addPage();
-      ly = MARGIN.top + 10;
-      ry = MARGIN.top + 10;
+    const lines = testo.split('\n');
+    const linesPerCol = Math.ceil(lines.length / 2);
+
+    let rightStart = linesPerCol;
+    while (rightStart < lines.length && lines[rightStart].trim() === '') rightStart++;
+    const leftLines = lines.slice(0, linesPerCol);
+    const rightLines = lines.slice(rightStart);
+
+    let ly = textStartY;
+    let ry = textStartY;
+    const maxRows = Math.max(leftLines.length, rightLines.length);
+
+    for (let i = 0; i < maxRows; i++) {
+      const lLine = i < leftLines.length ? sanitizeText(leftLines[i]) : null;
+      const rLine = i < rightLines.length ? sanitizeText(rightLines[i]) : null;
+
+      const lEmpty = !lLine || lLine.trim() === '';
+      const rEmpty = !rLine || rLine.trim() === '';
+
+      if (lEmpty && rEmpty) {
+        ly += STANZA_GAP;
+        ry += STANZA_GAP;
+        continue;
+      }
+
+      const lH = lLine && !lEmpty ? doc.heightOfString(lLine, { width: colWidth, lineGap: 0 }) : 0;
+      const rH = rLine && !rEmpty ? doc.heightOfString(rLine, { width: colWidth, lineGap: 0 }) : 0;
+      const rowH = Math.max(lH, rH);
+
+      if (Math.max(ly, ry) + rowH > pageBottom) {
+        doc.addPage();
+        ly = MARGIN.top + 10;
+        ry = MARGIN.top + 10;
+      }
+
+      if (lLine && !lEmpty) {
+        doc.text(lLine, MARGIN.left, ly, { width: colWidth, lineGap: 0 });
+        ly += lH + LINE_GAP;
+      } else {
+        ly += STANZA_GAP;
+      }
+
+      if (rLine && !rEmpty) {
+        doc.text(rLine, rightX, ry, { width: colWidth, lineGap: 0 });
+        ry += rH + LINE_GAP;
+      } else {
+        ry += STANZA_GAP;
+      }
     }
 
-    if (lLine && !lEmpty) {
-      doc.text(lLine, MARGIN.left, ly, { width: colWidth, lineGap: 0 });
-      ly += lH + LINE_GAP;
-    } else {
-      ly += STANZA_GAP;
-    }
-
-    if (rLine && !rEmpty) {
-      doc.text(rLine, rightX, ry, { width: colWidth, lineGap: 0 });
-      ry += rH + LINE_GAP;
-    } else {
-      ry += STANZA_GAP;
-    }
+    endY = Math.max(ly, ry);
   }
-
-  const endY = Math.max(ly, ry);
 
   if (informazioni) {
     let infoY = endY + 20;

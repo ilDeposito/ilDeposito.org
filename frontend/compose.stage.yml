@@ -54,6 +54,10 @@ services:
       DRUPAL_API_USER: ${DRUPAL_API_USER}
       DRUPAL_API_PASS: ${DRUPAL_API_PASS}
       ALTCHA_HMAC_KEY: ${ALTCHA_HMAC_KEY}
+      # Letta dalla pagina /canzonieri (SSR) per elencare i canzonieri
+      # generati dal cron settimanale (./ildeposito.sh build-canzonieri),
+      # fuori dal ciclo di build Astro — vedi docker-entrypoint.sh.
+      CANZONIERI_DIR: /app/output/current/client/pdf/canzonieri
     volumes:
       - frontend_output:/app/output:ro
     mem_limit: 512m

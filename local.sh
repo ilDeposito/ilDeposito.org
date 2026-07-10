@@ -125,6 +125,38 @@ cmd_build() {
     rm -f "$logfile"
 }
 
+cmd_canzonieri() {
+    local dist_client="${PROJECT_ROOT}/frontend/dist/client"
+    if [[ ! -d "$dist_client" ]]; then
+        error "Build statica non trovata in frontend/dist/client"
+        info "Esegui prima: ./local.sh build"
+        exit 1
+    fi
+
+    if [[ ! -f "${PROJECT_ROOT}/frontend/.env" ]]; then
+        error "frontend/.env non trovato"
+        exit 1
+    fi
+    # DRUPAL_API_URL locale (http://ildeposito11.ddev.site): lo script gira
+    # fuori dalla pipeline Vite/Astro, quindi va eseguito direttamente con
+    # node e la env non viene caricata da sola come durante 'npm run build'.
+    set -a
+    source "${PROJECT_ROOT}/frontend/.env"
+    set +a
+
+    info "Generazione canzonieri (può richiedere qualche minuto)..."
+    if (cd "${PROJECT_ROOT}/frontend" && CANZONIERI_OUT_DIR="${dist_client}/pdf/canzonieri" node scripts/generate-canzonieri.mjs); then
+        ok "Canzonieri generati in frontend/dist/client/pdf/canzonieri"
+        # dist/ è montato nel container astro-node: i file nuovi sono serviti
+        # subito (lettura da disco a ogni richiesta), nessun restart necessario.
+        info "PDF:    https://frontend.ildeposito11.ddev.site/pdf/canzonieri/"
+        info "Pagina: https://frontend.ildeposito11.ddev.site/canzonieri"
+    else
+        error "Generazione canzonieri fallita"
+        exit 1
+    fi
+}
+
 npm_dryrun_conflicts() {
     local frontend_dir="${PROJECT_ROOT}/frontend"
     local dryrun_output
@@ -531,6 +563,7 @@ usage() {
     printf "  %b%-22s%b %s\n" "$CYAN"   "stop"             "$NC" "Arresta l'ambiente locale"
     printf "  %b%-22s%b %s\n" "$CYAN"   "restart"          "$NC" "Riavvia l'ambiente locale"
     printf "  %b%-22s%b %s\n" "$CYAN"   "build"            "$NC" "Build statica del frontend Astro (con progresso)"
+    printf "  %b%-22s%b %s\n" "$CYAN"   "canzonieri"       "$NC" "Rigenera i canzonieri collettivi in frontend/dist/client/pdf/canzonieri (richiede build)"
     printf "  %b%-22s%b %s\n" "$CYAN"   "linkcheck"        "$NC" "Verifica link interni rotti nel build statico"
     printf "  %b%-22s%b %s\n" "$CYAN"   ""                 "$NC" "  --check-external verifica anche i link esterni via HTTP (YouTube via oEmbed)"
     printf "  %b%-22s%b %s\n" "$CYAN"   ""                 "$NC" "  --timeout=ms --concurrency=n (default 8000ms, 8 richieste parallele)"
@@ -547,6 +580,7 @@ _local_sh() {
         'stop:Arresta l'\''ambiente locale'
         'restart:Riavvia l'\''ambiente locale'
         'build:Build statica del frontend Astro'
+        'canzonieri:Rigenera i canzonieri collettivi'
         'linkcheck:Verifica link interni rotti nel build statico'
         'outdated:Verifica aggiornamenti backend e frontend'
         'upgrade:Aggiorna pacchetti (backend | frontend)'
@@ -574,6 +608,7 @@ case "${1:-}" in
     stop)              cmd_stop ;;
     restart)           cmd_restart ;;
     build)             cmd_build ;;
+    canzonieri)        cmd_canzonieri ;;
     linkcheck)         shift; cmd_linkcheck "$@" ;;
     outdated)     cmd_outdated ;;
     upgrade)           cmd_upgrade "${2:-}" ;;

@@ -51,6 +51,13 @@ contatti:
   pageTitle: "Contatti"
   pageDescription: "Scrivici per segnalazioni, collaborazioni o informazioni sull'archivio."
 
+canzonieri:
+  metaTitle: "Canzonieri"
+  metaDescription: "Canzonieri PDF collettivi: tutti i canti, tutti i canti con accordi, per periodo e per autore."
+  pageTitle: "Canzonieri"
+  pageDescription: "Raccolte PDF di più canti in un unico file, con indice e indice analitico per autore. Aggiornati settimanalmente."
+  noindex: true
+
 cerca:
   metaTitle: "Cerca nell'archivio"
   metaDescription: "Cerca tra i canti, gli autori, gli eventi, le traduzioni e i periodi dell'archivio"
