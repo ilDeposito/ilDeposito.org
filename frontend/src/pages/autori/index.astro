@@ -86,14 +86,15 @@ const jsonLd = [
                       format="webp"
                       quality={80}
                       loading={i < 4 ? 'eager' : 'lazy'}
-                      class="w-32 h-32 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
+                      class="w-20 h-20 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
                     />
                   ) : (
                     <AutorePlaceholder
                       nome={autore.nome}
                       cognome={autore.cognome}
                       titolo={autore.titolo}
-                      class="w-32 h-32 md:w-36 md:h-36"
+                      textClass="text-2xl md:text-5xl"
+                      class="w-20 h-20 md:w-36 md:h-36"
                     />
                   )}
                 </div>

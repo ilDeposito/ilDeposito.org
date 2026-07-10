@@ -65,17 +65,19 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
 
   <!-- Mobile: contatore + bottone filtri -->
   <div class="sm:hidden mb-4">
-    <div class="flex items-baseline gap-3 mb-3">
-      <p data-result-count class="text-base font-serif font-semibold text-base-content"></p>
-      <button type="button" data-reset-filters class="text-sm text-primary hover:text-primary/70 transition-colors hidden whitespace-nowrap">
+    <p data-result-count class="text-base font-serif font-semibold text-base-content mb-3"></p>
+    <div class="flex items-center gap-3 flex-wrap">
+      <button type="button" data-filter-toggle class="btn btn-sm gap-2 bg-base-200 hover:bg-base-300 border border-base-300">
+        <Icon name="funnel" />
+        Filtra l'elenco
+        <span data-filter-count class="badge badge-secondary badge-sm hidden px-2"></span>
+      </button>
+      <div data-sort-panel-mobile></div>
+      <button type="button" data-reset-filters class="hidden items-center gap-1 text-sm text-primary hover:text-primary/70 transition-colors whitespace-nowrap">
+        <Icon name="funnel-x" />
         Rimuovi filtri
       </button>
     </div>
-    <button type="button" data-filter-toggle class="btn btn-ghost btn-sm gap-2 border border-base-300">
-      <Icon name="funnel" />
-      Filtra l'elenco
-      <span data-filter-count class="badge badge-secondary badge-sm hidden"></span>
-    </button>
   </div>
 
   <!-- Drawer filtri (mobile) -->
@@ -84,7 +86,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
     aria-label="Filtri"
     class="sm:hidden m-0 p-0 max-w-none max-h-none w-full h-full bg-transparent"
   >
-    <div class="absolute inset-y-0 left-0 w-72 max-w-full bg-base-100 shadow-xl flex flex-col">
+    <div class="absolute inset-0 bg-base-100 shadow-xl flex flex-col">
       <div class="flex items-center justify-between p-4 border-b border-base-300">
         <h2 class="font-serif font-bold text-base">Filtra l'elenco</h2>
         <button
@@ -96,10 +98,6 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
       </div>
       <div data-filter-panel-mobile class="flex-1 overflow-y-auto p-4">
         <p class="text-sm text-base-content/70 italic">Caricamento filtri…</p>
-      </div>
-      <div class="p-4 border-t border-base-300 flex gap-2">
-        <button type="button" data-reset-filters class="btn btn-ghost btn-sm flex-1">Rimuovi filtri</button>
-        <button type="button" data-drawer-close class="btn btn-primary btn-sm flex-1">Applica</button>
       </div>
     </div>
   </dialog>
@@ -563,7 +561,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
 
         // Chiudi con Escape
         document.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape') this._closeAllDropdowns();
+          if (e.key === 'Escape') { this._closeAllDropdowns(); this._closeAllSortDropdowns(); }
         });
       }
 
@@ -596,6 +594,9 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
             this._closeAllDropdowns();
 
             await this._search();
+
+            // Nel drawer mobile la selezione chiude anche il modale e torna all'elenco
+            if (input.closest('[data-filter-drawer]')) this._closeDrawer?.();
           });
         });
 
@@ -659,7 +660,9 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
 
         // Bottoni reset (desktop + mobile)
         this.querySelectorAll('[data-reset-filters]').forEach((btn) => {
-          btn.classList.toggle('hidden', entries.length === 0);
+          const show = entries.length > 0;
+          btn.classList.toggle('hidden', !show);
+          btn.classList.toggle('inline-flex', show);
         });
 
         // Aggiorna label bottoni dropdown
@@ -683,6 +686,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
 
         const open  = () => { drawer.showModal(); document.body.style.overflow = 'hidden'; };
         const close = () => { if (drawer.open) drawer.close(); };
+        this._closeDrawer = close;
 
         toggle.addEventListener('click', open);
         drawer.querySelectorAll('[data-drawer-close]').forEach((b) => b.addEventListener('click', close));
@@ -699,112 +703,98 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
       _renderSortControls() {
         if (this._sortOptions.length === 0) return;
 
-        // Desktop: dropdown button
+        // Desktop: icona a fianco, bottone senza icona interna
         const desktopContainer = this.querySelector('[data-sort-panel-desktop]');
-        if (desktopContainer) {
-          const _isActiveSort = (o) => o.field === this._sortField && o.dir === this._sortDir;
-          const activeLabel = this._sortOptions.find(_isActiveSort)?.label ?? 'Ordina';
-          desktopContainer.innerHTML = `
-            <div class="flex items-center gap-3" data-sort-dropdown>
-              <span class="text-base-content/50 text-lg shrink-0">${ICO.sortAsc}</span>
-              <div class="relative">
-                <button type="button" data-sort-toggle aria-expanded="false" aria-controls="pf-sort-dropdown-panel" class="btn btn-md btn-ghost border border-base-300 gap-1">
-                  ${activeLabel} <span class="text-xs">${ICO.caretDown}</span>
-                </button>
-                <div id="pf-sort-dropdown-panel" data-sort-dropdown-panel class="hidden absolute right-0 top-[calc(100%+4px)] z-50
-                     bg-base-100 border border-base-300 rounded-box shadow-lg min-w-40 py-1">
-                  ${this._sortOptions.map((o) => `
-                    <button type="button" data-sort-select="${o.field}" data-sort-dir="${o.dir}"
-                      class="flex items-center gap-2 w-full px-3 py-1.5 text-sm hover:bg-base-200 text-left
-                             ${_isActiveSort(o) ? 'text-primary font-semibold' : ''}">
-                      <span class="text-xs ${_isActiveSort(o) ? '' : 'invisible'}">${ICO.check}</span>
-                      ${o.label}
-                    </button>
-                  `).join('')}
-                </div>
-              </div>
-            </div>
-          `;
+        if (desktopContainer) this._renderSortDropdown(desktopContainer, 'desktop', { sideIcon: true, size: 'md' });
 
-          const dropdown = desktopContainer.querySelector('[data-sort-dropdown]');
-          const toggle   = dropdown.querySelector('[data-sort-toggle]');
-          const panel    = dropdown.querySelector('[data-sort-dropdown-panel]');
+        // Mobile: bottone sempre visibile accanto a "Filtra l'elenco", icona interna al bottone
+        const mobileContainer = this.querySelector('[data-sort-panel-mobile]');
+        if (mobileContainer) this._renderSortDropdown(mobileContainer, 'mobile', { sideIcon: false, size: 'sm' });
+      }
 
-          toggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const willOpen = panel.classList.contains('hidden');
-            panel.classList.toggle('hidden');
-            toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-          });
+      // Bottone dropdown per l'ordinamento, riusato per desktop e mobile
+      _renderSortDropdown(container, idSuffix, { sideIcon, size }) {
+        const _isActiveSort = (o) => o.field === this._sortField && o.dir === this._sortDir;
+        const activeLabel = this._sortOptions.find(_isActiveSort)?.label ?? 'Ordina';
 
-          dropdown.querySelectorAll('[data-sort-select]').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-              this._sortField = btn.dataset.sortSelect;
-              this._sortDir   = btn.dataset.sortDir;
-              panel.classList.add('hidden');
-              toggle.setAttribute('aria-expanded', 'false');
-              this._updateSortUI();
-              await this._search();
-            });
-          });
-
-          document.addEventListener('click', (e) => {
-            if (!dropdown.contains(e.target)) {
-              panel.classList.add('hidden');
-              toggle.setAttribute('aria-expanded', 'false');
-            }
-          });
-        }
-
-        // Mobile: prepend sort section to the filter drawer
-        const mobilePanel = this.querySelector('[data-filter-panel-mobile]');
-        if (mobilePanel && !mobilePanel.querySelector('[data-sort-section-mobile]')) {
-          mobilePanel.insertAdjacentHTML('afterbegin', `
-            <div data-sort-section-mobile class="flex flex-col gap-1.5 pb-5 mb-5 border-b border-base-300">
-              <h3 class="font-serif font-bold text-xs uppercase tracking-wide text-base-content/70">Ordina</h3>
-              <div class="flex flex-col gap-0">
+        container.innerHTML = `
+          <div class="flex items-center gap-3" data-sort-dropdown>
+            ${sideIcon ? `<span class="text-base-content/50 text-lg shrink-0">${ICO.sortAsc}</span>` : ''}
+            <div class="relative">
+              <button type="button" data-sort-toggle data-sort-toggle-icon="${!sideIcon}" aria-expanded="false" aria-controls="pf-sort-dropdown-panel-${idSuffix}" class="btn btn-${size} btn-ghost border border-base-300 gap-1">
+                ${sideIcon ? '' : `${ICO.sortAsc} `}${activeLabel} <span class="text-xs">${ICO.caretDown}</span>
+              </button>
+              <div id="pf-sort-dropdown-panel-${idSuffix}" data-sort-dropdown-panel class="hidden absolute right-0 top-[calc(100%+4px)] z-50
+                   bg-base-100 border border-base-300 rounded-box shadow-lg min-w-40 py-1">
                 ${this._sortOptions.map((o) => `
-                  <label class="flex items-center gap-2 cursor-pointer py-1 text-sm group">
-                    <input type="radio" name="sort-mobile" class="radio radio-xs radio-primary"
-                      data-sort-select="${o.field}" data-sort-dir="${o.dir}"
-                      ${o.field === this._sortField && o.dir === this._sortDir ? 'checked' : ''} />
-                    <span class="flex-1 group-hover:text-primary transition-colors">${o.label}</span>
-                  </label>
+                  <button type="button" data-sort-select="${o.field}" data-sort-dir="${o.dir}"
+                    class="flex items-center gap-2 w-full px-3 py-1.5 text-sm hover:bg-base-200 text-left
+                           ${_isActiveSort(o) ? 'text-primary font-semibold' : ''}">
+                    <span class="text-xs ${_isActiveSort(o) ? '' : 'invisible'}">${ICO.check}</span>
+                    ${o.label}
+                  </button>
                 `).join('')}
               </div>
             </div>
-          `);
+          </div>
+        `;
 
-          mobilePanel.querySelectorAll('[data-sort-select]').forEach((input) => {
-            input.addEventListener('change', async () => {
-              this._sortField = input.dataset.sortSelect;
-              this._sortDir   = input.dataset.sortDir;
-              this._updateSortUI();
-              await this._search();
-            });
+        const dropdown = container.querySelector('[data-sort-dropdown]');
+        const toggle   = dropdown.querySelector('[data-sort-toggle]');
+        const panel    = dropdown.querySelector('[data-sort-dropdown-panel]');
+
+        toggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const willOpen = panel.classList.contains('hidden');
+          this._closeAllSortDropdowns();
+          if (willOpen) {
+            panel.classList.remove('hidden');
+            toggle.setAttribute('aria-expanded', 'true');
+          }
+        });
+
+        dropdown.querySelectorAll('[data-sort-select]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            this._sortField = btn.dataset.sortSelect;
+            this._sortDir   = btn.dataset.sortDir;
+            this._closeAllSortDropdowns();
+            this._updateSortUI();
+            await this._search();
           });
-        }
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!dropdown.contains(e.target)) {
+            panel.classList.add('hidden');
+            toggle.setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
+
+      _closeAllSortDropdowns() {
+        this.querySelectorAll('[data-sort-dropdown-panel]').forEach((p) => p.classList.add('hidden'));
+        this.querySelectorAll('[data-sort-toggle]').forEach((btn) => btn.setAttribute('aria-expanded', 'false'));
       }
 
       _updateSortUI() {
         const _isActive = (el) => el.dataset.sortSelect === this._sortField && el.dataset.sortDir === this._sortDir;
-        // Update desktop button label
-        const toggle = this.querySelector('[data-sort-toggle]');
-        if (toggle) {
-          const activeLabel = this._sortOptions.find((o) => o.field === this._sortField && o.dir === this._sortDir)?.label ?? 'Ordina';
-          toggle.innerHTML = `${activeLabel} <span class="text-xs">${ICO.caretDown}</span>`;
-        }
-        // Update desktop check marks + active styles
-        this.querySelector('[data-sort-dropdown-panel]')?.querySelectorAll('[data-sort-select]').forEach((btn) => {
-          const active = _isActive(btn);
-          btn.classList.toggle('text-primary', active);
-          btn.classList.toggle('font-semibold', active);
-          const check = btn.querySelector('span');
-          if (check) check.classList.toggle('invisible', !active);
+        const activeLabel = this._sortOptions.find((o) => o.field === this._sortField && o.dir === this._sortDir)?.label ?? 'Ordina';
+
+        // Aggiorna l'etichetta di tutti i bottoni (desktop + mobile)
+        this.querySelectorAll('[data-sort-toggle]').forEach((toggle) => {
+          const withIcon = toggle.dataset.sortToggleIcon === 'true';
+          toggle.innerHTML = `${withIcon ? ICO.sortAsc + ' ' : ''}${activeLabel} <span class="text-xs">${ICO.caretDown}</span>`;
         });
-        // Sync mobile radio states
-        this.querySelectorAll('[data-sort-section-mobile] [data-sort-select]').forEach((input) => {
-          input.checked = _isActive(input);
+
+        // Aggiorna i check mark + stile attivo in tutti i pannelli
+        this.querySelectorAll('[data-sort-dropdown-panel]').forEach((panel) => {
+          panel.querySelectorAll('[data-sort-select]').forEach((btn) => {
+            const active = _isActive(btn);
+            btn.classList.toggle('text-primary', active);
+            btn.classList.toggle('font-semibold', active);
+            const check = btn.querySelector('span');
+            if (check) check.classList.toggle('invisible', !active);
+          });
         });
       }
 

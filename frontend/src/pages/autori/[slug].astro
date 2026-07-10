@@ -136,7 +136,7 @@ const jsonLd = [
     {autore.informazioni && (
       <section class="flex flex-col gap-2" style="content-visibility:auto;contain-intrinsic-size:auto 200px">
         <h2 class="font-serif font-bold text-lg md:text-xl text-base-content">Informazioni</h2>
-        <div class="text-base text-base-content/80 leading-relaxed [&_a]:text-primary [&_a]:underline" set:html={autore.informazioni} />
+        <div class="rich-text text-base text-base-content/80" set:html={autore.informazioni} />
       </section>
     )}
 

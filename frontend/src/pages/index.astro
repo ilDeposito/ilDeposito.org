@@ -179,17 +179,17 @@ const autoriConDati = autori.map((autore) => ({
                   format="webp"
                   quality={80}
                   loading={i < 4 ? 'eager' : 'lazy'}
-                  class="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
+                  class="w-16 h-16 md:w-32 md:h-32 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
                 />
               ) : autori.length > 0 ? (
                 <AutorePlaceholder
                   titolo={autori[0].titolo}
-                  textClass="text-3xl md:text-4xl"
-                  class="w-28 h-28 md:w-32 md:h-32"
+                  textClass="text-lg md:text-4xl"
+                  class="w-16 h-16 md:w-32 md:h-32"
                 />
               ) : (
-                <PlaceholderCerchio label={canto.titolo} class="w-28 h-28 md:w-32 md:h-32">
-                  <Icon name="user" class="text-base-content/50 text-4xl" />
+                <PlaceholderCerchio label={canto.titolo} class="w-16 h-16 md:w-32 md:h-32">
+                  <Icon name="user" class="text-base-content/50 text-xl md:text-4xl" />
                 </PlaceholderCerchio>
               )}
             </div>
@@ -436,14 +436,14 @@ const autoriConDati = autori.map((autore) => ({
             Ogni giorno dell'anno ha la sua storia. Esplora gli eventi che hanno segnato la lotta sociale e
             scopri i canti che li raccontano.
           </p>
-          <a href="/calendario-cantato" class="btn btn-secondary btn-sm border-0 gap-2 w-fit mx-auto md:mx-0">
+          <a href="/archivio/calendario-cantato" class="btn btn-secondary btn-sm border-0 gap-2 w-fit mx-auto md:mx-0">
             Vedi il calendario completo
             <Icon name="arrow-right" />
           </a>
         </div>
         <div class="md:w-1/2 flex justify-center">
           <div class="bg-base-100 rounded-lg p-5 md:p-8 shadow-sm border border-base-300">
-            <MonthCalendar month={month} year={now.getUTCFullYear()} highlightedDays={highlightedDays} basePath="/calendario-cantato" />
+            <MonthCalendar month={month} year={now.getUTCFullYear()} highlightedDays={highlightedDays} basePath="/archivio/calendario-cantato" />
           </div>
         </div>
       </div>

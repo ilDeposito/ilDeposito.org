@@ -204,7 +204,7 @@ const jsonLd = [
     {canto.fonte && (
       <section class="flex flex-col gap-2">
         <h2 class="font-serif font-bold text-base md:text-lg text-base-content">Fonte</h2>
-        <div class="text-base text-base-content/80 leading-relaxed [&_a]:text-primary [&_a]:underline" set:html={canto.fonte} />
+        <div class="rich-text text-base text-base-content/80" set:html={canto.fonte} />
       </section>
     )}
 
@@ -212,7 +212,7 @@ const jsonLd = [
     {canto.informazioni && (
       <section class="flex flex-col gap-2">
         <h2 class="font-serif font-bold text-base md:text-lg text-base-content">Informazioni</h2>
-        <div class="text-base text-base-content/80 leading-relaxed [&_a]:text-primary [&_a]:underline" set:html={canto.informazioni} />
+        <div class="rich-text text-base text-base-content/80" set:html={canto.informazioni} />
       </section>
     )}
 

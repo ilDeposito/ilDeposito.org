@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/ui/Breadcrumb.astro';
+import HeaderWatermark from '../../components/ui/HeaderWatermark.astro';
+import ShareModal from '../../components/ui/ShareModal.astro';
+import Icon from '../../components/base/Icon.astro';
+import { getEventiGeo } from '../../lib/api/index.js';
+import { getPageMeta } from '../../lib/pages.js';
+
+const meta = getPageMeta('mappaCantata');
+const eventiGeo = await getEventiGeo();
+
+const eventiGeoJson = JSON.stringify(
+  eventiGeo.map((e) => ({
+    titolo:      e.titolo,
+    slug:        e.slug,
+    data_evento: e.dataEvento,
+    latitude:    e.latitude,
+    longitude:   e.longitude,
+  }))
+);
+---
+<BaseLayout
+  title={meta.metaTitle}
+  description={meta.metaDescription}
+  noindex={meta.noindex}
+  dnsPrefetch={['https://tile.openstreetmap.org']}
+>
+
+  <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">
+    <HeaderWatermark />
+    <div class="relative z-10 max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
+      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Eventi', href: '/eventi' }, { label: 'Mappa cantata' }]} />
+
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{meta.pageTitle}</h1>
+      <p class="font-serif italic text-base text-base-content/70">{meta.pageDescription}</p>
+
+      <share-button data-title="Mappa cantata" class="contents">
+        <button type="button" class="inline-flex items-center gap-1 cursor-pointer w-fit" aria-label="Condividi questa pagina">
+          <Icon name="share-network" />
+          Condividi
+        </button>
+        <ShareModal pageType="mappa-cantata" />
+      </share-button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    {eventiGeo.length > 0 && (
+      <events-map
+        data-eventi={eventiGeoJson}
+        role="region"
+        aria-label="Mappa degli eventi"
+        class="isolate block w-full rounded-lg overflow-hidden border border-base-300"
+        style="height: 70vh;"
+      ></events-map>
+    )}
+  </div>
+
+  <script>
+    import '../../scripts/share-button.js';
+    import '../../scripts/events-map.js';
+  </script>
+</BaseLayout>

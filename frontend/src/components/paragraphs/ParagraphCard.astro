@@ -19,7 +19,7 @@ const { titolo, testo, linkUrl, linkTesto } = Astro.props;
 
   {testo && (
     <div
-      class="text-sm text-base-content/70 leading-relaxed flex-grow mb-4 [&_a]:text-primary [&_a]:underline"
+      class="rich-text text-sm text-base-content/70 flex-grow mb-4"
       set:html={testo}
     />
   )}

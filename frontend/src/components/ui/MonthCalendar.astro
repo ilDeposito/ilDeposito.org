@@ -7,7 +7,7 @@ interface Props {
   headingLevel?: 'h2' | 'h3';
 }
 
-const { month, year, highlightedDays, basePath = '/calendario-cantato', headingLevel = 'h3' } = Astro.props;
+const { month, year, highlightedDays, basePath = '/archivio/calendario-cantato', headingLevel = 'h3' } = Astro.props;
 const Heading = headingLevel;
 
 const mesiIT = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];

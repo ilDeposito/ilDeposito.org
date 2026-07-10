@@ -14,7 +14,7 @@ const meta = getPageMeta('contatti');
   <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">
     <HeaderWatermark />
     <div class="relative z-10 max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
-      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Contatti' }]} />
+      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Informazioni', href: '/informazioni' }, { label: 'Contatti' }]} />
       <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{meta.pageTitle}</h1>
       <p class="font-sans text-base-content/70">{meta.pageDescription}</p>
     </div>
@@ -29,8 +29,12 @@ const meta = getPageMeta('contatti');
       </p>
 
 <p>
-        Se sei interessato ai nostri canali social visita la pagina
-        <a href="/informazioni/social" class="link link-primary font-semibold">Canali Social</a>.
+        Se sei interessato puoi seguirci attraverso i nostri canali social:
+        <ul>
+          <li><a href="https://www.facebook.com/ildeposito.org" class="link link-primary font-semibold" target="_blank">Faceboo</a>
+          <li><a href="https://www.youtube.com/ildeposito" class="link link-primary font-semibold" target="_blank">Facebook</a></li>
+
+        </ul>
       </p>
 
       <p>In alternativa, potete compilare il modulo sottostante.</p>

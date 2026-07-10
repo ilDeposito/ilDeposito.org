@@ -132,6 +132,12 @@ eventi.elenco:
   pageTitle: "Gli eventi dell'archivio"
   pageDescription: "L'elenco completo degli eventi presenti nell'archivio."
 
+mappaCantata:
+  metaTitle: "Mappa cantata — Gli eventi sulla mappa"
+  metaDescription: "Tutti gli eventi storici legati ai canti di protesta geolocalizzati su mappa."
+  pageTitle: "Mappa cantata"
+  pageDescription: "Tutti gli eventi dell'archivio geolocalizzati su mappa"
+
 # Pagina singolo evento — token: {titolo} {anno} {info} {data} {loc} {count}
 #   anno:   anno dell'evento (per il titolo)
 #   info:   informazioni (descrizione) se presenti
@@ -232,7 +238,7 @@ calendario.index:
   pageTitle: "Calendario cantato"
   pageDescription: "Gli anniversari degli eventi storici, giorno per giorno"
 
-# Giorno singolo (calendario-cantato/[giorno]) — token: {giorno} (es. "5 marzo")
+# Giorno singolo (archivio/calendario-cantato/[giorno]) — token: {giorno} (es. "5 marzo")
 calendario.giorno:
   metaTitle: "{giorno} — Calendario cantato"
   metaDescription: "Gli eventi storici del {giorno} nell'archivio di ilDeposito.org: anniversari, ricorrenze e canti collegati."

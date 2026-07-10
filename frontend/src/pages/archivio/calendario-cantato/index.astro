@@ -1,12 +1,12 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import Breadcrumb from '../../components/ui/Breadcrumb.astro';
-import HeaderWatermark from '../../components/ui/HeaderWatermark.astro';
-import ShareModal from '../../components/ui/ShareModal.astro';
-import Icon from '../../components/base/Icon.astro';
-import MonthCalendar from '../../components/ui/MonthCalendar.astro';
-import { getEventiCalendario } from '../../lib/api/index.js';
-import { getPageMeta } from '../../lib/pages.js';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../../components/ui/Breadcrumb.astro';
+import HeaderWatermark from '../../../components/ui/HeaderWatermark.astro';
+import ShareModal from '../../../components/ui/ShareModal.astro';
+import Icon from '../../../components/base/Icon.astro';
+import MonthCalendar from '../../../components/ui/MonthCalendar.astro';
+import { getEventiCalendario } from '../../../lib/api/index.js';
+import { getPageMeta } from '../../../lib/pages.js';
 
 const meta = getPageMeta('calendario.index');
 const eventi = await getEventiCalendario();
@@ -59,6 +59,6 @@ const year = new Date().getFullYear();
   </div>
 
   <script>
-    import '../../scripts/share-button.js';
+    import '../../../scripts/share-button.js';
   </script>
 </BaseLayout>
