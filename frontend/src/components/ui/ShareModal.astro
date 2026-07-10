@@ -15,7 +15,7 @@ const qrUrl = withUtm(pageUrl, { source: pageType, medium: 'qr_code', campaign: 
 const qrSvg = await generateQrSvg(qrUrl);
 ---
 
-<template data-share-template>
+<template data-share-template data-page-type={pageType}>
   <dialog class="modal">
     <div class="modal-box max-w-lg bg-base-200">
       <form method="dialog">

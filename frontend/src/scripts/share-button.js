@@ -1,15 +1,22 @@
+import { track } from '../lib/analytics.js';
+
 class ShareButton extends HTMLElement {
   connectedCallback() {
     const button = this.querySelector('button:not([data-share]):not([data-action])');
     const template = this.querySelector('template[data-share-template]');
     const title = this.dataset.title ?? document.title;
+    const pageType = template?.dataset.pageType ?? '';
     let dialog = null;
 
     button.addEventListener('click', () => {
       const url = window.location.href;
 
       if (navigator.share) {
-        navigator.share({ title, url }).catch(() => {});
+        // .then() e non il click stesso: navigator.share() si risolve solo se
+        // l'utente completa la condivisione dal foglio nativo, non se lo chiude.
+        navigator.share({ title, url })
+          .then(() => track('share', { channel: 'native', page_type: pageType }))
+          .catch(() => {});
         return;
       }
 
@@ -18,7 +25,7 @@ class ShareButton extends HTMLElement {
         this.appendChild(clone);
         dialog = this.querySelector('dialog');
         dialog.addEventListener('close', () => button.focus());
-        this._bindDialog(dialog, title);
+        this._bindDialog(dialog, title, pageType);
       }
 
       const facebook = dialog.querySelector('[data-share="facebook"]');
@@ -37,12 +44,21 @@ class ShareButton extends HTMLElement {
     });
   }
 
-  _bindDialog(dialog) {
+  _bindDialog(dialog, title, pageType) {
+    // Link social (facebook/whatsapp/telegram/email/x): un solo listener
+    // delegato, tracciato prima della navigazione verso il canale esterno.
+    dialog.querySelectorAll('[data-share]:not([data-share="copy"])').forEach((link) => {
+      link.addEventListener('click', () => {
+        track('share', { channel: link.dataset.share, page_type: pageType });
+      });
+    });
+
     const copyBtn = dialog.querySelector('[data-share="copy"]');
     if (copyBtn) {
       copyBtn.addEventListener('click', () => {
         const label = copyBtn.querySelector('[data-copy-label]');
         navigator.clipboard.writeText(window.location.href).then(() => {
+          track('share', { channel: 'copy', page_type: pageType });
           if (!label) return;
           const original = label.textContent;
           label.style.transition = 'opacity 0.3s';
@@ -65,6 +81,7 @@ class ShareButton extends HTMLElement {
     const downloadBtn = dialog.querySelector('[data-action="download-qr"]');
     if (downloadBtn) {
       downloadBtn.addEventListener('click', () => {
+        track('share', { channel: 'qr_code', page_type: pageType });
         const svgEl = dialog.querySelector('.qr-code-container svg');
         if (!svgEl) return;
 

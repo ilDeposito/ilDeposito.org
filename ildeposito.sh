@@ -281,6 +281,43 @@ cmd_allinea_prod() {
     cmd_build_frontend full
 }
 
+# Backup completo dell'applicazione: dump del database (esclude schema+dati
+# nulla, mantiene solo lo schema vuoto di tabelle cache_*/cachetags e
+# search_api_db_* così il DB resta importabile subito, senza aspettare un
+# cache:rebuild o un reindex) + dump della directory immagini. Entrambi in
+# bz2 in backup/ildeposito/, retention 30 giorni su base temporale (mtime).
+cmd_backup() {
+    local backup_dir="${PROJECT_ROOT}/backup/ildeposito"
+    mkdir -p "${backup_dir}"
+    local timestamp
+    timestamp="$(date +%Y%m%d-%H%M%S)"
+
+    info "Dump database (schema vuoto per cache*/search_api_db_*)..."
+    local db_sql_container="/var/backup_migrate/ildeposito/db-${timestamp}.sql"
+    local db_dump="${backup_dir}/db-${timestamp}.sql.bz2"
+    cmd_drush sql:dump \
+        --structure-tables-list=cache*,search_api_db_* \
+        --result-file="${db_sql_container}"
+    ${COMPOSE} exec -T php bzip2 "${db_sql_container}"
+    ok "Dump database: backup/ildeposito/db-${timestamp}.sql.bz2 ($(du -h "${db_dump}" | cut -f1))"
+
+    info "Dump directory immagini..."
+    local immagini_dir="${PROJECT_ROOT}/backend/web/sites/default/files/immagini"
+    if [[ -d "${immagini_dir}" ]]; then
+        local files_dump="${backup_dir}/immagini-${timestamp}.tar.bz2"
+        tar -cjf "${files_dump}.tmp" -C "$(dirname "${immagini_dir}")" "$(basename "${immagini_dir}")"
+        mv "${files_dump}.tmp" "${files_dump}"
+        ok "Dump immagini: backup/ildeposito/immagini-${timestamp}.tar.bz2 ($(du -h "${files_dump}" | cut -f1))"
+    else
+        warn "Directory ${immagini_dir} non trovata, skip"
+    fi
+
+    info "Applico retention (30 giorni)..."
+    find "${backup_dir}" -name "db-*.sql.bz2" -mtime +30 -delete
+    find "${backup_dir}" -name "immagini-*.tar.bz2" -mtime +30 -delete
+    ok "Backup completato"
+}
+
 cmd_exec() {
     local service="$1"
     shift
@@ -338,6 +375,8 @@ ${BOLD}Comandi:${NC}
   drush <args>      Esegui comando drush
   migrate [flags]   Importa tutte le migrazioni (ordine di dipendenza)
   allinea-prod      [solo stage] Allinea DB e file da prod (backup.sql + rsync), no conferma (uso da cron)
+  backup            Backup completo: dump DB (schema vuoto per cache*/search_api_db_*) + dump immagini
+                      entrambi in bz2 in backup/ildeposito/, retention 30 giorni (uso da cron)
   composer <args>   Esegui comando composer
   exec <srv> <cmd>  Esegui comando in un container
   shell [servizio]  Shell nel container (default: php)
@@ -360,6 +399,7 @@ case "${1:-}" in
     drush)           shift; cmd_drush "$@" ;;
     migrate)         shift; cmd_migrate "$@" ;;
     allinea-prod)    cmd_allinea_prod ;;
+    backup)          cmd_backup ;;
     composer)        shift; cmd_composer "$@" ;;
     exec)            shift; cmd_exec "$@" ;;
     shell)           shift; cmd_shell "$@" ;;

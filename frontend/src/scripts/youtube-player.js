@@ -1,9 +1,12 @@
+import { track } from '../lib/analytics.js';
+
 const CONSENT_KEY = 'yt-consent';
 
 class YouTubePlayer extends HTMLElement {
   connectedCallback() {
     this._player = null;
     this._ready = false;
+    this._played = false;
     this._consented = localStorage.getItem(CONSENT_KEY) === '1';
 
     const btn = this.querySelector('[data-yt-toggle]');
@@ -62,6 +65,10 @@ class YouTubePlayer extends HTMLElement {
           onReady: () => {
             this._ready = true;
             this._setPlaying(true);
+            if (!this._played) {
+              this._played = true;
+              track('audio_play', { canto: this.dataset.cantoSlug ?? '' });
+            }
           },
           onStateChange: (e) => {
             if (e.data === window.YT.PlayerState.ENDED) {

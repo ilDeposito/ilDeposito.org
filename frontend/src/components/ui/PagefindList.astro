@@ -181,6 +181,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
           this._query = q;
           this._page  = 0;
           await this._search();
+          this._trackSearch();
         };
 
         this._setupDrawer();
@@ -208,6 +209,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
           this._renderFilterPanels();
           this._renderSortControls();
           await this._search();
+          this._trackSearch();
         } catch (e) {
           console.error('[pagefind-list]', e);
           this._showError();
@@ -226,6 +228,13 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
         await this._renderPage();
         this._renderActiveFilters();
         this._updateResultCount();
+      }
+
+      // Evento 'search': solo ricerche testuali (query non vuota), mai per il
+      // solo browsing di una lista (filtri senza query, vedi cerca.astro).
+      _trackSearch() {
+        if (!this._query) return;
+        window.umami?.track('search', { query: this._query, source: 'cerca_page', results_count: this._results.length });
       }
 
       // ── Results ─────────────────────────────────────────────────────────────
@@ -586,6 +595,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
                 if (cb !== input) cb.checked = false;
               });
               this._filters[key] = val;
+              window.umami?.track('filter_apply', { list_type: this._type || 'cerca', filter_key: key, filter_value: val });
             } else {
               delete this._filters[key];
             }
@@ -760,6 +770,7 @@ const mergedLabels = { ...defaultLabels, ...filterLabels };
             this._closeAllSortDropdowns();
             this._updateSortUI();
             await this._search();
+            window.umami?.track('sort_apply', { list_type: this._type || 'cerca', field: this._sortField, dir: this._sortDir });
           });
         });
 

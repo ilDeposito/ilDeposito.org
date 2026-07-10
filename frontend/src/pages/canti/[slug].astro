@@ -90,7 +90,7 @@ const jsonLd = [
 
       <div class="flex items-center gap-4 text-base text-base-content mt-1">
         {canto.videoUrl && (
-          <youtube-player data-video-url={canto.videoUrl} class="contents">
+          <youtube-player data-video-url={canto.videoUrl} data-canto-slug={canto.slug} class="contents">
             <button type="button" data-yt-toggle class="inline-flex items-center gap-1 cursor-pointer" aria-label="Ascolta questo canto">
               <span data-yt-icon-play class="leading-none"><Icon name="play-fill" /></span>
               <span data-yt-icon-pause class="hidden leading-none"><Icon name="pause" /></span>
@@ -186,7 +186,7 @@ const jsonLd = [
         <pre lang={linguaToIso(canto.lingue?.[0]?.titolo)} class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{canto.testo}</pre>
       )}
       <div data-pagefind-ignore class="flex justify-start mt-4">
-        <a href={`/pdf/canti/${canto.slug}.pdf`} download class="inline-flex items-center gap-1 text-base text-base-content">
+        <a href={`/pdf/canti/${canto.slug}.pdf`} download data-pdf-download={canto.slug} class="inline-flex items-center gap-1 text-base text-base-content">
           <Icon name="file-pdf" />
           Scarica PDF
         </a>
@@ -302,6 +302,7 @@ const jsonLd = [
     import '../../scripts/song-lyrics.js';
     import '../../scripts/share-button.js';
     import '../../scripts/youtube-player.js';
+    import '../../scripts/pdf-download.js';
   </script>
   </div>
 

@@ -207,8 +207,9 @@ if (!customElements.get('search-modal')) {
             }
             const search = await pf.search(q);
             const data   = await Promise.all(search.results.slice(0, 8).map((x) => x.data()));
+            results.dataset.resultsCount = String(data.length);
             results.innerHTML = data.length
-              ? data.map((x) => `<li><a href="${_esc(x.url)}">${_esc(x.meta.title)} <span class="text-base-content/70">[${_esc(x.meta.type)}]</span></a></li>`).join('')
+              ? data.map((x, i) => `<li><a href="${_esc(x.url)}" data-search-result data-result-type="${_esc(x.meta.type)}" data-result-position="${i + 1}">${_esc(x.meta.title)} <span class="text-base-content/70">[${_esc(x.meta.type)}]</span></a></li>`).join('')
               : '<li><span class="text-base-content/70">Nessun risultato</span></li>';
             results.classList.remove('hidden');
             if (status) status.textContent = data.length ? `${data.length} suggeriment${data.length === 1 ? 'o' : 'i'} disponibil${data.length === 1 ? 'e' : 'i'}` : 'Nessun suggerimento disponibile';
@@ -220,6 +221,20 @@ if (!customElements.get('search-modal')) {
             e.stopPropagation();
             close();
           }
+        });
+
+        // Click su un suggerimento = ricerca "completata" senza passare da /cerca,
+        // va tracciata come evento search prima della navigazione verso il risultato.
+        results.addEventListener('click', (e) => {
+          const link = e.target.closest('[data-search-result]');
+          if (!link) return;
+          window.umami?.track('search', {
+            query: input.value.trim(),
+            source: 'header_suggestion',
+            results_count: Number(results.dataset.resultsCount || 0),
+            result_type: link.dataset.resultType,
+            result_position: Number(link.dataset.resultPosition),
+          });
         });
 
         document.addEventListener('click', (e) => {

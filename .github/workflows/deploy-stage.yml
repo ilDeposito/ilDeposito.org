@@ -26,10 +26,12 @@ jobs:
 
       - name: Backup database
         run: |
+          mkdir -p backup/deploy
           TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-          ./ildeposito.sh drush sql:dump --result-file=/var/backup_migrate/pre-deploy-${TIMESTAMP}.sql
-          ./ildeposito.sh exec -T php bzip2 /var/backup_migrate/pre-deploy-${TIMESTAMP}.sql
-          find backup/ -name "pre-deploy-*.sql.bz2" -mtime +7 -delete
+          ./ildeposito.sh drush sql:dump --result-file=/var/backup_migrate/deploy/pre-deploy-${TIMESTAMP}.sql
+          ./ildeposito.sh exec -T php bzip2 /var/backup_migrate/deploy/pre-deploy-${TIMESTAMP}.sql
+          # Retention a 10 file, a prescindere dall'età (non su base temporale).
+          ls -1t backup/deploy/pre-deploy-*.sql.bz2 | tail -n +11 | xargs -r rm -f --
 
       - name: Pull latest code
         run: |
