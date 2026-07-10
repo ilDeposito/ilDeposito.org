@@ -110,9 +110,13 @@ cmd_build() {
         # Marker scritto solo a build completa: il container aspetta questo file
         # prima di avviare Node, evitando race condition sui chunk SSR.
         touch "${PROJECT_ROOT}/frontend/dist/.build-complete"
-        docker restart ddev-ildeposito11-astro-static >/dev/null 2>&1
-        docker restart ddev-ildeposito11-astro-node   >/dev/null 2>&1
-        ok "Container frontend riavviati → https://frontend.ildeposito11.ddev.site"
+        # astro-node serve sia lo statico (letto da disco a ogni richiesta,
+        # nessun restart necessario) sia l'SSR (manifest delle rotte caricato
+        # in memoria all'avvio del processo Node: senza restart continuerebbe
+        # a servire le rotte SSR — es. /canzonieri — della build precedente).
+        # astro-static non esiste più (vedi docker-compose.astro-nginx.yaml).
+        docker restart ddev-ildeposito11-astro-node >/dev/null 2>&1
+        ok "Container frontend riavviato → https://frontend.ildeposito11.ddev.site"
     else
         printf "\n"
         error "Build fallita (exit code: ${exit_code})"

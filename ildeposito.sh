@@ -85,6 +85,44 @@ wait_for_nginx_healthy() {
     warn "${service} non è diventato healthy in tempo, procedo comunque"
 }
 
+# File di config nginx montati come bind mount di singolo file in
+# frontend-web (vedi frontend/compose.${ENV}.yml). git pull li sostituisce
+# con un rename atomico (nuovo inode): il mount del container resta
+# agganciato all'inode di quando è stato creato, quindi se questi file
+# cambiano da un deploy all'altro un semplice `nginx -s reload` continua
+# silenziosamente a servire la config precedente — serve un force-recreate
+# del container per un mount nuovo (vedi cmd_build_frontend).
+NGINX_CONF_FILES=(
+    "${PROJECT_ROOT}/frontend/nginx.conf"
+    "${PROJECT_ROOT}/frontend/nginx-ratelimit.conf"
+    "${PROJECT_ROOT}/frontend/nginx-log-formats.conf"
+    "${PROJECT_ROOT}/frontend/nginx-security-headers.conf"
+    "${PROJECT_ROOT}/frontend/nginx-realip.conf.template"
+)
+nginx_conf_hash() {
+    cat "${NGINX_CONF_FILES[@]}" | md5sum | cut -d' ' -f1
+}
+
+# Valida i file di config nginx in un container "usa e getta" invece che con
+# `exec` in quello già in esecuzione: per il motivo spiegato sopra, un exec
+# nel container esistente validerebbe la vecchia config se questa è cambiata
+# dall'ultima volta che è stato creato. Un container temporaneo (`run --rm`)
+# monta invece i file allo stato attuale. Replica a mano il comando
+# dell'immagine (envsubst di realip.conf.template) perché `run` con un
+# comando esplicito sovrascrive il `command:` del servizio.
+validate_nginx_config() {
+    info "Verifica configurazione nginx (container temporaneo)..."
+    if ${COMPOSE} run --rm -T --no-deps frontend-web sh -c "
+        envsubst '\$CADDY_TRUSTED_SUBNET' < /etc/nginx/templates/realip.conf.template > /etc/nginx/conf.d/realip.conf &&
+        nginx -t
+    "; then
+        ok "Configurazione nginx valida"
+    else
+        error "Configurazione nginx NON valida — deploy annullato, nginx resta sulla release precedente"
+        exit 1
+    fi
+}
+
 # Domini pubblici: stage segue il pattern admin-${ENV}/${ENV}, prod usa domini
 # dedicati (admin.ildeposito.org, FRONTEND_DOMAIN) senza prefisso ambiente.
 public_backend_url() {
@@ -173,16 +211,23 @@ cmd_build_frontend() {
         # generate-redirects.mjs) possono in teoria contenere una riga
         # malformata sfuggita alla validazione Drupal: mai ricaricare nginx
         # senza aver prima verificato la config, e mai silenziare l'esito.
-        info "Verifica configurazione nginx..."
-        if ${COMPOSE} exec -T frontend-web nginx -t; then
-            ok "Configurazione nginx valida"
-        else
-            error "Configurazione nginx NON valida — reload ANNULLATO, nginx resta sulla config precedente"
-            exit 1
-        fi
+        validate_nginx_config
 
-        info "Ricarica configurazione nginx..."
-        ${COMPOSE} exec frontend-web nginx -s reload
+        local nginx_hash_file="${PROJECT_ROOT}/.nginx-conf.hash"
+        local new_nginx_hash
+        new_nginx_hash="$(nginx_conf_hash)"
+        if [[ "$(cat "${nginx_hash_file}" 2>/dev/null)" != "${new_nginx_hash}" ]]; then
+            # Config cambiata dall'ultimo deploy: un reload da solo
+            # servirebbe ancora i file vecchi (vedi commento su
+            # NGINX_CONF_FILES) — serve un container nuovo, con un mount nuovo.
+            info "Config nginx cambiata dall'ultimo deploy: ricreo frontend-web..."
+            ${COMPOSE} up -d --force-recreate frontend-web
+            wait_for_nginx_healthy frontend-web
+        else
+            info "Ricarica configurazione nginx..."
+            ${COMPOSE} exec frontend-web nginx -s reload
+        fi
+        echo "${new_nginx_hash}" > "${nginx_hash_file}"
 
         info "Riavvio server SSR (frontend-api)..."
         ${COMPOSE} restart frontend-api

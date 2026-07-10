@@ -96,7 +96,7 @@ const dataGenerazione = generatoIl
         {gruppi.map((g) => (
           <li class="flex flex-col gap-2">
             <h2 class="font-serif font-bold text-xl md:text-2xl text-primary leading-tight">{g.titolo}</h2>
-            <div class="flex flex-wrap gap-x-5 gap-y-1.5">
+            <div class="flex flex-wrap gap-3">
               {g.testo && (
                 <a
                   href={`/pdf/canzonieri/${g.testo.file}`}
@@ -104,10 +104,10 @@ const dataGenerazione = generatoIl
                   data-pdf-download={g.testo.slug}
                   data-pdf-download-event="canzoniere_download"
                   data-pdf-download-key="canzoniere"
-                  class="text-lg text-base-content/70 hover:text-primary flex items-center gap-2 transition-colors"
+                  class="btn btn-primary gap-2 w-fit border-0"
                 >
-                  <Icon name="file-pdf" class="text-base text-primary/70 shrink-0" />
-                  Testi <span class="text-sm text-base-content/50">({formattaDimensione(g.testo.dimensione)})</span>
+                  <Icon name="file-pdf" />
+                  Testi <span class="text-sm opacity-70">({formattaDimensione(g.testo.dimensione)})</span>
                 </a>
               )}
               {g.accordi && (
@@ -117,10 +117,10 @@ const dataGenerazione = generatoIl
                   data-pdf-download={g.accordi.slug}
                   data-pdf-download-event="canzoniere_download"
                   data-pdf-download-key="canzoniere"
-                  class="text-lg text-base-content/70 hover:text-primary flex items-center gap-2 transition-colors"
+                  class="btn btn-secondary gap-2 w-fit border-0"
                 >
-                  <Icon name="guitar" class="text-base text-primary/70 shrink-0" />
-                  Con accordi <span class="text-sm text-base-content/50">({formattaDimensione(g.accordi.dimensione)})</span>
+                  <Icon name="guitar" />
+                  Con accordi <span class="text-sm opacity-70">({formattaDimensione(g.accordi.dimensione)})</span>
                 </a>
               )}
             </div>

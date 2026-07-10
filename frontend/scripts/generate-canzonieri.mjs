@@ -65,10 +65,10 @@ async function main() {
 
   const manifest = { generatoIl: new Date().toISOString(), canzonieri: [] };
 
-  await scriviCanzoniere(manifest, 'tutti', 'Tutti i canti', () =>
+  await scriviCanzoniere(manifest, 'tutti', 'Canzoniere completo de ilDeposito', () =>
     generaCanzonierePerTutti(canti, periodi, { accordi: false }));
 
-  await scriviCanzoniere(manifest, 'tutti-accordi', 'Tutti i canti con accordi', () =>
+  await scriviCanzoniere(manifest, 'tutti-accordi', 'Canzoniere completo de ilDeposito (con accordi)', () =>
     generaCanzonierePerTutti(canti, periodi, { accordi: true }));
 
   for (const periodo of periodi) {

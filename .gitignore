@@ -28,3 +28,7 @@ backend/private/
 
 # Versione deploy (generata dai workflow CI, letta dallo status report Drupal)
 backend/.deploy-version
+
+# Hash dei file di config nginx dell'ultimo deploy (vedi cmd_build_frontend
+# in ildeposito.sh): rileva se serve un force-recreate di frontend-web.
+.nginx-conf.hash
