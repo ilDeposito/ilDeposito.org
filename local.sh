@@ -75,6 +75,23 @@ cmd_build() {
     info "Pulizia cache Vite..."
     rm -rf "${PROJECT_ROOT}/frontend/node_modules/.vite"
 
+    # I canzonieri (./local.sh canzonieri) vivono fuori dal ciclo di build
+    # Astro, scritti direttamente in dist/client/pdf/canzonieri — ma Vite
+    # svuota dist/ per intero prima di ogni build (emptyOutDir di default,
+    # non disattivato in astro.config.mjs), quindi sparirebbero a ogni
+    # './local.sh build' finché non si rilancia 'canzonieri' a mano. Stesso
+    # problema/soluzione del carry-over in docker-entrypoint.sh per
+    # stage/prod: si spostano fuori da dist/ prima della build e si
+    # ripristinano subito dopo, successo o fallimento che sia (Vite ha già
+    # svuotato dist/ comunque prima di provare a compilare).
+    local canzonieri_dir="${PROJECT_ROOT}/frontend/dist/client/pdf/canzonieri"
+    local canzonieri_backup="${PROJECT_ROOT}/frontend/.cache/canzonieri"
+    if [[ -d "$canzonieri_dir" ]]; then
+        rm -rf "$canzonieri_backup"
+        mkdir -p "$(dirname "$canzonieri_backup")"
+        mv "$canzonieri_dir" "$canzonieri_backup"
+    fi
+
     info "Avvio build Astro..."
     local start_time=$SECONDS
 
@@ -99,6 +116,11 @@ cmd_build() {
     wait "$pid"
     local exit_code=$?
     set -e
+
+    if [[ -d "$canzonieri_backup" ]]; then
+        mkdir -p "${PROJECT_ROOT}/frontend/dist/client/pdf"
+        mv "$canzonieri_backup" "$canzonieri_dir"
+    fi
 
     count=$(find "${PROJECT_ROOT}/frontend/dist" -name "*.html" 2>/dev/null | wc -l | tr -d ' ')
 
