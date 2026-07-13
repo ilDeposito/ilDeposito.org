@@ -68,6 +68,7 @@ services:
       UMAMI_USERNAME: ${UMAMI_USERNAME:-}
       UMAMI_PASSWORD: ${UMAMI_PASSWORD:-}
       UMAMI_WEBSITE_ID: ${UMAMI_WEBSITE_ID:-}
+      FBPOST_WEBHOOK_URL: ${FBPOST_WEBHOOK_URL:-}
       REDIS_HOST: redis
       PHP_FPM_CLEAR_ENV: "no"
     volumes:

@@ -28,6 +28,12 @@ $settings['ildeposito_stats_umami_username'] = getenv('UMAMI_USERNAME') ?: '';
 $settings['ildeposito_stats_umami_password'] = getenv('UMAMI_PASSWORD') ?: '';
 $settings['ildeposito_stats_umami_website_id'] = getenv('UMAMI_WEBSITE_ID') ?: '';
 
+// Webhook Make.com per il post automatico su FB degli eventi con
+// anniversario oggi (ildeposito_utils, drush ildeposito:fb-post). Va
+// impostato SOLO nel .env di produzione (non sotto git): se assente il
+// comando resta un no-op, così stage non posta per sbaglio su FB.
+$settings['ildeposito_utils_fbpost_webhook_url'] = getenv('FBPOST_WEBHOOK_URL') ?: '';
+
 $settings['enable_html5_validation'] = FALSE;
 
 $settings['trusted_host_patterns'] = [
