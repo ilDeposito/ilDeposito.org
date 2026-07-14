@@ -33,3 +33,6 @@ pnpm-debug.log*
 playwright-report/
 test-results/
 
+# marker npm ci (deploy-stage.yml E2E step, vedi CLAUDE.md)
+.node_modules_hash
+

@@ -15,6 +15,12 @@ web/sites/default/files
 web/sites/default/live.php
 /vendor
 
+# Rigenerati da drupal-scaffold ad ogni composer install: tracciarli causa
+# git status "modified" perpetuo su stage/prod quando il template scaffold
+# evolve (vedi memoria "autoload-scaffold-untracked").
+web/autoload.php
+web/autoload_runtime.php
+
 # Esclusione moduli
 #!web/modules/contrib/visitors/
 
