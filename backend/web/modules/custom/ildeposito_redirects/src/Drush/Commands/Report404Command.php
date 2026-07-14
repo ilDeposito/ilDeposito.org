@@ -31,6 +31,14 @@ final class Report404Command extends Command {
   private const LOG_PATH = '/var/log/frontend-nginx/404.log';
   private const STATE_DESTINATARI = 'report_404_destinatari';
 
+  // Estensioni di asset statici (immagini, CSS, JS) da escludere dal report:
+  // interessano solo i 404 di pagina, il rumore di risorse mancanti (spesso
+  // referrer esterni o crawler) non è azionabile.
+  private const ESTENSIONI_IGNORATE = [
+    'css', 'js', 'mjs', 'map',
+    'png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'avif', 'ico',
+  ];
+
   public function __construct(
     private readonly StateInterface $state,
     private readonly MailManagerInterface $mailManager,
@@ -61,6 +69,9 @@ final class Report404Command extends Command {
       // "2026-01-01T12:00:00+01:00 /path/richiesto"
       $spacePos = strpos($line, ' ');
       $uri = $spacePos === FALSE ? $line : substr($line, $spacePos + 1);
+      if ($this->isAsset($uri)) {
+        continue;
+      }
       $counts[$uri] = ($counts[$uri] ?? 0) + 1;
     }
 
@@ -97,6 +108,12 @@ final class Report404Command extends Command {
     ));
 
     return Command::SUCCESS;
+  }
+
+  private function isAsset(string $uri): bool {
+    $path = parse_url($uri, PHP_URL_PATH) ?: $uri;
+    $estensione = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    return in_array($estensione, self::ESTENSIONI_IGNORATE, TRUE);
   }
 
   private function getDestinatari(): array {
