@@ -1,0 +1,29 @@
+uuid: 00a2c603-e63c-490d-a3ef-f112b25f3166
+langcode: it
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_immagine
+    - media.type.image
+    - node.type.pagina
+id: node.pagina.field_immagine
+field_name: field_immagine
+entity_type: node
+bundle: pagina
+label: Immagine
+description: "L'immagine che sarà usata come anteprima nella condvisione social"
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:media'
+  handler_settings:
+    target_bundles:
+      image: image
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

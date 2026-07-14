@@ -4,6 +4,7 @@ status: true
 dependencies:
   config:
     - field.field.node.pagina.field_descrizione_header
+    - field.field.node.pagina.field_immagine
     - field.field.node.pagina.field_paragraphs
     - field.field.node.pagina.field_visualizzazioni_24ore
     - field.field.node.pagina.field_visualizzazioni_6ore
@@ -26,6 +27,15 @@ content:
       link_to_entity: false
     third_party_settings: {  }
     weight: 116
+    region: content
+  field_immagine:
+    type: entity_reference_entity_view
+    label: above
+    settings:
+      view_mode: default
+      link: false
+    third_party_settings: {  }
+    weight: 102
     region: content
   field_paragraphs:
     type: entity_reference_revisions_entity_view

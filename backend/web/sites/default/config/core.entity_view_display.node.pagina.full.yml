@@ -1,9 +1,9 @@
-uuid: 9b1f78dd-85f9-48c3-bc07-9d4a36b2bdef
+uuid: 9271a930-8751-4441-bbc2-80dc4947b8dd
 langcode: it
 status: true
 dependencies:
   config:
-    - core.entity_view_mode.node.ricerca
+    - core.entity_view_mode.node.full
     - field.field.node.pagina.field_descrizione_header
     - field.field.node.pagina.field_immagine
     - field.field.node.pagina.field_paragraphs
@@ -15,10 +15,10 @@ dependencies:
     - node.type.pagina
   module:
     - user
-id: node.pagina.ricerca
+id: node.pagina.full
 targetEntityType: node
 bundle: pagina
-mode: ricerca
+mode: full
 content:
   field_immagine:
     type: entity_reference_entity_view

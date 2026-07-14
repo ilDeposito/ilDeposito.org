@@ -4,6 +4,7 @@ status: true
 dependencies:
   config:
     - field.field.node.pagina.field_descrizione_header
+    - field.field.node.pagina.field_immagine
     - field.field.node.pagina.field_paragraphs
     - field.field.node.pagina.field_visualizzazioni_24ore
     - field.field.node.pagina.field_visualizzazioni_6ore
@@ -12,6 +13,7 @@ dependencies:
     - field.field.node.pagina.field_visualizzazioni_totali
     - node.type.pagina
   module:
+    - media_library
     - paragraphs
     - path
 id: node.pagina.default
@@ -26,6 +28,13 @@ content:
     settings:
       size: 60
       placeholder: ''
+    third_party_settings: {  }
+  field_immagine:
+    type: media_library_widget
+    weight: 7
+    region: content
+    settings:
+      media_types: {  }
     third_party_settings: {  }
   field_paragraphs:
     type: paragraphs
