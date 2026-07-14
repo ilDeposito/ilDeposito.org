@@ -121,10 +121,13 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   // Estrazione best-effort della signature, indipendente dall'esito di verify():
   // permette di correlare nei log il challenge emesso da /api/altcha con
   // l'esito qui (OK, replay, o verifica fallita), anche quando verify() rigetta il payload.
+  // La signature del challenge è annidata sotto "challenge" nel payload che il
+  // widget invia — { challenge: { parameters, signature }, solution } — non a
+  // livello root (vedi altcha/dist/main/altcha.js, costruzione del payload v2).
   let altchaSignature: string | undefined;
   try {
-    const parsed = JSON.parse(Buffer.from(altchaPayload, 'base64').toString('utf-8')) as { signature?: string };
-    altchaSignature = parsed.signature;
+    const parsed = JSON.parse(Buffer.from(altchaPayload, 'base64').toString('utf-8')) as { challenge?: { signature?: string } };
+    altchaSignature = parsed.challenge?.signature;
   } catch {
     // payload non decodificabile — resta undefined, verify() lo rigetterà comunque
   }
