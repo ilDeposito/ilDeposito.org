@@ -292,6 +292,7 @@ export interface PaginaDetail {
   titolo: string;
   percorso: string;
   descrizioneHeader: string | null;
+  immagine: string | null;
   paragraphs: ParagraphItem[];
 }
 

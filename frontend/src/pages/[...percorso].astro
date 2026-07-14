@@ -9,6 +9,7 @@ import { getAllPagineDetail } from '../lib/api/index.js';
 import type { PaginaDetail } from '../lib/api/types.js';
 import { buildWebPageSchema, buildBreadcrumbSchema } from '../lib/schema.js';
 import { buildCanonical, stripHtml } from '../lib/seo.js';
+import { getOgImageForPagina } from '../lib/og-image.js';
 
 export async function getStaticPaths() {
   const allPagine = await getAllPagineDetail();
@@ -21,6 +22,7 @@ export async function getStaticPaths() {
 const { pagina } = Astro.props as { pagina: PaginaDetail };
 
 const description = pagina.descrizioneHeader ? stripHtml(pagina.descrizioneHeader) : '';
+const ogImage = (await getOgImageForPagina(pagina)) ?? undefined;
 
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
 const jsonLd = [
@@ -31,7 +33,14 @@ const jsonLd = [
   ]),
 ];
 ---
-<BaseLayout title={pagina.titolo} description={description} pagefindType="pagine" jsonLd={jsonLd}>
+<BaseLayout
+  title={pagina.titolo}
+  description={description}
+  pagefindType="pagine"
+  jsonLd={jsonLd}
+  ogImage={ogImage}
+  ogImageAlt={ogImage ? `Immagine per ${pagina.titolo}` : undefined}
+>
 
   <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">
     <HeaderWatermark />

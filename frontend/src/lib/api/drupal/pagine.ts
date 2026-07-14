@@ -55,11 +55,14 @@ function getPagineMap(): Promise<Map<string, PaginaDetail>> {
           ? sanitizeHtml(descField.processed ?? descField.value ?? (typeof descField === 'string' ? descField : ''))
           : null;
 
+        const immagine = resolveImageUrl(r.field_immagine, includedMap);
+
         map.set(percorso, {
           id: a.drupal_internal__nid,
           titolo: a.title,
           percorso,
           descrizioneHeader,
+          immagine,
           paragraphs,
         });
       }

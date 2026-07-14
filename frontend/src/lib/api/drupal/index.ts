@@ -12,5 +12,5 @@ export {
   getTags, getContenutiByTagMap,
 } from './tassonomie.js';
 export { getAllPagineDetail, getPagina } from './pagine.js';
-export { getAutoreImageUrl, getEventoImageUrl, getPeriodoImageUrl, getImageUrl } from './assets.js';
+export { getAutoreImageUrl, getEventoImageUrl, getPeriodoImageUrl, getPaginaOgImageUrl, getImageUrl } from './assets.js';
 export { getWatermarkImageUrl } from './media.js';

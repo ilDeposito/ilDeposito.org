@@ -132,7 +132,7 @@ export function fetchAllPagineRaw(): Promise<RawStore> {
   if (!paginePromise) {
     paginePromise = fetchAllJsonApi('/jsonapi/node/pagina', new URLSearchParams({
       'filter[status]': '1',
-      'fields[node--pagina]': 'drupal_internal__nid,title,path,field_descrizione_header,field_paragraphs',
+      'fields[node--pagina]': 'drupal_internal__nid,title,path,field_descrizione_header,field_immagine,field_paragraphs',
       'fields[paragraph--testo]': 'field_testo',
       'fields[paragraph--citazione]': 'field_testo,field_fonte',
       'fields[paragraph--immagine]': 'field_immagine,field_descrizione_immagine',
@@ -144,6 +144,8 @@ export function fetchAllPagineRaw(): Promise<RawStore> {
       // field_paragraphs.field_grid_item.field_immagine causerebbe 400.
       // Le immagini nei grid item vengono risolte via fetchAllImmagineParaGraphsRaw().
       'include': [
+        'field_immagine',
+        'field_immagine.field_media_image',
         'field_paragraphs',
         'field_paragraphs.field_immagine',
         'field_paragraphs.field_immagine.field_media_image',

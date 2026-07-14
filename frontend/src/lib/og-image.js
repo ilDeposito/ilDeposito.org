@@ -1,5 +1,5 @@
 import { getPeriodi } from './api/index.js';
-import { getAutoreImageUrl, getEventoImageUrl, getPeriodoImageUrl } from './api/index.js';
+import { getAutoreImageUrl, getEventoImageUrl, getPeriodoImageUrl, getPaginaOgImageUrl } from './api/index.js';
 
 let periodoImageMapCache = null;
 let randomPeriodoImageCache = null;
@@ -82,4 +82,17 @@ export async function getOgImageForPeriodo(periodo) {
 
 export async function getOgImageFallback() {
   return getRandomPeriodoImage();
+}
+
+// Le pagine ("pagina") non hanno periodi collegati: se field_immagine è
+// valorizzato viene usata (solo ritagliata, nessuna trasformazione di
+// colore/trasparenza — vedi cropToOgImage in assets.ts); altrimenti nessun
+// ogImage viene restituito e BaseLayout applica il fallback statico
+// /og-default.jpg.
+export async function getOgImageForPagina(pagina) {
+  if (pagina.immagine) {
+    const url = await getPaginaOgImageUrl(pagina.immagine);
+    if (url) return url;
+  }
+  return null;
 }
