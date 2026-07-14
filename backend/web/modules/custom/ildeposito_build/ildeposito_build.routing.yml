@@ -2,7 +2,7 @@ ildeposito_build.build_frontend:
   path: '/admin/pubblica-contenuti'
   defaults:
     _form: '\Drupal\ildeposito_build\Form\BuildFrontendForm'
-    _title: 'Pubblica contenuti'
+    _title: 'Pubblica sito'
   requirements:
     _permission: 'trigger frontend build'
     _custom_access: 'ildeposito_build.access_check::access'

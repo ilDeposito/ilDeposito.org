@@ -41,10 +41,14 @@ La whitelist è configurata nel codice in `JsonApiWriteFirewall::ALLOWED_WRITES`
 
 ## Workflow attivati
 
-| Ambiente | File workflow |
-|---|---|
-| Stage | `build-frontend-stage.yml` |
-| Produzione | `build-frontend-prod.yml` |
+Il form espone due pulsanti, ognuno agganciato a un workflow diverso in base all'ambiente (`ILDEPOSITO_ENV`):
+
+| Ambiente | Pubblica contenuti | Pubblica contenuti + PDF |
+|---|---|---|
+| Stage | `build-frontend-content-stage.yml` | `build-frontend-stage.yml` |
+| Produzione | `build-frontend-content-prod.yml` | `build-frontend-prod.yml` |
+
+"Pubblica contenuti" salta la rigenerazione PDF (`SKIP_PDF=1`, vedi `docker-entrypoint.sh`), quindi è più veloce; "Pubblica contenuti + PDF" rigenera anche i PDF dei canti modificati.
 
 ## Configurazione
 

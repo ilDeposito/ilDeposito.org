@@ -1,5 +1,5 @@
 ildeposito_build.build_frontend:
-  title: 'Pubblica contenuti'
+  title: 'Pubblica sito'
   description: 'Avvia la rigenerazione del sito pubblico (Astro) tramite GitHub Actions.'
   route_name: ildeposito_build.build_frontend
   parent: system.admin_config_services

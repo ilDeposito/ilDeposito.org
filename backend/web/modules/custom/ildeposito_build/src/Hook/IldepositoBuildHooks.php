@@ -88,7 +88,7 @@ final class IldepositoBuildHooks {
         '#type' => 'toolbar_item',
         'tab' => [
           '#type' => 'link',
-          '#title' => $this->t('Pubblica contenuti'),
+          '#title' => $this->t('Pubblica sito'),
           '#url' => Url::fromRoute('ildeposito_build.build_frontend'),
           '#attributes' => [
             'class' => ['toolbar-icon', 'toolbar-icon-ildeposito-build'],

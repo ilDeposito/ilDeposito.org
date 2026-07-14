@@ -12,10 +12,17 @@ use Drupal\ildeposito_build\Service\GitHubWorkflowClient;
 final class BuildFrontendForm extends FormBase {
 
   private const WORKFLOWS = [
-    'stage' => 'build-frontend-stage.yml',
-    'prod' => 'build-frontend-prod.yml',
-    // In locale non esiste una build: si aggancia al workflow di stage.
-    'local' => 'build-frontend-stage.yml',
+    'content' => [
+      'stage' => 'build-frontend-content-stage.yml',
+      'prod' => 'build-frontend-content-prod.yml',
+      // In locale non esiste una build: si aggancia al workflow di stage.
+      'local' => 'build-frontend-content-stage.yml',
+    ],
+    'full' => [
+      'stage' => 'build-frontend-stage.yml',
+      'prod' => 'build-frontend-prod.yml',
+      'local' => 'build-frontend-stage.yml',
+    ],
   ];
   private const MAX_POLLS = 120;
   private const POLL_INTERVAL = 3;
@@ -30,8 +37,8 @@ final class BuildFrontendForm extends FormBase {
     return in_array($env, ['stage', 'prod', 'local'], TRUE) ? $env : '';
   }
 
-  private static function getWorkflow(): string {
-    return self::WORKFLOWS[self::getEnvironment()] ?? '';
+  private static function getWorkflow(string $mode): string {
+    return self::WORKFLOWS[$mode][self::getEnvironment()] ?? '';
   }
 
   public function getFormId(): string {
@@ -51,27 +58,39 @@ final class BuildFrontendForm extends FormBase {
     $form['description'] = [
       '#markup' => '<p>' . $this->t(
         'I contenuti che modifichi in Drupal (canti, autori, eventi, traduzioni…) non sono immediatamente visibili sul sito pubblico. '
-        . 'Clicca il pulsante qui sotto per avviare la rigenerazione del sito: le modifiche saranno online in pochi minuti.'
+        . 'Scegli come rigenerare il sito: le modifiche saranno online in pochi minuti.'
+      ) . '</p><p>' . $this->t(
+        '<strong>Pubblica contenuti</strong> rigenera solo le pagine (più veloce, non tocca i PDF dei canti). '
+        . '<strong>Pubblica contenuti + PDF</strong> rigenera anche i PDF scaricabili dei canti modificati (più lenta).'
       ) . '</p>',
     ];
 
     $form['actions'] = [
       '#type' => 'actions',
     ];
-    $form['actions']['submit'] = [
+    $form['actions']['content'] = [
       '#type' => 'submit',
+      '#name' => 'content',
       '#value' => $this->t('Pubblica contenuti'),
       '#button_type' => 'primary',
+    ];
+    $form['actions']['full'] = [
+      '#type' => 'submit',
+      '#name' => 'full',
+      '#value' => $this->t('Pubblica contenuti + PDF'),
     ];
 
     return $form;
   }
 
   public function submitForm(array &$form, FormStateInterface $form_state): void {
+    $mode = (string) ($form_state->getTriggeringElement()['#name'] ?? 'full');
+    $workflow = self::getWorkflow($mode);
+
     $batch = [
       'title' => $this->t('Pubblicazione contenuti in corso…'),
       'operations' => [
-        [[static::class, 'processBuild'], [self::getWorkflow()]],
+        [[static::class, 'processBuild'], [$workflow]],
       ],
       'finished' => [static::class, 'buildFinished'],
       'progress_message' => '',

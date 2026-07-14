@@ -30,9 +30,15 @@ export async function fetchAllPaginated(path, params = {}) {
     }
     if (offset > 0) url.searchParams.set('page[offset]', String(offset));
 
-    const res = await fetch(url.toString(), {
-      headers: { Accept: 'application/vnd.api+json' },
-    });
+    const headers = { Accept: 'application/vnd.api+json' };
+    let res = await fetch(url.toString(), { headers });
+    // 5xx isolato (es. PHP-FPM momentaneamente sotto carico): retry singolo,
+    // stesso pattern di linkcheck.mjs per i link esterni — un blip transitorio
+    // non deve far fallire l'intera build.
+    if (!res.ok && res.status >= 500) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      res = await fetch(url.toString(), { headers });
+    }
     if (!res.ok) throw new Error(`JSON:API fetch fallito: ${res.status}`);
     return res.json();
   };
