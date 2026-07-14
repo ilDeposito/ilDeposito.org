@@ -152,7 +152,7 @@ mappaCantata:
 #   loc:    prima localizzazione
 #   count:  numero di canti collegati all'evento
 eventi.detail:
-  metaTitle: "{titolo}{?data} ({data}){/anno}"
+  metaTitle: "{titolo}{?data} ({data}){/data}"
   metaDescription: "{?info}{info}{/info}{^info}{titolo}{?data}, {data}{/data}{?loc} — {loc}{/loc}. Evento storico nell'archivio di ilDeposito.org.{?count} {count} {count|canto collegato|canti collegati}.{/count}{/info}"
 
 
