@@ -11,6 +11,7 @@ use Drush\Commands\AutowireTrait;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
@@ -47,9 +48,19 @@ final class Report404Command extends Command {
     parent::__construct();
   }
 
+  protected function configure(): void {
+    $this->addOption('azzera', NULL, InputOption::VALUE_NONE, 'Tronca il log senza inviare il report (es. dopo aver corretto dei 404, per ripartire da zero)');
+  }
+
   protected function execute(InputInterface $input, OutputInterface $output): int {
     if (!is_readable(self::LOG_PATH)) {
       $output->writeln(sprintf('<comment>Log 404 non trovato o non leggibile: %s</comment>', self::LOG_PATH));
+      return Command::SUCCESS;
+    }
+
+    if ($input->getOption('azzera')) {
+      file_put_contents(self::LOG_PATH, '');
+      $output->writeln('<info>Log 404 azzerato senza inviare il report.</info>');
       return Command::SUCCESS;
     }
 
