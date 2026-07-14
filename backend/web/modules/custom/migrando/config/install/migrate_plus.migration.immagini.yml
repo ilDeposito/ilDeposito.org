@@ -45,7 +45,6 @@ process:
     plugin: default_value
     default_value: 1
   filename: filename
-  source_full_path: directory
   uuid: uuid
   status:
     plugin: default_value
@@ -54,11 +53,17 @@ process:
     plugin: default_value
     default_value: image
 
+  destination_path:
+    plugin: file_path
+    source:
+      - '@created'
+      - filename
+
   uri:
     plugin: file_copy
     source:
       - url
-      - '@source_full_path'
+      - '@destination_path'
 
 destination:
   plugin: entity:file
