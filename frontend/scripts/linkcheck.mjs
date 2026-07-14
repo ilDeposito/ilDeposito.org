@@ -51,6 +51,12 @@ function walk(dir, out = []) {
 
 const htmlFiles = walk(ROOT);
 
+// Route SSR (prerender = false, vedi src/pages/canzonieri/index.astro): non
+// generano mai un file in dist/client, quindi risulterebbero sempre "rotte"
+// per una scansione puramente statica. Servite a runtime da nginx (vedi
+// location dedicata in nginx.conf), non verificabili qui.
+const SSR_ONLY_ROUTES = new Set(['/canzonieri']);
+
 const existsCache = new Map();
 function fileExists(rel) {
   if (existsCache.has(rel)) return existsCache.get(rel);
@@ -125,7 +131,7 @@ for (const file of htmlFiles) {
     }
     if (pathname !== null) {
       const clean = pathname.split('#')[0].split('?')[0];
-      if (resolveInternal(clean)) internalOk++;
+      if (SSR_ONLY_ROUTES.has(clean) || resolveInternal(clean)) internalOk++;
       else add(brokenInternal, clean, srcRel);
     }
   }
