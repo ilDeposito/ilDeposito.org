@@ -519,9 +519,22 @@ display:
           plugin_id: search_api
           order: DESC
           expose:
-            label: ''
-            field_identifier: ''
-          exposed: false
+            label: Modificato
+            field_identifier: changed
+          exposed: true
+        field_visualizzazioni_totali:
+          id: field_visualizzazioni_totali
+          table: search_api_index_ildeposito
+          field: field_visualizzazioni_totali
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: search_api
+          order: DESC
+          expose:
+            label: Visualizzazioni
+            field_identifier: field_visualizzazioni_totali
+          exposed: true
       arguments: {  }
       filters:
         search_api_fulltext:
@@ -771,6 +784,8 @@ display:
         - 'languages:language_interface'
         - url
         - url.query_args
+        - 'url.query_args:sort_by'
+        - 'url.query_args:sort_order'
         - 'user.node_grants:view'
         - user.roles
       tags:
@@ -1419,6 +1434,8 @@ display:
         - 'languages:language_interface'
         - url
         - url.query_args
+        - 'url.query_args:sort_by'
+        - 'url.query_args:sort_order'
         - 'user.node_grants:view'
         - user.roles
       tags:
@@ -1966,6 +1983,8 @@ display:
         - 'languages:language_interface'
         - url
         - url.query_args
+        - 'url.query_args:sort_by'
+        - 'url.query_args:sort_order'
         - 'user.node_grants:view'
         - user.roles
       tags:
@@ -2516,6 +2535,8 @@ display:
         - 'languages:language_interface'
         - url
         - url.query_args
+        - 'url.query_args:sort_by'
+        - 'url.query_args:sort_order'
         - 'user.node_grants:view'
         - user.roles
       tags:
@@ -2943,6 +2964,8 @@ display:
         - 'languages:language_interface'
         - url
         - url.query_args
+        - 'url.query_args:sort_by'
+        - 'url.query_args:sort_order'
         - 'user.node_grants:view'
         - user.roles
       tags:
@@ -3403,6 +3426,8 @@ display:
         - 'languages:language_interface'
         - url
         - url.query_args
+        - 'url.query_args:sort_by'
+        - 'url.query_args:sort_order'
         - 'user.node_grants:view'
         - user.roles
       tags:
