@@ -84,6 +84,14 @@ jobs:
       - name: Build frontend
         run: ./ildeposito.sh build-frontend
 
+      - name: Publish redirects
+        # I redirect (modulo ildeposito_redirects) non sono più generati
+        # dentro build-frontend: build-frontend porta avanti solo il
+        # _redirects.conf della release precedente (vedi docker-entrypoint.sh),
+        # va rigenerato esplicitamente per pubblicare eventuali modifiche fatte
+        # dagli editor dall'ultimo deploy.
+        run: ./ildeposito.sh build-redirect
+
       - name: Smoke test
         run: |
           # Letto da .env invece che hardcoded: FRONTEND_DOMAIN è temporaneamente

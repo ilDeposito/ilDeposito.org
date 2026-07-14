@@ -3,3 +3,7 @@ description: 'Redirect legacy dal vecchio sito e report periodico dei 404, per l
 package: 'ilDeposito'
 core_version_requirement: ^11 || ^12
 type: module
+dependencies:
+  # Riusa GitHubWorkflowClient (GitHub App + trigger workflow_dispatch) per
+  # il pulsante "Pubblica redirect" in RedirectsForm.
+  - ildeposito_build

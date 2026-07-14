@@ -237,6 +237,31 @@ cmd_build_frontend() {
     info "Il sito è live su $(public_frontend_url)"
 }
 
+# Rigenera solo i redirect nginx (_redirects.conf) a partire dallo state
+# Drupal (modulo ildeposito_redirects), senza rifare la build dei contenuti:
+# scrive in-place nella release "current" (vedi docker-entrypoint.sh, modalità
+# "redirect") e ricarica nginx. Disaccoppiato da build-frontend così un
+# redirect può essere pubblicato subito, senza attendere/rifare tutta la build.
+cmd_build_redirect() {
+    info "Generazione redirect nginx [${ENV}]..."
+
+    info "Rebuild immagine astro-builder..."
+    ${COMPOSE} build astro-builder
+
+    wait_for_nginx_healthy
+
+    info "Rigenero _redirects.conf nella release corrente..."
+    ${COMPOSE} run --rm astro-builder sh docker-entrypoint.sh redirect
+
+    wait_for_nginx_healthy frontend-web
+    validate_nginx_config
+
+    info "Ricarica configurazione nginx..."
+    ${COMPOSE} exec frontend-web nginx -s reload
+
+    ok "Redirect pubblicati"
+}
+
 cmd_drush() {
     ${COMPOSE} exec -T php drush -r /var/www/html/web "$@"
 }
@@ -420,6 +445,7 @@ ${BOLD}Comandi:${NC}
   build-frontend-content    Build Astro solo contenuti (no pdf) + deploy zero-downtime
   build-frontend-pdf        Rigenera solo i pdf dei canti, in-place nella release corrente
   build-canzonieri          Rigenera i canzonieri collettivi, in-place (uso da cron settimanale)
+  build-redirect            Rigenera solo i redirect nginx da state Drupal, in-place + reload nginx
   drush <args>      Esegui comando drush
   migrate [flags]   Importa tutte le migrazioni (ordine di dipendenza)
   allinea-prod      [solo stage] Allinea DB e file da prod (backup.sql + rsync), no conferma (uso da cron)
@@ -445,6 +471,7 @@ case "${1:-}" in
     build-frontend-content)  shift; cmd_build_frontend content ;;
     build-frontend-pdf)      shift; cmd_build_frontend pdf ;;
     build-canzonieri)        shift; cmd_build_frontend canzonieri ;;
+    build-redirect)          shift; cmd_build_redirect ;;
     drush)           shift; cmd_drush "$@" ;;
     migrate)         shift; cmd_migrate "$@" ;;
     allinea-prod)    cmd_allinea_prod ;;

@@ -1,0 +1,22 @@
+name: Build Redirect (Prod)
+
+on:
+  workflow_dispatch:
+
+# Stesso gruppo di concorrenza delle altre build-frontend-prod: astro-builder
+# ha un container_name fisso in compose, quindi due `docker compose run`
+# concorrenti sullo stesso ambiente andrebbero in conflitto sul nome.
+concurrency:
+  group: build-frontend-prod
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: self-hosted
+    defaults:
+      run:
+        working-directory: /home/ubuntu/sergej/websites/ildeposito/prod
+
+    steps:
+      - name: Build redirect
+        run: ./ildeposito.sh build-redirect

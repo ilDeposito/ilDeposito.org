@@ -4,7 +4,9 @@ set -e
 # Modalità: full (default, contenuti + pdf) | content (contenuti, no pdf) |
 # pdf (rigenera solo i pdf dei canti nella release "current" già live,
 # in-place) | canzonieri (rigenera i canzonieri collettivi, in-place, uso da
-# cron settimanale — vedi ildeposito.sh build-canzonieri).
+# cron settimanale — vedi ildeposito.sh build-canzonieri) | redirect (rigenera
+# solo _redirects.conf nella release "current", in-place — vedi
+# ildeposito.sh build-redirect).
 MODE="${1:-full}"
 OUTPUT_DIR="/app/output"
 
@@ -37,6 +39,17 @@ if [ "$MODE" = "canzonieri" ]; then
   fi
   echo "→ Rigenero i canzonieri nella release corrente ($CURRENT_DIR) ..."
   CANZONIERI_OUT_DIR="$CURRENT_DIR/client/pdf/canzonieri" node scripts/generate-canzonieri.mjs
+  exit 0
+fi
+
+if [ "$MODE" = "redirect" ]; then
+  CURRENT_DIR="$OUTPUT_DIR/current"
+  if [ ! -f "$CURRENT_DIR/server/entry.mjs" ]; then
+    echo "✗ Nessuna release trovata in $CURRENT_DIR. Esegui prima una build contenuti/completa." >&2
+    exit 1
+  fi
+  echo "→ Rigenero i redirect nella release corrente ($CURRENT_DIR) ..."
+  node scripts/generate-redirects.mjs "$CURRENT_DIR/_redirects.conf"
   exit 0
 fi
 
@@ -88,10 +101,20 @@ if [ -d "$PREV_CANZONIERI" ]; then
   cp -al "$PREV_CANZONIERI" "$BUILD_DIR/client/pdf/canzonieri"
 fi
 
-# Redirect legacy (Drupal → nginx): scrive sempre il file, anche vuoto, per
-# non rompere l'`include` in frontend/nginx.conf (vedi Task 4, PLAN_SEO_2.md).
-phase "Generating legacy redirects (_redirects.conf) ..."
-node scripts/generate-redirects.mjs "$BUILD_DIR/_redirects.conf"
+# I redirect nginx vivono fuori dal ciclo di build Astro (rigenerati on-demand
+# da ./ildeposito.sh build-redirect, modalità "redirect" sopra): la build
+# contenuti si limita a portarli avanti dalla release precedente, altrimenti
+# la nuova release perderebbe i redirect finché non si rilancia build-redirect
+# esplicitamente. Scrive comunque un file vuoto se non esiste ancora nessuna
+# release precedente, per non rompere l'`include` in frontend/nginx.conf.
+PREV_REDIRECTS="$OUTPUT_DIR/current/_redirects.conf"
+if [ -f "$PREV_REDIRECTS" ]; then
+  phase "Carrying over _redirects.conf from previous release..."
+  cp "$PREV_REDIRECTS" "$BUILD_DIR/_redirects.conf"
+else
+  phase "Nessun _redirects.conf precedente, scrivo vuoto..."
+  echo "# Nessun redirect pubblicato — vedi ./ildeposito.sh build-redirect" > "$BUILD_DIR/_redirects.conf"
+fi
 
 # Pagefind indicizza solo la parte statica (client/)
 phase "Indexing with Pagefind ..."
