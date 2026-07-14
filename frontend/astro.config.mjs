@@ -7,8 +7,15 @@ import node from '@astrojs/node';
 
 const { DRUPAL_API_URL } = loadEnv(process.env.NODE_ENV ?? 'production', process.cwd(), '');
 const drupalHost = new URL(DRUPAL_API_URL || 'http://localhost').hostname;
+// jsonapi-fetch.js legge process.env (non import.meta.env): gira fuori dalla
+// pipeline Vite, come pdf-runner.js. Stage/prod lo impostano già via Docker;
+// qui copriamo il caso locale dove vive solo nel .env letto sopra da loadEnv.
+if (!process.env.DRUPAL_API_URL && DRUPAL_API_URL) {
+  process.env.DRUPAL_API_URL = DRUPAL_API_URL;
+}
 import pdfGenerator from './src/integrations/pdf-generator.js';
 import cspHashes from './src/integrations/csp-hashes.js';
+import { fetchAllPaginated, extractSlug } from './src/integrations/jsonapi-fetch.js';
 import { createReadStream, existsSync } from 'node:fs';
 import { join, normalize } from 'node:path';
 
@@ -31,6 +38,40 @@ function pagefindDevServer() {
     },
   };
 }
+
+// URL → data di ultima modifica, per il <lastmod> della sitemap. Fetch
+// minimale (solo path+changed) indipendente dallo store di lib/api/drupal,
+// che dipende da import.meta.env non disponibile qui (vedi sopra).
+async function buildLastmodMap() {
+  const tipi = [
+    { endpoint: '/jsonapi/node/canto', resourceType: 'node--canto', prefix: 'canti' },
+    { endpoint: '/jsonapi/node/autore', resourceType: 'node--autore', prefix: 'autori' },
+    { endpoint: '/jsonapi/node/evento', resourceType: 'node--evento', prefix: 'eventi' },
+  ];
+  const map = new Map();
+  try {
+    await Promise.all(tipi.map(async ({ endpoint, resourceType, prefix }) => {
+      const { data } = await fetchAllPaginated(endpoint, {
+        'filter[status]': '1',
+        [`fields[${resourceType}]`]: 'path,changed',
+        'page[limit]': '200',
+      });
+      for (const item of data) {
+        const slug = extractSlug(item.attributes.path?.alias);
+        if (slug && item.attributes.changed) {
+          map.set(`/${prefix}/${slug}`, item.attributes.changed);
+        }
+      }
+    }));
+  } catch (err) {
+    // Niente lastmod è meglio di una build rotta: la sitemap resta valida,
+    // solo senza quel campo per questa build.
+    console.warn(`[sitemap] lastmod non disponibile (Drupal non raggiungibile?): ${err.message}`);
+  }
+  return map;
+}
+
+const lastmodByPath = await buildLastmodMap();
 
 export default defineConfig({
   site: 'https://www.ildeposito.org',
@@ -60,6 +101,10 @@ export default defineConfig({
   integrations: [
     sitemap({
       filter: (page) => !page.includes('/cerca') && !page.includes('/404'),
+      serialize(item) {
+        const lastmod = lastmodByPath.get(new URL(item.url).pathname);
+        return lastmod ? { ...item, lastmod } : item;
+      },
     }),
     cspHashes(),
     pdfGenerator(),
