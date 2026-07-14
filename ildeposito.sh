@@ -326,11 +326,13 @@ cmd_allinea_prod() {
     cmd_build_frontend full
 }
 
-# Backup completo dell'applicazione: dump del database (esclude schema+dati
-# nulla, mantiene solo lo schema vuoto di tabelle cache_*/cachetags e
-# search_api_db_* così il DB resta importabile subito, senza aspettare un
-# cache:rebuild o un reindex) + dump della directory immagini. Entrambi in
-# bz2 in backup/ildeposito/, retention 30 giorni su base temporale (mtime).
+# Backup completo dell'applicazione: dump del database (mantiene solo lo
+# schema, senza dati, per le tabelle rigenerabili/transitorie — cache_*,
+# cachetags, search_api_db_*, watchdog, router, sessions, flood, semaphore,
+# batch, key_value_expire — così il DB resta importabile subito, senza
+# aspettare un cache:rebuild o un reindex) + dump della directory immagini.
+# Entrambi in bz2 in backup/ildeposito/, retention 30 giorni su base
+# temporale (mtime).
 cmd_backup() {
     local backup_dir="${PROJECT_ROOT}/backup/ildeposito"
     mkdir -p "${backup_dir}"
@@ -341,7 +343,7 @@ cmd_backup() {
     local db_sql_container="/var/backup_migrate/ildeposito/db-${timestamp}.sql"
     local db_dump="${backup_dir}/db-${timestamp}.sql.bz2"
     cmd_drush sql:dump \
-        --structure-tables-list=cache*,search_api_db_* \
+        --structure-tables-list=cache*,search_api_db_*,watchdog,router,sessions,flood,semaphore,batch,key_value_expire \
         --result-file="${db_sql_container}"
     ${COMPOSE} exec -T php bzip2 "${db_sql_container}"
     ok "Dump database: backup/ildeposito/db-${timestamp}.sql.bz2 ($(du -h "${db_dump}" | cut -f1))"
