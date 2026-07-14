@@ -246,6 +246,16 @@ const meta = getPageMeta('contatti');
     errorBox.classList.add('hidden');
   }
 
+  // Il token Altcha va rigenerato se l'invio fallisce dopo essere stato
+  // consumato lato server (replay già usato, o errore Drupal successivo alla
+  // verifica): senza reset, ogni retry ripropone lo stesso token già bruciato
+  // e fallisce di nuovo con "verifica antispam non valida" finché l'utente
+  // non ricarica la pagina manualmente.
+  function resetAltcha() {
+    const old = form.querySelector('altcha-widget');
+    if (old) old.replaceWith(old.cloneNode(true));
+  }
+
   form.addEventListener('submit', async function (e) {
     e.preventDefault();
     hideError();
@@ -314,6 +324,9 @@ const meta = getPageMeta('contatti');
       };
       const msg = messaggi[data.error] ?? "Si è verificato un errore. Riprova più tardi.";
       showError(msg);
+      if (data.error === 'verifica_fallita' || data.error === 'invio_fallito') {
+        resetAltcha();
+      }
     }
   });
 })();
