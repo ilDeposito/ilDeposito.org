@@ -2,6 +2,9 @@ FROM node:22-alpine
 # brotli/gzip/findutils: precompressione asset statici in docker-entrypoint.sh
 # (findutils/coreutils per find/xargs/cp GNU: -print0, -P, cp -al affidabili)
 RUN apk add --no-cache tzdata su-exec rsync brotli gzip findutils coreutils
+# Container ricreato da zero a ogni build (npm ci): "astro telemetry disable"
+# lanciato a mano non persisterebbe, va disattivato via env.
+ENV ASTRO_TELEMETRY_DISABLED=1
 WORKDIR /app
 
 COPY entrypoint.sh /usr/local/bin/
