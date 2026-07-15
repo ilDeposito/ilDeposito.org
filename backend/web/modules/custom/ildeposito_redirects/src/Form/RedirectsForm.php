@@ -22,6 +22,12 @@ final class RedirectsForm extends FormBase {
   // alterare la sintassi del blocco (';', '{', '}', spazi, a capo).
   private const PATH_PATTERN = '#^/[A-Za-z0-9\-_./]*$#';
 
+  // Come PATH_PATTERN ma ammette un "*" finale (mai in mezzo): diventa un
+  // prefix match nginx (location ^~ /prefisso), mai una regex libera — vedi
+  // generate-redirects.mjs::renderBlock(). Solo per $from: il target resta
+  // sempre fisso, "*" non è ammesso in $to (nessuna cattura del suffisso).
+  private const PATH_PATTERN_FROM = '#^/[A-Za-z0-9\-_./]*\*?$#';
+
   // Workflow GitHub che rigenera _redirects.conf e ricarica nginx (vedi
   // ildeposito.sh build-redirect). Solo prod: a differenza di
   // build-frontend-*, non esiste un equivalente stage/local.
@@ -56,6 +62,11 @@ final class RedirectsForm extends FormBase {
         . 'Il target può essere un path relativo (es. <code>/canti/bella-ciao</code>) '
         . 'oppure un URL assoluto su @host.',
         ['@host' => self::ALLOWED_HOST],
+      ) . '</p><p>' . $this->t(
+        'Il path di origine può terminare con <code>*</code> per un redirect a prefisso: '
+        . '<code>/canti*</code> cattura anche <code>/cantiamo</code> e <code>/canti/qualsiasi-cosa</code>; '
+        . '<code>/canti/*</code> cattura solo ciò che sta sotto <code>/canti/</code> (non <code>/canti</code> stesso). '
+        . 'Il target resta sempre fisso: non è possibile riportare nel redirect la parte catturata dal <code>*</code>.'
       ) . '</p>',
     ];
 
@@ -130,8 +141,8 @@ final class RedirectsForm extends FormBase {
 
       [$from, $to] = array_map('trim', $parts);
 
-      if (!preg_match(self::PATH_PATTERN, $from)) {
-        $errors[] = (string) $this->t('Riga @n: il path di origine deve iniziare con "/" e contenere solo lettere, numeri, "-", "_", "." e "/".', ['@n' => $lineNumber]);
+      if (!preg_match(self::PATH_PATTERN_FROM, $from)) {
+        $errors[] = (string) $this->t('Riga @n: il path di origine deve iniziare con "/", contenere solo lettere, numeri, "-", "_", "." e "/", ed eventualmente terminare con "*".', ['@n' => $lineNumber]);
         continue;
       }
 

@@ -13,6 +13,9 @@ import { writeFile } from 'node:fs/promises';
 const ALLOWED_HOST_SUFFIX = '.ildeposito.org';
 const ALLOWED_HOST = 'ildeposito.org';
 const PATH_RE = /^\/[A-Za-z0-9\-_./]*$/;
+// Come PATH_RE ma ammette un "*" finale (mai in mezzo) solo per `from`: vedi
+// renderBlock(). Il target (`to`) resta validato con PATH_RE, mai wildcard.
+const PATH_RE_FROM = /^\/[A-Za-z0-9\-_./]*\*?$/;
 
 const outPath = process.argv[2];
 if (!outPath) {
@@ -21,7 +24,7 @@ if (!outPath) {
 }
 
 function isValidFrom(from) {
-  return typeof from === 'string' && PATH_RE.test(from);
+  return typeof from === 'string' && PATH_RE_FROM.test(from);
 }
 
 function isValidTo(to) {
@@ -37,6 +40,14 @@ function isValidTo(to) {
 }
 
 function renderBlock(from, to) {
+  if (from.endsWith('*')) {
+    const prefix = from.slice(0, -1);
+    // ^~ obbligatorio: senza, un prefix match "vince" solo se più lungo di
+    // *ogni* regex location dichiarata dopo in nginx.conf (es. il redirect
+    // trailing-slash ^(.+)/$, che altrimenti intercetta prima le richieste
+    // sotto ${prefix} che terminano con "/") — stesso motivo del ^~ su /api/.
+    return `location ^~ ${prefix} {\n    return 301 ${to};\n}\n`;
+  }
   return `location = ${from} {\n    return 301 ${to};\n}\n`;
 }
 
