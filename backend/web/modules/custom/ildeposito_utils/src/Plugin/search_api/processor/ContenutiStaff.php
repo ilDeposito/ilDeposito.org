@@ -61,6 +61,8 @@ final class ContenutiStaff extends ProcessorPluginBase {
       'field_links' => 'link',
       'field_informazioni' => 'informazioni',
       'field_autori_correlati' => 'autori correlati',
+      'field_anno_di_nascita' => 'anno di nascita',
+      'field_anno_di_morte' => 'anno di morte',
     ],
     'evento' => [
       'field_tags' => 'tag',
