@@ -15,26 +15,26 @@ const isCurrent = (href: string) => pathname === href || pathname.startsWith(`${
       class="shrink-0 inline-flex items-center gap-2 text-primary-content [&_svg]:h-8 [&_svg]:w-auto md:[&_svg]:h-10"
     >
       <span aria-hidden="true" class="contents"><Fragment set:html={logoRaw} /></span>
-      <span class="hidden md:inline font-serif font-bold text-2xl tracking-wide">ilDeposito.org</span>
+      <span class="hidden md:inline font-serif font-bold text-[clamp(1rem,1.7vw,1.5rem)] tracking-wide whitespace-nowrap">ilDeposito.org</span>
     </a>
 
     <!-- Spacer sx -->
     <div class="hidden md:block flex-1"></div>
 
     <!-- Nav desktop -->
-    <nav aria-label="Navigazione principale" class="hidden md:flex items-center gap-3">
-      <a href="/canti" aria-current={isCurrent('/canti') ? 'page' : undefined} class="px-4 py-1.5 rounded text-xl font-serif uppercase tracking-wide text-primary-content hover:bg-primary-content/15 transition-colors">Canti</a>
-      <a href="/autori" aria-current={isCurrent('/autori') ? 'page' : undefined} class="px-4 py-1.5 rounded text-xl font-serif uppercase tracking-wide text-primary-content hover:bg-primary-content/15 transition-colors">Autori</a>
-      <a href="/periodi" aria-current={isCurrent('/periodi') ? 'page' : undefined} class="px-4 py-1.5 rounded text-xl font-serif uppercase tracking-wide text-primary-content hover:bg-primary-content/15 transition-colors">Periodi</a>
-      <a href="/eventi" aria-current={isCurrent('/eventi') ? 'page' : undefined} class="px-4 py-1.5 rounded text-xl font-serif uppercase tracking-wide text-primary-content hover:bg-primary-content/15 transition-colors">Eventi</a>
-      <a href="/tags" aria-current={isCurrent('/tags') ? 'page' : undefined} class="px-4 py-1.5 rounded text-xl font-serif uppercase tracking-wide text-primary-content hover:bg-primary-content/15 transition-colors">Tags</a>
+    <nav aria-label="Navigazione principale" class="hidden md:flex items-center gap-[clamp(0.125rem,1.1vw,0.75rem)] min-w-0 overflow-hidden">
+      <a href="/canti" aria-current={isCurrent('/canti') ? 'page' : undefined} class="px-[clamp(0.375rem,1.3vw,1rem)] py-1.5 rounded text-[clamp(0.75rem,1.25vw,1.25rem)] font-serif uppercase tracking-wide whitespace-nowrap text-primary-content hover:bg-primary-content/15 transition-colors">Canti</a>
+      <a href="/autori" aria-current={isCurrent('/autori') ? 'page' : undefined} class="px-[clamp(0.375rem,1.3vw,1rem)] py-1.5 rounded text-[clamp(0.75rem,1.25vw,1.25rem)] font-serif uppercase tracking-wide whitespace-nowrap text-primary-content hover:bg-primary-content/15 transition-colors">Autori</a>
+      <a href="/periodi" aria-current={isCurrent('/periodi') ? 'page' : undefined} class="px-[clamp(0.375rem,1.3vw,1rem)] py-1.5 rounded text-[clamp(0.75rem,1.25vw,1.25rem)] font-serif uppercase tracking-wide whitespace-nowrap text-primary-content hover:bg-primary-content/15 transition-colors">Periodi</a>
+      <a href="/eventi" aria-current={isCurrent('/eventi') ? 'page' : undefined} class="px-[clamp(0.375rem,1.3vw,1rem)] py-1.5 rounded text-[clamp(0.75rem,1.25vw,1.25rem)] font-serif uppercase tracking-wide whitespace-nowrap text-primary-content hover:bg-primary-content/15 transition-colors">Eventi</a>
+      <a href="/tags" aria-current={isCurrent('/tags') ? 'page' : undefined} class="px-[clamp(0.375rem,1.3vw,1rem)] py-1.5 rounded text-[clamp(0.75rem,1.25vw,1.25rem)] font-serif uppercase tracking-wide whitespace-nowrap text-primary-content hover:bg-primary-content/15 transition-colors">Tags</a>
     </nav>
 
     <!-- Spacer dx -->
     <div class="hidden md:block flex-1"></div>
 
     <!-- Search -->
-    <search-modal class="relative flex-1 md:w-64 md:flex-none">
+    <search-modal class="relative flex-1 md:w-[clamp(8rem,17vw,16rem)] md:flex-none shrink-0">
       <form action="/cerca" method="get" data-search-form>
         <div class="flex items-center bg-primary-content/15 rounded-lg px-3 h-9 gap-2 focus-within:ring-2 focus-within:ring-primary-content">
           <input
