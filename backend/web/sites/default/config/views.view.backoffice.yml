@@ -12,8 +12,8 @@ dependencies:
     - field.storage.node.field_tematiche
     - search_api.index.ildeposito
     - user.role.administrator
-    - user.role.api
     - user.role.god
+    - user.role.staff
   module:
     - datetime
     - facets_exposed_filters
@@ -502,7 +502,7 @@ display:
         options:
           role:
             administrator: administrator
-            api: api
+            staff: staff
             god: god
       cache:
         type: search_api_none

@@ -321,34 +321,37 @@ cmd_allinea_prod() {
         exit 1
     fi
 
-    info "Svuoto il database stage..."
-    cmd_drush sql:drop -y
-    ok "Database stage svuotato"
+    # Uso da cron: nessun output a meno di errori veri. rsync può uscire con
+    # 23/24 (partial transfer, es. singoli file con mtime aggiornato ma non
+    # riscrivibili) senza che l'allineamento nel complesso sia fallito: non è
+    # un errore fatale, va ignorato.
+    local log
+    log="$(mktemp)"
 
-    info "Importo il dump di prod (${prod_dump})..."
-    cmd_drush sql:cli < "${prod_dump}"
-    ok "Dump importato"
-
-    info "Sincronizzo sites/default/files da prod (rsync, con --delete)..."
-    rsync -a --delete "${prod_files}" "${stage_files}"
-    ok "File sincronizzati"
-
-    fix_files_permissions
-
-    info "Database update..."
-    cmd_drush updatedb -y
-    ok "Database aggiornato"
-
-    info "Import configurazione..."
-    cmd_drush config:import -y
-    ok "Configurazione importata"
-
-    info "Cache rebuild..."
-    cmd_drush cache:rebuild
-    ok "Cache pulita"
-
-    ok "Allineamento da prod completato, avvio build frontend..."
-    cmd_build_frontend full
+    if {
+        cmd_drush sql:drop -y &&
+        cmd_drush sql:cli < "${prod_dump}" &&
+        # fix_files_permissions (sotto) chowna a www-data (uid 82, vedi riga
+        # 38) al termine di ogni run precedente: senza questo passaggio
+        # l'utente host che esegue rsync (cron, uid diverso da 82) non ha
+        # più permesso di scrittura sulle dir 2775 e mkstemp fallisce con
+        # Permission denied.
+        ${COMPOSE} exec -T -u root php chown -R "$(id -u):$(id -g)" /var/www/html/web/sites/default/files &&
+        { rsync -a --delete "${prod_files}" "${stage_files}" || [[ $? -eq 23 || $? -eq 24 ]]; } &&
+        fix_files_permissions &&
+        cmd_drush updatedb -y &&
+        cmd_drush config:import -y &&
+        cmd_drush cache:rebuild &&
+        cmd_build_frontend full
+    } >"${log}" 2>&1; then
+        rm -f "${log}"
+        ok "Allineamento effettuato!"
+    else
+        error "Allineamento da prod fallito:"
+        cat "${log}" >&2
+        rm -f "${log}"
+        exit 1
+    fi
 }
 
 # Backup completo dell'applicazione: dump del database (mantiene solo lo

@@ -18,3 +18,4 @@ permissions:
   - 'access shortcuts'
   - 'delete own files'
   - 'view media'
+  - 'view the administration theme'
