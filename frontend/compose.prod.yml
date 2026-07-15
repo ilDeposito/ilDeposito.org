@@ -93,7 +93,12 @@ services:
       sh -c "envsubst '$$CADDY_TRUSTED_SUBNET'
       < /etc/nginx/templates/realip.conf.template
       > /etc/nginx/conf.d/realip.conf
+      && touch /var/log/nginx/404.log
+      && chmod 666 /var/log/nginx/404.log
       && exec nginx -g 'daemon off;'"
+    # touch+chmod sopra: nginx crea 404.log come root (prima del drop
+    # privilegi), il container php scrive con un altro UID (drush
+    # ildeposito:report-404) e otterrebbe "Permission denied" senza questo.
     healthcheck:
       test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1/ || exit 1"]
       interval: 30s
