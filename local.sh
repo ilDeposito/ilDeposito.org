@@ -515,9 +515,9 @@ cmd_linkcheck() {
 cmd_allinea() {
     local env="${1:-}"
 
-    if [[ "$env" != "stage" ]]; then
-        error "Specificare l'ambiente: stage (unico supportato per ora)"
-        info "Uso: ./local.sh allinea stage"
+    if [[ "$env" != "stage" && "$env" != "prod" ]]; then
+        error "Specificare l'ambiente: stage o prod"
+        info "Uso: ./local.sh allinea <stage|prod>"
         exit 1
     fi
 
@@ -528,6 +528,9 @@ cmd_allinea() {
     local local_files="${PROJECT_ROOT}/backend/web/sites/default/files/"
 
     warn "Questo sovrascrive il database e i file locali con quelli di '${env}'."
+    if [[ "$env" == "prod" ]]; then
+        warn "Stai per scaricare dati di PRODUZIONE sulla macchina locale."
+    fi
     read -r -p "Continuare? [y/N] " reply
     [[ "$reply" =~ ^[Yy]$ ]] || { info "Annullato"; exit 0; }
 
@@ -595,7 +598,7 @@ usage() {
     printf "  %b%-22s%b %s\n" "$CYAN"   ""                 "$NC" "  --timeout=ms --concurrency=n (default 8000ms, 8 richieste parallele)"
     printf "  %b%-22s%b %s\n" "$CYAN"   "outdated"    "$NC" "Verifica aggiornamenti backend e frontend"
     printf "  %b%-22s%b %s\n" "$CYAN"   "upgrade <target>" "$NC" "Aggiorna pacchetti (target: backend | frontend)"
-    printf "  %b%-22s%b %s\n" "$CYAN"   "allinea <ambiente>" "$NC" "Allinea DB e file da stage (ambienti: stage)"
+    printf "  %b%-22s%b %s\n" "$CYAN"   "allinea <ambiente>" "$NC" "Allinea DB e file da remoto (ambienti: stage, prod)"
 }
 
 cmd_completions() {
@@ -610,7 +613,7 @@ _local_sh() {
         'linkcheck:Verifica link interni rotti nel build statico'
         'outdated:Verifica aggiornamenti backend e frontend'
         'upgrade:Aggiorna pacchetti (backend | frontend)'
-        'allinea:Allinea DB e file da stage'
+        'allinea:Allinea DB e file da remoto'
         'help:Mostra l'\''aiuto'
     )
 
@@ -620,7 +623,7 @@ _local_sh() {
         local targets=('backend:Aggiorna drupal/*' 'frontend:Aggiorna pacchetti npm')
         _describe 'target' targets
     elif (( CURRENT == 3 )) && [[ "${words[2]}" == "allinea" ]]; then
-        local envs=('stage:Allinea da staging')
+        local envs=('stage:Allinea da staging' 'prod:Allinea da produzione')
         _describe 'ambiente' envs
     fi
 }

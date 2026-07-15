@@ -60,6 +60,13 @@ final class AnonymousLoginRedirect implements EventSubscriberInterface {
     if (str_contains($path, '/files/styles/')) {
       return;
     }
+    // Aggregati CSS/JS: se il file fisico manca (rigenerazione in corso,
+    // cache svuotata), la richiesta ricade su Drupal invece di essere
+    // servita come statica da nginx. Senza questa eccezione la pagina di
+    // login finirebbe per ridirigere se stessa alle proprie risorse.
+    if (str_contains($path, '/files/css/') || str_contains($path, '/files/js/')) {
+      return;
+    }
 
     $event->setResponse(new RedirectResponse('/user/login?destination=/dashboard'));
   }

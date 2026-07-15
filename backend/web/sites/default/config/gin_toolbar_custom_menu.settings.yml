@@ -16,7 +16,10 @@ settings:
       staff: '0'
       api: '0'
       god: '0'
-    icons: {  }
+    icons:
+      'menu_link_content:fb1a18b1-ada4-42a8-915c-1e22cfa5fced': structure-view
+      'menu_link_content:9836bc89-af5e-4228-a222-8040adfe5d6d': list-view
+      'menu_link_content:782a2bdc-c475-4141-a4c6-918322046f35': config-view
     admin_menu: use_global
     actions:
       remove_setting: 'Remove rule'
