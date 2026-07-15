@@ -74,10 +74,9 @@ services:
     volumes:
     - ./:/var/www/html:cached
     - ../backup:/var/backup_migrate
-    # Read-write (non :ro): drush ildeposito:report-404 tronca il log dopo
-    # l'invio (copytruncate, sicuro con nginx che scrive in append — vedi
-    # frontend/nginx.conf, location @log404). Serve scrittura anche qui per
-    # l'uso manuale via ./ildeposito.sh drush.
+    # Read-write (non :ro): la pagina admin "Report 404" (Report404AzzeraForm)
+    # tronca il log su richiesta (copytruncate, sicuro con nginx che scrive in
+    # append — vedi frontend/nginx.conf, location @log404).
     - ildeposito_404_log:/var/log/frontend-nginx
     networks:
       - backend-internal

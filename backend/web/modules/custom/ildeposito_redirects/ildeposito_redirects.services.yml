@@ -1,12 +1,15 @@
 services:
-  # Report404Command (src/Drush/Commands/) NON va qui: Drush 13 lo scopre e lo
-  # autowira da sé (AutowireTrait), registrarlo come servizio Drupal userebbe
-  # il meccanismo drush.command deprecato (drush.services.yml pre-Drush 13).
   Drupal\ildeposito_redirects\Form\RedirectsForm:
+    autowire: true
+
+  Drupal\ildeposito_redirects\Form\Report404AzzeraForm:
     autowire: true
 
   Drupal\ildeposito_redirects\Controller\RedirectsApiController:
     autowire: true
 
-  Drupal\ildeposito_redirects\Hook\IldepositoRedirectsHooks:
+  Drupal\ildeposito_redirects\Controller\Report404Controller:
+    autowire: true
+
+  Drupal\ildeposito_redirects\Service\Report404Log:
     autowire: true

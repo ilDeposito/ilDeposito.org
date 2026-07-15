@@ -1,0 +1,11 @@
+ildeposito_redirects.form_tab:
+  title: 'Gestione redirect'
+  route_name: ildeposito_redirects.form
+  base_route: ildeposito_redirects.form
+  weight: 0
+
+ildeposito_redirects.report404_tab:
+  title: 'Report 404'
+  route_name: ildeposito_redirects.report404
+  base_route: ildeposito_redirects.form
+  weight: 10
