@@ -4,9 +4,15 @@ status: true
 dependencies:
   module:
     - ildeposito_redirects
+    - ildeposito_utils
+    - redis
+    - system
 id: god
 label: God
 weight: 6
 is_admin: false
 permissions:
+  - 'access redis report'
+  - 'access site reports'
   - 'administer ildeposito redirects'
+  - 'view status and update reports'

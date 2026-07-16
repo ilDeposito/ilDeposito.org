@@ -1,0 +1,4 @@
+view status and update reports:
+  title: 'Visualizza report di stato e aggiornamenti disponibili'
+  description: 'Accesso a admin/reports/status e admin/reports/updates senza il permesso ampio "administer site configuration".'
+  restrict access: true
