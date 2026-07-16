@@ -123,8 +123,8 @@ services:
     labels:
       autoheal: "true"
       caddy: stage.ildeposito.org
-      caddy.basicauth: "/*"
-      caddy.basicauth.ildeposito: "${BASIC_AUTH_HASH}"
+      #caddy.basicauth: "/*"
+      #caddy.basicauth.ildeposito: "${BASIC_AUTH_HASH}"
       caddy.reverse_proxy: "{{upstreams 80}}"
       # Difesa in profondità oltre la basic auth: lo stage non va mai indicizzato
       # (il robots.txt servito è quello di produzione, con Allow su tutto).
