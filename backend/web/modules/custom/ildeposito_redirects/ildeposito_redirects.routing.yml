@@ -9,8 +9,16 @@ ildeposito_redirects.form:
 ildeposito_redirects.report404:
   path: '/admin/config/search/redirects/report-404'
   defaults:
-    _controller: '\Drupal\ildeposito_redirects\Controller\Report404Controller::view'
+    _form: '\Drupal\ildeposito_redirects\Form\Report404Form'
     _title: 'Report 404'
+  requirements:
+    _permission: 'administer ildeposito redirects'
+
+ildeposito_redirects.report404_elimina_selezionati:
+  path: '/admin/config/search/redirects/report-404/elimina-selezionati'
+  defaults:
+    _form: '\Drupal\ildeposito_redirects\Form\Report404EliminaSelezionatiForm'
+    _title: 'Elimina URL selezionate'
   requirements:
     _permission: 'administer ildeposito redirects'
 

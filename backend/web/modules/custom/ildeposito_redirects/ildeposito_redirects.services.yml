@@ -5,10 +5,13 @@ services:
   Drupal\ildeposito_redirects\Form\Report404AzzeraForm:
     autowire: true
 
-  Drupal\ildeposito_redirects\Controller\RedirectsApiController:
+  Drupal\ildeposito_redirects\Form\Report404Form:
     autowire: true
 
-  Drupal\ildeposito_redirects\Controller\Report404Controller:
+  Drupal\ildeposito_redirects\Form\Report404EliminaSelezionatiForm:
+    autowire: true
+
+  Drupal\ildeposito_redirects\Controller\RedirectsApiController:
     autowire: true
 
   Drupal\ildeposito_redirects\Service\Report404Log:

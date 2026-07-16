@@ -57,6 +57,46 @@ final class Report404Log {
     file_put_contents(self::LOG_PATH, '');
   }
 
+  /**
+   * Elimina dal log tutte le righe le cui URI sono nell'elenco dato.
+   *
+   * @param string[] $uris
+   *   URI esatte (stesso formato restituito da readCounts()) da rimuovere.
+   *
+   * @return int
+   *   Numero di righe (occorrenze) rimosse dal log.
+   */
+  public function deleteUris(array $uris): int {
+    if (!$uris || !is_readable(self::LOG_PATH)) {
+      return 0;
+    }
+
+    $uriSet = array_flip($uris);
+    $contents = trim((string) file_get_contents(self::LOG_PATH));
+    if ($contents === '') {
+      return 0;
+    }
+
+    $kept = [];
+    $removed = 0;
+    foreach (explode("\n", $contents) as $line) {
+      $line = trim($line);
+      if ($line === '') {
+        continue;
+      }
+      $spacePos = strpos($line, ' ');
+      $uri = $spacePos === FALSE ? $line : substr($line, $spacePos + 1);
+      if (isset($uriSet[$uri])) {
+        $removed++;
+        continue;
+      }
+      $kept[] = $line;
+    }
+
+    file_put_contents(self::LOG_PATH, $kept ? implode("\n", $kept) . "\n" : '');
+    return $removed;
+  }
+
   private function isAsset(string $uri): bool {
     $path = parse_url($uri, PHP_URL_PATH) ?: $uri;
     $estensione = strtolower(pathinfo($path, PATHINFO_EXTENSION));

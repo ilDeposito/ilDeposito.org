@@ -1,0 +1,4 @@
+report404:
+  css:
+    theme:
+      css/report404.css: {}

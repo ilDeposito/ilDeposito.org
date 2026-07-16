@@ -1,0 +1,33 @@
+/* Colori espliciti richiesti per le azioni sul report 404: il tema admin
+ * (Gin) non li fornisce come varianti standard dei bottoni, e usa un trucco
+ * di specificità sui suoi ".button" (selettore booster ":is(#extra-
+ * specificity-hack, [data-drupal-admin-styles]) .button", specificità
+ * equivalente a un ID) che include anche "border: ... !important" — batte
+ * una singola classe pure con !important. Serve pareggiare la specificità
+ * con l'#id dell'elemento (stabile: assegnato da Drupal in base al nome del
+ * form element) e superarla aggiungendo il selettore di tag. */
+#edit-delete-selected.button--report404-elimina-selezionati {
+  background-color: #0b5fff !important;
+  border-color: #0b5fff !important;
+  color: #fff !important;
+}
+
+#edit-delete-selected.button--report404-elimina-selezionati:hover,
+#edit-delete-selected.button--report404-elimina-selezionati:focus {
+  background-color: #0847c4 !important;
+  border-color: #0847c4 !important;
+  color: #fff !important;
+}
+
+a#edit-azzera.button--report404-azzera {
+  background-color: #d72638 !important;
+  border-color: #d72638 !important;
+  color: #fff !important;
+}
+
+a#edit-azzera.button--report404-azzera:hover,
+a#edit-azzera.button--report404-azzera:focus {
+  background-color: #ad1d2c !important;
+  border-color: #ad1d2c !important;
+  color: #fff !important;
+}
