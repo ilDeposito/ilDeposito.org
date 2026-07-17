@@ -20,6 +20,20 @@ $databases['default']['default'] = [
 
 $settings['container_yamls'][] = DRUPAL_ROOT . '/sites/default/services.prod.yml';
 
+// Caddy termina il TLS e fa da reverse proxy verso nginx (Caddy->nginx è un
+// hop interno in chiaro): senza reverse_proxy, Drupal ignora l'header
+// X-Forwarded-Proto e genera URL assolute con scheme http, non https. Prima
+// non se ne accorgeva nessuno (nessun consumatore controllava lo scheme),
+// ma rompe l'OIDC di Authelia: il redirect_uri generato non combacia più
+// (byte a byte) con quello registrato come client su Authelia (https), che
+// rifiuta la richiesta con "redirect_uri does not match".
+// 172.16.0.0/12 copre il range di IP che Docker assegna alle bridge network
+// per progetto (qui "backend-internal"): nginx è l'unico altro membro di
+// quella rete, isolata e non raggiungibile dall'host esterno, quindi non è
+// uno spoofing risk fidarsi di chiunque vi appartenga.
+$settings['reverse_proxy'] = TRUE;
+$settings['reverse_proxy_addresses'] = ['172.16.0.0/12'];
+
 // sites/default è gestita da git + composer scaffold: senza questo flag il
 // check runtime del status report la re-indurisce a 555 (chmod attivo, vedi
 // SystemRequirementsHooks) e il git reset del deploy fallisce con
