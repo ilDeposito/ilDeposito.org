@@ -17,12 +17,11 @@ services:
     container_name: ildeposito_stage_backend_nginx
     labels:
       caddy: admin-stage.ildeposito.org
-      caddy: admin-stage.ildeposito.org
       caddy.route.0_request_header: "-Remote-User"
       caddy.route.1_request_header: "-Remote-Groups"
       caddy.route.2_request_header: "-Remote-Email"
       caddy.route.3.@public_path.path: /jsonapi* /sites/default/files*
-      caddy.route.4_reverse_proxy: "@public_path {{upstreams <PORTA>}}"
+      caddy.route.4_reverse_proxy: "@public_path {{upstreams 80}}"
       caddy.route.5_forward_auth: authelia:9091
       caddy.route.5_forward_auth.uri: /api/authz/forward-auth
       caddy.route.5_forward_auth.copy_headers: Remote-User Remote-Groups Remote-Email
