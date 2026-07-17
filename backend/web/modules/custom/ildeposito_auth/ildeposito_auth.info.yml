@@ -3,3 +3,5 @@ description: 'Integrazione SSO Authelia (OpenID Connect): redirect anonimo su tu
 package: ilDeposito
 core_version_requirement: ^11 || ^12
 type: module
+dependencies:
+  - openid_connect:openid_connect
