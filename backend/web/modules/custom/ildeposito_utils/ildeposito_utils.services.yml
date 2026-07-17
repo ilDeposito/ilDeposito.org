@@ -6,10 +6,6 @@ services:
     tags:
       - { name: event_subscriber }
 
-  Drupal\ildeposito_utils\EventSubscriber\AnonymousLoginRedirect:
-    tags:
-      - { name: event_subscriber }
-
   Drupal\ildeposito_utils\Routing\ReportsAccessRouteSubscriber:
     tags:
       - { name: event_subscriber }

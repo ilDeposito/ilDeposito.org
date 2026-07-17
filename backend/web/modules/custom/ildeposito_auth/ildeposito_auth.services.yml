@@ -1,0 +1,4 @@
+services:
+  Drupal\ildeposito_auth\EventSubscriber\AnonymousLoginRedirect:
+    tags:
+      - { name: event_subscriber }

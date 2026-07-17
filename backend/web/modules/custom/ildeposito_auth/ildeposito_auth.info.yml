@@ -1,0 +1,5 @@
+name: ilDeposito Auth
+description: 'Integrazione SSO Authelia (OpenID Connect): redirect anonimo su tutto il backend, autologin, eccezioni per JSON:API e file pubblici.'
+package: ilDeposito
+core_version_requirement: ^11 || ^12
+type: module

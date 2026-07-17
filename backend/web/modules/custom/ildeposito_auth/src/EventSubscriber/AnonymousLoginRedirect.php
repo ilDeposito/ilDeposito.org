@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Drupal\ildeposito_utils\EventSubscriber;
+namespace Drupal\ildeposito_auth\EventSubscriber;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -19,6 +19,14 @@ use Symfony\Component\HttpKernel\KernelEvents;
  * direttamente da Drupal in build time con fetch anonimo (vedi
  * frontend/src/lib/api/drupal/assets.ts) — bloccarle romperebbe il build.
  *
+ * Il redirect atterra su /user/login, che openid_connect (autostart_login)
+ * intercetta a sua volta e rimbalza verso Authelia: qui non c'è nessuna
+ * logica OIDC diretta, solo il "portone" che ci fa arrivare al login. Per
+ * questo /openid-connect è tra i prefissi consentiti: è la rotta di callback
+ * su cui Authelia rimanda il browser con ?code=...&state=..., e se venisse
+ * intercettata da questo redirect il code andrebbe perso e il login
+ * fallirebbe sempre.
+ *
  * Gira PRIMA di \Drupal\Core\Http\EventListener\RouterListener (priorità 32):
  * quel listener fa match + controllo permessi in un solo passo
  * (AccessAwareRouter::matchRequest) e lancia AccessDeniedHttpException senza
@@ -32,6 +40,7 @@ final class AnonymousLoginRedirect implements EventSubscriberInterface {
     '/jsonapi',
     '/api/',
     '/system/files',
+    '/openid-connect',
     '/user/login',
     '/user/password',
     '/user/reset',

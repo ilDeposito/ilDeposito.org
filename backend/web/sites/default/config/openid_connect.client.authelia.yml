@@ -1,0 +1,23 @@
+uuid: 413b55a4-862a-43d1-a0b5-447f52a1d59b
+langcode: it
+status: true
+dependencies: {  }
+id: authelia
+label: 'Authelia SSO'
+plugin: generic
+settings:
+  client_id: CHANGE_ME_CLIENT_ID
+  client_secret: CHANGE_ME_CLIENT_SECRET
+  iss_allowed_domains: ''
+  prompt:
+    - login
+  issuer_url: 'https://auth.ildeposito.org'
+  authorization_endpoint: 'https://auth.ildeposito.org/api/oidc/authorization'
+  token_endpoint: 'https://auth.ildeposito.org/api/oidc/token'
+  userinfo_endpoint: 'https://auth.ildeposito.org/api/oidc/userinfo'
+  end_session_endpoint: ''
+  scopes:
+    - openid
+    - profile
+    - email
+    - groups
