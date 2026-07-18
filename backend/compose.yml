@@ -137,6 +137,14 @@ services:
       NGINX_BACKEND_HOST: php
       NGINX_SERVER_ROOT: /var/www/html/web
       NGINX_VHOST_PRESET: $NGINX_VHOST_PRESET
+      # Senza questo, fastcgi.conf passa a PHP $remote_addr = IP di Caddy
+      # (l'unico hop che nginx vede), non quello del client reale: XFF non
+      # viene mai inoltrato a PHP-FPM (fastcgi_pass, a differenza di
+      # proxy_pass, non propaga gli header automaticamente). Stesso range
+      # già fidato lato Drupal in settings.remote.php (reverse_proxy_addresses).
+      NGINX_SET_REAL_IP_FROM: 172.16.0.0/12
+      NGINX_REAL_IP_HEADER: X-Forwarded-For
+      NGINX_REAL_IP_RECURSIVE: "on"
     healthcheck:
       # /jsonapi invece di /: questo backend è headless, "/" dipende dalla
       # Frontpage view legata a system.site:page.front (/node) che su questo
