@@ -10,8 +10,10 @@ import { type IncludedMap, resolveRefs, resolveAutoreRefs, resolveMany, resolveI
 
 // ── Helpers ────────────────────────────────────────────
 
-function parseYear(raw: string | null | undefined): number | null {
-  if (!raw) return null;
+function parseYear(raw: number | string | null | undefined): number | null {
+  if (raw == null || raw === '') return null;
+  // field_anno è un integer lato Drupal: new Date(1969) sarebbe l'epoch (→ 1970)
+  if (typeof raw === 'number') return raw;
   return new Date(raw).getUTCFullYear();
 }
 
