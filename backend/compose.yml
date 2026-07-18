@@ -51,7 +51,15 @@ services:
       PHP_EXTENSIONS_DISABLE: xhprof,spx
       PHP_MAIL_MIXED_LF_AND_CRLF: On
       PHP_APCU_SHM_SIZE: 64M
-      PHP_SESSION_COOKIE_SAMESITE: Strict
+      # Strict blocca il cookie di sessione Drupal sul ritorno da Authelia:
+      # l'arrivo su /openid-connect/authelia dopo il redirect da
+      # auth.ildeposito.org è una navigazione cross-site, e con Strict il
+      # browser non rimanda il cookie creato prima del redirect (che serve a
+      # validare lo state OIDC) — login che non si completa mai, loop
+      # infinito tra /user/login e /openid-connect/authelia. Lax rimane
+      # inviato sulle navigazioni GET top-level (come questo redirect) ma
+      # protegge comunque dalle richieste cross-site che modificano stato.
+      PHP_SESSION_COOKIE_SAMESITE: Lax
       DB_NAME: $DB_NAME
       DB_USER: $DB_USER
       DB_PASSWORD: $DB_PASSWORD
