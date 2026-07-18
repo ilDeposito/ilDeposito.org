@@ -70,9 +70,10 @@ if (getenv('MAIL_FROM')) {
 
 // SSO Authelia (openid_connect) — client_id/secret reali SOLO da env, mai in
 // config/sync (che è su git pubblico). Il file YAML esportato contiene
-// placeholder fittizi, sovrascritti qui se l'env è valorizzata (prod non ha
-// ancora l'env, quindi il client resta con i placeholder finché non lo si
-// abilita anche lì).
+// placeholder fittizi, sovrascritti qui se l'env è valorizzata: se in un
+// ambiente OPENID_CONNECT_AUTHELIA_CLIENT_ID/SECRET non sono impostate nel
+// .env, il client resta con i placeholder (login SSO non funzionante finché
+// non si valorizzano).
 if (getenv('OPENID_CONNECT_AUTHELIA_CLIENT_ID')) {
   $config['openid_connect.client.authelia']['settings']['client_id'] = getenv('OPENID_CONNECT_AUTHELIA_CLIENT_ID');
 }
