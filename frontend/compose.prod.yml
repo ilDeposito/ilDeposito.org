@@ -128,8 +128,8 @@ services:
       # "ildeposito" in entrambe le label, quindi nessun vantaggio a tenerle
       # separate finché coincidono). Da rimuovere al go-live pubblico.
       caddy: ${FRONTEND_DOMAIN}
-      caddy.basicauth: "/*"
-      caddy.basicauth.ildeposito: "${BASIC_AUTH_HASH}"
+      #caddy.basicauth: "/*"
+      #caddy.basicauth.ildeposito: "${BASIC_AUTH_HASH}"
       caddy.reverse_proxy: "{{upstreams 80}}"
       caddy_1: ildeposito.org
       caddy_1.redir: "https://${FRONTEND_DOMAIN}{uri} permanent"
