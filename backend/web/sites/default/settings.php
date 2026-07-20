@@ -1,5 +1,22 @@
 <?php
 
+// @todo DEBUG TEMPORANEO — sposta qui il log da settings.remote.php: quello
+// scatta solo se ILDEPOSITO_ENV === 'prod' fa entrare nel branch che include
+// settings.remote.php, quindi non cattura richieste dove quella env risulta
+// mancante/diversa. Questo gira PRIMA di qualunque condizionale, su ogni
+// richiesta che arriva fin qui. Rimuovere insieme all'altro debug log una
+// volta chiuso il bug "trusted_host_patterns" intermittente.
+error_log(sprintf(
+  "[%s] SETTINGSDEBUG uri=%s host=%s ildeposito_env=%s xfh=%s xfp=%s remote_addr=%s\n",
+  date('H:i:s'),
+  $_SERVER['REQUEST_URI'] ?? '?',
+  $_SERVER['HTTP_HOST'] ?? 'MISSING',
+  $_SERVER['ILDEPOSITO_ENV'] ?? 'MISSING',
+  $_SERVER['HTTP_X_FORWARDED_HOST'] ?? 'MISSING',
+  $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'MISSING',
+  $_SERVER['REMOTE_ADDR'] ?? 'MISSING'
+), 3, '/tmp/settingsdebug.log');
+
 /**
  * Configurazioni da NON toccare
  */
