@@ -33,6 +33,12 @@ $settings['container_yamls'][] = DRUPAL_ROOT . '/sites/default/services.prod.yml
 // uno spoofing risk fidarsi di chiunque vi appartenga.
 $settings['reverse_proxy'] = TRUE;
 $settings['reverse_proxy_addresses'] = ['172.16.0.0/12'];
+// Il default di Drupal fida anche X-Forwarded-Host/Port/Forwarded (non
+// sicuro, vedi default.settings.php): qui serve solo Proto (per lo scheme
+// https, vedi sopra) + For (IP reale già gestito comunque da ngx_realip
+// lato nginx). Senza questo, un Host inatteso in quegli header basta a far
+// fallire il trusted_host_patterns check anche a richiesta legittima.
+$settings['reverse_proxy_trusted_headers'] = \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_FOR | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PROTO;
 
 // sites/default è gestita da git + composer scaffold: senza questo flag il
 // check runtime del status report la re-indurisce a 555 (chmod attivo, vedi
