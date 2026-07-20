@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\ildeposito_stats\Drush\Commands;
 
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\ildeposito_stats\Service\EntityUrlMatcher;
 use Drupal\ildeposito_stats\Service\UmamiClient;
@@ -11,6 +12,7 @@ use Drush\Commands\AutowireTrait;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -39,15 +41,41 @@ final class UmamiSyncCommand extends Command {
 
   private const HOUR_MS = 3600 * 1000;
 
+  /**
+   * Campi azzerabili con --azzera. field_visualizzazioni_originali è il
+   * contatore storico importato dal sito legacy: non va MAI toccato, né
+   * qui né nel sync.
+   */
+  private const RESET_FIELDS = [
+    'field_visualizzazioni_totali',
+    'field_visualizzazioni_6ore',
+    'field_visualizzazioni_24ore',
+    'field_visualizzazioni_settimana',
+  ];
+
   public function __construct(
     private readonly UmamiClient $umamiClient,
     private readonly EntityUrlMatcher $entityUrlMatcher,
     private readonly StateInterface $state,
+    private readonly EntityTypeManagerInterface $entityTypeManager,
   ) {
     parent::__construct();
   }
 
+  protected function configure(): void {
+    $this->addOption(
+      'azzera',
+      NULL,
+      InputOption::VALUE_NONE,
+      'Azzera i contatori field_visualizzazioni_totali/6ore/24ore/settimana su tutti i contenuti (field_visualizzazioni_originali non viene toccato) e riparte a contare da adesso. Non esegue il sync.',
+    );
+  }
+
   protected function execute(InputInterface $input, OutputInterface $output): int {
+    if ($input->getOption('azzera')) {
+      return $this->azzera($output);
+    }
+
     if (!$this->umamiClient->isConfigured()) {
       $output->writeln('<error>Umami non configurato: impostare UMAMI_API_URL, UMAMI_USERNAME, UMAMI_PASSWORD, UMAMI_WEBSITE_ID.</error>');
       return Command::FAILURE;
@@ -98,11 +126,6 @@ final class UmamiSyncCommand extends Command {
       }
     }
 
-    // Scrittura disattivata temporaneamente su richiesta: il comando calcola
-    // e stampa comunque tutto, ma non tocca i nodi né lo State, così da poter
-    // riabilitarla in seguito senza aver perso il delta di questo periodo
-    // (il watermark NON avanza finché il blocco sotto resta commentato).
-    /*
     foreach ($entities as $key => $entity) {
       if (isset($delta[$key]) && $entity->hasField('field_visualizzazioni_totali')) {
         $totaleAttuale = (int) $entity->get('field_visualizzazioni_totali')->value;
@@ -128,16 +151,63 @@ final class UmamiSyncCommand extends Command {
 
     $this->state->set(self::STATE_LAST_ACTIVE, array_values($currentlyActive));
     $this->state->set(self::STATE_LAST_SYNC, $now);
-    */
 
     $output->writeln(sprintf(
-      '<comment>[scrittura disattivata] %d contenuti da aggiornare — delta dal %s (%d URL matchate); snapshot 6h: %d, 24h: %d, settimana: %d.</comment>',
+      '<info>%d contenuti aggiornati — delta dal %s (%d URL matchate); snapshot 6h: %d, 24h: %d, settimana: %d.</info>',
       count($entities),
       date('Y-m-d H:i:s', (int) ($watermark / 1000)),
       count($delta),
       count($ultime6Ore),
       count($ultime24Ore),
       count($ultimaSettimana),
+    ));
+
+    return Command::SUCCESS;
+  }
+
+  /**
+   * Azzera i contatori su nodi e termini e riallinea lo State: il watermark
+   * viene portato a adesso, così field_visualizzazioni_totali riparte da
+   * zero dal momento dell'azzeramento e le visite già registrate in Umami
+   * prima del reset non vengono ri-sommate al sync successivo.
+   */
+  private function azzera(OutputInterface $output): int {
+    $azzerati = 0;
+
+    foreach (['node', 'taxonomy_term'] as $entityTypeId) {
+      $storage = $this->entityTypeManager->getStorage($entityTypeId);
+
+      // Solo le entità con almeno un contatore > 0: la query su un campo
+      // ne implica l'esistenza sul bundle, quindi il filtro sui bundle
+      // giusti è implicito.
+      $query = $storage->getQuery()->accessCheck(FALSE);
+      $orGroup = $query->orConditionGroup();
+      foreach (self::RESET_FIELDS as $field) {
+        $orGroup->condition($field, 0, '>');
+      }
+      $ids = $query->condition($orGroup)->execute();
+
+      foreach ($storage->loadMultiple($ids) as $entity) {
+        foreach (self::RESET_FIELDS as $field) {
+          if ($entity->hasField($field)) {
+            $entity->set($field, 0);
+          }
+        }
+
+        // Come nel sync: nessuna nuova revisione, nessun bump di "changed".
+        $entity->setNewRevision(FALSE);
+        $entity->setSyncing(TRUE);
+        $entity->save();
+        $azzerati++;
+      }
+    }
+
+    $this->state->set(self::STATE_LAST_SYNC, (int) (microtime(TRUE) * 1000));
+    $this->state->delete(self::STATE_LAST_ACTIVE);
+
+    $output->writeln(sprintf(
+      '<info>Azzerati i contatori di %d contenuti (field_visualizzazioni_originali non toccato); il conteggio dei totali riparte da adesso.</info>',
+      $azzerati,
     ));
 
     return Command::SUCCESS;

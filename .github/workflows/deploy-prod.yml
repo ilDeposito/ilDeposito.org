@@ -41,7 +41,13 @@ jobs:
           # Difesa in profondità oltre a skip_permissions_hardening nei settings.
           chmod u+w backend/web/sites/default backend/web/sites/default/*.php backend/web/sites/default/*.yml 2>/dev/null || true
           git fetch origin --tags --prune
-          git reset --hard "tags/${{ github.ref_name }}"
+          # Trigger su tag → deploy del tag; workflow_dispatch da un branch
+          # (es. main dalla UI) → deploy della punta del branch remoto.
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            git reset --hard "tags/${{ github.ref_name }}"
+          else
+            git reset --hard "origin/${{ github.ref_name }}"
+          fi
           {
             git describe --tags --always
             git log -1 --pretty=%s
