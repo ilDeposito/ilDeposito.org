@@ -15,6 +15,15 @@ services:
 
   nginx:
     container_name: ildeposito_stage_backend_nginx
+    # Alias esplicito e univoco sulla rete condivisa "caddy" — vedi il
+    # commento gemello in compose.prod.yml: senza, l'alias di default
+    # ("nginx", nome del servizio) collide con quello di QUALUNQUE altro
+    # stack Wodby sullo stesso host condiviso (es. asel_nginx), causando
+    # instradamenti casuali verso il backend Drupal sbagliato.
+    networks:
+      caddy:
+        aliases:
+          - ildeposito-stage-nginx
     labels:
       caddy: admin-stage.ildeposito.org
       caddy.route.0_request_header: "-Remote-User"

@@ -15,6 +15,20 @@ services:
 
   nginx:
     container_name: ildeposito_prod_backend_nginx
+    # Alias esplicito e univoco sulla rete condivisa "caddy": senza, Compose
+    # usa di default il nome del servizio ("nginx") come alias — e siccome
+    # TUTTI gli stack Wodby (di qualunque cliente su questo host, es. asel_*)
+    # chiamano il servizio nginx allo stesso modo, sulla rete esterna
+    # condivisa il DNS interno di Docker risolve "nginx" a PIÙ IP diversi.
+    # Risultato osservato: richieste per admin.ildeposito.org instradate a
+    # caso verso il container nginx di un altro cliente, che risponde 400
+    # "trusted_host_patterns" perché admin.ildeposito.org non è nel SUO
+    # settings.php — indistinguibile da un bug nostro finché non si ispeziona
+    # la rete Docker (vedi `docker inspect ... NetworkSettings.Networks`).
+    networks:
+      caddy:
+        aliases:
+          - ildeposito-prod-nginx
     labels:
       caddy: admin.ildeposito.org
       # Access log per-richiesta (status, upstream, durata) — assente finora:
