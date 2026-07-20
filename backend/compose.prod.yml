@@ -17,6 +17,12 @@ services:
     container_name: ildeposito_prod_backend_nginx
     labels:
       caddy: admin.ildeposito.org
+      # Access log per-richiesta (status, upstream, durata) — assente finora:
+      # senza, Caddy logga solo eventi anomali (es. connessioni abortite),
+      # non lo status code di ogni richiesta. @todo DEBUG TEMPORANEO per il
+      # bug "trusted_host_patterns" intermittente, valutare se tenerlo anche
+      # a regime una volta chiuso.
+      caddy.log: ""
       caddy.route.0_request_header: "-Remote-User"
       caddy.route.1_request_header: "-Remote-Groups"
       caddy.route.2_request_header: "-Remote-Email"
