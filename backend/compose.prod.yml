@@ -37,14 +37,16 @@ services:
       # bug "trusted_host_patterns" intermittente, valutare se tenerlo anche
       # a regime una volta chiuso.
       caddy.log: ""
-      # @todo DEBUG TEMPORANEO — forward_auth/Authelia e basic auth rimossi
-      # per isolare la causa del 400 "trusted_host_patterns" intermittente:
-      # nessun'altra pista (reverse_proxy_trusted_headers, opcache, alias di
-      # rete condivisa, keepalive Caddy->nginx) ha risolto. Il pannello resta
-      # comunque dietro il login nativo Drupal (AnonymousLoginRedirect +
-      # form utente/password), solo senza il livello Caddy/Authelia davanti.
-      # Ripristinare la route forward_auth (vedi backend/compose.stage.yml
-      # per la versione ancora attiva) una volta chiuso il bug.
-      caddy.reverse_proxy: "{{upstreams 80}}"
-      caddy.reverse_proxy.transport: http
-      caddy.reverse_proxy.transport.keepalive: "off"
+      caddy.route.0_request_header: "-Remote-User"
+      caddy.route.1_request_header: "-Remote-Groups"
+      caddy.route.2_request_header: "-Remote-Email"
+      caddy.route.3_@public_path.path: /jsonapi* /sites/default/files*
+      caddy.route.4_reverse_proxy: "@public_path {{upstreams 80}}"
+      caddy.route.4_reverse_proxy.transport: http
+      caddy.route.4_reverse_proxy.transport.keepalive: "off"
+      caddy.route.5_forward_auth: authelia:9091
+      caddy.route.5_forward_auth.uri: /api/authz/forward-auth
+      caddy.route.5_forward_auth.copy_headers: Remote-User Remote-Groups Remote-Email
+      caddy.route.6_reverse_proxy: "{{upstreams 80}}"
+      caddy.route.6_reverse_proxy.transport: http
+      caddy.route.6_reverse_proxy.transport.keepalive: "off"
