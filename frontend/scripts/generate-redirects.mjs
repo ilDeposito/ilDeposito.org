@@ -13,9 +13,11 @@ import { writeFile } from 'node:fs/promises';
 const ALLOWED_HOST_SUFFIX = '.ildeposito.org';
 const ALLOWED_HOST = 'ildeposito.org';
 const PATH_RE = /^\/[A-Za-z0-9\-_./]*$/;
-// Come PATH_RE ma ammette un "*" finale (mai in mezzo) solo per `from`: vedi
-// renderBlock(). Il target (`to`) resta validato con PATH_RE, mai wildcard.
-const PATH_RE_FROM = /^\/[A-Za-z0-9\-_./]*\*?$/;
+// Come PATH_RE ma ammette anche "*" solo per `from`: come segmento intero tra
+// due "/" (es. "/canti/*/pdf", mai unito a lettere) oppure come ultimo
+// carattere dell'intera stringa (prefix "aperto", vedi renderBlock()). Il
+// target (`to`) resta validato con PATH_RE, mai wildcard.
+const PATH_RE_FROM = /^\/(?:[A-Za-z0-9\-_.]*|\*)(?:\/(?:[A-Za-z0-9\-_.]*|\*))*\*?$/;
 
 const outPath = process.argv[2];
 if (!outPath) {
@@ -39,14 +41,46 @@ function isValidTo(to) {
   }
 }
 
+// "." è l'unico metacarattere regex ammesso nell'alfabeto di PATH_RE_FROM
+// (alnum, "-" e "_" sono letterali anche fuori da una character class).
+function escapeRegexLiteral(segment) {
+  return segment.replace(/\./g, '\\.');
+}
+
+// Converte i segmenti di `rest` (from con l'eventuale "*" finale già tolto)
+// in una regex nginx: ogni segmento "*" diventa [^/]+ (un intero path-segment,
+// niente slash), gli altri restano letterali. `trailingStar` decide se
+// ancorare la fine (match esatto) o lasciarla aperta (prefix, come già oggi).
+function buildSegmentRegex(rest, trailingStar) {
+  const parts = rest.split('/').slice(1).map((seg) => (seg === '*' ? '[^/]+' : escapeRegexLiteral(seg)));
+  const pattern = `^/${parts.join('/')}`;
+  return trailingStar ? pattern : `${pattern}$`;
+}
+
 function renderBlock(from, to) {
-  if (from.endsWith('*')) {
-    const prefix = from.slice(0, -1);
+  const trailingStar = from.endsWith('*');
+  const rest = trailingStar ? from.slice(0, -1) : from;
+  // Un "*" può comparire anche come segmento intero in mezzo al path (mai
+  // unito a lettere, vedi PATH_RE_FROM): qui controlliamo i segmenti rimasti
+  // DOPO aver tolto l'eventuale "*" finale, che mantiene il significato
+  // "aperto" già esistente indipendentemente da cosa lo precede.
+  const hasSegmentWildcard = rest.split('/').slice(1).includes('*');
+
+  if (hasSegmentWildcard) {
+    // location regex: va dichiarata PRIMA (nell'ordine del file) di eventuali
+    // altre location regex generiche in nginx.conf — tra location regex vince
+    // la prima dichiarata, non la più specifica (stesso motivo del commento
+    // su ^/(node|taxonomy/term|...)  lì definito). L'include di questo file
+    // avviene già prima di quei blocchi, vedi nginx.conf.
+    return `location ~ ${buildSegmentRegex(rest, trailingStar)} {\n    return 301 ${to};\n}\n`;
+  }
+
+  if (trailingStar) {
     // ^~ obbligatorio: senza, un prefix match "vince" solo se più lungo di
     // *ogni* regex location dichiarata dopo in nginx.conf (es. il redirect
     // trailing-slash ^(.+)/$, che altrimenti intercetta prima le richieste
-    // sotto ${prefix} che terminano con "/") — stesso motivo del ^~ su /api/.
-    return `location ^~ ${prefix} {\n    return 301 ${to};\n}\n`;
+    // sotto ${rest} che terminano con "/") — stesso motivo del ^~ su /api/.
+    return `location ^~ ${rest} {\n    return 301 ${to};\n}\n`;
   }
   return `location = ${from} {\n    return 301 ${to};\n}\n`;
 }

@@ -22,11 +22,15 @@ final class RedirectsForm extends FormBase {
   // alterare la sintassi del blocco (';', '{', '}', spazi, a capo).
   private const PATH_PATTERN = '#^/[A-Za-z0-9\-_./]*$#';
 
-  // Come PATH_PATTERN ma ammette un "*" finale (mai in mezzo): diventa un
-  // prefix match nginx (location ^~ /prefisso), mai una regex libera — vedi
-  // generate-redirects.mjs::renderBlock(). Solo per $from: il target resta
-  // sempre fisso, "*" non è ammesso in $to (nessuna cattura del suffisso).
-  private const PATH_PATTERN_FROM = '#^/[A-Za-z0-9\-_./]*\*?$#';
+  // Come PATH_PATTERN ma ammette anche "*": come segmento intero tra due "/"
+  // (es. "/canti/*/pdf"), sempre un intero path-segment mai libero in mezzo a
+  // caratteri letterali, oppure come ultimo carattere dell'intera stringa
+  // (prefix "aperto", comportamento invariato rispetto a prima). Genera una
+  // location nginx regex se compare un "*" di segmento, altrimenti exact/
+  // prefix match come oggi — vedi generate-redirects.mjs::renderBlock().
+  // Solo per $from: il target resta sempre fisso, "*" non è ammesso in $to
+  // (nessuna cattura del suffisso o del segmento).
+  private const PATH_PATTERN_FROM = '#^/(?:[A-Za-z0-9\-_.]*|\*)(?:/(?:[A-Za-z0-9\-_.]*|\*))*\*?$#';
 
   // Workflow GitHub che rigenera _redirects.conf e ricarica nginx (vedi
   // ildeposito.sh build-redirect). Solo prod: a differenza di
@@ -67,6 +71,11 @@ final class RedirectsForm extends FormBase {
         . '<code>/canti*</code> cattura anche <code>/cantiamo</code> e <code>/canti/qualsiasi-cosa</code>; '
         . '<code>/canti/*</code> cattura solo ciò che sta sotto <code>/canti/</code> (non <code>/canti</code> stesso). '
         . 'Il target resta sempre fisso: non è possibile riportare nel redirect la parte catturata dal <code>*</code>.'
+      ) . '</p><p>' . $this->t(
+        'Un <code>*</code> può comparire anche come segmento intero in mezzo al path (mai unito a lettere): '
+        . '<code>/canti/*/pdf*</code> cattura <code>/canti/727/pdf/testo</code>, <code>/canti/1403/pdf/accordi</code> '
+        . 'e qualunque altro ID sotto <code>/canti/.../pdf</code>. Senza lo <code>*</code> finale, '
+        . '<code>/canti/*/pdf</code> cattura solo il path esatto (non ciò che viene dopo <code>/pdf</code>).'
       ) . '</p>',
     ];
 
