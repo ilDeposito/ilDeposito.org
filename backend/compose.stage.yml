@@ -4,6 +4,14 @@ services:
 
   php:
     container_name: ildeposito_stage_backend_php
+    # Causa reale del 400 "trusted_host_patterns" intermittente — vedi
+    # commento gemello in compose.prod.yml: alias "php" duplicato con
+    # l'ambiente gemello sulla rete condivisa "caddy", nginx può risolverlo
+    # ambiguamente e inoltrare a un PHP-FPM dell'altro ambiente.
+    networks:
+      caddy:
+        aliases:
+          - ildeposito-stage-php
     environment:
       ILDEPOSITO_ENV: stage
 
@@ -24,6 +32,9 @@ services:
       caddy:
         aliases:
           - ildeposito-stage-nginx
+    environment:
+      # Vedi commento gemello in compose.prod.yml.
+      NGINX_BACKEND_HOST: ildeposito-stage-php
     labels:
       caddy: admin-stage.ildeposito.org
       caddy.route.0_request_header: "-Remote-User"

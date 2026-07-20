@@ -4,6 +4,21 @@ services:
 
   php:
     container_name: ildeposito_prod_backend_php
+    # Causa REALE (trovata analizzando l'access log di php-fpm: richieste in
+    # arrivo alternate dagli IP dei nginx di prod E stage) del 400
+    # "trusted_host_patterns" intermittente: questo servizio è su "caddy"
+    # (oltre a backend-internal) SOLO per raggiungere Umami, con l'alias di
+    # default "php" — nginx è anch'esso su entrambe le reti, e quando risolve
+    # l'hostname "php" (per fastcgi_pass) può ambiguarsi tra il "php" di prod
+    # e quello di stage, che condividono lo stesso nome sulla rete condivisa.
+    # Un nginx (es. stage) finisce a volte per inoltrare a un PHP-FPM di un
+    # altro ambiente (es. prod), che riceve un Host non nel proprio
+    # trusted_host_patterns → 400 genuino, ma del sito sbagliato. Alias
+    # univoco come già fatto per nginx: elimina l'ambiguità alla radice.
+    networks:
+      caddy:
+        aliases:
+          - ildeposito-prod-php
     environment:
       ILDEPOSITO_ENV: prod
 
@@ -29,6 +44,12 @@ services:
       caddy:
         aliases:
           - ildeposito-prod-nginx
+    environment:
+      # Sovrascrive NGINX_BACKEND_HOST: php (compose.yml base, ambiguo tra
+      # ambienti sulla rete condivisa "caddy") con l'alias univoco del
+      # servizio php di QUESTO ambiente — vedi commento nel servizio php qui
+      # sopra per la causa del 400 "trusted_host_patterns" intermittente.
+      NGINX_BACKEND_HOST: ildeposito-prod-php
     labels:
       caddy: admin.ildeposito.org
       # Access log per-richiesta (status, upstream, durata) — assente finora:
