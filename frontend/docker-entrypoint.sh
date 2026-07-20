@@ -152,9 +152,12 @@ find "$BUILD_DIR/client" -type f \
         fi
       done' _
 
-# Pruning: elimina gli entry di cache non riusati da 30 giorni. Gli hardlink
+# Pruning: elimina gli entry di cache non riusati da 7 giorni. Gli hardlink
 # nelle release restano validi (l'inode sopravvive finché referenziato).
-find "$COMPRESS_CACHE" -type f -mtime +30 -delete
+# Ridotto da 30 a 7 giorni: la granularità giornaliera della build fa scadere
+# l'hash di tutte le pagine HTML ogni giorno, quindi 30gg di retention
+# accumulava fino a 30 snapshot completi del sito (~6G solo in stage).
+find "$COMPRESS_CACHE" -type f -mtime +7 -delete
 
 phase "Syncing node_modules / swapping release ..."
 # Sincronizza node_modules sul volume (solo se package-lock.json è cambiato).
