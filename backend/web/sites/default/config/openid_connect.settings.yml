@@ -1,7 +1,7 @@
 _core:
   default_config_hash: zD8HqmY9u60RnsVE0ysKSg1sWVhYgxeAtCcT5zfzRUY
 always_save_userinfo: true
-connect_existing_users: true
+connect_existing_users: false
 override_registration_settings: true
 end_session_enabled: true
 user_login_display: hidden
