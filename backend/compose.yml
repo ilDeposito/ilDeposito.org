@@ -90,6 +90,13 @@ services:
     - ildeposito_404_log:/var/log/frontend-nginx
     networks:
       - backend-internal
+      # Serve solo per raggiungere Umami sulla rete Docker interna
+      # (container ildeposito_stats_umami:3000, vedi UMAMI_API_URL) invece
+      # che via stats.ildeposito.org: Caddy blocca /api/auth/login in
+      # pubblico di proposito (SSO-only), ma il traffico container-to-
+      # container su questa rete non passa da Caddy e non è soggetto a
+      # quella regola.
+      - caddy
 
   crond:
     init: true
