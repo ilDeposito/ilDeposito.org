@@ -15,16 +15,16 @@ services:
 
   nginx:
     container_name: ildeposito_prod_backend_nginx
-    # Alias esplicito e univoco sulla rete condivisa "caddy": senza, Compose
-    # usa di default il nome del servizio ("nginx") come alias — e siccome
-    # TUTTI gli stack Wodby (di qualunque cliente su questo host, es. asel_*)
-    # chiamano il servizio nginx allo stesso modo, sulla rete esterna
-    # condivisa il DNS interno di Docker risolve "nginx" a PIÙ IP diversi.
-    # Risultato osservato: richieste per admin.ildeposito.org instradate a
-    # caso verso il container nginx di un altro cliente, che risponde 400
-    # "trusted_host_patterns" perché admin.ildeposito.org non è nel SUO
-    # settings.php — indistinguibile da un bug nostro finché non si ispeziona
-    # la rete Docker (vedi `docker inspect ... NetworkSettings.Networks`).
+    # Alias esplicito e univoco sulla rete condivisa "caddy" — usato nelle
+    # route sotto AL POSTO di {{upstreams 80}}. Causa reale del 400
+    # "trusted_host_patterns" intermittente: {{upstreams 80}} fa risolvere
+    # l'IP UNA VOLTA a caddy-docker-proxy e lo congela nella config di Caddy;
+    # con container ricreati di frequente (deploy), Docker riassegna quell'IP
+    # a un ALTRO container (anche di un progetto diverso, es. stage) prima
+    # che Caddy rigeneri la route, e le richieste finiscono sul backend
+    # sbagliato — che risponde comunque un 400 Drupal genuino, solo del sito
+    # sbagliato. Puntare a questo hostname invece dell'IP fa risolvere il DNS
+    # (sempre aggiornato) ad ogni connessione, non una volta sola.
     networks:
       caddy:
         aliases:
@@ -41,12 +41,12 @@ services:
       caddy.route.1_request_header: "-Remote-Groups"
       caddy.route.2_request_header: "-Remote-Email"
       caddy.route.3_@public_path.path: /jsonapi* /sites/default/files*
-      caddy.route.4_reverse_proxy: "@public_path {{upstreams 80}}"
+      caddy.route.4_reverse_proxy: "@public_path ildeposito-prod-nginx:80"
       caddy.route.4_reverse_proxy.transport: http
       caddy.route.4_reverse_proxy.transport.keepalive: "off"
       caddy.route.5_forward_auth: authelia:9091
       caddy.route.5_forward_auth.uri: /api/authz/forward-auth
       caddy.route.5_forward_auth.copy_headers: Remote-User Remote-Groups Remote-Email
-      caddy.route.6_reverse_proxy: "{{upstreams 80}}"
+      caddy.route.6_reverse_proxy: "ildeposito-prod-nginx:80"
       caddy.route.6_reverse_proxy.transport: http
       caddy.route.6_reverse_proxy.transport.keepalive: "off"
