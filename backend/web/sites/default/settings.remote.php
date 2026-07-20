@@ -10,14 +10,15 @@
 // (docker compose logs php) prima che Drupal faccia il check, per vedere
 // gli header host reali ricevuti su una richiesta che fallisce.
 error_log(sprintf(
-  'HOSTDEBUG uri=%s host=%s xfh=%s xfp=%s fwd=%s remote_addr=%s',
+  "[%s] HOSTDEBUG uri=%s host=%s xfh=%s xfp=%s fwd=%s remote_addr=%s\n",
+  date('H:i:s'),
   $_SERVER['REQUEST_URI'] ?? '?',
   $_SERVER['HTTP_HOST'] ?? 'MISSING',
   $_SERVER['HTTP_X_FORWARDED_HOST'] ?? 'MISSING',
   $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'MISSING',
   $_SERVER['HTTP_FORWARDED'] ?? 'MISSING',
   $_SERVER['REMOTE_ADDR'] ?? 'MISSING'
-));
+), 3, '/tmp/hostdebug.log');
 
 $databases['default']['default'] = [
   'database' => getenv('DB_NAME') ?: 'drupal',
