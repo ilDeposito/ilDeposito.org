@@ -55,11 +55,14 @@ final class RedirectsForm extends FormBase {
   }
 
   public function buildForm(array $form, FormStateInterface $form_state): array {
-    if (self::getEnvironment() === 'prod') {
+    $canPublish = self::getEnvironment() === 'prod';
+
+    if ($canPublish) {
       $form['publish'] = $this->buildPublishSection();
     }
 
     $form['help'] = [
+      '#weight' => -5,
       '#markup' => '<p>' . $this->t(
         'Un redirect per riga, nel formato <code>/vecchio-path|/nuovo-path</code>. '
         . 'Righe vuote o che iniziano con <code>#</code> sono ignorate. '
@@ -83,15 +86,32 @@ final class RedirectsForm extends FormBase {
       '#type' => 'textarea',
       '#title' => $this->t('Redirect'),
       '#rows' => 20,
+      '#weight' => 5,
       '#default_value' => (string) $this->state->get(self::STATE_RAW, ''),
     ];
 
-    $form['actions'] = ['#type' => 'actions'];
+    $form['actions'] = ['#type' => 'actions', '#weight' => 0];
     $form['actions']['submit'] = [
       '#type' => 'submit',
       '#value' => $this->t('Salva'),
       '#button_type' => 'primary',
+      '#attributes' => ['class' => ['button--redirects-salva']],
     ];
+
+    if ($canPublish && $this->githubClient->isConfigured()) {
+      $form['actions']['publish'] = [
+        '#type' => 'submit',
+        '#value' => $this->t('Pubblica redirect'),
+        '#button_type' => 'primary',
+        // Bottone indipendente dal form "Salva": pubblica lo state già
+        // salvato senza richiedere che la textarea sia (ancora) valida.
+        '#limit_validation_errors' => [],
+        '#validate' => [],
+        '#submit' => ['::publishSubmit'],
+      ];
+    }
+
+    $form['#attached']['library'][] = 'ildeposito_redirects/redirects_form';
 
     return $form;
   }
@@ -116,16 +136,6 @@ final class RedirectsForm extends FormBase {
         '#markup' => '<p>' . $this->t(
           'Il salvataggio qui sotto aggiorna solo lo state di Drupal: i redirect vanno online sul sito solo dopo averli pubblicati.'
         ) . '</p>',
-      ],
-      'submit' => [
-        '#type' => 'submit',
-        '#value' => $this->t('Pubblica redirect'),
-        '#button_type' => 'primary',
-        // Bottone indipendente dal form "Salva": pubblica lo state già
-        // salvato senza richiedere che la textarea sia (ancora) valida.
-        '#limit_validation_errors' => [],
-        '#validate' => [],
-        '#submit' => ['::publishSubmit'],
       ],
     ];
   }

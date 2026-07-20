@@ -2,3 +2,8 @@ report404:
   css:
     theme:
       css/report404.css: {}
+
+redirects_form:
+  css:
+    theme:
+      css/redirects-form.css: {}

@@ -1,0 +1,17 @@
+/* Bottone "Salva" in verde per distinguerlo dal blu di "Pubblica redirect":
+ * il tema admin (Gin) applica ai suoi ".button" un selettore booster con
+ * specificità equivalente a un #id e "border: ... !important" (vedi
+ * report404.css), quindi va pareggiata la specificità con l'#id stabile
+ * assegnato da Drupal in base alla chiave dell'elemento ("submit"). */
+#edit-submit.button--redirects-salva {
+  background-color: #1a7f37 !important;
+  border-color: #1a7f37 !important;
+  color: #fff !important;
+}
+
+#edit-submit.button--redirects-salva:hover,
+#edit-submit.button--redirects-salva:focus {
+  background-color: #146c2e !important;
+  border-color: #146c2e !important;
+  color: #fff !important;
+}

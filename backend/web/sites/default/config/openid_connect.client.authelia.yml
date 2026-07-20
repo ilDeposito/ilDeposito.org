@@ -9,8 +9,7 @@ settings:
   client_id: CHANGE_ME_CLIENT_ID
   client_secret: CHANGE_ME_CLIENT_SECRET
   iss_allowed_domains: ''
-  prompt:
-    - login
+  prompt: login
   issuer_url: 'https://auth.ildeposito.org'
   authorization_endpoint: 'https://auth.ildeposito.org/api/oidc/authorization'
   token_endpoint: 'https://auth.ildeposito.org/api/oidc/token'
