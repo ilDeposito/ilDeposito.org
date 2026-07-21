@@ -21,6 +21,7 @@ import {
 } from '../lib/api/index.js';
 import { buildWebSiteSchema, buildOrganizationSchema, buildBreadcrumbSchema } from '../lib/schema.js';
 import { getPageMeta } from '../lib/pages.js';
+import { oggiRoma } from '../lib/date-utils.js';
 
 const meta = getPageMeta('home');
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
@@ -38,8 +39,7 @@ const jsonLd = [
   buildBreadcrumbSchema([{ name: 'Home', url: siteUrl }]),
 ];
 
-const now = new Date();
-const month = now.getUTCMonth() + 1;
+const { day: todayDay, month, year: todayYear } = oggiRoma();
 
 const [
   canti,
@@ -73,7 +73,6 @@ const cantiConDati = canti.map((canto) => {
 });
 
 const imgUrls = eventiMese.map((e) => getImageUrl(e.immagine));
-const todayDay = now.getUTCDate();
 const startIndex = (() => {
   const i = eventiMese.findIndex((e) => new Date(e.dataEvento).getUTCDate() >= todayDay);
   return i === -1 ? 0 : i;
@@ -457,7 +456,7 @@ const autoriConDati = autori.map((autore) => ({
         </div>
         <div class="md:w-1/2 flex justify-center">
           <div class="bg-base-100 rounded-lg p-5 md:p-8 shadow-sm border border-base-300">
-            <MonthCalendar month={month} year={now.getUTCFullYear()} highlightedDays={highlightedDays} basePath="/archivio/calendario-cantato" />
+            <MonthCalendar month={month} year={todayYear} highlightedDays={highlightedDays} basePath="/archivio/calendario-cantato" />
           </div>
         </div>
       </div>

@@ -15,9 +15,9 @@ import {
 import { buildCollectionPageSchema, buildBreadcrumbSchema, buildItemListSchema } from '../../lib/schema.js';
 import { buildCanonical } from '../../lib/seo.js';
 import { getPageMeta } from '../../lib/pages.js';
+import { oggiRoma } from '../../lib/date-utils.js';
 
-const now   = new Date();
-const month = now.getUTCMonth() + 1;
+const { day: todayDay, month } = oggiRoma();
 
 const [eventiMese, periodiRaw, eventiGeo] = await Promise.all([
   getEventiDelMese(month),
@@ -39,7 +39,6 @@ const blocchi = (
 
 const imgUrls = eventiMese.map((e) => getImageUrl(e.immagine));
 
-const todayDay = now.getUTCDate();
 const startIndex = (() => {
   const i = eventiMese.findIndex((e) => new Date(e.dataEvento).getUTCDate() >= todayDay);
   return i === -1 ? 0 : i;

@@ -1,5 +1,6 @@
 import { fetchAllEventiRaw } from './store.js';
 import { buildIncludedMap, extractSlug } from './resolvers.js';
+import { oggiRoma } from '../../date-utils.js';
 import {
   mapEventoForCanto, mapEventoDelGiorno, mapEventoMese,
   mapEventoCard, mapEventoCalendario, mapEventoGeo, mapEventoDetail,
@@ -67,9 +68,7 @@ export async function getEventiDelMese(month: number): Promise<EventoMese[]> {
 
 export async function getEventiDelGiorno(): Promise<EventoDelGiorno[]> {
   const { data } = await fetchAllEventiRaw();
-  const oggi = new Date();
-  const day = oggi.getUTCDate();
-  const month = oggi.getUTCMonth() + 1;
+  const { day, month } = oggiRoma();
 
   return data
     .filter((e: any) => {
