@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\ildeposito_build\Service;
 
+use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Site\Settings;
 use GuzzleHttp\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -13,15 +14,43 @@ final class GitHubWorkflowClient {
   private const REPO = 'ilDeposito/ilDeposito.org';
   private const API_BASE = 'https://api.github.com';
   private const REQUEST_TIMEOUT = 30;
+  private const TOKEN_CACHE_ID = 'ildeposito_build:github_installation_token';
+  // Margine di sicurezza prima della scadenza reale dichiarata da GitHub
+  // (TTL ~1h), per non rischiare di usare un token già scaduto tra una
+  // richiesta e l'altra.
+  private const TOKEN_EXPIRY_MARGIN = 60;
+
+  // Stato di una run non ancora conclusa (campo "status" della run, distinto
+  // da "conclusion" che esiste solo quando status === completed).
+  private const ACTIVE_STATUSES = ['queued', 'in_progress', 'waiting'];
+
+  // Workflow che condividono lo stesso concurrency group su GitHub Actions
+  // (vedi "concurrency:" nei rispettivi .github/workflows/*.yml): avviarne
+  // uno mentre un altro dello stesso gruppo è in corso lo cancella
+  // (build-frontend-*, cancel-in-progress: true) o lo mette in coda dietro
+  // (build-redirect-prod.yml, cancel-in-progress: false). Un workflow non
+  // presente in questa mappa è considerato nel proprio gruppo isolato.
+  private const CONCURRENCY_GROUPS = [
+    'build-frontend-content-stage.yml' => ['build-frontend-content-stage.yml', 'build-frontend-stage.yml'],
+    'build-frontend-stage.yml' => ['build-frontend-content-stage.yml', 'build-frontend-stage.yml'],
+    'build-frontend-content-prod.yml' => ['build-frontend-content-prod.yml', 'build-frontend-prod.yml', 'build-redirect-prod.yml'],
+    'build-frontend-prod.yml' => ['build-frontend-content-prod.yml', 'build-frontend-prod.yml', 'build-redirect-prod.yml'],
+    'build-redirect-prod.yml' => ['build-frontend-content-prod.yml', 'build-frontend-prod.yml', 'build-redirect-prod.yml'],
+  ];
 
   public function __construct(
     private readonly ClientInterface $httpClient,
+    private readonly CacheBackendInterface $cache,
   ) {}
 
   public function isConfigured(): bool {
     return (bool) Settings::get('ildeposito_build_github_app_id')
       && (bool) Settings::get('ildeposito_build_github_installation_id')
       && file_exists($this->getPrivateKeyPath());
+  }
+
+  public function getRepoUrl(): string {
+    return 'https://github.com/' . self::REPO;
   }
 
   public function triggerWorkflow(string $workflow): bool {
@@ -36,61 +65,45 @@ final class GitHubWorkflowClient {
     }
   }
 
-  public function findWorkflowRun(string $workflow, int $triggeredAfter): ?array {
+  /**
+   * Vero se una run attiva (o in coda) esiste per $workflow o per un
+   * workflow che condivide il suo concurrency group (vedi CONCURRENCY_GROUPS)
+   * — avviare $workflow in quel momento cancellerebbe o accoderebbe l'altra
+   * run, quindi il pulsante di pubblicazione va disabilitato per entrambi.
+   *
+   * In caso di errore verso l'API GitHub non blocca l'utente (fail-open):
+   * meglio un doppio trigger occasionale che un pulsante bloccato a vita da
+   * un problema temporaneo di rete.
+   */
+  public function hasConflictingRunInProgress(string $workflow): bool {
+    $group = self::CONCURRENCY_GROUPS[$workflow] ?? [$workflow];
+
     try {
-      $response = $this->apiRequest('GET', "/repos/" . self::REPO . "/actions/workflows/{$workflow}/runs", [
+      $response = $this->apiRequest('GET', "/repos/" . self::REPO . "/actions/runs", [
         'query' => [
-          'per_page' => 5,
+          'per_page' => 20,
           'branch' => 'main',
-          'event' => 'workflow_dispatch',
         ],
       ]);
 
       $data = json_decode((string) $response->getBody(), TRUE);
-      $threshold = $triggeredAfter - 60;
 
       foreach ($data['workflow_runs'] ?? [] as $run) {
-        if (!isset($run['id'], $run['status'], $run['created_at'])) {
-          continue;
-        }
-        $createdAt = strtotime($run['created_at']);
-        if ($createdAt >= $threshold && $run['status'] !== 'completed') {
-          return [
-            'id' => (int) $run['id'],
-            'status' => $run['status'],
-          ];
+        $file = basename((string) ($run['path'] ?? ''));
+        if (in_array($file, $group, TRUE) && in_array($run['status'] ?? '', self::ACTIVE_STATUSES, TRUE)) {
+          return TRUE;
         }
       }
 
-      return NULL;
+      return FALSE;
     }
     catch (\Throwable) {
-      return NULL;
-    }
-  }
-
-  public function getWorkflowRun(int $runId): ?array {
-    try {
-      $response = $this->apiRequest('GET', "/repos/" . self::REPO . "/actions/runs/{$runId}");
-      $data = json_decode((string) $response->getBody(), TRUE);
-
-      if (!isset($data['id'], $data['status'])) {
-        return NULL;
-      }
-
-      return [
-        'id' => (int) $data['id'],
-        'status' => $data['status'],
-        'conclusion' => $data['conclusion'] ?? NULL,
-      ];
-    }
-    catch (\Throwable) {
-      return NULL;
+      return FALSE;
     }
   }
 
   private function apiRequest(string $method, string $path, array $options = []): ResponseInterface {
-    $token = $this->createInstallationToken();
+    $token = $this->getInstallationToken();
 
     $options['headers'] = array_merge($options['headers'] ?? [], [
       'Authorization' => "Bearer {$token}",
@@ -101,6 +114,15 @@ final class GitHubWorkflowClient {
     $options['connect_timeout'] = self::REQUEST_TIMEOUT;
 
     return $this->httpClient->request($method, self::API_BASE . $path, $options);
+  }
+
+  private function getInstallationToken(): string {
+    $cached = $this->cache->get(self::TOKEN_CACHE_ID);
+    if ($cached !== FALSE && is_string($cached->data) && $cached->data !== '') {
+      return $cached->data;
+    }
+
+    return $this->createInstallationToken();
   }
 
   private function createInstallationToken(): string {
@@ -121,6 +143,9 @@ final class GitHubWorkflowClient {
     if (!isset($data['token'])) {
       throw new \RuntimeException('Token di installazione non ricevuto da GitHub.');
     }
+
+    $expiresAt = isset($data['expires_at']) ? strtotime((string) $data['expires_at']) : (time() + 3600);
+    $this->cache->set(self::TOKEN_CACHE_ID, $data['token'], $expiresAt - self::TOKEN_EXPIRY_MARGIN);
 
     return $data['token'];
   }

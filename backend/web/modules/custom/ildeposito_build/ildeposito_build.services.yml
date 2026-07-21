@@ -1,7 +1,7 @@
 services:
   ildeposito_build.github_workflow:
     class: Drupal\ildeposito_build\Service\GitHubWorkflowClient
-    arguments: ['@http_client']
+    arguments: ['@http_client', '@cache.default']
 
   Drupal\ildeposito_build\Service\GitHubWorkflowClient:
     alias: ildeposito_build.github_workflow

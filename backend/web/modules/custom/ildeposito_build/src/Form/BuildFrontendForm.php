@@ -6,7 +6,6 @@ namespace Drupal\ildeposito_build\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\ildeposito_build\Service\GitHubWorkflowClient;
 
 final class BuildFrontendForm extends FormBase {
@@ -24,9 +23,6 @@ final class BuildFrontendForm extends FormBase {
       'local' => 'build-frontend-stage.yml',
     ],
   ];
-  private const MAX_POLLS = 120;
-  private const POLL_INTERVAL = 3;
-  private const ESTIMATED_DURATION = 180;
 
   public function __construct(
     private readonly GitHubWorkflowClient $githubClient,
@@ -55,6 +51,9 @@ final class BuildFrontendForm extends FormBase {
       return $form;
     }
 
+    $running = $this->githubClient->hasConflictingRunInProgress(self::getWorkflow('content'))
+      || $this->githubClient->hasConflictingRunInProgress(self::getWorkflow('full'));
+
     $form['description'] = [
       '#markup' => '<p>' . $this->t(
         'I contenuti che modifichi in Drupal (canti, autori, eventi, traduzioni…) non sono immediatamente visibili sul sito pubblico. '
@@ -65,6 +64,15 @@ final class BuildFrontendForm extends FormBase {
       ) . '</p>',
     ];
 
+    if ($running) {
+      $form['running'] = [
+        '#weight' => -5,
+        '#markup' => '<div class="messages messages--warning">'
+          . $this->t('Una pubblicazione è già in corso. Attendi che finisca prima di avviarne un\'altra — <a href=":url" target="_blank" rel="noopener">controlla lo stato su GitHub</a>.', [':url' => $this->githubClient->getRepoUrl() . '/actions'])
+          . '</div>',
+      ];
+    }
+
     $form['actions'] = [
       '#type' => 'actions',
     ];
@@ -73,11 +81,13 @@ final class BuildFrontendForm extends FormBase {
       '#name' => 'content',
       '#value' => $this->t('Pubblica contenuti'),
       '#button_type' => 'primary',
+      '#disabled' => $running,
     ];
     $form['actions']['full'] = [
       '#type' => 'submit',
       '#name' => 'full',
       '#value' => $this->t('Pubblica contenuti + PDF'),
+      '#disabled' => $running,
     ];
 
     return $form;
@@ -87,125 +97,13 @@ final class BuildFrontendForm extends FormBase {
     $mode = (string) ($form_state->getTriggeringElement()['#name'] ?? 'full');
     $workflow = self::getWorkflow($mode);
 
-    $batch = [
-      'title' => $this->t('Pubblicazione contenuti in corso…'),
-      'operations' => [
-        [[static::class, 'processBuild'], [$workflow]],
-      ],
-      'finished' => [static::class, 'buildFinished'],
-      'progress_message' => '',
-    ];
-
-    batch_set($batch);
-  }
-
-  // @todo Drupal 12: refactoring con batch DI-aware per eliminare \Drupal:: statici.
-  public static function processBuild(string $workflow, array &$context): void {
-    /** @var \Drupal\ildeposito_build\Service\GitHubWorkflowClient $client */
-    $client = \Drupal::service('ildeposito_build.github_workflow');
-
-    if (!isset($context['sandbox']['step'])) {
-      $result = $client->triggerWorkflow($workflow);
-      if (!$result) {
-        $context['results']['error'] = TRUE;
-        $context['results']['error_message'] = new TranslatableMarkup('Impossibile avviare la build. Verifica la configurazione GitHub App e riprova.');
-        $context['finished'] = 1;
-        return;
-      }
-
-      \Drupal::logger('ildeposito_build')->info('Build frontend avviata: @workflow', ['@workflow' => $workflow]);
-      $context['sandbox']['step'] = 'waiting';
-      $context['sandbox']['trigger_time'] = time();
-      $context['sandbox']['polls'] = 0;
-      $context['message'] = new TranslatableMarkup('Build avviata, in attesa di GitHub…');
-      $context['finished'] = 0.05;
+    if (!$this->githubClient->triggerWorkflow($workflow)) {
+      $this->messenger()->addError($this->t('Impossibile avviare la build. Verifica la configurazione GitHub App e riprova.'));
       return;
     }
 
-    sleep(self::POLL_INTERVAL);
-    $context['sandbox']['polls']++;
-
-    if ($context['sandbox']['polls'] >= self::MAX_POLLS) {
-      $context['results']['error'] = TRUE;
-      $context['results']['error_message'] = new TranslatableMarkup('Timeout: la build non è terminata entro il tempo previsto.');
-      \Drupal::logger('ildeposito_build')->error('Build frontend in timeout dopo @polls tentativi.', ['@polls' => $context['sandbox']['polls']]);
-      $context['finished'] = 1;
-      return;
-    }
-
-    if ($context['sandbox']['step'] === 'waiting') {
-      $run = $client->findWorkflowRun($workflow, $context['sandbox']['trigger_time']);
-
-      if ($run) {
-        $context['sandbox']['step'] = 'polling';
-        $context['sandbox']['run_id'] = $run['id'];
-        $context['message'] = new TranslatableMarkup('Build in esecuzione…');
-        $context['finished'] = 0.2;
-      }
-      else {
-        $context['message'] = new TranslatableMarkup('In attesa di avvio…');
-        $context['finished'] = 0.1;
-      }
-      return;
-    }
-
-    if ($context['sandbox']['step'] === 'polling') {
-      $run = $client->getWorkflowRun($context['sandbox']['run_id']);
-
-      if (!$run) {
-        $context['results']['error'] = TRUE;
-        $context['results']['error_message'] = new TranslatableMarkup('Errore durante il monitoraggio della build.');
-        $context['finished'] = 1;
-        return;
-      }
-
-      if ($run['status'] === 'completed') {
-        $context['results']['conclusion'] = $run['conclusion'];
-        $context['finished'] = 1;
-        return;
-      }
-
-      $elapsed = time() - $context['sandbox']['trigger_time'];
-      $progress = min(0.9, 0.2 + ($elapsed / self::ESTIMATED_DURATION) * 0.7);
-      $context['finished'] = $progress;
-
-      $minutes = intdiv($elapsed, 60);
-      $seconds = $elapsed % 60;
-      $context['message'] = $minutes > 0
-        ? new TranslatableMarkup('Build in esecuzione… @min min @sec sec', ['@min' => $minutes, '@sec' => $seconds])
-        : new TranslatableMarkup('Build in esecuzione… @sec secondi', ['@sec' => $seconds]);
-    }
-  }
-
-  public static function buildFinished(bool $success, array $results, array $operations): void {
-    if (!$success || !empty($results['error'])) {
-      $message = $results['error_message'] ?? new TranslatableMarkup('Errore durante la pubblicazione.');
-      \Drupal::messenger()->addError($message);
-      return;
-    }
-
-    $conclusion = $results['conclusion'] ?? 'unknown';
-
-    match ($conclusion) {
-      'success' => self::logAndMessage('status', new TranslatableMarkup('Contenuti pubblicati con successo!')),
-      'failure' => self::logAndMessage('error', new TranslatableMarkup('La build è fallita. Controlla i log su GitHub.')),
-      'cancelled' => self::logAndMessage('warning', new TranslatableMarkup('La build è stata annullata.')),
-      default => self::logAndMessage('warning', new TranslatableMarkup('La build è terminata con esito: @conclusion', ['@conclusion' => $conclusion])),
-    };
-  }
-
-  private static function logAndMessage(string $messengerLevel, TranslatableMarkup $message): void {
-    $logLevel = match ($messengerLevel) {
-      'error' => 'error',
-      'warning' => 'warning',
-      default => 'info',
-    };
-    \Drupal::logger('ildeposito_build')->log($logLevel, (string) $message);
-    match ($messengerLevel) {
-      'error' => \Drupal::messenger()->addError($message),
-      'warning' => \Drupal::messenger()->addWarning($message),
-      default => \Drupal::messenger()->addStatus($message),
-    };
+    \Drupal::logger('ildeposito_build')->info('Build frontend avviata: @workflow', ['@workflow' => $workflow]);
+    $this->messenger()->addStatus($this->t('Pubblicazione avviata — <a href=":url" target="_blank" rel="noopener">segui l\'avanzamento su GitHub</a>, oppure ricarica questa pagina tra qualche minuto.', [':url' => $this->githubClient->getRepoUrl() . '/actions']));
   }
 
 }

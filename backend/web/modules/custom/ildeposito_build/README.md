@@ -4,32 +4,27 @@ Modulo Drupal custom che consente ai redattori di pubblicare i contenuti sul sit
 
 ## Funzionamento
 
-Il sito pubblico è generato staticamente da Astro. Quando un redattore modifica un canto, un autore o un evento in Drupal, le modifiche non sono visibili finché Astro non viene ricompilato. Questo modulo espone un pulsante "Pubblica contenuti" nella toolbar admin che avvia il workflow GitHub Actions di build e ne monitora l'esito in tempo reale.
+Il sito pubblico è generato staticamente da Astro. Quando un redattore modifica un canto, un autore o un evento in Drupal, le modifiche non sono visibili finché Astro non viene ricompilato. Questo modulo espone un pulsante "Pubblica contenuti" nella toolbar admin che avvia il workflow GitHub Actions di build.
+
+Il trigger è **fire-and-forget**: il form chiama l'API GitHub e ritorna subito, senza restare in attesa dell'esito. Niente Batch API — un batch AJAX multi-minuto attraverso Caddy → Authelia (forward_auth) → nginx → PHP-FPM si è rivelato fragile in produzione (un singolo tick lento oltre il timeout fastcgi lato nginx interrompe tutta la progress bar con un errore AJAX, anche se la run su GitHub prosegue regolarmente). Per sapere se una pubblicazione è in corso si ricarica semplicemente la pagina.
 
 ## Componenti
 
 ### Toolbar (`IldepositoBuildHooks`)
 Aggiunge il pulsante "Pubblica contenuti" nella barra admin superiore. Visibile solo negli ambienti `stage` e `prod` e solo agli utenti con il permesso `trigger frontend build`.
 
-### Form con Batch API (`BuildFrontendForm`)
-Gestisce l'intera sequenza di pubblicazione:
-1. Chiama l'API GitHub per avviare il `workflow_dispatch`
-2. Aspetta che GitHub registri la run (fase "waiting")
-3. Fa polling ogni 3 secondi fino al completamento (fase "polling")
-4. Mostra la barra di avanzamento con il tempo trascorso
-5. Notifica l'esito finale (successo / fallimento / annullato)
-
-Timeout massimo: 120 poll × 3 sec = 6 minuti. Durata stimata usata per la barra di avanzamento: 180 secondi.
+### Form (`BuildFrontendForm`)
+1. Al caricamento della pagina, chiede a `GitHubWorkflowClient::hasConflictingRunInProgress()` se una run è già attiva (per il workflow stesso o per un altro che condivide il suo concurrency group su GitHub Actions) e in tal caso disabilita entrambi i pulsanti con un avviso e un link alla pagina Actions.
+2. Al submit chiama `triggerWorkflow()` (un solo `workflow_dispatch`) e mostra subito un messaggio di conferma con link a GitHub — non c'è polling lato Drupal.
 
 ### GitHub Workflow Client (`GitHubWorkflowClient`)
 Gestisce tutta la comunicazione con GitHub API v3:
 - Genera un JWT firmato RS256 con la chiave privata della GitHub App
-- Scambia il JWT con un installation access token (TTL ~1h)
+- Scambia il JWT con un installation access token (TTL ~1h), **cachato in `cache.default`** fino a poco prima della scadenza dichiarata da GitHub (`expires_at`) — evita di rigenerare JWT + token ad ogni chiamata
 - Trigger: `POST /repos/{repo}/actions/workflows/{workflow}/dispatches`
-- Discovery run: `GET /repos/{repo}/actions/workflows/{workflow}/runs`
-- Polling run: `GET /repos/{repo}/actions/runs/{run_id}`
+- Verifica run attive/in coda (repo-wide, un'unica chiamata): `GET /repos/{repo}/actions/runs`, filtrata client-side per workflow (incluso lo stesso concurrency group, vedi `CONCURRENCY_GROUPS`) e per stato (`queued`, `in_progress`, `waiting`)
 
-Repo target: `ilDeposito/ilDeposito.org`, branch `main`.
+Repo target: `ilDeposito/ilDeposito.org`, branch `main`. Usato anche da `ildeposito_redirects` (pulsante "Pubblica redirect"), che condivide lo stesso concurrency group `build-frontend-prod` su GitHub Actions con le build di contenuti/PDF in produzione.
 
 ### Access Check (`BuildAccessCheck`)
 Blocca l'accesso alla route `/admin/pubblica-contenuti` se la variabile d'ambiente `ILDEPOSITO_ENV` non è `stage` o `prod`. In locale (DDEV) il pulsante non compare mai.
@@ -85,4 +80,3 @@ Se la GitHub App non è configurata, il form mostra un avviso e blocca il pulsan
 ## Note per Drupal 12
 
 - Il modulo dipende da `drupal:toolbar`, che in Drupal 12 sarà sostituito dal modulo `navigation`. L'hook `hook_toolbar()` e la dipendenza dovranno essere adattati.
-- `BuildFrontendForm::processBuild()` usa `\Drupal::service()` statico perché la Batch API non supporta ancora DI-aware callbacks. Da refactorizzare quando Drupal 12 lo consentirà.
