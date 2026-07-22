@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\ildeposito_redirects\Form;
 
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Pager\PagerManagerInterface;
@@ -13,6 +14,11 @@ use Drupal\ildeposito_redirects\Service\Report404Log;
 
 final class Report404Form extends FormBase {
 
+  // Ridichiarato qui (non solo ereditato da FormBase) perché __wakeup()
+  // deve girare nello scope di questa classe per poter inizializzare le
+  // proprietà readonly sotto — vedi drupal.org/node/3110266.
+  use DependencySerializationTrait;
+
   private const PER_PAGE = 25;
 
   // Stessa collection letta da Report404EliminaSelezionatiForm.
@@ -20,9 +26,9 @@ final class Report404Form extends FormBase {
   private const TEMPSTORE_KEY = 'report404_selezionati';
 
   public function __construct(
-    private readonly Report404Log $log,
-    private readonly PagerManagerInterface $pagerManager,
-    private readonly PrivateTempStoreFactory $tempStoreFactory,
+    protected readonly Report404Log $log,
+    protected readonly PagerManagerInterface $pagerManager,
+    protected readonly PrivateTempStoreFactory $tempStoreFactory,
   ) {}
 
   public function getFormId(): string {

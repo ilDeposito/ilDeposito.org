@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\ildeposito_contatti\Plugin\QueueWorker;
 
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Mail\MailManagerInterface;
@@ -31,14 +32,19 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 )]
 final class NotificaContattoWorker extends QueueWorkerBase implements ContainerFactoryPluginInterface {
 
+  // Ridichiarato qui (non solo ereditato da QueueWorkerBase) perché
+  // __wakeup() deve girare nello scope di questa classe per poter
+  // inizializzare le proprietà readonly sotto — vedi drupal.org/node/3110266.
+  use DependencySerializationTrait;
+
   public function __construct(
     array $configuration,
     string $plugin_id,
     mixed $plugin_definition,
-    private readonly EntityTypeManagerInterface $entityTypeManager,
-    private readonly MailManagerInterface $mailManager,
-    private readonly LanguageManagerInterface $languageManager,
-    private readonly StateInterface $state,
+    protected readonly EntityTypeManagerInterface $entityTypeManager,
+    protected readonly MailManagerInterface $mailManager,
+    protected readonly LanguageManagerInterface $languageManager,
+    protected readonly StateInterface $state,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
   }

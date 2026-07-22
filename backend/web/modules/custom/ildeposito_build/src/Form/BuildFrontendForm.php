@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 namespace Drupal\ildeposito_build\Form;
 
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\ildeposito_build\Service\GitHubWorkflowClient;
 
 final class BuildFrontendForm extends FormBase {
+
+  // Ridichiarato qui (non solo ereditato da FormBase) perché __wakeup()
+  // deve girare nello scope di questa classe per poter inizializzare la
+  // proprietà readonly sotto — vedi drupal.org/node/3110266.
+  use DependencySerializationTrait;
 
   private const WORKFLOWS = [
     'content' => [
@@ -25,7 +31,7 @@ final class BuildFrontendForm extends FormBase {
   ];
 
   public function __construct(
-    private readonly GitHubWorkflowClient $githubClient,
+    protected readonly GitHubWorkflowClient $githubClient,
   ) {}
 
   private static function getEnvironment(): string {

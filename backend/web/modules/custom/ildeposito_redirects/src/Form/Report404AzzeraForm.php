@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\ildeposito_redirects\Form;
 
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Form\ConfirmFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
@@ -12,8 +13,13 @@ use Drupal\ildeposito_redirects\Service\Report404Log;
 
 final class Report404AzzeraForm extends ConfirmFormBase {
 
+  // Ridichiarato qui (non solo ereditato da ConfirmFormBase) perché
+  // __wakeup() deve girare nello scope di questa classe per poter
+  // inizializzare la proprietà readonly sotto — vedi drupal.org/node/3110266.
+  use DependencySerializationTrait;
+
   public function __construct(
-    private readonly Report404Log $log,
+    protected readonly Report404Log $log,
   ) {}
 
   public function getFormId(): string {

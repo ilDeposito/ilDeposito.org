@@ -58,6 +58,52 @@ final class Report404Log {
   }
 
   /**
+   * Rimuove le righe più vecchie della soglia (basata su $time_iso8601,
+   * primo campo della riga — vedi log_format "notfound"). A differenza di
+   * truncate()/deleteUris() (azioni manuali da UI), pensato per girare da
+   * Report404PruneCommand su crontab host: senza, il file cresce senza
+   * limiti (nessuna retention automatica altrimenti, vedi commento su
+   * LOG_PATH).
+   *
+   * @return int
+   *   Numero di righe (occorrenze) rimosse dal log.
+   */
+  public function pruneOlderThan(int $days): int {
+    if (!is_readable(self::LOG_PATH)) {
+      return 0;
+    }
+
+    $contents = trim((string) file_get_contents(self::LOG_PATH));
+    if ($contents === '') {
+      return 0;
+    }
+
+    $threshold = time() - $days * 86400;
+
+    $kept = [];
+    $removed = 0;
+    foreach (explode("\n", $contents) as $line) {
+      $line = trim($line);
+      if ($line === '') {
+        continue;
+      }
+      $spacePos = strpos($line, ' ');
+      $timestamp = $spacePos === FALSE ? $line : substr($line, 0, $spacePos);
+      $time = strtotime($timestamp);
+      // Riga con timestamp non parsabile: tenuta per prudenza invece di
+      // essere scartata silenziosamente.
+      if ($time !== FALSE && $time < $threshold) {
+        $removed++;
+        continue;
+      }
+      $kept[] = $line;
+    }
+
+    file_put_contents(self::LOG_PATH, $kept ? implode("\n", $kept) . "\n" : '');
+    return $removed;
+  }
+
+  /**
    * Elimina dal log tutte le righe le cui URI sono nell'elenco dato.
    *
    * @param string[] $uris

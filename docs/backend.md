@@ -43,6 +43,7 @@ Redirect da URL legacy (vecchio Drupal 8) + report dei 404 catturati da nginx.
 - `RedirectsForm` (`/admin/config/search/redirects`, tab "Gestione redirect") — coppie `/old|/new` in `State`, con validazione anti open-redirect
 - `RedirectsApiController` — `GET /api/redirects.json` (pubblico, cache 300s), consumato a build time da Astro (`generate-redirects.mjs`) per generare le regole nginx
 - `Report404Controller` (tab "Report 404") + `Report404Log` (service) — parsa `/var/log/frontend-nginx/404.log` (volume condiviso con nginx) e mostra i conteggi per URI; `Report404AzzeraForm` (confirm form) tronca il log su richiesta. Entrambi i tab richiedono il permesso `administer ildeposito redirects`.
+- Drush: `ildeposito:report404-prune` (`iur404prune`, `--days=N`, default 60) — rimuove dal log le occorrenze più vecchie della soglia, altrimenti il file cresce senza limiti (nessuna retention automatica sul file stesso); da mettere in crontab host, stesso pattern di `FbPostCommand` e dei backup (retention temporale, vedi `ildeposito.sh`)
 
 ### `ildeposito_stats`
 Importa/riconcilia statistiche di visualizzazione da un'istanza self-hosted **Umami**, associandole a nodi/termini Drupal.

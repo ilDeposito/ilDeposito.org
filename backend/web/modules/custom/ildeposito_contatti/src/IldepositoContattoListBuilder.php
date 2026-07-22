@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\ildeposito_contatti;
 
 use Drupal\Core\Datetime\DateFormatterInterface;
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityListBuilder;
 use Drupal\Core\Entity\EntityStorageInterface;
@@ -12,6 +13,11 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class IldepositoContattoListBuilder extends EntityListBuilder {
+
+  // Ridichiarato qui (non solo ereditato da EntityListBuilder) perché
+  // __wakeup() deve girare nello scope di questa classe per poter
+  // inizializzare la proprietà readonly sotto — vedi drupal.org/node/3110266.
+  use DependencySerializationTrait;
 
   private const STATUS_LABELS = [
     'nuova' => 'Nuova',
@@ -22,7 +28,7 @@ class IldepositoContattoListBuilder extends EntityListBuilder {
   public function __construct(
     EntityTypeInterface $entity_type,
     EntityStorageInterface $storage,
-    private readonly DateFormatterInterface $dateFormatter,
+    protected readonly DateFormatterInterface $dateFormatter,
   ) {
     parent::__construct($entity_type, $storage);
   }

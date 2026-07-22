@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 namespace Drupal\ildeposito_redirects\Form;
 
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\ildeposito_build\Service\GitHubWorkflowClient;
 
 final class RedirectsForm extends FormBase {
+
+  // Ridichiarato qui (non solo ereditato da FormBase) perché __wakeup()
+  // deve girare nello scope di questa classe per poter inizializzare le
+  // proprietà readonly sotto — vedi drupal.org/node/3110266.
+  use DependencySerializationTrait;
 
   private const STATE_RAW = 'ildeposito_redirects.raw';
   private const STATE_PARSED = 'ildeposito_redirects.parsed';
@@ -37,8 +43,8 @@ final class RedirectsForm extends FormBase {
   private const PUBLISH_WORKFLOW = 'build-redirect-prod.yml';
 
   public function __construct(
-    private readonly StateInterface $state,
-    private readonly GitHubWorkflowClient $githubClient,
+    protected readonly StateInterface $state,
+    protected readonly GitHubWorkflowClient $githubClient,
   ) {}
 
   private static function getEnvironment(): string {

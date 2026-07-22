@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\ildeposito_redirects\Form;
 
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Form\ConfirmFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
@@ -13,13 +14,18 @@ use Drupal\ildeposito_redirects\Service\Report404Log;
 
 final class Report404EliminaSelezionatiForm extends ConfirmFormBase {
 
+  // Ridichiarato qui (non solo ereditato da ConfirmFormBase) perché
+  // __wakeup() deve girare nello scope di questa classe per poter
+  // inizializzare le proprietà readonly sotto — vedi drupal.org/node/3110266.
+  use DependencySerializationTrait;
+
   // Stessa collection scritta da Report404Form::deleteSelectedSubmit().
   private const TEMPSTORE_COLLECTION = 'ildeposito_redirects';
   private const TEMPSTORE_KEY = 'report404_selezionati';
 
   public function __construct(
-    private readonly Report404Log $log,
-    private readonly PrivateTempStoreFactory $tempStoreFactory,
+    protected readonly Report404Log $log,
+    protected readonly PrivateTempStoreFactory $tempStoreFactory,
   ) {}
 
   public function getFormId(): string {
