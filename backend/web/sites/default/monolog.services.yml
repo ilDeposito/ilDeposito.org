@@ -1,0 +1,18 @@
+parameters:
+  # Handler per canale: 'default' vale per ogni canale non elencato qui sotto.
+  # Il modulo Monolog porta con sé un default proprio (syslog) che va sempre
+  # sovrascritto, altrimenti abilitarlo smette di scrivere su watchdog per
+  # OGNI canale. Questo mantiene il comportamento attuale (tutto su watchdog)
+  # in ogni ambiente, finché non viene sovrascritto — vedi
+  # monolog.channel_handlers.remote.yml, caricato solo in stage/prod.
+  monolog.channel_handlers:
+    default: ['drupal.dblog']
+
+services:
+  # Inoltra a watchdog solo Warning e più gravi, scartando Notice/Info/Debug.
+  # Referenziato come 'drupal.dblog_warning' (prefisso monolog.handler. tolto)
+  # nei channel_handlers dei canali da silenziare parzialmente.
+  monolog.handler.drupal.dblog_warning:
+    class: Drupal\monolog\Logger\Handler\DrupalHandler
+    arguments: ['@logger.dblog', 'warning']
+    shared: false

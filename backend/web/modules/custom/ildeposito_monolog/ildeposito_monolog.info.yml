@@ -1,0 +1,7 @@
+name: ilDeposito Monolog
+description: Inoltra a Telegram gli errori critici (Error e più gravi) da tutti i canali dblog.
+package: ilDeposito
+core_version_requirement: ^11 || ^12
+type: module
+dependencies:
+  - monolog:monolog

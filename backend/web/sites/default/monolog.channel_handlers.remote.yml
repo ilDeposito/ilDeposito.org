@@ -1,0 +1,19 @@
+# Sovrascrive per intero monolog.channel_handlers (i parametri Symfony non
+# fanno merge, solo override): va ripetuto anche 'default'. Caricato solo in
+# stage/prod (vedi settings.remote.php) — in DDEV resta il default di
+# monolog.services.yml, tutto su watchdog senza filtri.
+#
+# Canali silenziati sotto Warning perché rumore di routine già verificato su
+# watchdog (cron: 728 Info; openid_connect*: 118 Debug; user/system/locale/
+# menu: Notice/Info di login, cache, aggiornamento traduzioni). Gli Error
+# restano sempre su watchdog (es. openid_connect_generic).
+parameters:
+  monolog.channel_handlers:
+    default: ['drupal.dblog']
+    cron: ['drupal.dblog_warning']
+    openid_connect: ['drupal.dblog_warning']
+    openid_connect_generic: ['drupal.dblog_warning']
+    externalauth: ['drupal.dblog_warning']
+    menu: ['drupal.dblog_warning']
+    system: ['drupal.dblog_warning']
+    locale: ['drupal.dblog_warning']

@@ -36,7 +36,12 @@ final class UmamiSyncCommand extends Command {
 
   public const NAME = 'ildeposito:umami-sync';
 
-  private const STATE_LAST_SYNC = 'ildeposito_stats.last_sync';
+  /**
+   * Letta anche da IldepositoStatsHooks::runtimeRequirements() per mostrare
+   * data/ora dell'ultima esecuzione in admin/reports/status.
+   */
+  public const STATE_LAST_SYNC = 'ildeposito_stats.last_sync';
+
   private const STATE_LAST_ACTIVE = 'ildeposito_stats.last_active_entities';
 
   private const HOUR_MS = 3600 * 1000;

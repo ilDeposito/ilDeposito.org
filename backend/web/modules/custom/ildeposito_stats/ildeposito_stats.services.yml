@@ -12,3 +12,6 @@ services:
 
   Drupal\ildeposito_stats\Service\EntityUrlMatcher:
     alias: ildeposito_stats.entity_url_matcher
+
+  Drupal\ildeposito_stats\Hook\IldepositoStatsHooks:
+    autowire: true

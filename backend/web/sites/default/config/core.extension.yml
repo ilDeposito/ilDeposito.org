@@ -29,6 +29,7 @@ module:
   ildeposito_auth: 0
   ildeposito_build: 0
   ildeposito_contatti: 0
+  ildeposito_monolog: 0
   ildeposito_redirects: 0
   ildeposito_stats: 0
   ildeposito_utils: 0
@@ -42,6 +43,7 @@ module:
   media_library: 0
   menu_link_content: 0
   menu_ui: 0
+  monolog: 0
   mysql: 0
   node: 0
   openid_connect: 0

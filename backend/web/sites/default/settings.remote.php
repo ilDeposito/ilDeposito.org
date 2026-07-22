@@ -34,6 +34,7 @@ $databases['default']['default'] = [
 ];
 
 $settings['container_yamls'][] = DRUPAL_ROOT . '/sites/default/services.prod.yml';
+$settings['container_yamls'][] = DRUPAL_ROOT . '/sites/default/monolog.channel_handlers.remote.yml';
 
 // Caddy termina il TLS e fa da reverse proxy verso nginx (Caddy->nginx è un
 // hop interno in chiaro): senza reverse_proxy, Drupal ignora l'header
