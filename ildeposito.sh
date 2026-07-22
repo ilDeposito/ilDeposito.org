@@ -181,13 +181,84 @@ cmd_restart() {
     ok "Ambiente ${ENV} riavviato"
 }
 
+# Sorgente del trigger per il log Drupal (vedi log_build_event): "--source X"
+# arriva dai workflow GitHub Actions basati su workflow_dispatch (X = "backend"
+# se l'ha avviato Drupal, "GitHub" se è un run manuale, vedi
+# GitHubWorkflowClient::triggerWorkflow() e gli input dei workflow). Se
+# l'argomento manca ma giriamo comunque dentro un Actions runner (es.
+# deploy-{stage,prod}.yml, innescati da push e senza inputs) è comunque
+# "GitHub". Altrimenti è un'esecuzione diretta sul server (crontab, SSH).
+parse_source_flag() {
+    local value=""
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --source) value="${2:-}"; shift 2 ;;
+            *) shift ;;
+        esac
+    done
+    echo "${value}"
+}
+resolve_build_source() {
+    local explicit
+    explicit="$(parse_source_flag "$@")"
+    if [[ -n "${explicit}" ]]; then
+        echo "${explicit}"
+    elif [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+        echo "GitHub"
+    else
+        echo "server"
+    fi
+}
+
+# Etichetta usata nel log Drupal: replica il naming dei file in
+# .github/workflows/ (build-frontend[-content|-pdf]-{stage,prod}.yml) così il
+# messaggio in watchdog è correlabile 1:1 alla run GitHub Actions. "canzonieri"
+# non ha un workflow dedicato (solo cron server): l'etichetta è solo
+# descrittiva, nessun file reale con quel nome.
+build_workflow_label() {
+    case "$1" in
+        full)       echo "build-frontend-${ENV}.yml" ;;
+        content)    echo "build-frontend-content-${ENV}.yml" ;;
+        pdf)        echo "build-frontend-pdf-${ENV}.yml" ;;
+        canzonieri) echo "build-canzonieri-${ENV}.yml" ;;
+    esac
+}
+
+# Scrive un evento nel log Drupal (watchdog, canale ildeposito_build) tramite
+# il drush command ildeposito:log. Non deve mai far fallire la build: se il
+# container php non è pronto o drush fallisce per qualunque motivo, logga solo
+# un warning locale e prosegue (set -e altrimenti abortirebbe tutto).
+log_build_event() {
+    local level="$1"
+    local message="$2"
+    cmd_drush ildeposito:log --level="${level}" "${message}" >/dev/null 2>&1 \
+        || warn "Impossibile scrivere il log Drupal: ${message}"
+}
+
 cmd_build_frontend() {
     local mode="${1:-full}"  # full (contenuti+pdf) | content (no pdf) | pdf (solo pdf, in-place) | canzonieri (solo canzonieri, in-place)
+    shift || true
     case "${mode}" in
         full|content|pdf|canzonieri) ;;
         *) error "Modalità build-frontend sconosciuta: ${mode} (usa: full|content|pdf|canzonieri)"; exit 1 ;;
     esac
 
+    local source label
+    source="$(resolve_build_source "$@")"
+    label="$(build_workflow_label "${mode}")"
+
+    log_build_event info "Build avviata - ${source}: ${label}"
+    if _run_build_frontend "${mode}"; then
+        log_build_event info "Build completata con successo - ${source}: ${label}"
+    else
+        local rc=$?
+        log_build_event error "Build fallita (exit ${rc}) - ${source}: ${label}"
+        exit "${rc}"
+    fi
+}
+
+_run_build_frontend() {
+    local mode="$1"
     info "Build frontend Astro [${ENV}] modalità: ${mode}..."
 
     info "Rebuild immagine astro-builder..."
@@ -243,6 +314,21 @@ cmd_build_frontend() {
 # "redirect") e ricarica nginx. Disaccoppiato da build-frontend così un
 # redirect può essere pubblicato subito, senza attendere/rifare tutta la build.
 cmd_build_redirect() {
+    local source label
+    source="$(resolve_build_source "$@")"
+    label="build-redirect-prod.yml"
+
+    log_build_event info "Build avviata - ${source}: ${label}"
+    if _run_build_redirect; then
+        log_build_event info "Build completata con successo - ${source}: ${label}"
+    else
+        local rc=$?
+        log_build_event error "Build fallita (exit ${rc}) - ${source}: ${label}"
+        exit "${rc}"
+    fi
+}
+
+_run_build_redirect() {
     info "Generazione redirect nginx [${ENV}]..."
 
     info "Rebuild immagine astro-builder..."
@@ -449,6 +535,9 @@ ${BOLD}Comandi:${NC}
   build-frontend-pdf        Rigenera solo i pdf dei canti, in-place nella release corrente
   build-canzonieri          Rigenera i canzonieri collettivi, in-place (uso da cron settimanale)
   build-redirect            Rigenera solo i redirect nginx da state Drupal, in-place + reload nginx
+                      Tutti i comandi build-* accettano --source backend|GitHub (impostato dai
+                      workflow GitHub Actions): determina la sorgente nel log Drupal
+                      (canale ildeposito_build). Omesso = "server" fuori da Actions.
   drush <args>      Esegui comando drush
   migrate [flags]   Importa tutte le migrazioni (ordine di dipendenza)
   allinea-prod      [solo stage] Allinea DB e file da prod (backup.sql + rsync), no conferma (uso da cron)
@@ -470,11 +559,11 @@ case "${1:-}" in
     down)            cmd_down ;;
     stop)            cmd_stop ;;
     restart)         cmd_restart ;;
-    build-frontend)          shift; cmd_build_frontend full ;;
-    build-frontend-content)  shift; cmd_build_frontend content ;;
-    build-frontend-pdf)      shift; cmd_build_frontend pdf ;;
-    build-canzonieri)        shift; cmd_build_frontend canzonieri ;;
-    build-redirect)          shift; cmd_build_redirect ;;
+    build-frontend)          shift; cmd_build_frontend full "$@" ;;
+    build-frontend-content)  shift; cmd_build_frontend content "$@" ;;
+    build-frontend-pdf)      shift; cmd_build_frontend pdf "$@" ;;
+    build-canzonieri)        shift; cmd_build_frontend canzonieri "$@" ;;
+    build-redirect)          shift; cmd_build_redirect "$@" ;;
     drush)           shift; cmd_drush "$@" ;;
     migrate)         shift; cmd_migrate "$@" ;;
     allinea-prod)    cmd_allinea_prod ;;

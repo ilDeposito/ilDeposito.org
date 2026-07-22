@@ -229,7 +229,8 @@ final class RedirectsForm extends FormBase {
       return;
     }
 
-    \Drupal::logger('ildeposito_redirects')->info('Pubblicazione redirect avviata: @workflow', ['@workflow' => self::PUBLISH_WORKFLOW]);
+    // L'inizio/fine build effettivi vengono loggati da ildeposito.sh (canale
+    // ildeposito_build), non da qui: vedi README di ildeposito_build.
     $this->messenger()->addStatus($this->t('Pubblicazione avviata — <a href=":url" target="_blank" rel="noopener">segui l\'avanzamento su GitHub</a>, oppure ricarica questa pagina tra qualche minuto.', [':url' => $this->githubClient->getRepoUrl() . '/actions']));
   }
 

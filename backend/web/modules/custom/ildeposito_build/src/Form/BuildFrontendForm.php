@@ -102,7 +102,9 @@ final class BuildFrontendForm extends FormBase {
       return;
     }
 
-    \Drupal::logger('ildeposito_build')->info('Build frontend avviata: @workflow', ['@workflow' => $workflow]);
+    // L'inizio/fine build effettivi vengono loggati da ildeposito.sh (canale
+    // ildeposito_build), non da qui: è l'unico punto comune a tutte le fonti
+    // di trigger (pulsante, run manuale su GitHub, server/crontab).
     $this->messenger()->addStatus($this->t('Pubblicazione avviata — <a href=":url" target="_blank" rel="noopener">segui l\'avanzamento su GitHub</a>, oppure ricarica questa pagina tra qualche minuto.', [':url' => $this->githubClient->getRepoUrl() . '/actions']));
   }
 

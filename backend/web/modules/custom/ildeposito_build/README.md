@@ -45,6 +45,18 @@ Il form espone due pulsanti, ognuno agganciato a un workflow diverso in base all
 
 "Pubblica contenuti" salta la rigenerazione PDF (`SKIP_PDF=1`, vedi `docker-entrypoint.sh`), quindi è più veloce; "Pubblica contenuti + PDF" rigenera anche i PDF dei canti modificati.
 
+## Logging
+
+Inizio/fine di ogni build (frontend e redirect) finiscono nel log Drupal (`/admin/reports/dblog`), canale **`ildeposito_build`** sempre, indipendentemente dal modulo che l'ha innescata. Il logging vive in `ildeposito.sh` (non nei form Drupal) perché è l'unico punto per cui passano tutte e tre le fonti di trigger:
+
+| Fonte | Come viene riconosciuta |
+|---|---|
+| `backend` | Pulsante "Pubblica" in Drupal: `GitHubWorkflowClient::triggerWorkflow()` passa l'input `source: backend` al `workflow_dispatch` |
+| `GitHub` | Run manuale da UI/app GitHub (l'input `source` resta al default `GitHub`), oppure workflow di deploy innescati da push (`deploy-{stage,prod}.yml`, che non hanno l'input e quindi non passano `--source`: `ildeposito.sh` rileva comunque `GITHUB_ACTIONS=true` e usa `GitHub`) |
+| `server` | Esecuzione diretta sul server (crontab, SSH, `allinea-prod`): nessun `--source` e nessuna variabile `GITHUB_ACTIONS` |
+
+Messaggi: `Build avviata - {fonte}: {workflow}.yml` all'inizio, `Build completata con successo - ...` o `Build fallita (exit N) - ...` alla fine. Il comando drush `ildeposito:log` (in `src/Drush/Commands/BuildLogCommand.php`) scrive il messaggio nel canale `ildeposito_build`; se drush/DB non rispondono, `ildeposito.sh` logga solo un warning locale e non interrompe la build.
+
 ## Configurazione
 
 ### 1. GitHub App

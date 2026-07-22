@@ -77,7 +77,11 @@ final class UmamiSyncCommand extends Command {
     }
 
     if (!$this->umamiClient->isConfigured()) {
-      $output->writeln('<error>Umami non configurato: impostare UMAMI_API_URL, UMAMI_USERNAME, UMAMI_PASSWORD, UMAMI_WEBSITE_ID.</error>');
+      $message = 'Umami non configurato: impostare UMAMI_API_URL, UMAMI_USERNAME, UMAMI_PASSWORD, UMAMI_WEBSITE_ID.';
+      $output->writeln("<error>{$message}</error>");
+      // Loggato (non solo a console): un cron headless con configurazione
+      // mancante altrimenti fallirebbe in silenzio, senza traccia in watchdog.
+      $this->logger()->error('Sincronizzazione visite Umami non eseguita: @message', ['@message' => $message]);
       return Command::FAILURE;
     }
 
@@ -100,6 +104,7 @@ final class UmamiSyncCommand extends Command {
     }
     catch (\Throwable $e) {
       $output->writeln(sprintf('<error>Errore nella chiamata a Umami: %s</error>', $e->getMessage()));
+      $this->logger()->error('Sincronizzazione visite Umami fallita: @message', ['@message' => $e->getMessage()]);
       return Command::FAILURE;
     }
 
@@ -152,17 +157,23 @@ final class UmamiSyncCommand extends Command {
     $this->state->set(self::STATE_LAST_ACTIVE, array_values($currentlyActive));
     $this->state->set(self::STATE_LAST_SYNC, $now);
 
-    $output->writeln(sprintf(
-      '<info>%d contenuti aggiornati — delta dal %s (%d URL matchate); snapshot 6h: %d, 24h: %d, settimana: %d.</info>',
+    $summary = sprintf(
+      '%d contenuti aggiornati — delta dal %s (%d URL matchate); snapshot 6h: %d, 24h: %d, settimana: %d.',
       count($entities),
       date('Y-m-d H:i:s', (int) ($watermark / 1000)),
       count($delta),
       count($ultime6Ore),
       count($ultime24Ore),
       count($ultimaSettimana),
-    ));
+    );
+    $output->writeln("<info>{$summary}</info>");
+    $this->logger()->info('Sincronizzazione visite Umami completata: @summary', ['@summary' => $summary]);
 
     return Command::SUCCESS;
+  }
+
+  private function logger(): \Psr\Log\LoggerInterface {
+    return \Drupal::logger('ildeposito_stats');
   }
 
   /**

@@ -2,6 +2,11 @@ name: Build Redirect (Prod)
 
 on:
   workflow_dispatch:
+    inputs:
+      source:
+        description: 'Origine del trigger (impostata automaticamente da Drupal quando parte dal pulsante "Pubblica")'
+        required: false
+        default: 'GitHub'
 
 # Stesso gruppo di concorrenza delle altre build-frontend-prod: astro-builder
 # ha un container_name fisso in compose, quindi due `docker compose run`
@@ -19,4 +24,4 @@ jobs:
 
     steps:
       - name: Build redirect
-        run: ./ildeposito.sh build-redirect
+        run: ./ildeposito.sh build-redirect --source "${{ inputs.source }}"

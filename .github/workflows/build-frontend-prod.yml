@@ -2,6 +2,11 @@ name: Build Frontend (Prod)
 
 on:
   workflow_dispatch:
+    inputs:
+      source:
+        description: 'Origine del trigger (impostata automaticamente da Drupal quando parte dal pulsante "Pubblica")'
+        required: false
+        default: 'GitHub'
 
 concurrency:
   group: build-frontend-prod
@@ -16,4 +21,4 @@ jobs:
 
     steps:
       - name: Build frontend
-        run: ./ildeposito.sh build-frontend
+        run: ./ildeposito.sh build-frontend --source "${{ inputs.source }}"
