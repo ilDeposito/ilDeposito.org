@@ -92,7 +92,7 @@ const isProduction = process.env.ENV === 'prod';
       jsonLd={jsonLd}
     />
     {isProduction && (
-      <script is:inline defer src="https://stats.ildeposito.org/script.js" data-website-id="27b801cb-7eb6-4f9f-94de-fbe8a8143e3f"></script>
+      <script is:inline defer src="https://stats.ildeposito.org/script.js" data-website-id="27b801cb-7eb6-4f9f-94de-fbe8a8143e3f" data-performance="true"></script>
     )}
   </head>
   <body class="font-sans bg-base-100 text-base-content">
@@ -113,5 +113,8 @@ const isProduction = process.env.ENV === 'prod';
       <slot />
     </main>
     <Footer />
+    <script>
+      import '../scripts/outbound-links.js';
+    </script>
   </body>
 </html>
