@@ -70,12 +70,13 @@ export function fetchAllAutoriRaw(): Promise<RawStore> {
         'field_nome', 'field_cognome', 'field_informazioni', 'field_immagine',
         'field_localizzazione', 'field_periodo', 'field_links',
         'field_anno_di_nascita', 'field_anno_di_morte', 'field_visualizzazioni_totali',
+        'field_autori_correlati',
       ].join(','),
       'fields[taxonomy_term--localizzazioni]': 'name,path',
       'fields[taxonomy_term--periodi]': 'name,path',
       'fields[media--image]': 'field_media_image',
       'fields[file--file]': 'uri',
-      'include': 'field_localizzazione,field_periodo,field_immagine,field_immagine.field_media_image',
+      'include': 'field_localizzazione,field_periodo,field_immagine,field_immagine.field_media_image,field_autori_correlati',
       'page[limit]': '200',
     })).then(toStore);
     triggerWarmAll();

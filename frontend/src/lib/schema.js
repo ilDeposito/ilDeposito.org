@@ -242,6 +242,17 @@ export function buildPersonSchema(autore, siteUrl, ogImagePath) {
         name: autore.localizzazioni[0].titolo,
       };
     }
+
+    // colleague è una proprietà di Person, senza equivalente su Organization/
+    // MusicGroup: gli autori correlati si aggiungono solo qui, non per i collettivi.
+    if (autore.autoriCorrelati?.length > 0) {
+      schema.colleague = autore.autoriCorrelati.map((c) => ({
+        '@type': c.isPersona ? 'Person' : 'MusicGroup',
+        '@id': `${siteUrl}/autori/${c.slug}#autore`,
+        name: c.titolo,
+        url: `${siteUrl}/autori/${c.slug}`,
+      }));
+    }
   }
 
   const sameAs = (autore.links ?? []).map((l) => l.uri).filter(Boolean);

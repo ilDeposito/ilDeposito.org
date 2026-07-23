@@ -188,6 +188,7 @@ export function mapAutoreDetail(raw: any, included: IncludedMap): AutoreDetail {
     annoNascita: a.field_anno_di_nascita ?? null,
     annoMorte: a.field_anno_di_morte ?? null,
     links: mapLinks(a.field_links),
+    autoriCorrelati: resolveAutoreRefs(r.field_autori_correlati, included),
     dataCreazione: a.created ?? null,
     dataModifica: a.changed ?? null,
   };

@@ -111,6 +111,7 @@ export interface AutoreDetail {
   annoNascita: number | null;
   annoMorte: number | null;
   links: LinkRef[];
+  autoriCorrelati: AutoreRef[];
   dataCreazione: string | null;
   dataModifica: string | null;
 }
