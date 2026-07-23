@@ -45,6 +45,17 @@ final class Report404Form extends FormBase {
       return $form;
     }
 
+    // Filtro sostring (case-insensitive) sulle URI, via query string così
+    // resta attivo attraverso i link del pager.
+    $cerca = trim((string) $this->getRequest()->query->get('cerca', ''));
+    if ($cerca !== '') {
+      $counts = array_filter(
+        $counts,
+        static fn (string $uri): bool => stripos($uri, $cerca) !== FALSE,
+        ARRAY_FILTER_USE_KEY,
+      );
+    }
+
     $totale = array_sum($counts);
 
     $pager = $this->pagerManager->createPager(count($counts), self::PER_PAGE);
@@ -59,13 +70,48 @@ final class Report404Form extends FormBase {
       ];
     }
 
-    $form['summary'] = [
-      '#markup' => '<p>' . $this->formatPlural(
+    $form['filtro'] = [
+      '#type' => 'container',
+      '#attributes' => ['class' => ['form--inline']],
+    ];
+    $form['filtro']['cerca'] = [
+      '#type' => 'search',
+      '#title' => $this->t('Cerca URL'),
+      '#default_value' => $cerca,
+      '#size' => 40,
+    ];
+    $form['filtro']['applica'] = [
+      '#type' => 'submit',
+      '#value' => $this->t('Filtra'),
+      '#submit' => ['::filterSubmit'],
+      // Evita la validazione del tableselect (selezione obbligatoria).
+      '#limit_validation_errors' => [['cerca']],
+    ];
+    if ($cerca !== '') {
+      $form['filtro']['reset'] = [
+        '#type' => 'link',
+        '#title' => $this->t('Azzera filtro'),
+        '#url' => Url::fromRoute('ildeposito_redirects.report404'),
+        '#attributes' => ['class' => ['button']],
+      ];
+    }
+
+    $summary = $cerca === ''
+      ? $this->formatPlural(
         $totale,
         '1 occorrenza su @unique URL uniche dall\'ultimo azzeramento.',
         '@count occorrenze su @unique URL uniche dall\'ultimo azzeramento.',
         ['@unique' => count($counts)],
-      ) . '</p>',
+      )
+      : $this->formatPlural(
+        $totale,
+        '1 occorrenza su @unique URL corrispondenti a "@cerca".',
+        '@count occorrenze su @unique URL corrispondenti a "@cerca".',
+        ['@unique' => count($counts), '@cerca' => $cerca],
+      );
+
+    $form['summary'] = [
+      '#markup' => '<p>' . $summary . '</p>',
     ];
 
     $form['table'] = [
@@ -75,7 +121,9 @@ final class Report404Form extends FormBase {
         'url' => $this->t('URL'),
       ],
       '#options' => $options,
-      '#empty' => $this->t('Nessun 404 in questa pagina.'),
+      '#empty' => $cerca === ''
+        ? $this->t('Nessun 404 in questa pagina.')
+        : $this->t('Nessun URL corrisponde a "@cerca".', ['@cerca' => $cerca]),
     ];
 
     $form['pager'] = ['#type' => 'pager'];
@@ -108,6 +156,15 @@ final class Report404Form extends FormBase {
 
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     // Nessuna azione di default: l'unico submit button ha un handler dedicato.
+  }
+
+  public function filterSubmit(array &$form, FormStateInterface $form_state): void {
+    $cerca = trim((string) $form_state->getValue('cerca'));
+    $form_state->setRedirect(
+      'ildeposito_redirects.report404',
+      [],
+      $cerca === '' ? [] : ['query' => ['cerca' => $cerca]],
+    );
   }
 
   public function deleteSelectedSubmit(array &$form, FormStateInterface $form_state): void {
