@@ -252,7 +252,11 @@ const jsonLd = [
       {canto.tematiche.length > 0 && (
         <p class="text-base">
           <span class="text-base-content">Tematiche: </span>
-          <span class="text-primary">{canto.tematiche.map((t) => t.titolo).join(', ')}</span>
+          <span class="text-primary">
+            {canto.tematiche.map((t, i) => (
+              <>{i > 0 && ', '}<a href={`/tematiche/${t.slug}`} class="underline hover:no-underline">{t.titolo}</a></>
+            ))}
+          </span>
         </p>
       )}
 
