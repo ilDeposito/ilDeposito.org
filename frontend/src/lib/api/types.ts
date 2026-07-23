@@ -229,6 +229,7 @@ export interface Tassonomia {
 export interface Periodo extends Tassonomia {
   sort: number;
   immagine: string | null;
+  descrizione: string | null;
 }
 
 export interface Tag extends Tassonomia {

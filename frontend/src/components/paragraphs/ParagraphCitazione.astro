@@ -4,20 +4,23 @@ import Icon from '../base/Icon.astro';
 interface Props {
   testo: string;
   fonte: string | null;
+  size?: 'lg' | 'sm';
 }
-const { testo, fonte } = Astro.props;
+const { testo, fonte, size = 'lg' } = Astro.props;
+const textClass = size === 'sm'
+  ? '[&_p]:font-serif [&_p]:italic [&_p]:text-base [&_p]:md:text-lg [&_p]:leading-relaxed [&_p]:text-base-content [&_a]:underline font-serif italic text-base md:text-lg leading-relaxed text-base-content'
+  : '[&_p]:font-serif [&_p]:italic [&_p]:text-2xl [&_p]:md:text-3xl [&_p]:leading-relaxed [&_p]:text-base-content [&_a]:underline font-serif italic text-2xl md:text-3xl leading-relaxed text-base-content';
+const quoteClass = size === 'sm' ? 'text-2xl' : 'text-5xl';
+const wrapperClass = size === 'sm' ? 'py-2.5 w-full' : 'py-10 w-full';
 ---
-<div class="py-10 w-full">
+<div class={wrapperClass}>
   <div class="relative px-16 py-2 w-fit mx-auto max-w-[85%]">
     <Icon
       name="quotes"
-      class="absolute top-0 left-0 text-5xl text-secondary/60 rotate-180 leading-none"
+      class={`absolute top-0 left-0 ${quoteClass} text-secondary/60 rotate-180 leading-none`}
     />
     <blockquote class="text-center">
-      <div
-        class="[&_p]:font-serif [&_p]:italic [&_p]:text-2xl md:[&_p]:text-3xl [&_p]:leading-relaxed [&_p]:text-base-content [&_a]:underline font-serif italic text-2xl md:text-3xl leading-relaxed text-base-content"
-        set:html={testo}
-      />
+      <div class={textClass} set:html={testo} />
       {fonte && (
         <footer
           class="mt-4 text-sm text-base-content/70 not-italic [&_a]:underline"
@@ -27,7 +30,7 @@ const { testo, fonte } = Astro.props;
     </blockquote>
     <Icon
       name="quotes"
-      class="absolute bottom-0 right-0 text-5xl text-secondary/60 leading-none"
+      class={`absolute bottom-0 right-0 ${quoteClass} text-secondary/60 leading-none`}
     />
   </div>
 </div>

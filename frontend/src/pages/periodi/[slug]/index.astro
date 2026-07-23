@@ -6,6 +6,7 @@ import HeaderWatermark from '../../../components/ui/HeaderWatermark.astro';
 import Icon from '../../../components/base/Icon.astro';
 import AutorePlaceholder from '../../../components/ui/AutorePlaceholder.astro';
 import PlaceholderCerchio from '../../../components/ui/PlaceholderCerchio.astro';
+import ParagraphCitazione from '../../../components/paragraphs/ParagraphCitazione.astro';
 import {
   getPeriodi, getContenutiByPeriodoMap,
   getCantiByPeriodo, getAutoriByPeriodo, getEventiByPeriodo,
@@ -13,7 +14,7 @@ import {
 } from '../../../lib/api/index.js';
 import type { Periodo } from '../../../lib/api/types.js';
 import { buildDefinedTermSchema, buildBreadcrumbSchema, buildItemListSchema } from '../../../lib/schema.js';
-import { buildCanonical } from '../../../lib/seo.js';
+import { buildCanonical, stripHtml } from '../../../lib/seo.js';
 import { getPageMeta } from '../../../lib/pages.js';
 import { getOgImageForPeriodo } from '../../../lib/og-image.js';
 
@@ -51,7 +52,7 @@ const immagineUrl = getImageUrl(periodo.immagine);
 const formatData = (data: string) =>
   new Date(data).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
 
-const meta = getPageMeta('periodi.term', { titolo: periodo.titolo });
+const meta = getPageMeta('periodi.term', { titolo: periodo.titolo, descrizione: stripHtml(periodo.descrizione ?? '') });
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
 const jsonLd = [
   buildDefinedTermSchema(periodo.titolo, meta.metaDescription, buildCanonical(Astro), {
@@ -142,6 +143,10 @@ const ogImage = await getOgImageForPeriodo(periodo);
 
     <span class="sr-only" data-pagefind-weight="10">{periodo.titolo}</span>
     <span class="sr-only" data-pagefind-sort="titolo">{periodo.titolo}</span>
+
+    {periodo.descrizione && (
+      <ParagraphCitazione testo={periodo.descrizione} fonte={null} size="sm" />
+    )}
 
     <!-- Canti più visti -->
     {cantiConDati.length > 0 && (

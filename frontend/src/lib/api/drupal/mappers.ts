@@ -66,7 +66,7 @@ export function sanitizeHtml(html: string): string {
   });
 }
 
-function textValue(field: any): string | null {
+export function textValue(field: any): string | null {
   if (!field) return null;
   if (typeof field === 'string') return sanitizeHtml(field);
   const raw = field.processed ?? field.value ?? null;
