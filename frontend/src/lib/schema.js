@@ -1,4 +1,4 @@
-import { linguaToIso, stripHtml } from './seo.js';
+import { linguaToIso, stripHtml, truncate } from './seo.js';
 
 export function buildWebSiteSchema(siteUrl) {
   return {
@@ -46,12 +46,16 @@ export function buildBreadcrumbSchema(items) {
   };
 }
 
-export function buildCreativeWorkSchema(canto, siteUrl) {
+export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath) {
+  const url = `${siteUrl}/canti/${canto.slug}`;
+
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'MusicComposition',
+    // @id stabile per riferimenti interni al @graph e riconciliazione entità.
+    '@id': `${url}#composition`,
     name: canto.titolo,
-    url: `${siteUrl}/canti/${canto.slug}`,
+    url,
     inLanguage: linguaToIso(canto.lingue?.[0]?.titolo),
     isPartOf: {
       '@type': 'CreativeWork',
@@ -60,8 +64,15 @@ export function buildCreativeWorkSchema(canto, siteUrl) {
     },
   };
 
-  if (canto.capoverso) {
-    schema.description = canto.capoverso;
+  // La description deve descrivere l'opera, non citarla: si preferiscono le
+  // note redazionali al capoverso (che è solo il primo verso del testo).
+  const descrizione = stripHtml(canto.informazioni) || canto.capoverso;
+  if (descrizione) {
+    schema.description = truncate(descrizione, 300);
+  }
+
+  if (ogImagePath) {
+    schema.image = `${siteUrl}${ogImagePath}`;
   }
 
   if (canto.altriTitoli) {
@@ -111,6 +122,12 @@ export function buildCreativeWorkSchema(canto, siteUrl) {
 
   if (canto.tematiche?.length > 0) {
     schema.genre = canto.tematiche.map((t) => t.titolo);
+  }
+
+  // I tag vanno in keywords (stringa comma-separated, come da spec schema.org);
+  // le tematiche restano in genre per non duplicare lo stesso segnale.
+  if (canto.tags?.length > 0) {
+    schema.keywords = canto.tags.map((t) => t.titolo).join(', ');
   }
 
   if (canto.videoUrl) {
