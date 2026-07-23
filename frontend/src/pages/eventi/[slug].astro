@@ -32,12 +32,12 @@ const breadcrumbItems = [
   { label: 'Eventi', href: '/eventi' },
   { label: evento.titolo },
 ];
-const jsonLd = [
-  buildEventSchema(evento, siteUrl),
-  buildBreadcrumbSchema(breadcrumbItems.map((item) => ({ name: item.label, url: item.href ? `${siteUrl}${item.href}` : undefined }))),
-];
 const publishedTime = evento.dataEvento ? new Date(evento.dataEvento).toISOString().split('T')[0] : undefined;
 const ogImage = await getOgImageForEvento(evento);
+const jsonLd = [
+  buildEventSchema(evento, siteUrl, ogImage),
+  buildBreadcrumbSchema(breadcrumbItems.map((item) => ({ name: item.label, url: item.href ? `${siteUrl}${item.href}` : undefined }))),
+];
 ---
 <BaseLayout
   title={buildEventoTitle(evento)}

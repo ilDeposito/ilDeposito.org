@@ -203,12 +203,17 @@ export function buildProfilePageSchema(autore, siteUrl, ogImagePath) {
   return schema;
 }
 
-export function buildEventSchema(evento, siteUrl) {
+export function buildEventSchema(evento, siteUrl, ogImagePath) {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Event',
     name: evento.titolo,
     url: `${siteUrl}/eventi/${evento.slug}`,
+    // Search Console segnala eventStatus come mancante: per anniversari
+    // storici il default (svoltosi regolarmente) è l'unico valore onesto.
+    // offers/performer/organizer restano invece omessi di proposito: per un
+    // evento storico non esistono, e inventarli sarebbe markup ingannevole.
+    eventStatus: 'https://schema.org/EventScheduled',
   };
 
   if (evento.informazioni) {
@@ -216,7 +221,14 @@ export function buildEventSchema(evento, siteUrl) {
   }
 
   if (evento.dataEvento) {
-    schema.startDate = new Date(evento.dataEvento).toISOString().split('T')[0];
+    const giorno = new Date(evento.dataEvento).toISOString().split('T')[0];
+    schema.startDate = giorno;
+    // Anniversario puntuale: l'evento storico è registrato su un solo giorno.
+    schema.endDate = giorno;
+  }
+
+  if (ogImagePath) {
+    schema.image = `${siteUrl}${ogImagePath}`;
   }
 
   if (evento.localizzazioni?.length > 0) {
@@ -224,6 +236,9 @@ export function buildEventSchema(evento, siteUrl) {
     schema.location = {
       '@type': 'Place',
       name: loc.titolo,
+      // Google vuole address anche senza coordinate: il nome della località
+      // è il livello di dettaglio più preciso che l'archivio possiede.
+      address: loc.titolo,
     };
     if (evento.latitude != null && evento.longitude != null) {
       schema.location.geo = {
@@ -231,7 +246,6 @@ export function buildEventSchema(evento, siteUrl) {
         latitude: evento.latitude,
         longitude: evento.longitude,
       };
-      schema.location.address = loc.titolo;
     }
   }
 
