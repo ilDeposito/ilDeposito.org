@@ -5,7 +5,7 @@ import HeaderWatermark from '../../components/ui/HeaderWatermark.astro';
 import PagefindList from '../../components/ui/PagefindList.astro';
 import { getLingue } from '../../lib/api/index.js';
 import type { Tassonomia } from '../../lib/api/types.js';
-import { buildWebPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildDefinedTermSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
 import { buildCanonical } from '../../lib/seo.js';
 import { getPageMeta } from '../../lib/pages.js';
 import { getOgImageFallback } from '../../lib/og-image.js';
@@ -23,7 +23,10 @@ const titolo = lingua.titolo.charAt(0).toUpperCase() + lingua.titolo.slice(1);
 const meta = getPageMeta('lingue.term', { titolo });
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
 const jsonLd = [
-  buildWebPageSchema(meta.metaTitle, meta.metaDescription, buildCanonical(Astro)),
+  buildDefinedTermSchema(titolo, meta.metaDescription, buildCanonical(Astro), {
+    name: 'Lingue',
+    url: `${siteUrl}/lingue`,
+  }),
   buildBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
     { name: 'Lingue', url: `${siteUrl}/lingue` },

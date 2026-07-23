@@ -114,7 +114,6 @@ export function mapCantoDetail(raw: any, included: IncludedMap): CantoDetail {
   return {
     ...mapCantoCard(raw, included),
     testo: plainText(a.field_canto_testo),
-    audio: null,
     fonte: textValue(a.field_fonte),
     informazioni: textValue(a.field_informazioni),
     altriTitoli: a.field_altri_titoli || null,
@@ -324,6 +323,8 @@ export function mapTraduzioneDetail(raw: any, included: IncludedMap): Traduzione
     visualizzazioni: a.field_visualizzazioni_totali ?? 0,
     lingue: resolveRefs(r.field_lingua, included),
     cantoOriginale,
+    dataCreazione: a.created ?? null,
+    dataModifica: a.changed ?? null,
   };
 }
 

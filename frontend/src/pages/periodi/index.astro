@@ -6,7 +6,7 @@ import HeaderWatermark from '../../components/ui/HeaderWatermark.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
 import Icon from '../../components/base/Icon.astro';
 import { getPeriodi, getImageUrl, getContenutiByPeriodoMap } from '../../lib/api/index.js';
-import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildDefinedTermSetSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
 import { buildCanonical } from '../../lib/seo.js';
 import { getPageMeta } from '../../lib/pages.js';
 
@@ -16,7 +16,7 @@ const contenutiMap = await getContenutiByPeriodoMap();
 const meta = getPageMeta('periodi.index');
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
 const jsonLd = [
-  buildCollectionPageSchema(meta.metaTitle, meta.metaDescription, buildCanonical(Astro)),
+  buildDefinedTermSetSchema(meta.metaTitle, meta.metaDescription, buildCanonical(Astro)),
   buildBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
     { name: 'Periodi' },

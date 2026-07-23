@@ -114,7 +114,7 @@ export function fetchAllTraduzioniRaw(): Promise<RawStore> {
     traduzioniPromise = fetchAllJsonApi('/jsonapi/node/traduzione', new URLSearchParams({
       'filter[status]': '1',
       'fields[node--traduzione]': [
-        'drupal_internal__nid', 'title', 'path',
+        'drupal_internal__nid', 'title', 'path', 'created', 'changed',
         'field_canto_testo', 'field_informazioni', 'field_lingua',
         'field_canti_correlati', 'field_visualizzazioni_totali',
       ].join(','),

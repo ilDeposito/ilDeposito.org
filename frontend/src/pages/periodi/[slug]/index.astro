@@ -12,7 +12,7 @@ import {
   getAutoriImmaginiMap, getImageUrl,
 } from '../../../lib/api/index.js';
 import type { Periodo } from '../../../lib/api/types.js';
-import { buildWebPageSchema, buildBreadcrumbSchema } from '../../../lib/schema.js';
+import { buildDefinedTermSchema, buildBreadcrumbSchema, buildItemListSchema } from '../../../lib/schema.js';
 import { buildCanonical } from '../../../lib/seo.js';
 import { getPageMeta } from '../../../lib/pages.js';
 import { getOgImageForPeriodo } from '../../../lib/og-image.js';
@@ -54,12 +54,33 @@ const formatData = (data: string) =>
 const meta = getPageMeta('periodi.term', { titolo: periodo.titolo });
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
 const jsonLd = [
-  buildWebPageSchema(meta.metaTitle, meta.metaDescription, buildCanonical(Astro)),
+  buildDefinedTermSchema(periodo.titolo, meta.metaDescription, buildCanonical(Astro), {
+    name: 'Periodi',
+    url: `${siteUrl}/periodi`,
+  }),
   buildBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
     { name: 'Periodi', url: `${siteUrl}/periodi` },
     { name: periodo.titolo },
   ]),
+  ...(cantiConDati.length > 0
+    ? [buildItemListSchema(
+        `I canti più visti del periodo "${periodo.titolo}"`,
+        cantiConDati.map(({ canto }) => ({ name: canto.titolo, url: `${siteUrl}/canti/${canto.slug}` }))
+      )]
+    : []),
+  ...(autori.length > 0
+    ? [buildItemListSchema(
+        `Gli autori più visti del periodo "${periodo.titolo}"`,
+        autori.map((a) => ({ name: a.titolo, url: `${siteUrl}/autori/${a.slug}` }))
+      )]
+    : []),
+  ...(eventi.length > 0
+    ? [buildItemListSchema(
+        `Gli eventi più visti del periodo "${periodo.titolo}"`,
+        eventi.map((e) => ({ name: e.titolo, url: `${siteUrl}/eventi/${e.slug}` }))
+      )]
+    : []),
 ];
 const ogImage = await getOgImageForPeriodo(periodo);
 ---

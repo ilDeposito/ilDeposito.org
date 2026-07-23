@@ -46,7 +46,6 @@ export interface CantoCard {
 
 export interface CantoDetail extends CantoCard {
   testo: string;
-  audio: string | null;
   fonte: string | null;
   informazioni: string | null;
   altriTitoli: string | null;
@@ -214,6 +213,8 @@ export interface TraduzioneDetail {
     slug: string;
     lingue: Ref[];
   } | null;
+  dataCreazione: string | null;
+  dataModifica: string | null;
 }
 
 // ── Tassonomie ─────────────────────────────────────────

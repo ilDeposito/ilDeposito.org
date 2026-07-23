@@ -99,7 +99,7 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
   // Lo stesso @id emesso da buildPersonSchema sulla pagina autore: Google
   // riconcilia così "l'autore di questo canto" con la sua pagina profilo.
   const toEntityRef = (a) => ({
-    '@type': a.isPersona ? 'Person' : 'Organization',
+    '@type': a.isPersona ? 'Person' : 'MusicGroup',
     '@id': `${siteUrl}/autori/${a.slug}#autore`,
     name: a.titolo,
     url: `${siteUrl}/autori/${a.slug}`,
@@ -174,9 +174,28 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
         url: canto.videoUrl,
       };
       if (canto.dataCreazione) video.uploadDate = canto.dataCreazione;
-      schema.subjectOf = video;
+
+      // recordedAs (MusicRecording) è la proprietà corretta per collegare
+      // l'opera a una sua registrazione, invece del generico subjectOf.
+      schema.recordedAs = {
+        '@type': 'MusicRecording',
+        '@id': `${url}#recording`,
+        name: canto.titolo,
+        recordingOf: { '@id': `${url}#composition` },
+        video,
+      };
     }
   }
+
+  // Il PDF testo/accordi è generato per ogni canto in fase di build
+  // (integrations/pdf-generator.js): associatedMedia lo rende un asset
+  // indicizzabile a sé, collegato all'opera.
+  schema.associatedMedia = {
+    '@type': 'DigitalDocument',
+    name: `Testo${canto.accordi ? ' e accordi' : ''} di "${canto.titolo}" (PDF)`,
+    url: `${siteUrl}/pdf/canti/ildeposito-${canto.slug}.pdf`,
+    encodingFormat: 'application/pdf',
+  };
 
   return schema;
 }
@@ -187,7 +206,7 @@ export function buildPersonSchema(autore, siteUrl, ogImagePath) {
 
   const schema = {
     '@context': 'https://schema.org',
-    '@type': isPersona ? 'Person' : 'Organization',
+    '@type': isPersona ? 'Person' : 'MusicGroup',
     // Stesso @id usato nei riferimenti author/lyricist/composer dei canti:
     // àncora del knowledge graph interno per questa entità.
     '@id': `${url}#autore`,
@@ -208,15 +227,18 @@ export function buildPersonSchema(autore, siteUrl, ogImagePath) {
     schema.description = stripHtml(autore.informazioni).substring(0, 200);
   }
 
-  // birthDate/deathDate/birthPlace sono proprietà di Person: per i collettivi
-  // (Organization) non hanno un equivalente valido in schema.org, si omettono.
+  // birthDate/deathDate/nationality sono proprietà di Person: per i collettivi
+  // (MusicGroup) non hanno un equivalente valido in schema.org, si omettono.
   if (isPersona) {
     if (autore.annoNascita) schema.birthDate = String(autore.annoNascita);
     if (autore.annoMorte) schema.deathDate = String(autore.annoMorte);
 
+    // 'localizzazioni' sugli autori indica la nazionalità (confermato in
+    // redazione), non un luogo di nascita puntuale: nationality è la
+    // proprietà corretta, non birthPlace.
     if (autore.localizzazioni?.length > 0) {
-      schema.birthPlace = {
-        '@type': 'Place',
+      schema.nationality = {
+        '@type': 'Country',
         name: autore.localizzazioni[0].titolo,
       };
     }
@@ -285,6 +307,17 @@ export function buildEventSchema(evento, siteUrl, ogImagePath) {
 
   if (evento.informazioni) {
     schema.description = stripHtml(evento.informazioni).substring(0, 200);
+  }
+
+  // Stesso trattamento di buildCreativeWorkSchema sul canto: genre per le
+  // tematiche, keywords per i tag. Prima mancavano qui pur essendo presenti
+  // (e visibili in pagina) anche sull'evento.
+  if (evento.tematiche?.length > 0) {
+    schema.genre = evento.tematiche.map((t) => t.titolo);
+  }
+
+  if (evento.tags?.length > 0) {
+    schema.keywords = evento.tags.map((t) => t.titolo).join(', ');
   }
 
   if (evento.dataEvento) {
@@ -359,6 +392,9 @@ export function buildTranslationSchema(traduzione, siteUrl) {
     schema.description = stripHtml(traduzione.informazioni).substring(0, 200);
   }
 
+  if (traduzione.dataCreazione) schema.datePublished = traduzione.dataCreazione;
+  if (traduzione.dataModifica) schema.dateModified = traduzione.dataModifica;
+
   return schema;
 }
 
@@ -394,5 +430,33 @@ export function buildCollectionPageSchema(title, description, url) {
     name: title,
     description,
     url,
+  };
+}
+
+// Per le pagine tassonomia (tags, lingue, localizzazioni, periodi): DefinedTermSet
+// per l'indice, DefinedTerm per il singolo termine — più corretto di
+// WebPage/CollectionPage per un vocabolario controllato.
+export function buildDefinedTermSetSchema(name, description, url) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'DefinedTermSet',
+    name,
+    description,
+    url,
+  };
+}
+
+export function buildDefinedTermSchema(name, description, url, termSet) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'DefinedTerm',
+    name,
+    description,
+    url,
+    inDefinedTermSet: {
+      '@type': 'DefinedTermSet',
+      name: termSet.name,
+      url: termSet.url,
+    },
   };
 }
