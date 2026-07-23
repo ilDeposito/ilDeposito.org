@@ -47,7 +47,7 @@ Il form espone due pulsanti, ognuno agganciato a un workflow diverso in base all
 
 ## Logging
 
-Inizio/fine di ogni build (frontend e redirect) finiscono nel log Drupal (`/admin/reports/dblog`), canale **`ildeposito_build`** sempre, indipendentemente dal modulo che l'ha innescata. Il logging vive in `ildeposito.sh` (non nei form Drupal) perché è l'unico punto per cui passano tutte e tre le fonti di trigger:
+L'esito di ogni build (frontend e redirect) finisce nel log Drupal (`/admin/reports/dblog`), canale **`ildeposito_build`** sempre, indipendentemente dal modulo che l'ha innescata: un solo evento a fine run, successo o fallimento (nessun log di avvio). Il logging vive in `ildeposito.sh` (non nei form Drupal) perché è l'unico punto per cui passano tutte e tre le fonti di trigger:
 
 | Fonte | Come viene riconosciuta |
 |---|---|
@@ -55,7 +55,7 @@ Inizio/fine di ogni build (frontend e redirect) finiscono nel log Drupal (`/admi
 | `GitHub` | Run manuale da UI/app GitHub (l'input `source` resta al default `GitHub`), oppure workflow di deploy innescati da push (`deploy-{stage,prod}.yml`, che non hanno l'input e quindi non passano `--source`: `ildeposito.sh` rileva comunque `GITHUB_ACTIONS=true` e usa `GitHub`) |
 | `server` | Esecuzione diretta sul server (crontab, SSH, `allinea-prod`): nessun `--source` e nessuna variabile `GITHUB_ACTIONS` |
 
-Messaggi: `Build avviata - {fonte}: {workflow}.yml` all'inizio, `Build completata con successo - ...` o `Build fallita (exit N) - ...` alla fine. Il comando drush `ildeposito:log` (in `src/Drush/Commands/BuildLogCommand.php`) scrive il messaggio nel canale `ildeposito_build`; se drush/DB non rispondono, `ildeposito.sh` logga solo un warning locale e non interrompe la build.
+Messaggi: `Build completata con successo - {fonte}: {workflow}.yml` oppure `Build fallita (exit N) - {fonte}: {workflow}.yml`, scritti a fine run. Il comando drush `ildeposito:log` (in `src/Drush/Commands/BuildLogCommand.php`) scrive il messaggio nel canale `ildeposito_build`; se drush/DB non rispondono, `ildeposito.sh` logga solo un warning locale e non interrompe la build.
 
 ## Configurazione
 

@@ -41,6 +41,7 @@
         "drupal/security_review": "^3.0",
         "drupal/unused_modules": "^1.6",
         "drupal/upgrade_status": "^4.3",
+        "drupal/views_data_export": "^1.10",
         "drush/drush": "^13",
         "npm-asset/chart.js": "^4.4",
         "npm-asset/chartjs-adapter-date-fns": "^3.0",

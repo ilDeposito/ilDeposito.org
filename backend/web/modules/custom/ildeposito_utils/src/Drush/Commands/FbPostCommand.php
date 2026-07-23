@@ -47,6 +47,13 @@ final class FbPostCommand extends Command {
   ];
   private const HOURS_SCHEDULE_DEFAULT = ['7', '9', '11', '13', '15', '17', '19'];
 
+  // In CLI drush non ha request context: setAbsolute() da solo genera
+  // "http://default/..." che Facebook rifiuta ("The url you supplied is
+  // invalid", 1500 OAuthException). Il link deve comunque puntare sempre al
+  // frontend pubblico, mai all'host backend, quindi la base è fissa e non
+  // derivabile dall'ambiente.
+  private const PUBLIC_BASE_URL = 'https://www.ildeposito.org';
+
   public function __construct(
     private readonly EntityTypeManagerInterface $entityTypeManager,
     private readonly ClientInterface $httpClient,
@@ -87,9 +94,10 @@ final class FbPostCommand extends Command {
         continue;
       }
 
-      $link = Url::fromRoute('entity.node.canonical', ['node' => $event->id()])
-        ->setAbsolute()
-        ->toString();
+      $link = Url::fromRoute('entity.node.canonical', ['node' => $event->id()], [
+        'absolute' => TRUE,
+        'base_url' => self::PUBLIC_BASE_URL,
+      ])->toString();
       $time = $today->format('Y/m/d') . ' ' . $hour . ':00:00';
 
       try {

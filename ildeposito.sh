@@ -247,7 +247,8 @@ cmd_build_frontend() {
     source="$(resolve_build_source "$@")"
     label="$(build_workflow_label "${mode}")"
 
-    log_build_event info "Build avviata - ${source}: ${label}"
+    # Un solo evento in watchdog per build: successo o fallimento a fine run,
+    # nessun log di avvio (raddoppiava le righe senza aggiungere informazione).
     if _run_build_frontend "${mode}"; then
         log_build_event info "Build completata con successo - ${source}: ${label}"
     else
@@ -318,7 +319,7 @@ cmd_build_redirect() {
     source="$(resolve_build_source "$@")"
     label="build-redirect-prod.yml"
 
-    log_build_event info "Build avviata - ${source}: ${label}"
+    # Un solo evento in watchdog: vedi cmd_build_frontend.
     if _run_build_redirect; then
         log_build_event info "Build completata con successo - ${source}: ${label}"
     else
