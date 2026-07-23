@@ -35,8 +35,13 @@ const breadcrumbItems = [
   { label: autore.titolo },
 ];
 const ogImage = await getOgImageForAutore(autore);
+// Per lo schema le opere vanno in ordine di rilevanza: il cap a 50 nel builder
+// scarta così i canti meno visti, non una coda arbitraria.
+const cantiPerSchema = [...tuttiCanti].sort(
+  (a, b) => (b.visualizzazioni ?? 0) - (a.visualizzazioni ?? 0)
+);
 const jsonLd = [
-  buildProfilePageSchema(autore, siteUrl, ogImage),
+  buildProfilePageSchema(autore, siteUrl, ogImage, cantiPerSchema),
   buildBreadcrumbSchema(breadcrumbItems.map((item) => ({ name: item.label, url: item.href ? `${siteUrl}${item.href}` : undefined }))),
 ];
 ---

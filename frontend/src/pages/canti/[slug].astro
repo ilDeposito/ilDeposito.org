@@ -44,7 +44,7 @@ const breadcrumbItems = [
   { label: canto.titolo },
 ];
 const jsonLd = [
-  buildCreativeWorkSchema(canto, siteUrl, ogImage),
+  buildCreativeWorkSchema(canto, siteUrl, ogImage, eventi),
   buildBreadcrumbSchema(breadcrumbItems.map((item) => ({ name: item.label, url: item.href ? `${siteUrl}${item.href}` : undefined }))),
 ];
 ---

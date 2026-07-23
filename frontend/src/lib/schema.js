@@ -46,7 +46,7 @@ export function buildBreadcrumbSchema(items) {
   };
 }
 
-export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath) {
+export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []) {
   const url = `${siteUrl}/canti/${canto.slug}`;
 
   const schema = {
@@ -96,8 +96,11 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath) {
     (a, i, arr) => arr.findIndex((x) => x.slug === a.slug) === i
   );
 
+  // Lo stesso @id emesso da buildPersonSchema sulla pagina autore: Google
+  // riconcilia così "l'autore di questo canto" con la sua pagina profilo.
   const toEntityRef = (a) => ({
     '@type': a.isPersona ? 'Person' : 'Organization',
+    '@id': `${siteUrl}/autori/${a.slug}#autore`,
     name: a.titolo,
     url: `${siteUrl}/autori/${a.slug}`,
   });
@@ -128,6 +131,24 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath) {
   // le tematiche restano in genre per non duplicare lo stesso segnale.
   if (canto.tags?.length > 0) {
     schema.keywords = canto.tags.map((t) => t.titolo).join(', ');
+  }
+
+  // temporalCoverage accetta testo libero oltre agli intervalli ISO: i periodi
+  // storici dell'archivio sono il dato temporale più ricco disponibile.
+  if (canto.periodi?.length > 0) {
+    schema.temporalCoverage = canto.periodi.map((p) => p.titolo);
+  }
+
+  // Il canto è un'opera scritta SULL'evento storico → about. L'inverso
+  // (Event.subjectOf) è emesso dalla pagina evento: le due pagine si
+  // riconciliano tramite gli @id condivisi.
+  if (eventi.length > 0) {
+    schema.about = eventi.map((e) => ({
+      '@type': 'Event',
+      '@id': `${siteUrl}/eventi/${e.slug}#evento`,
+      name: e.titolo,
+      url: `${siteUrl}/eventi/${e.slug}`,
+    }));
   }
 
   if (canto.videoUrl) {
@@ -162,12 +183,16 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath) {
 
 export function buildPersonSchema(autore, siteUrl, ogImagePath) {
   const isPersona = Boolean(autore.nome);
+  const url = `${siteUrl}/autori/${autore.slug}`;
 
   const schema = {
     '@context': 'https://schema.org',
     '@type': isPersona ? 'Person' : 'Organization',
+    // Stesso @id usato nei riferimenti author/lyricist/composer dei canti:
+    // àncora del knowledge graph interno per questa entità.
+    '@id': `${url}#autore`,
     name: autore.titolo,
-    url: `${siteUrl}/autori/${autore.slug}`,
+    url,
   };
 
   if (isPersona) {
@@ -203,7 +228,7 @@ export function buildPersonSchema(autore, siteUrl, ogImagePath) {
   return schema;
 }
 
-export function buildProfilePageSchema(autore, siteUrl, ogImagePath) {
+export function buildProfilePageSchema(autore, siteUrl, ogImagePath, canti = []) {
   const person = buildPersonSchema(autore, siteUrl, ogImagePath);
   delete person['@context'];
 
@@ -217,15 +242,40 @@ export function buildProfilePageSchema(autore, siteUrl, ogImagePath) {
   if (autore.dataCreazione) schema.datePublished = autore.dataCreazione;
   if (autore.dataModifica) schema.dateModified = autore.dataModifica;
 
+  // Le opere dell'autore come ItemList: i riferimenti @id #composition
+  // agganciano le pagine canto al profilo nel knowledge graph. Cap a 50 per
+  // non gonfiare l'HTML degli autori più prolifici (es. anonimo).
+  if (canti.length > 0) {
+    const opere = canti.slice(0, 50);
+    schema.hasPart = {
+      '@type': 'ItemList',
+      numberOfItems: opere.length,
+      itemListElement: opere.map((c, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        item: {
+          '@type': 'MusicComposition',
+          '@id': `${siteUrl}/canti/${c.slug}#composition`,
+          name: c.titolo,
+          url: `${siteUrl}/canti/${c.slug}`,
+        },
+      })),
+    };
+  }
+
   return schema;
 }
 
 export function buildEventSchema(evento, siteUrl, ogImagePath) {
+  const url = `${siteUrl}/eventi/${evento.slug}`;
+
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Event',
+    // Stesso @id usato in about dalle pagine canto (riconciliazione entità).
+    '@id': `${url}#evento`,
     name: evento.titolo,
-    url: `${siteUrl}/eventi/${evento.slug}`,
+    url,
     // Search Console segnala eventStatus come mancante: per anniversari
     // storici il default (svoltosi regolarmente) è l'unico valore onesto.
     // offers/performer/organizer restano invece omessi di proposito: per un
@@ -266,9 +316,13 @@ export function buildEventSchema(evento, siteUrl, ogImagePath) {
     }
   }
 
+  // I canti sono opere scritte SULL'evento: la proprietà corretta è subjectOf
+  // (inversa di about, che sta sul canto). Gli @id #composition riconciliano
+  // questi riferimenti con le pagine canto.
   if (evento.cantiCollegati?.length > 0) {
-    schema.about = evento.cantiCollegati.map((c) => ({
+    schema.subjectOf = evento.cantiCollegati.map((c) => ({
       '@type': 'MusicComposition',
+      '@id': `${siteUrl}/canti/${c.slug}#composition`,
       name: c.titolo,
       url: `${siteUrl}/canti/${c.slug}`,
     }));
@@ -294,6 +348,7 @@ export function buildTranslationSchema(traduzione, siteUrl) {
   if (traduzione.cantoOriginale) {
     schema.translationOfWork = {
       '@type': 'MusicComposition',
+      '@id': `${siteUrl}/canti/${traduzione.cantoOriginale.slug}#composition`,
       name: traduzione.cantoOriginale.titolo,
       url: `${siteUrl}/canti/${traduzione.cantoOriginale.slug}`,
       inLanguage: linguaToIso(traduzione.cantoOriginale.lingue?.[0]?.titolo),
