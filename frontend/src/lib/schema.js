@@ -114,11 +114,30 @@ export function buildCreativeWorkSchema(canto, siteUrl) {
   }
 
   if (canto.videoUrl) {
-    schema.subjectOf = {
-      '@type': 'VideoObject',
-      url: canto.videoUrl,
-      name: canto.titolo,
-    };
+    // Google richiede thumbnailUrl e uploadDate (e raccomanda embedUrl e
+    // description) per VideoObject: thumbnail ed embed si derivano dall'ID
+    // YouTube; come uploadDate si usa la data di pubblicazione del canto sul
+    // sito, perché la vera data di upload richiederebbe la YouTube Data API.
+    // Se l'URL non è riconoscibile come YouTube meglio omettere il VideoObject
+    // che emetterne uno invalido.
+    const videoId = canto.videoUrl.match(
+      /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([a-zA-Z0-9_-]{11})/
+    )?.[1];
+
+    if (videoId) {
+      const video = {
+        '@type': 'VideoObject',
+        name: canto.titolo,
+        description:
+          canto.capoverso ||
+          `Registrazione del canto "${canto.titolo}" dall'archivio ilDeposito.org`,
+        thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+        embedUrl: `https://www.youtube.com/embed/${videoId}`,
+        url: canto.videoUrl,
+      };
+      if (canto.dataCreazione) video.uploadDate = canto.dataCreazione;
+      schema.subjectOf = video;
+    }
   }
 
   return schema;
