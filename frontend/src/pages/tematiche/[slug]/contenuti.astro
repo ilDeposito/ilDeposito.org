@@ -3,31 +3,30 @@ import { Image } from 'astro:assets';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../../components/ui/Breadcrumb.astro';
 import HeaderWatermark from '../../../components/ui/HeaderWatermark.astro';
-import Icon from '../../../components/base/Icon.astro';
 import PagefindList from '../../../components/ui/PagefindList.astro';
-import { getPeriodi, getImageUrl } from '../../../lib/api/index.js';
-import type { Periodo } from '../../../lib/api/types.js';
+import { getTematiche, getImageUrl } from '../../../lib/api/index.js';
+import type { Tematica } from '../../../lib/api/types.js';
 import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../../lib/schema.js';
 import { buildCanonical } from '../../../lib/seo.js';
 import { getPageMeta } from '../../../lib/pages.js';
 
 export async function getStaticPaths() {
-  const periodi = await getPeriodi();
-  return periodi.map((periodo) => ({
-    params: { slug: periodo.slug },
-    props: { periodo },
+  const tematiche = await getTematiche();
+  return tematiche.map((tematica) => ({
+    params: { slug: tematica.slug },
+    props: { tematica },
   }));
 }
 
-const { periodo } = Astro.props as { periodo: Periodo };
-const immagineUrl = getImageUrl(periodo.immagine);
+const { tematica } = Astro.props as { tematica: Tematica };
+const immagineUrl = getImageUrl(tematica.immagine);
 
-const meta = getPageMeta('periodi.contenuti', { titolo: periodo.titolo });
+const meta = getPageMeta('tematiche.contenuti', { titolo: tematica.titolo });
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
 const breadcrumbItems = [
   { label: 'Home', href: '/' },
-  { label: 'Periodi', href: '/periodi' },
-  { label: periodo.titolo, href: `/periodi/${periodo.slug}` },
+  { label: 'Tematiche', href: '/tematiche' },
+  { label: tematica.titolo, href: `/tematiche/${tematica.slug}` },
   { label: 'Contenuti' },
 ];
 const jsonLd = [
@@ -46,7 +45,7 @@ const jsonLd = [
         {immagineUrl && (
           <Image
             src={immagineUrl}
-            alt={"Immagine del periodo: " + periodo.titolo}
+            alt={"Immagine della tematica: " + tematica.titolo}
             width={160}
             height={160}
             format="webp"
@@ -66,8 +65,8 @@ const jsonLd = [
 
   <div class="max-w-6xl mx-auto px-4 py-8">
     <PagefindList
-      presetFilter={{ periodi: periodo.titolo }}
-      filterKeys={["type", "tags", "tematiche"]}
+      presetFilter={{ tematiche: tematica.titolo }}
+      filterKeys={["type", "periodi", "tags"]}
       pageSize={15}
       sortOptions={[
         { field: 'titolo', label: 'A–Z', dir: 'asc' },

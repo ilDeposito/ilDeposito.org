@@ -62,6 +62,21 @@ export async function getCantiByPeriodo(periodoId: number | string, limit = 5): 
     .map((item: any) => mapCantoCard(item, map));
 }
 
+export async function getCantiByTematica(tematicaId: number | string, limit = 5): Promise<CantoCard[]> {
+  const { data, included } = await fetchAllCantiRaw();
+  const map = buildIncludedMap(included);
+  const tid = Number(tematicaId);
+  return [...data]
+    .filter((item: any) =>
+      (item.relationships.field_tematiche?.data ?? []).some(
+        (ref: any) => ref.meta?.drupal_internal__target_id === tid
+      )
+    )
+    .sort((a: any, b: any) => (b.attributes.field_visualizzazioni_totali ?? 0) - (a.attributes.field_visualizzazioni_totali ?? 0))
+    .slice(0, limit)
+    .map((item: any) => mapCantoCard(item, map));
+}
+
 export async function getCanto(slug: string): Promise<CantoDetail | null> {
   const [slugMap, { included }] = await Promise.all([
     getCantiSlugMap(),

@@ -236,6 +236,11 @@ export interface Tag extends Tassonomia {
   immagine: string | null;
 }
 
+export interface Tematica extends Tassonomia {
+  immagine: string | null;
+  descrizione: string | null;
+}
+
 // ── Informazioni ───────────────────────────────────────
 
 export interface InformazionePath {
@@ -319,5 +324,14 @@ export interface ContenutiPeriodo {
 
 export interface ContenutiTag {
   canti: number;
+  eventi: number;
+}
+
+export interface ContenutiTematica {
+  canti: number;
+  // Derivato lato frontend: nessun campo diretto autore↔tematica in Drupal,
+  // si conta il numero di autori distinti che hanno almeno un canto con
+  // questa tematica (vedi getContenutiByTematicaMap).
+  autori: number;
   eventi: number;
 }

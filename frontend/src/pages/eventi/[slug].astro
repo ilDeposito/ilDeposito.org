@@ -70,10 +70,16 @@ const jsonLd = [
         {' · '}{evento.dataEvento && formatData(evento.dataEvento)}
       </p>
 
-      <a href="/archivio/storia-cantata" class="btn btn-primary gap-2 w-fit border-0">
-        <Icon name="calendar-star" />
-        <span class="font-serif italic font-bold uppercase text-sm">La storia cantata</span>
-      </a>
+      <div class="flex flex-wrap items-center gap-2">
+        <a href="/archivio/storia-cantata" class="btn btn-primary gap-2 border-0">
+          <Icon name="calendar-star" />
+          <span class="font-serif italic font-bold uppercase text-base">La storia cantata</span>
+        </a>
+
+        {evento.tematiche.map((t) => (
+          <a href={`/tematiche/${t.slug}`} class="btn btn-secondary border-0 text-base">{t.titolo}</a>
+        ))}
+      </div>
 
       <div class="flex items-center gap-4 text-base text-base-content">
         <share-button data-title={evento.titolo} class="contents">
@@ -101,6 +107,7 @@ const jsonLd = [
     <span class="sr-only" data-pagefind-sort={`visualizzazioni:${String(evento.visualizzazioni).padStart(10, '0')}`}></span>
     {periodo && <span class="sr-only" data-pagefind-filter={`periodi:${periodo.titolo}`}></span>}
     {evento.tags.map(t => <span class="sr-only" data-pagefind-filter={`tags:${t.titolo}`}></span>)}
+    {evento.tematiche.map(t => <span class="sr-only" data-pagefind-filter={`tematiche:${t.titolo}`}></span>)}
     {evento.localizzazioni.map(l => <span class="sr-only" data-pagefind-filter={`localizzazioni:${l.titolo}`}></span>)}
     <!-- Meta per display nella card dell'elenco -->
     {evento.localizzazioni[0] && <span class="sr-only" data-pagefind-meta={`localizzazioni:${evento.localizzazioni[0].titolo}`}></span>}
@@ -190,9 +197,13 @@ const jsonLd = [
       )}
 
       {evento.tematiche.length > 0 && (
-        <p class="text-sm flex items-center gap-2 flex-wrap">
+        <p class="text-base">
           <span class="text-base-content">Tematiche: </span>
-          {evento.tematiche.map((t) => <span class="badge badge-secondary">{t.titolo}</span>)}
+          <span class="text-primary">
+            {evento.tematiche.map((t, i) => (
+              <>{i > 0 && ', '}<a href={`/tematiche/${t.slug}`} class="underline hover:no-underline">{t.titolo}</a></>
+            ))}
+          </span>
         </p>
       )}
 

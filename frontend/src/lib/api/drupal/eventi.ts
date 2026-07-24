@@ -107,6 +107,21 @@ export async function getEventiByPeriodo(periodoId: number | string, limit = 5):
     .map((item: any) => mapEventoCard(item, map));
 }
 
+export async function getEventiByTematica(tematicaId: number | string, limit = 5): Promise<EventoCard[]> {
+  const { data, included } = await fetchAllEventiRaw();
+  const map = buildIncludedMap(included);
+  const tid = Number(tematicaId);
+  return [...data]
+    .filter((item: any) =>
+      (item.relationships.field_tematiche?.data ?? []).some(
+        (ref: any) => ref.meta?.drupal_internal__target_id === tid
+      )
+    )
+    .sort((a: any, b: any) => (b.attributes.field_visualizzazioni_totali ?? 0) - (a.attributes.field_visualizzazioni_totali ?? 0))
+    .slice(0, limit)
+    .map((item: any) => mapEventoCard(item, map));
+}
+
 export async function getEventiCalendario(): Promise<EventoCalendario[]> {
   const { data, included } = await fetchAllEventiRaw();
   const map = buildIncludedMap(included);

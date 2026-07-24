@@ -15,8 +15,8 @@ import {
   getEventiCalendario,
   getPeriodi,
   getContenutiByPeriodoMap,
-  getTags,
-  getContenutiByTagMap,
+  getTematiche,
+  getContenutiByTematicaMap,
   getImageUrl,
 } from '../lib/api/index.js';
 import { buildWebSiteSchema, buildOrganizationSchema, buildBreadcrumbSchema } from '../lib/schema.js';
@@ -49,8 +49,8 @@ const [
   eventiCalendario,
   periodi,
   contenutiPeriodoMap,
-  tags,
-  contenutiTagMap,
+  tematiche,
+  contenutiTematicaMap,
 ] = await Promise.all([
   getCantiPiuVisti(8),
   getAutoriImmaginiMap(),
@@ -59,8 +59,8 @@ const [
   getEventiCalendario(),
   getPeriodi(),
   getContenutiByPeriodoMap(),
-  getTags(),
-  getContenutiByTagMap(),
+  getTematiche(),
+  getContenutiByTematicaMap(),
 ]);
 
 const cantiConDati = canti.map((canto) => {
@@ -93,16 +93,16 @@ for (const e of eventiCalendario) {
 }
 const highlightedDays = [...(eventsByMonth.get(month) ?? [])];
 
-const tagsSorted = tags
-  .map((tag) => {
-    const counts = contenutiTagMap.get(tag.id);
+const tematicheSorted = tematiche
+  .map((tematica) => {
+    const counts = contenutiTematicaMap.get(tematica.id);
     const total = counts ? counts.canti + counts.eventi : 0;
-    return { ...tag, total };
+    return { ...tematica, total };
   })
   .filter((t) => t.total > 0)
   .sort((a, b) => b.total - a.total)
   .slice(0, 20);
-const maxTagCount = tagsSorted[0]?.total ?? 1;
+const maxTematicaCount = tematicheSorted[0]?.total ?? 1;
 
 const autoriConDati = autori.map((autore) => ({
   autore,
@@ -293,11 +293,41 @@ const autoriConDati = autori.map((autore) => ({
     </div>
   </section>
 
-  <!-- ═══ 4. PERIODI STORICI ═══ bg-primary -->
-  <section class="bg-primary text-primary-content">
+  <!-- ═══ 4. ESPLORA PER TEMATICA ═══ bg-base-100 -->
+  {tematicheSorted.length > 0 && (
+    <section class="bg-base-100">
+      <div class="max-w-4xl mx-auto px-4 py-12 md:py-16">
+        <h2 class="font-serif font-bold text-xl md:text-2xl text-base-content text-center border-b-2 border-secondary pb-2 w-fit mx-auto mb-10">
+          <Icon name="lightbulb" class="text-primary mr-2" />Esplora per tematica
+        </h2>
+
+        <div class="flex flex-wrap justify-center gap-2 md:gap-3">
+          {tematicheSorted.map((t) => {
+            const ratio = t.total / maxTematicaCount;
+            const sizeClass = ratio > 0.7 ? 'text-lg md:text-xl px-4 py-2' : ratio > 0.4 ? 'text-base px-3 py-1.5' : 'text-sm px-2.5 py-1';
+            return (
+              <a
+                href={`/tematiche/${t.slug}`}
+                class:list={[
+                  "font-serif rounded-full border border-base-300 bg-base-200 text-base-content hover:bg-primary hover:text-primary-content hover:border-primary transition-colors",
+                  sizeClass,
+                ]}
+              >
+                {t.titolo}
+                <span class="text-xs opacity-70 ml-1">{t.total}</span>
+              </a>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- ═══ 5. PERIODI STORICI ═══ bg-base-200 -->
+  <section class="bg-base-200">
     <div class="max-w-6xl mx-auto px-4 py-12 md:py-16">
-      <h2 class="font-serif font-bold text-xl md:text-2xl text-center border-b-2 border-secondary pb-2 w-fit mx-auto mb-10">
-        <Icon name="books" class="text-primary-content mr-2" />I periodi storici
+      <h2 class="font-serif font-bold text-xl md:text-2xl text-base-content text-center border-b-2 border-secondary pb-2 w-fit mx-auto mb-10">
+        <Icon name="books" class="text-primary mr-2" />I periodi storici
       </h2>
 
       <div class="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
@@ -319,14 +349,14 @@ const autoriConDati = autori.map((autore) => ({
                     class="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover border-2 border-secondary/50 grayscale group-hover:grayscale-0 transition-all duration-300"
                   />
                 ) : (
-                  <div class="w-24 h-24 md:w-28 md:h-28 rounded-full bg-primary-content/10 flex items-center justify-center border-2 border-secondary/50">
-                    <Icon name="calendar-star" class="text-primary-content/80 text-3xl" />
+                  <div class="w-24 h-24 md:w-28 md:h-28 rounded-full bg-base-100 flex items-center justify-center border-2 border-secondary/50">
+                    <Icon name="calendar-star" class="text-base-content/50 text-3xl" />
                   </div>
                 )}
               </div>
               <div class="text-center">
-                <h3 class="font-serif font-bold text-sm md:text-base leading-tight group-hover:underline">{periodo.titolo}</h3>
-                <p class="text-xs text-primary-content/80 mt-1">
+                <h3 class="font-serif font-bold text-sm md:text-base leading-tight text-primary group-hover:underline">{periodo.titolo}</h3>
+                <p class="text-xs text-base-content/70 mt-1">
                   {canti > 0 && <span>{canti} {canti === 1 ? 'canto' : 'canti'}</span>}
                   {canti > 0 && autori > 0 && <span> &middot; </span>}
                   {autori > 0 && <span>{autori} {autori === 1 ? 'autore' : 'autori'}</span>}
@@ -338,7 +368,7 @@ const autoriConDati = autori.map((autore) => ({
       </div>
 
       <div class="text-center mt-10">
-        <a href="/periodi" class="btn bg-primary-content text-primary border-0 hover:bg-primary-content/90 gap-2">
+        <a href="/periodi" class="btn btn-primary border-0 gap-2">
           Tutti i periodi
           <Icon name="arrow-right" />
         </a>
@@ -346,7 +376,7 @@ const autoriConDati = autori.map((autore) => ({
     </div>
   </section>
 
-  <!-- ═══ 5. EVENTI DEL MESE — CAROUSEL ═══ bg-base-100 -->
+  <!-- ═══ 6. EVENTI DEL MESE — CAROUSEL ═══ bg-base-100 -->
   {eventiMese.length > 0 && (
     <section class="bg-base-100">
       <div class="max-w-6xl mx-auto px-4 py-12 md:py-16">
@@ -437,7 +467,7 @@ const autoriConDati = autori.map((autore) => ({
     </section>
   )}
 
-  <!-- ═══ 6. CALENDARIO CANTATO ═══ bg-base-200 -->
+  <!-- ═══ 7. CALENDARIO CANTATO ═══ bg-base-200 -->
   <section class="bg-base-200">
     <div class="max-w-6xl mx-auto px-4 py-12 md:py-16">
       <div class="flex flex-col md:flex-row items-center gap-8 md:gap-16">
@@ -463,7 +493,7 @@ const autoriConDati = autori.map((autore) => ({
     </div>
   </section>
 
-  <!-- ═══ 7. CANZONIERI PDF ═══ bg-secondary -->
+  <!-- ═══ 8. CANZONIERI PDF ═══ bg-secondary -->
   <section class="bg-secondary text-secondary-content">
     <div class="max-w-2xl mx-auto px-4 py-12 md:py-16 text-center flex flex-col items-center gap-4">
       <h2 class="font-serif font-bold text-xl md:text-2xl">
@@ -479,36 +509,6 @@ const autoriConDati = autori.map((autore) => ({
       </a>
     </div>
   </section>
-
-  <!-- ═══ 8. TAG PIÙ USATI ═══ bg-base-100 -->
-  {tagsSorted.length > 0 && (
-    <section class="bg-base-100">
-      <div class="max-w-4xl mx-auto px-4 py-12 md:py-16">
-        <h2 class="font-serif font-bold text-xl md:text-2xl text-base-content text-center border-b-2 border-secondary pb-2 w-fit mx-auto mb-10">
-          <Icon name="tag" class="text-primary mr-2" />Esplora per argomento
-        </h2>
-
-        <div class="flex flex-wrap justify-center gap-2 md:gap-3">
-          {tagsSorted.map((t) => {
-            const ratio = t.total / maxTagCount;
-            const sizeClass = ratio > 0.7 ? 'text-lg md:text-xl px-4 py-2' : ratio > 0.4 ? 'text-base px-3 py-1.5' : 'text-sm px-2.5 py-1';
-            return (
-              <a
-                href={`/tags/${t.slug}`}
-                class:list={[
-                  "font-serif rounded-full border border-base-300 bg-base-200 text-base-content hover:bg-primary hover:text-primary-content hover:border-primary transition-colors",
-                  sizeClass,
-                ]}
-              >
-                {t.titolo}
-                <span class="text-xs opacity-70 ml-1">{t.total}</span>
-              </a>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  )}
 
   <!-- ═══ 9. COLLABORA ═══ bg-base-300 -->
   <section class="bg-base-300">

@@ -18,6 +18,7 @@ let linguePromise: Promise<RawStore> | null = null;
 let localizzazioniPromise: Promise<RawStore> | null = null;
 let periodiPromise: Promise<RawStore> | null = null;
 let tagsPromise: Promise<RawStore> | null = null;
+let tematichePromise: Promise<RawStore> | null = null;
 let mediaHeaderPromise: Promise<RawStore> | null = null;
 
 let warmTriggered = false;
@@ -33,6 +34,7 @@ function triggerWarmAll(): void {
   fetchAllLocalizzazioniRaw();
   fetchAllPeriodiRaw();
   fetchAllTagsRaw();
+  fetchAllTematicheRaw();
   fetchAllMediaHeaderRaw();
 }
 
@@ -228,6 +230,20 @@ export function fetchAllTagsRaw(): Promise<RawStore> {
   return tagsPromise;
 }
 
+export function fetchAllTematicheRaw(): Promise<RawStore> {
+  if (!tematichePromise) {
+    tematichePromise = fetchAllJsonApi('/jsonapi/taxonomy_term/tematiche', new URLSearchParams({
+      'fields[taxonomy_term--tematiche]': 'drupal_internal__tid,name,path,field_immagine,description',
+      'fields[media--image]': 'field_media_image',
+      'fields[file--file]': 'uri',
+      'include': 'field_immagine,field_immagine.field_media_image',
+      'page[limit]': '200',
+    })).then(toStore);
+    triggerWarmAll();
+  }
+  return tematichePromise;
+}
+
 let immagineParaGraphsPromise: Promise<RawStore> | null = null;
 
 export function fetchAllImmagineParaGraphsRaw(): Promise<RawStore> {
@@ -254,5 +270,6 @@ export function warmAll(): Promise<RawStore[]> {
     fetchAllLocalizzazioniRaw(),
     fetchAllPeriodiRaw(),
     fetchAllTagsRaw(),
+    fetchAllTematicheRaw(),
   ]);
 }

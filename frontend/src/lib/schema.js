@@ -139,17 +139,25 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
     schema.temporalCoverage = canto.periodi.map((p) => p.titolo);
   }
 
-  // Il canto è un'opera scritta SULL'evento storico → about. L'inverso
-  // (Event.subjectOf) è emesso dalla pagina evento: le due pagine si
-  // riconciliano tramite gli @id condivisi.
-  if (eventi.length > 0) {
-    schema.about = eventi.map((e) => ({
+  // about raccoglie i soggetti dell'opera: le tematiche come DefinedTerm
+  // (stesso @id emesso da buildDefinedTermSchema sulla pagina /tematiche/[slug],
+  // per riconciliazione entità) e l'evento storico SULL'inverso di
+  // Event.subjectOf, emesso dalla pagina evento.
+  const about = [
+    ...(canto.tematiche ?? []).map((t) => ({
+      '@type': 'DefinedTerm',
+      '@id': `${siteUrl}/tematiche/${t.slug}#tematica`,
+      name: t.titolo,
+      url: `${siteUrl}/tematiche/${t.slug}`,
+    })),
+    ...eventi.map((e) => ({
       '@type': 'Event',
       '@id': `${siteUrl}/eventi/${e.slug}#evento`,
       name: e.titolo,
       url: `${siteUrl}/eventi/${e.slug}`,
-    }));
-  }
+    })),
+  ];
+  if (about.length > 0) schema.about = about;
 
   if (canto.videoUrl) {
     // Google richiede thumbnailUrl e uploadDate (e raccomanda embedUrl e
@@ -200,7 +208,7 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
   return schema;
 }
 
-export function buildPersonSchema(autore, siteUrl, ogImagePath) {
+export function buildPersonSchema(autore, siteUrl, ogImagePath, tematiche = []) {
   const isPersona = Boolean(autore.nome);
   const url = `${siteUrl}/autori/${autore.slug}`;
 
@@ -258,11 +266,25 @@ export function buildPersonSchema(autore, siteUrl, ogImagePath) {
   const sameAs = (autore.links ?? []).map((l) => l.uri).filter(Boolean);
   if (sameAs.length > 0) schema.sameAs = sameAs;
 
+  // Nessun campo diretto autore↔tematica in Drupal: le tematiche dominanti
+  // sono derivate lato frontend (vedi getTematichePerAutoreMap in autori.ts).
+  // knowsAbout è la proprietà corretta di Person/Organization per "i soggetti
+  // di cui si occupa" — stesso @id emesso da buildDefinedTermSchema sulla
+  // pagina /tematiche/[slug], per riconciliazione entità.
+  if (tematiche.length > 0) {
+    schema.knowsAbout = tematiche.map((t) => ({
+      '@type': 'DefinedTerm',
+      '@id': `${siteUrl}/tematiche/${t.slug}#tematica`,
+      name: t.titolo,
+      url: `${siteUrl}/tematiche/${t.slug}`,
+    }));
+  }
+
   return schema;
 }
 
-export function buildProfilePageSchema(autore, siteUrl, ogImagePath, canti = []) {
-  const person = buildPersonSchema(autore, siteUrl, ogImagePath);
+export function buildProfilePageSchema(autore, siteUrl, ogImagePath, canti = [], tematiche = []) {
+  const person = buildPersonSchema(autore, siteUrl, ogImagePath, tematiche);
   delete person['@context'];
 
   const schema = {
@@ -322,9 +344,17 @@ export function buildEventSchema(evento, siteUrl, ogImagePath) {
 
   // Stesso trattamento di buildCreativeWorkSchema sul canto: genre per le
   // tematiche, keywords per i tag. Prima mancavano qui pur essendo presenti
-  // (e visibili in pagina) anche sull'evento.
+  // (e visibili in pagina) anche sull'evento. about collega inoltre ogni
+  // tematica al suo DefinedTerm su /tematiche/[slug] (stesso @id), come per
+  // il canto — non in conflitto con subjectOf, che resta per i canti collegati.
   if (evento.tematiche?.length > 0) {
     schema.genre = evento.tematiche.map((t) => t.titolo);
+    schema.about = evento.tematiche.map((t) => ({
+      '@type': 'DefinedTerm',
+      '@id': `${siteUrl}/tematiche/${t.slug}#tematica`,
+      name: t.titolo,
+      url: `${siteUrl}/tematiche/${t.slug}`,
+    }));
   }
 
   if (evento.tags?.length > 0) {
@@ -457,8 +487,8 @@ export function buildDefinedTermSetSchema(name, description, url) {
   };
 }
 
-export function buildDefinedTermSchema(name, description, url, termSet) {
-  return {
+export function buildDefinedTermSchema(name, description, url, termSet, imageUrl, idSuffix) {
+  const schema = {
     '@context': 'https://schema.org',
     '@type': 'DefinedTerm',
     name,
@@ -470,4 +500,20 @@ export function buildDefinedTermSchema(name, description, url, termSet) {
       url: termSet.url,
     },
   };
+
+  // idSuffix è opzionale: solo i termini effettivamente referenziati altrove
+  // via @id (oggi le tematiche, da canto/evento) lo passano — evita di
+  // introdurre un @id inutilizzato su periodi/tags/lingue/localizzazioni.
+  if (idSuffix) {
+    schema['@id'] = `${url}#${idSuffix}`;
+  }
+
+  // A differenza di ogImagePath (altrove in questo file), qui l'immagine è già
+  // un URL assoluto risolto da getImageUrl(): niente da fabbricare quando il
+  // termine non ne ha una, si omette semplicemente la proprietà.
+  if (imageUrl) {
+    schema.image = imageUrl;
+  }
+
+  return schema;
 }

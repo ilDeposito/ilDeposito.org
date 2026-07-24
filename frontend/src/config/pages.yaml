@@ -238,6 +238,27 @@ tags.term:
   pageDescription: "I contenuti catalogati con {titolo}"
 
 
+# ─── Tematiche (tassonomia) ──────────────────────────────────────────────────
+tematiche.index:
+  metaTitle: "Tematiche — Archivio per temi e argomenti"
+  metaDescription: "Esplora i canti di protesta e gli eventi per tematica: lavoro, guerra, resistenza, migrazione e altri temi ricorrenti."
+  pageTitle: "Tematiche"
+  pageDescription: "L'elenco delle tematiche con cui sono catalogati i contenuti"
+
+# Termine singolo — token: {titolo} (nome della tematica), {descrizione} (testo della tematica, opzionale)
+tematiche.term:
+  metaTitle: "{titolo} — Canti, autori e eventi"
+  metaDescription: "{?descrizione}{descrizione}{/descrizione}{^descrizione}I canti, gli autori e gli eventi storici della tematica \"{titolo}\" nell'archivio di ilDeposito.org.{/descrizione}"
+  pageTitle: "{titolo}"
+
+# Tutti i contenuti di una tematica (tematiche/[slug]/contenuti) — token: {titolo}
+tematiche.contenuti:
+  metaTitle: "Tutti i contenuti della tematica {titolo}"
+  metaDescription: "Canti, autori e eventi della tematica \"{titolo}\": esplora l'archivio completo di ilDeposito.org."
+  pageTitle: "Contenuti: {titolo}"
+  pageDescription: "Tutti i canti, gli autori e gli eventi della tematica"
+
+
 # ─── Calendario cantato ──────────────────────────────────────────────────────
 calendario.index:
   metaTitle: "Calendario cantato — Anniversari storici"

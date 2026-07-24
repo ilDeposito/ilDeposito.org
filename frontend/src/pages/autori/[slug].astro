@@ -2,7 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import AuthorHeader from '../../components/ui/AuthorHeader.astro';
 import Icon from '../../components/base/Icon.astro';
-import { getAllAutoriDetail, getCantiByAutoreMap } from '../../lib/api/index.js';
+import { getAllAutoriDetail, getCantiByAutoreMap, getTematichePerAutoreMap } from '../../lib/api/index.js';
 import type { AutoreDetail } from '../../lib/api/types.js';
 import { buildProfilePageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
 import { buildAutoreTitle, buildAutoreDescription } from '../../lib/seo.js';
@@ -21,6 +21,9 @@ const { autore } = Astro.props as { autore: AutoreDetail };
 const cantiMap = await getCantiByAutoreMap();
 const tuttiCanti = cantiMap.get(autore.id) ?? [];
 const haPiuDiDieci = tuttiCanti.length > 10;
+
+const tematichePerAutoreMap = await getTematichePerAutoreMap();
+const tematiche = tematichePerAutoreMap.get(autore.id) ?? [];
 
 const canti = haPiuDiDieci
   ? [...tuttiCanti]
@@ -41,7 +44,7 @@ const cantiPerSchema = [...tuttiCanti].sort(
   (a, b) => (b.visualizzazioni ?? 0) - (a.visualizzazioni ?? 0)
 );
 const jsonLd = [
-  buildProfilePageSchema(autore, siteUrl, ogImage, cantiPerSchema),
+  buildProfilePageSchema(autore, siteUrl, ogImage, cantiPerSchema, tematiche),
   buildBreadcrumbSchema(breadcrumbItems.map((item) => ({ name: item.label, url: item.href ? `${siteUrl}${item.href}` : undefined }))),
 ];
 ---
@@ -57,7 +60,7 @@ const jsonLd = [
   jsonLd={jsonLd}
 >
 
-  <AuthorHeader autore={autore} breadcrumbItems={breadcrumbItems} cantiSlug={haPiuDiDieci ? `${autore.slug}/canti` : undefined} />
+  <AuthorHeader autore={autore} breadcrumbItems={breadcrumbItems} cantiSlug={haPiuDiDieci ? `${autore.slug}/canti` : undefined} tematiche={tematiche} />
 
   <div class="max-w-6xl mx-auto px-4 py-8">
   <article data-pagefind-body class="flex flex-col gap-6 max-w-2xl mx-auto">
@@ -76,6 +79,9 @@ const jsonLd = [
     ))}
     {autore.periodi.map((p) => (
       <span class="sr-only" data-pagefind-filter={`periodi:${p.titolo}`}></span>
+    ))}
+    {tematiche.map((t) => (
+      <span class="sr-only" data-pagefind-filter={`tematiche:${t.titolo}`}></span>
     ))}
 
     <!-- Informazioni -->

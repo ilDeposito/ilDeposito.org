@@ -1,13 +1,13 @@
 import {
-  fetchAllLingueRaw, fetchAllLocalizzazioniRaw, fetchAllPeriodiRaw, fetchAllTagsRaw,
+  fetchAllLingueRaw, fetchAllLocalizzazioniRaw, fetchAllPeriodiRaw, fetchAllTagsRaw, fetchAllTematicheRaw,
   fetchAllCantiRaw, fetchAllAutoriRaw, fetchAllEventiRaw, fetchAllTraduzioniRaw,
 } from './store.js';
 import { extractSlug, buildIncludedMap, resolveImageUrl } from './resolvers.js';
 import { getImageUrl } from './assets.js';
 import { textValue } from './mappers.js';
 import type {
-  Tassonomia, Periodo, Tag,
-  ContenutiLingua, ContenutiLocalizzazione, ContenutiPeriodo, ContenutiTag,
+  Tassonomia, Periodo, Tag, Tematica,
+  ContenutiLingua, ContenutiLocalizzazione, ContenutiPeriodo, ContenutiTag, ContenutiTematica,
 } from '../types.js';
 
 // ── Helpers ───────────────────────────────────────────
@@ -186,6 +186,75 @@ export async function getContenutiByTagMap(): Promise<Map<number | string, Conte
     for (const ref of (evento.relationships.field_tags?.data ?? [])) {
       getEntry(ref.meta.drupal_internal__target_id).eventi += 1;
     }
+  }
+
+  return map;
+}
+
+// ── Tematiche ──────────────────────────────────────────
+
+export async function getTematiche(): Promise<Tematica[]> {
+  const { data, included } = await fetchAllTematicheRaw();
+  const map = buildIncludedMap(included);
+
+  return data
+    .map((item: any): Tematica => ({
+      ...mapTassonomia(item),
+      immagine: resolveImageUrl(item.relationships?.field_immagine, map),
+      descrizione: textValue(item.attributes.description),
+    }))
+    .sort((a, b) => a.titolo.localeCompare(b.titolo, 'it'));
+}
+
+export async function getContenutiByTematicaMap(): Promise<Map<number | string, ContenutiTematica>> {
+  const [cantiRes, eventiRes] = await Promise.all([
+    fetchAllCantiRaw(),
+    fetchAllEventiRaw(),
+  ]);
+  const cantiIncludedMap = buildIncludedMap(cantiRes.included);
+
+  const map = new Map<number | string, ContenutiTematica>();
+  const getEntry = (id: number | string) => {
+    let entry = map.get(id);
+    if (!entry) { entry = { canti: 0, autori: 0, eventi: 0 }; map.set(id, entry); }
+    return entry;
+  };
+
+  // Nessun campo diretto autore↔tematica: si accumula, per ogni tematica,
+  // l'insieme degli autori (testo+musica) dei canti che la portano, per poi
+  // contarne la cardinalità (vedi anche getTematichePerAutoreMap in autori.ts,
+  // stessa derivazione letta dal verso opposto).
+  const autoriPerTematica = new Map<number | string, Set<number>>();
+
+  for (const canto of cantiRes.data) {
+    const tematicheIds = (canto.relationships.field_tematiche?.data ?? [])
+      .map((ref: any) => ref.meta.drupal_internal__target_id);
+    if (tematicheIds.length === 0) continue;
+
+    const autoreIds = new Set<number>();
+    for (const ref of [
+      ...(canto.relationships.field_autori_testo?.data ?? []),
+      ...(canto.relationships.field_autori_musica?.data ?? []),
+    ]) {
+      const autore = cantiIncludedMap.get(ref.type, ref.id);
+      if (autore) autoreIds.add(autore.attributes.drupal_internal__nid);
+    }
+
+    for (const tid of tematicheIds) {
+      getEntry(tid).canti += 1;
+      let set = autoriPerTematica.get(tid);
+      if (!set) { set = new Set(); autoriPerTematica.set(tid, set); }
+      for (const aid of autoreIds) set.add(aid);
+    }
+  }
+  for (const evento of eventiRes.data) {
+    for (const ref of (evento.relationships.field_tematiche?.data ?? [])) {
+      getEntry(ref.meta.drupal_internal__target_id).eventi += 1;
+    }
+  }
+
+  for (const [tid, set] of autoriPerTematica) {
+    getEntry(tid).autori = set.size;
   }
 
   return map;

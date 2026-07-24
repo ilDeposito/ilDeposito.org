@@ -15,7 +15,7 @@ const isCurrent = (href: string) => pathname === href || pathname.startsWith(`${
       class="shrink-0 inline-flex items-center gap-2 text-primary-content [&_svg]:h-8 [&_svg]:w-auto md:[&_svg]:h-10"
     >
       <span aria-hidden="true" class="contents"><Fragment set:html={logoRaw} /></span>
-      <span class="hidden md:inline font-serif font-bold text-[clamp(1rem,1.7vw,1.5rem)] tracking-wide whitespace-nowrap">ilDeposito.org</span>
+      <span class="hidden md:inline font-serif font-bold text-[clamp(1rem,1.7vw,1.5rem)] tracking-wide whitespace-nowrap">ilDeposito</span>
     </a>
 
     <!-- Spacer sx -->
@@ -27,7 +27,7 @@ const isCurrent = (href: string) => pathname === href || pathname.startsWith(`${
       <a href="/autori" aria-current={isCurrent('/autori') ? 'page' : undefined} class="px-[clamp(0.375rem,1.3vw,1rem)] py-1.5 rounded text-[clamp(0.75rem,1.25vw,1.25rem)] font-serif uppercase tracking-wide whitespace-nowrap text-primary-content hover:bg-primary-content/15 transition-colors">Autori</a>
       <a href="/periodi" aria-current={isCurrent('/periodi') ? 'page' : undefined} class="px-[clamp(0.375rem,1.3vw,1rem)] py-1.5 rounded text-[clamp(0.75rem,1.25vw,1.25rem)] font-serif uppercase tracking-wide whitespace-nowrap text-primary-content hover:bg-primary-content/15 transition-colors">Periodi</a>
       <a href="/eventi" aria-current={isCurrent('/eventi') ? 'page' : undefined} class="px-[clamp(0.375rem,1.3vw,1rem)] py-1.5 rounded text-[clamp(0.75rem,1.25vw,1.25rem)] font-serif uppercase tracking-wide whitespace-nowrap text-primary-content hover:bg-primary-content/15 transition-colors">Eventi</a>
-      <a href="/tags" aria-current={isCurrent('/tags') ? 'page' : undefined} class="px-[clamp(0.375rem,1.3vw,1rem)] py-1.5 rounded text-[clamp(0.75rem,1.25vw,1.25rem)] font-serif uppercase tracking-wide whitespace-nowrap text-primary-content hover:bg-primary-content/15 transition-colors">Tags</a>
+      <a href="/tematiche" aria-current={isCurrent('/tematiche') ? 'page' : undefined} class="px-[clamp(0.375rem,1.3vw,1rem)] py-1.5 rounded text-[clamp(0.75rem,1.25vw,1.25rem)] font-serif uppercase tracking-wide whitespace-nowrap text-primary-content hover:bg-primary-content/15 transition-colors">Tematiche</a>
     </nav>
 
     <!-- Spacer dx -->
@@ -114,6 +114,18 @@ const isCurrent = (href: string) => pathname === href || pathname.startsWith(`${
                 </a>
               </li>
               <li>
+                <a href="/periodi" class="block py-3 group">
+                  <span class="font-serif font-bold text-2xl md:text-3xl text-base-content group-hover:text-primary transition-colors">Periodi</span>
+                  <span class="block text-sm font-sans text-base-content/70 mt-0.5">I periodi storici dell'archivio</span>
+                </a>
+              </li>
+              <li>
+                <a href="/tematiche" class="block py-3 group">
+                  <span class="font-serif font-bold text-2xl md:text-3xl text-base-content group-hover:text-primary transition-colors">Tematiche</span>
+                  <span class="block text-sm font-sans text-base-content/70 mt-0.5">Le tematiche affrontate dai canti e dagli eventi</span>
+                </a>
+              </li>
+              <li>
                 <a href="/eventi" class="block py-3 group">
                   <span class="font-serif font-bold text-2xl md:text-3xl text-base-content group-hover:text-primary transition-colors">Eventi</span>
                   <span class="block text-sm font-sans text-base-content/70 mt-0.5">Gli eventi storici legati ai canti di protesta</span>
@@ -123,12 +135,6 @@ const isCurrent = (href: string) => pathname === href || pathname.startsWith(`${
                 <a href="/archivio/storia-cantata" class="block py-3 group">
                   <span class="font-serif font-bold text-2xl md:text-3xl text-base-content group-hover:text-primary transition-colors">La storia cantata</span>
                   <span class="block text-sm font-sans text-base-content/70 mt-0.5">Esplora la storia attraverso i canti e gli eventi</span>
-                </a>
-              </li>
-              <li>
-                <a href="/periodi" class="block py-3 group">
-                  <span class="font-serif font-bold text-2xl md:text-3xl text-base-content group-hover:text-primary transition-colors">Periodi</span>
-                  <span class="block text-sm font-sans text-base-content/70 mt-0.5">I periodi storici dell'archivio</span>
                 </a>
               </li>
               <li>

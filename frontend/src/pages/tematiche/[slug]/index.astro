@@ -1,0 +1,347 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../../components/ui/Breadcrumb.astro';
+import HeaderWatermark from '../../../components/ui/HeaderWatermark.astro';
+import Icon from '../../../components/base/Icon.astro';
+import AutorePlaceholder from '../../../components/ui/AutorePlaceholder.astro';
+import PlaceholderCerchio from '../../../components/ui/PlaceholderCerchio.astro';
+import ParagraphCitazione from '../../../components/paragraphs/ParagraphCitazione.astro';
+import {
+  getTematiche, getContenutiByTematicaMap,
+  getCantiByTematica, getAutoriByTematica, getEventiByTematica,
+  getAutoriImmaginiMap, getImageUrl,
+} from '../../../lib/api/index.js';
+import type { Tematica } from '../../../lib/api/types.js';
+import { buildDefinedTermSchema, buildBreadcrumbSchema, buildItemListSchema } from '../../../lib/schema.js';
+import { buildCanonical, stripHtml } from '../../../lib/seo.js';
+import { getPageMeta } from '../../../lib/pages.js';
+import { getOgImageFallback } from '../../../lib/og-image.js';
+
+export async function getStaticPaths() {
+  const tematiche = await getTematiche();
+  return tematiche.map((tematica) => ({
+    params: { slug: tematica.slug },
+    props: { tematica },
+  }));
+}
+
+const { tematica } = Astro.props as { tematica: Tematica };
+
+const contenutiMap = await getContenutiByTematicaMap();
+const { canti: numCanti = 0, autori: numAutori = 0, eventi: numEventi = 0 } = contenutiMap.get(tematica.id) ?? {};
+
+const [canti, autori, eventi, autoriImmagini] = await Promise.all([
+  getCantiByTematica(tematica.id, 4),
+  getAutoriByTematica(tematica.id, 4),
+  getEventiByTematica(tematica.id, 4),
+  getAutoriImmaginiMap(),
+]);
+
+const cantiConDati = canti.map((canto) => {
+  const autoriCanto = [...canto.autoriTesto, ...canto.autoriMusica].filter(
+    (a, i, arr) => arr.findIndex((x) => x.slug === a.slug) === i
+  );
+  const primoAutore = canto.autoriTesto[0] ?? null;
+  const immagineUrl = primoAutore ? getImageUrl(autoriImmagini.get(primoAutore.slug) ?? null) : null;
+  return { canto, autori: autoriCanto, immagineUrl };
+});
+
+const immagineUrl = getImageUrl(tematica.immagine);
+
+const formatData = (data: string) =>
+  new Date(data).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+
+const meta = getPageMeta('tematiche.term', { titolo: tematica.titolo, descrizione: stripHtml(tematica.descrizione ?? '') });
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const jsonLd = [
+  buildDefinedTermSchema(tematica.titolo, meta.metaDescription, buildCanonical(Astro), {
+    name: 'Tematiche',
+    url: `${siteUrl}/tematiche`,
+  }, immagineUrl ?? undefined, 'tematica'),
+  buildBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Tematiche', url: `${siteUrl}/tematiche` },
+    { name: tematica.titolo },
+  ]),
+  ...(cantiConDati.length > 0
+    ? [buildItemListSchema(
+        `I canti più visti della tematica "${tematica.titolo}"`,
+        cantiConDati.map(({ canto }) => ({ name: canto.titolo, url: `${siteUrl}/canti/${canto.slug}` }))
+      )]
+    : []),
+  ...(autori.length > 0
+    ? [buildItemListSchema(
+        `Gli autori più visti della tematica "${tematica.titolo}"`,
+        autori.map((a) => ({ name: a.titolo, url: `${siteUrl}/autori/${a.slug}` }))
+      )]
+    : []),
+  ...(eventi.length > 0
+    ? [buildItemListSchema(
+        `Gli eventi più visti della tematica "${tematica.titolo}"`,
+        eventi.map((e) => ({ name: e.titolo, url: `${siteUrl}/eventi/${e.slug}` }))
+      )]
+    : []),
+];
+const ogImage = await getOgImageFallback();
+---
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription} pagefindType="tematiche" jsonLd={jsonLd} ogImage={ogImage} ogImageAlt={ogImage ? `Immagine della tematica ${tematica.titolo}` : undefined}>
+
+  <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">
+    <HeaderWatermark />
+    <div class="relative z-10 max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
+      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Tematiche', href: '/tematiche' }, { label: tematica.titolo }]} />
+
+      <div class="flex items-center gap-4">
+        {immagineUrl && (
+          <Image
+            src={immagineUrl}
+            alt={"Immagine della tematica: " + tematica.titolo}
+            width={160}
+            height={160}
+            format="webp"
+            quality={80}
+            loading="eager"
+            fetchpriority="high"
+            class="w-20 h-20 rounded-full object-cover shrink-0 border-2 border-base-300"
+          />
+        )}
+        <div class="flex flex-col gap-1">
+          <h1 class="font-serif font-bold text-2xl md:text-3xl text-base-content">{meta.pageTitle}</h1>
+          <div class="flex flex-wrap gap-x-4 gap-y-1 text-base text-base-content/70">
+            {numCanti > 0 && (
+              <span class="flex items-center gap-1.5">
+                <Icon name="music-notes" class="text-sm text-primary/70" />
+                <span class="font-bold text-base-content">{numCanti}</span> {numCanti === 1 ? 'canto' : 'canti'}
+              </span>
+            )}
+            {numAutori > 0 && (
+              <span class="flex items-center gap-1.5">
+                <Icon name="user" class="text-sm text-primary/70" />
+                <span class="font-bold text-base-content">{numAutori}</span> {numAutori === 1 ? 'autore' : 'autori'}
+              </span>
+            )}
+            {numEventi > 0 && (
+              <span class="flex items-center gap-1.5">
+                <Icon name="calendar-star" class="text-sm text-primary/70" />
+                <span class="font-bold text-base-content">{numEventi}</span> {numEventi === 1 ? 'evento' : 'eventi'}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <a href={`/tematiche/${tematica.slug}/contenuti`} class="btn btn-primary gap-2 w-fit border-0">
+        Tutti i contenuti della tematica
+        <Icon name="arrow-right" />
+      </a>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8">
+  <article data-pagefind-body class="flex flex-col gap-10">
+
+    <span class="sr-only" data-pagefind-weight="10">{tematica.titolo}</span>
+    <span class="sr-only" data-pagefind-sort="titolo">{tematica.titolo}</span>
+
+    {tematica.descrizione && (
+      <div class="hidden md:block">
+        <ParagraphCitazione testo={tematica.descrizione} fonte={null} size="sm" />
+      </div>
+    )}
+
+    <!-- Canti più visti -->
+    {cantiConDati.length > 0 && (
+      <section data-pagefind-ignore class="flex flex-col gap-6">
+        <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
+          I canti più visti
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+          {cantiConDati.map(({ canto, autori, immagineUrl }, i) => (
+            <div class="flex items-start gap-5 group relative">
+              <div class="shrink-0">
+                {immagineUrl ? (
+                  <Image
+                    src={immagineUrl}
+                    alt={autori[0] ? "Foto di " + autori[0].titolo : canto.titolo}
+                    width={240}
+                    height={240}
+                    format="webp"
+                    quality={80}
+                    loading={i < 4 ? 'eager' : 'lazy'}
+                    class="w-20 h-20 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
+                  />
+                ) : autori.length > 0 ? (
+                  <AutorePlaceholder
+                    titolo={autori[0].titolo}
+                    textClass="text-2xl md:text-5xl"
+                    class="w-20 h-20 md:w-36 md:h-36"
+                  />
+                ) : (
+                  <PlaceholderCerchio label={canto.titolo} class="w-20 h-20 md:w-36 md:h-36">
+                    <Icon name="user" class="text-base-content/50 text-3xl md:text-5xl" />
+                  </PlaceholderCerchio>
+                )}
+              </div>
+
+              <div class="flex flex-col gap-1.5 min-w-0 pt-2">
+                <h3 class="font-serif font-bold text-xl md:text-2xl text-primary leading-tight flex items-center gap-2">
+                  <a href={`/canti/${canto.slug}`} class="hover:underline after:absolute after:inset-0">{canto.titolo}</a>
+                  <span class="flex items-center gap-1 shrink-0 relative z-10">
+                    <Icon name="headphones" class={`text-sm ${canto.videoUrl ? 'text-primary' : 'text-base-content/50'}`} />
+                    <Icon name="guitar" class={`text-sm ${canto.accordi ? 'text-primary' : 'text-base-content/50'}`} />
+                  </span>
+                </h3>
+
+                {canto.capoverso && (
+                  <p class="italic text-base text-base-content/70 line-clamp-2">{canto.capoverso}</p>
+                )}
+
+                {autori.length > 0 && (
+                  <p class="text-base text-base-content/70 flex items-center gap-2 relative z-10">
+                    <Icon name="user" class="text-sm shrink-0" />
+                    <span>
+                      {autori.map((a, j) => (
+                        <>{j > 0 && ', '}<a href={`/autori/${a.slug}`} class="text-primary underline hover:no-underline">{a.titolo}</a></>
+                      ))}
+                    </span>
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Autori più visti -->
+    {autori.length > 0 && (
+      <section data-pagefind-ignore class="flex flex-col gap-6">
+        <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
+          Gli autori più visti
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+          {autori.map((autore, i) => {
+            const autoreImgUrl = getImageUrl(autore.immagine);
+            return (
+              <div class="flex items-start gap-5 group relative">
+                <div class="shrink-0">
+                  {autoreImgUrl ? (
+                    <Image
+                      src={autoreImgUrl}
+                      alt={"Foto di " + autore.titolo}
+                      width={240}
+                      height={240}
+                      format="webp"
+                      quality={80}
+                      loading="lazy"
+                      class="w-20 h-20 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
+                    />
+                  ) : (
+                    <AutorePlaceholder
+                      nome={autore.nome}
+                      cognome={autore.cognome}
+                      titolo={autore.titolo}
+                      textClass="text-2xl md:text-5xl"
+                      class="w-20 h-20 md:w-36 md:h-36"
+                    />
+                  )}
+                </div>
+
+                <div class="flex flex-col gap-1.5 min-w-0 pt-2">
+                  <h3 class="font-serif font-bold text-xl md:text-2xl text-primary leading-tight">
+                    <a href={`/autori/${autore.slug}`} class="hover:underline after:absolute after:inset-0">{autore.titolo}</a>
+                  </h3>
+
+                  {autore.localizzazioni.length > 0 && (
+                    <p class="text-base text-base-content/70 flex items-center gap-2 relative z-10">
+                      <Icon name="map-pin" class="text-sm shrink-0" />
+                      <span>
+                        {autore.localizzazioni.map((l, j) => (
+                          <>{j > 0 && ', '}<a href={`/localizzazioni/${l.slug}`} class="text-primary underline hover:no-underline">{l.titolo}</a></>
+                        ))}
+                      </span>
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    )}
+
+    <!-- Eventi più visti -->
+    {eventi.length > 0 && (
+      <section data-pagefind-ignore class="flex flex-col gap-6">
+        <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
+          Gli eventi più visti
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+          {eventi.map((evento, i) => {
+            const eventoImgUrl = getImageUrl(evento.immagine);
+            return (
+              <div class="flex items-start gap-5 group relative">
+                <div class="shrink-0">
+                  {eventoImgUrl ? (
+                    <Image
+                      src={eventoImgUrl}
+                      alt={"Immagine dell'evento: " + evento.titolo}
+                      width={240}
+                      height={240}
+                      format="webp"
+                      quality={80}
+                      loading="lazy"
+                      class="w-20 h-20 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
+                    />
+                  ) : (
+                    <div class="w-20 h-20 md:w-36 md:h-36 rounded-full bg-base-200 flex items-center justify-center border-2 border-base-300">
+                      <Icon name="calendar-star" class="text-base-content/50 text-3xl md:text-5xl" />
+                    </div>
+                  )}
+                </div>
+
+                <div class="flex flex-col gap-1.5 min-w-0 pt-2">
+                  <h3 class="font-serif font-bold text-xl md:text-2xl text-primary leading-tight">
+                    <a href={`/eventi/${evento.slug}`} class="hover:underline after:absolute after:inset-0">{evento.titolo}</a>
+                  </h3>
+
+                  {evento.dataEvento && (
+                    <p class="text-base text-base-content/70 flex items-center gap-2">
+                      <Icon name="calendar-blank" class="text-sm shrink-0" />
+                      {formatData(evento.dataEvento)}
+                    </p>
+                  )}
+
+                  {evento.localizzazioni.length > 0 && (
+                    <p class="text-base text-base-content/70 flex items-center gap-2 relative z-10">
+                      <Icon name="map-pin" class="text-sm shrink-0" />
+                      <span>
+                        {evento.localizzazioni.map((l, j) => (
+                          <>{j > 0 && ', '}<a href={`/localizzazioni/${l.slug}`} class="text-primary underline hover:no-underline">{l.titolo}</a></>
+                        ))}
+                      </span>
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    )}
+
+    <!-- CTA tutti i contenuti -->
+    <div class="flex justify-center mt-4">
+      <a href={`/tematiche/${tematica.slug}/contenuti`} class="btn btn-primary gap-2">
+        Tutti i contenuti della tematica
+        <Icon name="arrow-right" />
+      </a>
+    </div>
+
+  </article>
+  </div>
+</BaseLayout>

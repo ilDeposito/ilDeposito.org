@@ -88,6 +88,14 @@ const jsonLd = [
 
       {canto.anno && <p class="font-serif italic font-bold text-base text-base-content">Anno: {canto.anno}</p>}
 
+      {canto.tematiche.length > 0 && (
+        <div class="flex flex-wrap gap-2">
+          {canto.tematiche.map((t) => (
+            <a href={`/tematiche/${t.slug}`} class="btn btn-secondary border-0 text-base">{t.titolo}</a>
+          ))}
+        </div>
+      )}
+
       <div class="flex items-center gap-4 text-base text-base-content mt-1">
         {canto.videoUrl && (
           <youtube-player data-video-url={canto.videoUrl} data-canto-slug={canto.slug} class="contents">
@@ -159,6 +167,7 @@ const jsonLd = [
     <span class="sr-only" data-pagefind-sort={`visualizzazioni:${String(canto.visualizzazioni).padStart(10, '0')}`}></span>
     {periodo && <span class="sr-only" data-pagefind-filter={`periodi:${periodo.titolo}`}></span>}
     {canto.tags.map(t => <span class="sr-only" data-pagefind-filter={`tags:${t.titolo}`}></span>)}
+    {canto.tematiche.map(t => <span class="sr-only" data-pagefind-filter={`tematiche:${t.titolo}`}></span>)}
     {canto.lingue.map(l => <span class="sr-only" data-pagefind-filter={`lingue:${l.titolo}`}></span>)}
     <span class="sr-only" data-pagefind-filter={`accordi:${canto.accordi ? 'sì' : 'no'}`} data-pagefind-meta={`accordi:${canto.accordi ? 'sì' : 'no'}`}></span>
     <span class="sr-only" data-pagefind-filter={`audio:${canto.videoUrl ? 'sì' : 'no'}`} data-pagefind-meta={`audio:${canto.videoUrl ? 'sì' : 'no'}`}></span>

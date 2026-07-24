@@ -1,6 +1,6 @@
 ---
 import { Image } from 'astro:assets';
-import type { AutoreDetail } from '../../lib/api/types.js';
+import type { AutoreDetail, Ref } from '../../lib/api/types.js';
 import { getImageUrl } from '../../lib/api/index.js';
 import Breadcrumb from './Breadcrumb.astro';
 import ShareModal from './ShareModal.astro';
@@ -11,9 +11,10 @@ interface Props {
   autore: AutoreDetail;
   breadcrumbItems?: Array<{ label: string; href?: string }>;
   cantiSlug?: string;
+  tematiche?: Ref[];
 }
 
-const { autore, breadcrumbItems, cantiSlug } = Astro.props;
+const { autore, breadcrumbItems, cantiSlug, tematiche = [] } = Astro.props;
 
 let anni: string | null = null;
 if (autore.annoNascita && autore.annoMorte) anni = `${autore.annoNascita} - ${autore.annoMorte}`;
@@ -74,6 +75,14 @@ const immagineUrl = getImageUrl(autore.immagine);
         )}
       </div>
     </div>
+
+    {tematiche.length > 0 && (
+      <div class="flex flex-wrap gap-2">
+        {tematiche.map((t) => (
+          <a href={`/tematiche/${t.slug}`} class="btn btn-secondary border-0 text-base">{t.titolo}</a>
+        ))}
+      </div>
+    )}
 
     {cantiSlug && (
       <div class="flex flex-wrap gap-3">
