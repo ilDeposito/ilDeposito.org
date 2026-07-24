@@ -184,7 +184,7 @@ export function fetchAllLocalizzazioniRaw(): Promise<RawStore> {
 export function fetchAllPeriodiRaw(): Promise<RawStore> {
   if (!periodiPromise) {
     periodiPromise = fetchAllJsonApi('/jsonapi/taxonomy_term/periodi', new URLSearchParams({
-      'fields[taxonomy_term--periodi]': 'drupal_internal__tid,name,path,weight,field_immagine',
+      'fields[taxonomy_term--periodi]': 'drupal_internal__tid,name,path,weight,field_immagine,description',
       'fields[media--image]': 'field_media_image',
       'fields[file--file]': 'uri',
       'include': 'field_immagine,field_immagine.field_media_image',

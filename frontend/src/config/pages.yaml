@@ -209,10 +209,10 @@ periodi.index:
   pageTitle: "Periodi storici"
   pageDescription: "L'elenco dei periodi storici con cui sono catalogati i contenuti"
 
-# Termine singolo — token: {titolo} (nome del periodo)
+# Termine singolo — token: {titolo} (nome del periodo), {descrizione} (testo del periodo, opzionale)
 periodi.term:
   metaTitle: "{titolo} — Canti, autori e eventi"
-  metaDescription: "I canti, gli autori e gli eventi storici principali del periodo \"{titolo}\" nell'archivio di ilDeposito.org."
+  metaDescription: "{?descrizione}{descrizione}{/descrizione}{^descrizione}I canti, gli autori e gli eventi storici principali del periodo \"{titolo}\" nell'archivio di ilDeposito.org.{/descrizione}"
   pageTitle: "{titolo}"
 
 # Tutti i contenuti di un periodo (periodi/[slug]/contenuti) — token: {titolo}

@@ -4,6 +4,7 @@ import {
 } from './store.js';
 import { extractSlug, buildIncludedMap, resolveImageUrl } from './resolvers.js';
 import { getImageUrl } from './assets.js';
+import { textValue } from './mappers.js';
 import type {
   Tassonomia, Periodo, Tag,
   ContenutiLingua, ContenutiLocalizzazione, ContenutiPeriodo, ContenutiTag,
@@ -103,6 +104,7 @@ export async function getPeriodi(): Promise<Periodo[]> {
     slug: extractSlug(item.attributes.path?.alias),
     sort: item.attributes.weight ?? 0,
     immagine: resolveImageUrl(item.relationships?.field_immagine, map),
+    descrizione: textValue(item.attributes.description),
   }));
 }
 
