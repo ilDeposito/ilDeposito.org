@@ -243,11 +243,13 @@ export function buildPersonSchema(autore, siteUrl, ogImagePath) {
       };
     }
 
-    // colleague è una proprietà di Person, senza equivalente su Organization/
-    // MusicGroup: gli autori correlati si aggiungono solo qui, non per i collettivi.
-    if (autore.autoriCorrelati?.length > 0) {
-      schema.colleague = autore.autoriCorrelati.map((c) => ({
-        '@type': c.isPersona ? 'Person' : 'MusicGroup',
+    // colleague è una proprietà di Person con range Person: si aggiunge solo
+    // qui (mai per i collettivi) e solo per i correlati che sono a loro volta
+    // Person, escludendo i collettivi (MusicGroup) fuori range.
+    const colleghi = (autore.autoriCorrelati ?? []).filter((c) => c.isPersona);
+    if (colleghi.length > 0) {
+      schema.colleague = colleghi.map((c) => ({
+        '@type': 'Person',
         '@id': `${siteUrl}/autori/${c.slug}#autore`,
         name: c.titolo,
         url: `${siteUrl}/autori/${c.slug}`,
