@@ -8,6 +8,12 @@ export function buildWebSiteSchema(siteUrl) {
     url: siteUrl,
     description: 'Archivio online di canti di protesta politica e sociale',
     inLanguage: 'it',
+    publisher: {
+      '@type': 'Organization',
+      name: 'ilDeposito.org',
+      url: siteUrl,
+      logo: `${siteUrl}/favicon.svg`,
+    },
     potentialAction: {
       '@type': 'SearchAction',
       target: {
@@ -63,6 +69,21 @@ function extractYouTubeVideoId(url) {
   return null;
 }
 
+function buildTaxonomyTermEntity(term, siteUrl, termSetName, termSetPath, termPath) {
+  const name = term?.titolo || term?.name || '';
+  if (!name) return null;
+
+  return buildDefinedTermSchema(
+    name,
+    '',
+    term?.slug && termPath ? `${siteUrl}${termPath}` : undefined,
+    {
+      name: termSetName,
+      url: termSetPath ? `${siteUrl}${termSetPath}` : undefined,
+    },
+  );
+}
+
 export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []) {
   const url = `${siteUrl}/canti/${canto.slug}`;
 
@@ -95,6 +116,13 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
   if (canto.altriTitoli) {
     schema.alternateName = canto.altriTitoli;
   }
+
+  schema.publisher = {
+    '@type': 'Organization',
+    name: 'ilDeposito.org',
+    url: siteUrl,
+    logo: `${siteUrl}/favicon.svg`,
+  };
 
   if (canto.testo) {
     let lyricsText = canto.testo;
@@ -140,27 +168,54 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
   if (canto.dataCreazione) schema.datePublished = canto.dataCreazione;
   if (canto.dataModifica) schema.dateModified = canto.dataModifica;
 
+  const taxonomyAbout = [];
+
   if (canto.tematiche?.length > 0) {
     schema.genre = canto.tematiche.map((t) => t.titolo);
+    taxonomyAbout.push(
+      ...canto.tematiche
+        .map((t) => buildTaxonomyTermEntity(t, siteUrl, 'Tematiche', '/tematiche', undefined))
+        .filter(Boolean),
+    );
   }
 
   // I tag vanno in keywords (stringa comma-separated, come da spec schema.org);
   // le tematiche restano in genre per non duplicare lo stesso segnale.
   if (canto.tags?.length > 0) {
     schema.keywords = canto.tags.map((t) => t.titolo).join(', ');
+    taxonomyAbout.push(
+      ...canto.tags
+        .map((t) => buildTaxonomyTermEntity(t, siteUrl, 'Tag', '/tags', `/tags/${t.slug}`))
+        .filter(Boolean),
+    );
   }
 
   // temporalCoverage accetta testo libero oltre agli intervalli ISO: i periodi
   // storici dell'archivio sono il dato temporale più ricco disponibile.
   if (canto.periodi?.length > 0) {
     schema.temporalCoverage = canto.periodi.map((p) => p.titolo);
+    taxonomyAbout.push(
+      ...canto.periodi
+        .map((p) => buildTaxonomyTermEntity(p, siteUrl, 'Periodi', '/periodi', `/periodi/${p.slug}`))
+        .filter(Boolean),
+    );
   }
+
+  if (canto.lingue?.length > 0) {
+    taxonomyAbout.push(
+      ...canto.lingue
+        .map((lingua) => buildTaxonomyTermEntity(lingua, siteUrl, 'Lingue', '/lingue', `/lingue/${lingua.slug}`))
+        .filter(Boolean),
+    );
+  }
+
+  const aboutItems = [];
 
   // Il canto è un'opera scritta SULL'evento storico → about. L'inverso
   // (Event.subjectOf) è emesso dalla pagina evento: le due pagine si
   // riconciliano tramite gli @id condivisi.
   if (eventi.length > 0) {
-    schema.about = eventi.map((e) => {
+    aboutItems.push(...eventi.map((e) => {
       const eventSchema = {
         '@type': 'Event',
         '@id': `${siteUrl}/eventi/${e.slug}#evento`,
@@ -201,7 +256,15 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
       }
 
       return eventSchema;
-    });
+    }));
+  }
+
+  if (taxonomyAbout.length > 0) {
+    aboutItems.push(...taxonomyAbout);
+  }
+
+  if (aboutItems.length > 0) {
+    schema.about = aboutItems;
   }
 
   if (canto.videoUrl) {
@@ -307,6 +370,28 @@ export function buildPersonSchema(autore, siteUrl, ogImagePath) {
     }
   }
 
+  const taxonomyAbout = [];
+
+  if (autore.localizzazioni?.length > 0) {
+    taxonomyAbout.push(
+      ...autore.localizzazioni
+        .map((loc) => buildTaxonomyTermEntity(loc, siteUrl, 'Localizzazioni', '/localizzazioni', `/localizzazioni/${loc.slug}`))
+        .filter(Boolean),
+    );
+  }
+
+  if (autore.periodi?.length > 0) {
+    taxonomyAbout.push(
+      ...autore.periodi
+        .map((periodo) => buildTaxonomyTermEntity(periodo, siteUrl, 'Periodi', '/periodi', `/periodi/${periodo.slug}`))
+        .filter(Boolean),
+    );
+  }
+
+  if (taxonomyAbout.length > 0) {
+    schema.about = taxonomyAbout;
+  }
+
   const sameAs = (autore.links ?? []).map((l) => l.uri).filter(Boolean);
   if (sameAs.length > 0) schema.sameAs = sameAs;
 
@@ -372,15 +457,46 @@ export function buildEventSchema(evento, siteUrl, ogImagePath) {
     schema.description = stripHtml(evento.informazioni).substring(0, 200);
   }
 
+  schema.organizer = {
+    '@type': 'Organization',
+    name: 'ilDeposito.org',
+    url: siteUrl,
+    logo: `${siteUrl}/favicon.svg`,
+  };
+
+  const taxonomyAbout = [];
+
   // Stesso trattamento di buildCreativeWorkSchema sul canto: genre per le
   // tematiche, keywords per i tag. Prima mancavano qui pur essendo presenti
   // (e visibili in pagina) anche sull'evento.
   if (evento.tematiche?.length > 0) {
     schema.genre = evento.tematiche.map((t) => t.titolo);
+    taxonomyAbout.push(
+      ...evento.tematiche
+        .map((t) => buildTaxonomyTermEntity(t, siteUrl, 'Tematiche', '/tematiche', undefined))
+        .filter(Boolean),
+    );
   }
 
   if (evento.tags?.length > 0) {
     schema.keywords = evento.tags.map((t) => t.titolo).join(', ');
+    taxonomyAbout.push(
+      ...evento.tags
+        .map((t) => buildTaxonomyTermEntity(t, siteUrl, 'Tag', '/tags', `/tags/${t.slug}`))
+        .filter(Boolean),
+    );
+  }
+
+  if (evento.periodi?.length > 0) {
+    taxonomyAbout.push(
+      ...evento.periodi
+        .map((periodo) => buildTaxonomyTermEntity(periodo, siteUrl, 'Periodi', '/periodi', `/periodi/${periodo.slug}`))
+        .filter(Boolean),
+    );
+  }
+
+  if (taxonomyAbout.length > 0) {
+    schema.about = taxonomyAbout;
   }
 
   if (evento.dataEvento) {

@@ -33,6 +33,10 @@ const breadcrumbItems = [
   { label: evento.titolo },
 ];
 const publishedTime = evento.dataEvento ? new Date(evento.dataEvento).toISOString().split('T')[0] : undefined;
+const eventStartTime = evento.dataEvento ? new Date(evento.dataEvento).toISOString() : undefined;
+const eventEndTime = evento.dataEvento ? new Date(evento.dataEvento).toISOString() : undefined;
+const eventLocation = evento.localizzazioni?.[0]?.titolo || undefined;
+const eventTimezone = 'Europe/Rome';
 const ogImage = await getOgImageForEvento(evento);
 const jsonLd = [
   buildEventSchema(evento, siteUrl, ogImage),
@@ -43,10 +47,14 @@ const jsonLd = [
   title={buildEventoTitle(evento)}
   description={buildEventoDescription(evento)}
   pagefindType="eventi"
-  ogType="article"
+  ogType="event"
   ogImage={ogImage}
   ogImageAlt={ogImage ? `Immagine per ${evento.titolo}` : undefined}
   publishedTime={publishedTime}
+  eventStartTime={eventStartTime}
+  eventEndTime={eventEndTime}
+  eventLocation={eventLocation}
+  eventTimezone={eventTimezone}
   articleSection="Eventi storici"
   articleTags={evento.tags.map((t) => t.titolo)}
   jsonLd={jsonLd}

@@ -12,6 +12,11 @@ interface Props {
   articleTags?: string[];
   profileFirstName?: string;
   profileLastName?: string;
+  profileUsername?: string;
+  eventStartTime?: string;
+  eventEndTime?: string;
+  eventLocation?: string;
+  eventTimezone?: string;
   jsonLd?: object | object[];
 }
 
@@ -28,6 +33,11 @@ const {
   articleTags,
   profileFirstName,
   profileLastName,
+  profileUsername,
+  eventStartTime,
+  eventEndTime,
+  eventLocation,
+  eventTimezone,
   jsonLd,
 } = Astro.props;
 
@@ -67,6 +77,11 @@ const jsonLdGraph = jsonLdRaw.length > 0
 
 {profileFirstName && <meta property="profile:first_name" content={profileFirstName} />}
 {profileLastName && <meta property="profile:last_name" content={profileLastName} />}
+{profileUsername && <meta property="profile:username" content={profileUsername} />}
+{eventStartTime && <meta property="event:start_time" content={eventStartTime} />}
+{eventEndTime && <meta property="event:end_time" content={eventEndTime} />}
+{eventLocation && <meta property="event:location" content={eventLocation} />}
+{eventTimezone && <meta property="event:timezone" content={eventTimezone} />}
 
 {jsonLdGraph && (
   <script type="application/ld+json" set:html={JSON.stringify(jsonLdGraph)} />

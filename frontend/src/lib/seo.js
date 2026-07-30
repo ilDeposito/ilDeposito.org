@@ -72,6 +72,9 @@ export function truncate(text, maxLen) {
 
 export function stripHtml(html) {
   if (!html) return '';
+  if (typeof html !== 'string') {
+    return String(html ?? '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  }
   return html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
 }
 

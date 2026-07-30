@@ -26,6 +26,11 @@ interface Props {
   articleTags?: string[];
   profileFirstName?: string;
   profileLastName?: string;
+  profileUsername?: string;
+  eventStartTime?: string;
+  eventEndTime?: string;
+  eventLocation?: string;
+  eventTimezone?: string;
   jsonLd?: object | object[];
   preloadImage?: string;
   dnsPrefetch?: string[];
@@ -46,6 +51,11 @@ const {
   articleTags,
   profileFirstName,
   profileLastName,
+  profileUsername,
+  eventStartTime,
+  eventEndTime,
+  eventLocation,
+  eventTimezone,
   jsonLd,
   preloadImage,
   dnsPrefetch,
@@ -89,6 +99,11 @@ const isProduction = process.env.ENV === 'prod';
       articleTags={articleTags}
       profileFirstName={profileFirstName}
       profileLastName={profileLastName}
+      profileUsername={profileUsername}
+      eventStartTime={eventStartTime}
+      eventEndTime={eventEndTime}
+      eventLocation={eventLocation}
+      eventTimezone={eventTimezone}
       jsonLd={jsonLd}
     />
     {isProduction && (
