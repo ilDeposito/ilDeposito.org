@@ -196,12 +196,20 @@ export function mapAutoreDetail(raw: any, included: IncludedMap): AutoreDetail {
 
 // ── Eventi ─────────────────────────────────────────────
 
-export function mapEventoForCanto(raw: any): EventoForCanto {
+export function mapEventoForCanto(raw: any, included?: any): EventoForCanto {
   const a = raw.attributes;
+  const r = raw.relationships;
+  const includedMap = included ?? { get: () => undefined };
+
   return {
     titolo: a.title,
     slug: extractSlug(a.path?.alias),
-    dataEvento: a.field_data_evento,
+    dataEvento: a.field_data_evento ?? null,
+    informazioni: a.field_informazioni ?? null,
+    immagine: resolveImageUrl(r.field_immagine, includedMap),
+    localizzazioni: resolveRefs(r.field_localizzazione, includedMap),
+    latitude: a.field_geofield?.lat ?? null,
+    longitude: a.field_geofield?.lon ?? null,
   };
 }
 

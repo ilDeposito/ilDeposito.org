@@ -114,7 +114,12 @@ export function mapEventoForCanto(raw: any): EventoForCanto {
   return {
     titolo: raw.titolo,
     slug: raw.slug,
-    dataEvento: raw.data_evento,
+    dataEvento: raw.data_evento ?? null,
+    informazioni: raw.informazioni ?? null,
+    immagine: raw.immagine ?? null,
+    localizzazioni: [],
+    latitude: null,
+    longitude: null,
   };
 }
 

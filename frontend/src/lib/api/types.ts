@@ -126,7 +126,12 @@ export interface EventoPath {
 export interface EventoForCanto {
   titolo: string;
   slug: string;
-  dataEvento: string;
+  dataEvento: string | null;
+  informazioni: string | null;
+  immagine: string | null;
+  localizzazioni: Ref[];
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export interface EventoDelGiorno {

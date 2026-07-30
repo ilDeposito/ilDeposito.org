@@ -46,6 +46,23 @@ export function buildBreadcrumbSchema(items) {
   };
 }
 
+function extractYouTubeVideoId(url) {
+  if (!url) return null;
+
+  const normalized = String(url).trim();
+  const patterns = [
+    /(?:https?:\/\/)?(?:www\.|m\.)?(?:youtube\.com|youtube-nocookie\.com)\/(?:watch\?(?:[^#]*&)?v=|embed\/|shorts\/|live\/)([a-zA-Z0-9_-]{11})/i,
+    /(?:https?:\/\/)?(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]{11})/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = normalized.match(pattern);
+    if (match?.[1]) return match[1];
+  }
+
+  return null;
+}
+
 export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []) {
   const url = `${siteUrl}/canti/${canto.slug}`;
 
@@ -143,12 +160,48 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
   // (Event.subjectOf) è emesso dalla pagina evento: le due pagine si
   // riconciliano tramite gli @id condivisi.
   if (eventi.length > 0) {
-    schema.about = eventi.map((e) => ({
-      '@type': 'Event',
-      '@id': `${siteUrl}/eventi/${e.slug}#evento`,
-      name: e.titolo,
-      url: `${siteUrl}/eventi/${e.slug}`,
-    }));
+    schema.about = eventi.map((e) => {
+      const eventSchema = {
+        '@type': 'Event',
+        '@id': `${siteUrl}/eventi/${e.slug}#evento`,
+        name: e.titolo,
+        url: `${siteUrl}/eventi/${e.slug}`,
+        eventStatus: 'https://schema.org/EventScheduled',
+      };
+
+      if (e.dataEvento) {
+        const giorno = new Date(e.dataEvento).toISOString().split('T')[0];
+        eventSchema.startDate = giorno;
+        eventSchema.endDate = giorno;
+      }
+
+      if (e.informazioni) {
+        eventSchema.description = stripHtml(e.informazioni).substring(0, 200);
+      }
+
+      if (e.immagine) {
+        eventSchema.image = e.immagine.startsWith('http') ? e.immagine : `${siteUrl}${e.immagine}`;
+      }
+
+      if (e.localizzazioni?.length > 0) {
+        const loc = e.localizzazioni[0];
+        eventSchema.location = {
+          '@type': 'Place',
+          name: loc.titolo,
+          address: loc.titolo,
+        };
+
+        if (e.latitude != null && e.longitude != null) {
+          eventSchema.location.geo = {
+            '@type': 'GeoCoordinates',
+            latitude: e.latitude,
+            longitude: e.longitude,
+          };
+        }
+      }
+
+      return eventSchema;
+    });
   }
 
   if (canto.videoUrl) {
@@ -158,22 +211,21 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
     // sito, perché la vera data di upload richiederebbe la YouTube Data API.
     // Se l'URL non è riconoscibile come YouTube meglio omettere il VideoObject
     // che emetterne uno invalido.
-    const videoId = canto.videoUrl.match(
-      /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([a-zA-Z0-9_-]{11})/
-    )?.[1];
+    const videoId = extractYouTubeVideoId(canto.videoUrl);
 
     if (videoId) {
       const video = {
         '@type': 'VideoObject',
         name: canto.titolo,
-        description:
-          canto.capoverso ||
-          `Registrazione del canto "${canto.titolo}" dall'archivio ilDeposito.org`,
+        description: `Video del canto ${canto.titolo} su ilDeposito.org`,
         thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
         embedUrl: `https://www.youtube.com/embed/${videoId}`,
+        contentUrl: `https://www.youtube.com/watch?v=${videoId}`,
         url: canto.videoUrl,
       };
-      if (canto.dataCreazione) video.uploadDate = canto.dataCreazione;
+
+      const uploadDate = canto.dataCreazione || canto.dataModifica || (canto.anno ? String(canto.anno) : null);
+      if (uploadDate) video.uploadDate = uploadDate;
 
       // recordedAs (MusicRecording) è la proprietà corretta per collegare
       // l'opera a una sua registrazione, invece del generico subjectOf.

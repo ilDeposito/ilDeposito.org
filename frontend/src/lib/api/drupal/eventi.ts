@@ -19,7 +19,8 @@ export async function getEventi(): Promise<EventoPath[]> {
 }
 
 export async function getEventiForCanto(cantoId: number | string): Promise<EventoForCanto[]> {
-  const { data } = await fetchAllEventiRaw();
+  const { data, included } = await fetchAllEventiRaw();
+  const includedMap = buildIncludedMap(included);
   const nid = Number(cantoId);
   return data
     .filter((e: any) =>
@@ -27,15 +28,16 @@ export async function getEventiForCanto(cantoId: number | string): Promise<Event
         (ref: any) => ref.meta?.drupal_internal__target_id === nid
       )
     )
-    .map(mapEventoForCanto);
+    .map((evento: any) => mapEventoForCanto(evento, includedMap));
 }
 
 export async function getEventiForCantoMap(): Promise<Map<number | string, EventoForCanto[]>> {
-  const { data } = await fetchAllEventiRaw();
+  const { data, included } = await fetchAllEventiRaw();
+  const includedMap = buildIncludedMap(included);
   const result = new Map<number | string, EventoForCanto[]>();
 
   for (const evento of data) {
-    const mapped = mapEventoForCanto(evento);
+    const mapped = mapEventoForCanto(evento, includedMap);
     for (const ref of (evento.relationships.field_canti_correlati?.data ?? [])) {
       const cantoId = ref.meta?.drupal_internal__target_id;
       if (cantoId == null) continue;
