@@ -1,5 +1,36 @@
 import { linguaToIso, stripHtml, truncate } from './seo.js';
 
+// ── Helper Functions ───────────────────────────────────
+
+/**
+ * Aggiunge una proprietà a uno schema solo se il valore è valido.
+ * @param {object} schema - Oggetto schema da modificare
+ * @param {string} key - Chiave della proprietà
+ * @param {*} value - Valore da aggiungere
+ */
+function addIfValid(schema, key, value) {
+  if (value != null && value !== '' && (!Array.isArray(value) || value.length > 0)) {
+    schema[key] = value;
+  }
+}
+
+/**
+ * Deduce la forma musicale dal contesto (testo, titolo, informazioni).
+ * @param {object} canto - Oggetto canto
+ * @returns {string|null} - Forma musicale (es. "canzone", "inno", "ballata")
+ */
+function deduceMusicCompositionForm(canto) {
+  const text = `${canto.titolo} ${canto.informazioni || ''}`.toLowerCase();
+  if (/\binno\b/i.test(text)) return 'Inno';
+  if (/\bballata\b/i.test(text)) return 'Ballata';
+  if (/\bmarcia\b/i.test(text)) return 'Marcia';
+  if (/\bcoro\b/i.test(text)) return 'Coro';
+  // Default per canti di protesta
+  return 'Canzone';
+}
+
+// ── Schema Builders ────────────────────────────────────
+
 export function buildWebSiteSchema(siteUrl) {
   return {
     '@context': 'https://schema.org',
@@ -168,10 +199,22 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
   if (canto.dataCreazione) schema.datePublished = canto.dataCreazione;
   if (canto.dataModifica) schema.dateModified = canto.dataModifica;
 
+  // ── Proprietà musicali aggiuntive ──────────────────────
+
+  // musicCompositionForm: deduzione automatica dalla tipologia
+  const form = deduceMusicCompositionForm(canto);
+  if (form) {
+    schema.musicCompositionForm = form;
+  }
+
+  // ───────────────────────────────────────────────────────
+
   const taxonomyAbout = [];
 
   if (canto.tematiche?.length > 0) {
     schema.genre = canto.tematiche.map((t) => t.titolo);
+    // category: rafforzare la classificazione gerarchica
+    schema.category = canto.tematiche.map((t) => t.titolo);
     taxonomyAbout.push(
       ...canto.tematiche
         .map((t) => buildTaxonomyTermEntity(t, siteUrl, 'Tematiche', '/tematiche', undefined))
@@ -368,6 +411,19 @@ export function buildPersonSchema(autore, siteUrl, ogImagePath) {
         url: `${siteUrl}/autori/${c.slug}`,
       }));
     }
+
+    // NOTA: jobTitle richiederebbe un campo strutturato in Drupal —
+    // non implementabile ora senza modifiche al backend.
+
+    // ───────────────────────────────────────────────────────────
+  } else {
+    // ── Proprietà MusicGroup aggiuntive ────────────────────
+
+    // NOTA: `genre` e `member` richiederebbero dati strutturati in Drupal
+    // (campo generi musicali, campo membri del gruppo) — non implementabili
+    // ora senza modifiche al backend.
+
+    // ───────────────────────────────────────────────────────────
   }
 
   const taxonomyAbout = [];
@@ -451,6 +507,8 @@ export function buildEventSchema(evento, siteUrl, ogImagePath) {
     // offers/performer/organizer restano invece omessi di proposito: per un
     // evento storico non esistono, e inventarli sarebbe markup ingannevole.
     eventStatus: 'https://schema.org/EventScheduled',
+    // eventAttendanceMode: eventi storici sono offline (in presenza)
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
   };
 
   if (evento.informazioni) {
@@ -471,6 +529,8 @@ export function buildEventSchema(evento, siteUrl, ogImagePath) {
   // (e visibili in pagina) anche sull'evento.
   if (evento.tematiche?.length > 0) {
     schema.genre = evento.tematiche.map((t) => t.titolo);
+    // category: rafforzare la classificazione gerarchica
+    schema.category = evento.tematiche.map((t) => t.titolo);
     taxonomyAbout.push(
       ...evento.tematiche
         .map((t) => buildTaxonomyTermEntity(t, siteUrl, 'Tematiche', '/tematiche', undefined))
@@ -551,7 +611,9 @@ export function buildEventSchema(evento, siteUrl, ogImagePath) {
 export function buildTranslationSchema(traduzione, siteUrl) {
   const schema = {
     '@context': 'https://schema.org',
-    '@type': 'CreativeWork',
+    // Una traduzione di un canto è ancora una MusicComposition, non un
+    // generico CreativeWork — migliora la coerenza semantica del dominio.
+    '@type': 'MusicComposition',
     name: traduzione.titolo,
     url: `${siteUrl}/traduzioni/${traduzione.slug}`,
     inLanguage: linguaToIso(traduzione.lingue?.[0]?.titolo),
@@ -570,6 +632,34 @@ export function buildTranslationSchema(traduzione, siteUrl) {
   if (traduzione.informazioni) {
     schema.description = stripHtml(traduzione.informazioni).substring(0, 200);
   }
+
+  // ── Proprietà aggiuntive per MusicComposition ──────────
+
+  // lyrics: testo tradotto completo (o troncato se molto lungo)
+  if (traduzione.testo) {
+    let lyricsText = traduzione.testo;
+    if (lyricsText.length > 500) {
+      const cutAt = lyricsText.lastIndexOf('\n', 500);
+      lyricsText = (cutAt > 100 ? lyricsText.substring(0, cutAt) : lyricsText.substring(0, 500)).trimEnd() + '…';
+    }
+    schema.lyrics = {
+      '@type': 'CreativeWork',
+      text: lyricsText,
+      inLanguage: linguaToIso(traduzione.lingue?.[0]?.titolo),
+    };
+  }
+
+  // translator: NOTA — richiederebbe campo "traduttore" in Drupal (non presente).
+  // Se in futuro viene aggiunto al content type:
+  // if (traduzione.traduttore) {
+  //   schema.translator = {
+  //     '@type': 'Person',
+  //     name: traduzione.traduttore.titolo,
+  //     url: `${siteUrl}/autori/${traduzione.traduttore.slug}`
+  //   };
+  // }
+
+  // ───────────────────────────────────────────────────────────
 
   if (traduzione.dataCreazione) schema.datePublished = traduzione.dataCreazione;
   if (traduzione.dataModifica) schema.dateModified = traduzione.dataModifica;
