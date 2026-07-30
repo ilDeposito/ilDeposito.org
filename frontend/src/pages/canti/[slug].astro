@@ -4,10 +4,11 @@ import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import HeaderWatermark from '../../components/ui/HeaderWatermark.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
 import SegnalazioneModal from '../../components/ui/SegnalazioneModal.astro';
-import MoreLikeThis from '../../components/ui/MoreLikeThis.astro';
 import Icon from '../../components/base/Icon.astro';
 import { getAllCantiDetail, getEventiForCantoMap, getAutore } from '../../lib/api/index.js';
 import type { CantoDetail, EventoForCanto } from '../../lib/api/types.js';
+import { buildRelatedForCanto, getUniqueAutori } from '../../lib/related-canti.js';
+import type { RelatedCanto } from '../../lib/related-canti.js';
 import { buildCreativeWorkSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
 import { buildCantoTitle, buildCantoDescription, linguaToIso } from '../../lib/seo.js';
 import { getOgImageForCanto } from '../../lib/og-image.js';
@@ -17,25 +18,34 @@ export async function getStaticPaths() {
     getAllCantiDetail(),
     getEventiForCantoMap(),
   ]);
+
   return allCanti.map((canto) => ({
     params: { slug: canto.slug },
-    props: { canto, eventi: eventiMap.get(canto.id) ?? [] },
+    props: {
+      canto,
+      eventi: eventiMap.get(canto.id) ?? [],
+      relatedCanti: buildRelatedForCanto(canto, allCanti),
+    },
   }));
 }
 
-const { canto, eventi } = Astro.props as { canto: CantoDetail; eventi: EventoForCanto[] };
+const { canto, eventi, relatedCanti } = Astro.props as {
+  canto: CantoDetail;
+  eventi: EventoForCanto[];
+  relatedCanti: RelatedCanto[];
+};
 
-const autoriUnici = [...canto.autoriTesto, ...canto.autoriMusica].filter(
-  (autore, index, arr) => arr.findIndex((a) => a.slug === autore.slug) === index
-);
+const autoriUnici = getUniqueAutori(canto);
 
 const periodo = canto.periodi[0];
 
 const primoAutore = autoriUnici[0] ? await getAutore(autoriUnici[0].slug) : null;
 const ogImage = await getOgImageForCanto(canto, primoAutore?.immagine);
 
-const formatData = (data) =>
-  new Date(data).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+const formatData = (data: string | null) =>
+  data
+    ? new Date(data).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '';
 
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
 const breadcrumbItems = [
@@ -49,7 +59,7 @@ const musicMusicians = autoriUnici.map((a) => `${siteUrl}/autori/${a.slug}`);
 const musicReleaseDate = canto.anno ? String(canto.anno) : undefined;
 
 const jsonLd = [
-  buildCreativeWorkSchema(canto, siteUrl, ogImage, eventi),
+  buildCreativeWorkSchema(canto, siteUrl, ogImage, eventi, relatedCanti),
   buildBreadcrumbSchema(breadcrumbItems.map((item) => ({ name: item.label, url: item.href ? `${siteUrl}${item.href}` : undefined }))),
 ];
 ---
@@ -61,8 +71,7 @@ const jsonLd = [
   ogType="music.composition"
   ogImage={ogImage}
   ogImageAlt={ogImage ? `Immagine per ${canto.titolo}` : undefined}
-  publishedTime={canto.dataCreazione}
-  modifiedTime={canto.dataModifica}
+  publishedTime={canto.dataCreazione ?? undefined}
   articleSection="Canti di protesta"
   articleTags={canto.tags.map((t) => t.titolo)}
   musicMusicians={musicMusicians}
@@ -202,12 +211,23 @@ const jsonLd = [
       </div>
     </section>
 
-    <MoreLikeThis
-      autori={autoriUnici.map((a) => a.titolo)}
-      tags={canto.tags.map((t) => t.titolo)}
-      periodo={periodo?.titolo ?? null}
-      excludeUrl={`/canti/${canto.slug}`}
-    />
+    {relatedCanti.length > 0 && (
+      <section data-pagefind-ignore class="flex flex-col gap-2 w-full mt-6">
+        <h2 class="font-serif font-bold text-base md:text-lg text-base-content">Canti simili</h2>
+        <div class="flex flex-col divide-y divide-secondary/30">
+          {relatedCanti.map((related) => (
+            <div class="flex flex-col gap-1 py-3 hover:bg-base-200 transition-colors rounded-lg">
+              <h3 class="font-serif font-semibold text-primary flex items-center gap-2">
+                <a href={`/canti/${related.slug}`} class="hover:underline">{related.titolo}</a>
+                <Icon name="headphones" class={related.videoUrl ? 'text-primary' : 'text-base-content/50'} label={related.videoUrl ? 'Audio disponibile' : undefined} />
+                <Icon name="guitar" class={related.accordi ? 'text-primary' : 'text-base-content/50'} label={related.accordi ? 'Accordi disponibili' : undefined} />
+              </h3>
+              {related.autori && <p class="text-base text-base-content/70">{related.autori}</p>}
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
 
     <!-- Fonte -->
     {canto.fonte && (

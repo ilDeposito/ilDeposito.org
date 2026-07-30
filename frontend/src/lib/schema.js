@@ -115,7 +115,7 @@ function buildTaxonomyTermEntity(term, siteUrl, termSetName, termSetPath, termPa
   );
 }
 
-export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []) {
+export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = [], relatedCanti = []) {
   const url = `${siteUrl}/canti/${canto.slug}`;
 
   const schema = {
@@ -308,6 +308,15 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
 
   if (aboutItems.length > 0) {
     schema.about = aboutItems;
+  }
+
+  if (relatedCanti.length > 0) {
+    schema.isSimilarTo = relatedCanti.map((related) => ({
+      '@type': 'MusicComposition',
+      '@id': `${siteUrl}/canti/${related.slug}#composition`,
+      name: related.titolo,
+      url: `${siteUrl}/canti/${related.slug}`,
+    }));
   }
 
   if (canto.videoUrl) {

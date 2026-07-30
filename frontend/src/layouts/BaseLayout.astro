@@ -22,8 +22,11 @@ interface Props {
   ogImageAlt?: string;
   noindex?: boolean;
   publishedTime?: string;
+  modifiedTime?: string;
   articleSection?: string;
   articleTags?: string[];
+  musicMusicians?: string[];
+  musicReleaseDate?: string;
   profileFirstName?: string;
   profileLastName?: string;
   profileUsername?: string;
@@ -47,8 +50,11 @@ const {
   ogImageAlt,
   noindex = false,
   publishedTime,
+  modifiedTime,
   articleSection,
   articleTags,
+  musicMusicians,
+  musicReleaseDate,
   profileFirstName,
   profileLastName,
   profileUsername,
@@ -95,8 +101,11 @@ const isProduction = process.env.ENV === 'prod';
       ogImageAlt={ogImageAlt}
       noindex={noindex}
       publishedTime={publishedTime}
+      modifiedTime={modifiedTime}
       articleSection={articleSection}
       articleTags={articleTags}
+      musicMusicians={musicMusicians}
+      musicReleaseDate={musicReleaseDate}
       profileFirstName={profileFirstName}
       profileLastName={profileLastName}
       profileUsername={profileUsername}
