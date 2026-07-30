@@ -14,6 +14,24 @@ function addIfValid(schema, key, value) {
   }
 }
 
+function toAbsoluteUrl(urlOrPath, siteUrl) {
+  if (!urlOrPath) return null;
+  try {
+    return new URL(urlOrPath, siteUrl).href;
+  } catch {
+    return null;
+  }
+}
+
+function toDateOnly(value) {
+  if (!value) return null;
+  const normalized = String(value).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) return normalized;
+  const parsed = new Date(normalized);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toISOString().split('T')[0];
+}
+
 /**
  * Deduce la forma musicale dal contesto (testo, titolo, informazioni).
  * @param {object} canto - Oggetto canto
@@ -103,20 +121,27 @@ function extractYouTubeVideoId(url) {
 function buildTaxonomyTermEntity(term, siteUrl, termSetName, termSetPath, termPath) {
   const name = term?.titolo || term?.name || '';
   if (!name) return null;
+  const termUrl = term?.slug && termPath ? `${siteUrl}${termPath}` : undefined;
+  const termSetUrl = termSetPath ? `${siteUrl}${termSetPath}` : undefined;
 
-  return buildDefinedTermSchema(
+  return {
+    '@type': 'DefinedTerm',
+    ...(termUrl ? { '@id': `${termUrl}#term` } : {}),
     name,
-    '',
-    term?.slug && termPath ? `${siteUrl}${termPath}` : undefined,
-    {
+    ...(termUrl ? { url: termUrl } : {}),
+    ...(term?.slug ? { termCode: term.slug } : {}),
+    inDefinedTermSet: {
+      '@type': 'DefinedTermSet',
+      ...(termSetUrl ? { '@id': `${termSetUrl}#set` } : {}),
       name: termSetName,
-      url: termSetPath ? `${siteUrl}${termSetPath}` : undefined,
+      ...(termSetUrl ? { url: termSetUrl } : {}),
     },
-  );
+  };
 }
 
 export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = [], relatedCanti = []) {
   const url = `${siteUrl}/canti/${canto.slug}`;
+  const absoluteOgImage = toAbsoluteUrl(ogImagePath, siteUrl);
 
   const schema = {
     '@context': 'https://schema.org',
@@ -125,9 +150,11 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
     '@id': `${url}#composition`,
     name: canto.titolo,
     url,
+    mainEntityOfPage: url,
     inLanguage: linguaToIso(canto.lingue?.[0]?.titolo),
     isPartOf: {
-      '@type': 'CreativeWork',
+      '@type': 'WebSite',
+      '@id': `${siteUrl}#website`,
       name: 'ilDeposito.org — Archivio canti di protesta',
       url: siteUrl,
     },
@@ -140,8 +167,8 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
     schema.description = truncate(descrizione, 300);
   }
 
-  if (ogImagePath) {
-    schema.image = `${siteUrl}${ogImagePath}`;
+  if (absoluteOgImage) {
+    schema.image = absoluteOgImage;
   }
 
   if (canto.altriTitoli) {
@@ -260,15 +287,16 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
   if (eventi.length > 0) {
     aboutItems.push(...eventi.map((e) => {
       const eventSchema = {
-        '@type': 'Event',
+        '@type': 'HistoricalEvent',
         '@id': `${siteUrl}/eventi/${e.slug}#evento`,
         name: e.titolo,
         url: `${siteUrl}/eventi/${e.slug}`,
-        eventStatus: 'https://schema.org/EventScheduled',
+        eventStatus: 'https://schema.org/EventCompleted',
       };
 
       if (e.dataEvento) {
-        const giorno = new Date(e.dataEvento).toISOString().split('T')[0];
+        const giorno = toDateOnly(e.dataEvento);
+        if (!giorno) return eventSchema;
         eventSchema.startDate = giorno;
         eventSchema.endDate = giorno;
       }
@@ -370,6 +398,7 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
 export function buildPersonSchema(autore, siteUrl, ogImagePath) {
   const isPersona = Boolean(autore.nome);
   const url = `${siteUrl}/autori/${autore.slug}`;
+  const absoluteOgImage = toAbsoluteUrl(ogImagePath, siteUrl);
 
   const schema = {
     '@context': 'https://schema.org',
@@ -379,6 +408,7 @@ export function buildPersonSchema(autore, siteUrl, ogImagePath) {
     '@id': `${url}#autore`,
     name: autore.titolo,
     url,
+    mainEntityOfPage: url,
   };
 
   if (isPersona) {
@@ -386,8 +416,8 @@ export function buildPersonSchema(autore, siteUrl, ogImagePath) {
     schema.familyName = autore.cognome;
   }
 
-  if (ogImagePath) {
-    schema.image = `${siteUrl}${ogImagePath}`;
+  if (absoluteOgImage) {
+    schema.image = absoluteOgImage;
   }
 
   if (autore.informazioni) {
@@ -457,7 +487,7 @@ export function buildPersonSchema(autore, siteUrl, ogImagePath) {
     schema.about = taxonomyAbout;
   }
 
-  const sameAs = (autore.links ?? []).map((l) => l.uri).filter(Boolean);
+  const sameAs = [...new Set((autore.links ?? []).map((l) => toAbsoluteUrl(l.uri, siteUrl)).filter(Boolean))];
   if (sameAs.length > 0) schema.sameAs = sameAs;
 
   return schema;
@@ -470,6 +500,8 @@ export function buildProfilePageSchema(autore, siteUrl, ogImagePath, canti = [])
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'ProfilePage',
+    '@id': `${siteUrl}/autori/${autore.slug}#profile-page`,
+    name: autore.titolo,
     url: `${siteUrl}/autori/${autore.slug}`,
     mainEntity: person,
   };
@@ -503,19 +535,21 @@ export function buildProfilePageSchema(autore, siteUrl, ogImagePath, canti = [])
 
 export function buildEventSchema(evento, siteUrl, ogImagePath) {
   const url = `${siteUrl}/eventi/${evento.slug}`;
+  const absoluteOgImage = toAbsoluteUrl(ogImagePath, siteUrl);
 
   const schema = {
     '@context': 'https://schema.org',
-    '@type': 'Event',
+    '@type': 'HistoricalEvent',
     // Stesso @id usato in about dalle pagine canto (riconciliazione entità).
     '@id': `${url}#evento`,
     name: evento.titolo,
     url,
+    mainEntityOfPage: url,
     // Search Console segnala eventStatus come mancante: per anniversari
     // storici il default (svoltosi regolarmente) è l'unico valore onesto.
     // offers/performer/organizer restano invece omessi di proposito: per un
     // evento storico non esistono, e inventarli sarebbe markup ingannevole.
-    eventStatus: 'https://schema.org/EventScheduled',
+    eventStatus: 'https://schema.org/EventCompleted',
     // eventAttendanceMode: eventi storici sono offline (in presenza)
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
   };
@@ -569,14 +603,16 @@ export function buildEventSchema(evento, siteUrl, ogImagePath) {
   }
 
   if (evento.dataEvento) {
-    const giorno = new Date(evento.dataEvento).toISOString().split('T')[0];
-    schema.startDate = giorno;
-    // Anniversario puntuale: l'evento storico è registrato su un solo giorno.
-    schema.endDate = giorno;
+    const giorno = toDateOnly(evento.dataEvento);
+    if (giorno) {
+      schema.startDate = giorno;
+      // Anniversario puntuale: l'evento storico è registrato su un solo giorno.
+      schema.endDate = giorno;
+    }
   }
 
-  if (ogImagePath) {
-    schema.image = `${siteUrl}${ogImagePath}`;
+  if (absoluteOgImage) {
+    schema.image = absoluteOgImage;
   }
 
   if (evento.localizzazioni?.length > 0) {
@@ -618,13 +654,16 @@ export function buildEventSchema(evento, siteUrl, ogImagePath) {
 }
 
 export function buildTranslationSchema(traduzione, siteUrl) {
+  const url = `${siteUrl}/traduzioni/${traduzione.slug}`;
   const schema = {
     '@context': 'https://schema.org',
     // Una traduzione di un canto è ancora una MusicComposition, non un
     // generico CreativeWork — migliora la coerenza semantica del dominio.
     '@type': 'MusicComposition',
+    '@id': `${url}#translation`,
     name: traduzione.titolo,
-    url: `${siteUrl}/traduzioni/${traduzione.slug}`,
+    url,
+    mainEntityOfPage: url,
     inLanguage: linguaToIso(traduzione.lingue?.[0]?.titolo),
   };
 
@@ -677,12 +716,14 @@ export function buildTranslationSchema(traduzione, siteUrl) {
 }
 
 export function buildWebPageSchema(title, description, url) {
+  const canonicalUrl = toAbsoluteUrl(url, url) || url;
   return {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
+    '@id': `${canonicalUrl}#webpage`,
     name: title,
     description,
-    url,
+    url: canonicalUrl,
   };
 }
 
@@ -695,46 +736,76 @@ export function buildItemListSchema(name, items) {
     itemListElement: items.map((item, i) => ({
       '@type': 'ListItem',
       position: i + 1,
-      name: item.name,
-      url: item.url,
+      item: {
+        '@type': 'Thing',
+        name: item.name,
+        url: item.url,
+      },
     })),
   };
 }
 
 export function buildCollectionPageSchema(title, description, url) {
+  const canonicalUrl = toAbsoluteUrl(url, url) || url;
   return {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
+    '@id': `${canonicalUrl}#collection-page`,
     name: title,
     description,
-    url,
+    url: canonicalUrl,
   };
+}
+
+export function buildTaxonomyCollectionPageSchema(title, description, url, mainEntity, options = {}) {
+  const canonicalUrl = toAbsoluteUrl(url, url) || url;
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    '@id': `${canonicalUrl}#collection-page`,
+    name: title,
+    description,
+    url: canonicalUrl,
+    ...(mainEntity ? { mainEntity } : {}),
+  };
+
+  addIfValid(schema, 'isPartOf', options.isPartOf);
+  addIfValid(schema, 'about', options.about);
+  return schema;
 }
 
 // Per le pagine tassonomia (tags, lingue, localizzazioni, periodi): DefinedTermSet
 // per l'indice, DefinedTerm per il singolo termine — più corretto di
 // WebPage/CollectionPage per un vocabolario controllato.
 export function buildDefinedTermSetSchema(name, description, url) {
+  const canonicalUrl = toAbsoluteUrl(url, url) || url;
   return {
     '@context': 'https://schema.org',
     '@type': 'DefinedTermSet',
+    '@id': `${canonicalUrl}#set`,
     name,
     description,
-    url,
+    url: canonicalUrl,
   };
 }
 
 export function buildDefinedTermSchema(name, description, url, termSet) {
+  const canonicalUrl = toAbsoluteUrl(url, url);
+  const termSetUrl = toAbsoluteUrl(termSet?.url, termSet?.url);
+  const termCode = canonicalUrl ? canonicalUrl.replace(/\/+$/, '').split('/').pop() : undefined;
   return {
     '@context': 'https://schema.org',
     '@type': 'DefinedTerm',
+    ...(canonicalUrl ? { '@id': `${canonicalUrl}#term` } : {}),
     name,
     description,
-    url,
+    ...(canonicalUrl ? { url: canonicalUrl } : {}),
+    ...(termCode ? { termCode } : {}),
     inDefinedTermSet: {
       '@type': 'DefinedTermSet',
+      ...(termSetUrl ? { '@id': `${termSetUrl}#set` } : {}),
       name: termSet.name,
-      url: termSet.url,
+      ...(termSetUrl ? { url: termSetUrl } : {}),
     },
   };
 }

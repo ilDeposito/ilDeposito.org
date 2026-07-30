@@ -5,7 +5,7 @@ import HeaderWatermark from '../../components/ui/HeaderWatermark.astro';
 import PagefindList from '../../components/ui/PagefindList.astro';
 import { getLingue } from '../../lib/api/index.js';
 import type { Tassonomia } from '../../lib/api/types.js';
-import { buildDefinedTermSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildDefinedTermSchema, buildBreadcrumbSchema, buildTaxonomyCollectionPageSchema } from '../../lib/schema.js';
 import { buildCanonical } from '../../lib/seo.js';
 import { getPageMeta } from '../../lib/pages.js';
 import { getOgImageFallback } from '../../lib/og-image.js';
@@ -22,10 +22,18 @@ const { lingua } = Astro.props as { lingua: Tassonomia };
 const titolo = lingua.titolo.charAt(0).toUpperCase() + lingua.titolo.slice(1);
 const meta = getPageMeta('lingue.term', { titolo });
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const canonical = buildCanonical(Astro);
+const definedTerm = buildDefinedTermSchema(titolo, meta.metaDescription, canonical, {
+  name: 'Lingue',
+  url: `${siteUrl}/lingue`,
+});
 const jsonLd = [
-  buildDefinedTermSchema(titolo, meta.metaDescription, buildCanonical(Astro), {
-    name: 'Lingue',
-    url: `${siteUrl}/lingue`,
+  definedTerm,
+  buildTaxonomyCollectionPageSchema(meta.metaTitle, meta.metaDescription, canonical, {
+    '@id': `${canonical}#term`,
+  }, {
+    isPartOf: { '@id': `${siteUrl}/lingue#set` },
+    about: [{ '@id': `${canonical}#term` }],
   }),
   buildBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
@@ -35,7 +43,7 @@ const jsonLd = [
 ];
 const ogImage = await getOgImageFallback();
 ---
-<BaseLayout title={meta.metaTitle} description={meta.metaDescription} jsonLd={jsonLd} ogImage={ogImage}>
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription} ogType="website" jsonLd={jsonLd} ogImage={ogImage}>
 
   <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">
     <HeaderWatermark />

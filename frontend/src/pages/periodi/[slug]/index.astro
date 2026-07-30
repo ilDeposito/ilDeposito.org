@@ -13,7 +13,7 @@ import {
   getAutoriImmaginiMap, getImageUrl,
 } from '../../../lib/api/index.js';
 import type { Periodo } from '../../../lib/api/types.js';
-import { buildDefinedTermSchema, buildBreadcrumbSchema, buildItemListSchema } from '../../../lib/schema.js';
+import { buildDefinedTermSchema, buildBreadcrumbSchema, buildItemListSchema, buildTaxonomyCollectionPageSchema } from '../../../lib/schema.js';
 import { buildCanonical, stripHtml } from '../../../lib/seo.js';
 import { getPageMeta } from '../../../lib/pages.js';
 import { getOgImageForPeriodo } from '../../../lib/og-image.js';
@@ -54,10 +54,18 @@ const formatData = (data: string) =>
 
 const meta = getPageMeta('periodi.term', { titolo: periodo.titolo, descrizione: stripHtml(periodo.descrizione ?? '') });
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const canonical = buildCanonical(Astro);
+const definedTerm = buildDefinedTermSchema(periodo.titolo, meta.metaDescription, canonical, {
+  name: 'Periodi',
+  url: `${siteUrl}/periodi`,
+});
 const jsonLd = [
-  buildDefinedTermSchema(periodo.titolo, meta.metaDescription, buildCanonical(Astro), {
-    name: 'Periodi',
-    url: `${siteUrl}/periodi`,
+  definedTerm,
+  buildTaxonomyCollectionPageSchema(meta.metaTitle, meta.metaDescription, canonical, {
+    '@id': `${canonical}#term`,
+  }, {
+    isPartOf: { '@id': `${siteUrl}/periodi#set` },
+    about: [{ '@id': `${canonical}#term` }],
   }),
   buildBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
@@ -85,7 +93,7 @@ const jsonLd = [
 ];
 const ogImage = await getOgImageForPeriodo(periodo);
 ---
-<BaseLayout title={meta.metaTitle} description={meta.metaDescription} pagefindType="periodi" jsonLd={jsonLd} ogImage={ogImage} ogImageAlt={ogImage ? `Immagine del periodo ${periodo.titolo}` : undefined}>
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription} pagefindType="periodi" ogType="website" jsonLd={jsonLd} ogImage={ogImage} ogImageAlt={ogImage ? `Immagine del periodo ${periodo.titolo}` : undefined}>
 
   <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">
     <HeaderWatermark />
