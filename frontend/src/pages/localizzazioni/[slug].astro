@@ -5,7 +5,7 @@ import HeaderWatermark from '../../components/ui/HeaderWatermark.astro';
 import PagefindList from '../../components/ui/PagefindList.astro';
 import { getLocalizzazioni } from '../../lib/api/index.js';
 import type { Tassonomia } from '../../lib/api/types.js';
-import { buildDefinedTermSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildDefinedTermSchema, buildBreadcrumbSchema, buildTaxonomyCollectionPageSchema } from '../../lib/schema.js';
 import { buildCanonical } from '../../lib/seo.js';
 import { getPageMeta } from '../../lib/pages.js';
 import { getOgImageFallback } from '../../lib/og-image.js';
@@ -22,10 +22,18 @@ const { localizzazione } = Astro.props as { localizzazione: Tassonomia };
 const titolo = localizzazione.titolo.charAt(0).toUpperCase() + localizzazione.titolo.slice(1);
 const meta = getPageMeta('localizzazioni.term', { titolo });
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const canonical = buildCanonical(Astro);
+const definedTerm = buildDefinedTermSchema(titolo, meta.metaDescription, canonical, {
+  name: 'Localizzazioni',
+  url: `${siteUrl}/localizzazioni`,
+});
 const jsonLd = [
-  buildDefinedTermSchema(titolo, meta.metaDescription, buildCanonical(Astro), {
-    name: 'Localizzazioni',
-    url: `${siteUrl}/localizzazioni`,
+  definedTerm,
+  buildTaxonomyCollectionPageSchema(meta.metaTitle, meta.metaDescription, canonical, {
+    '@id': `${canonical}#term`,
+  }, {
+    isPartOf: { '@id': `${siteUrl}/localizzazioni#set` },
+    about: [{ '@id': `${canonical}#term` }],
   }),
   buildBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
@@ -35,7 +43,7 @@ const jsonLd = [
 ];
 const ogImage = await getOgImageFallback();
 ---
-<BaseLayout title={meta.metaTitle} description={meta.metaDescription} jsonLd={jsonLd} ogImage={ogImage}>
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription} ogType="website" jsonLd={jsonLd} ogImage={ogImage}>
 
   <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">
     <HeaderWatermark />

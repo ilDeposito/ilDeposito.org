@@ -47,26 +47,55 @@ const {
   jsonLd,
 } = Astro.props;
 
+const canonicalAbsolute = (() => {
+  try {
+    const normalized = String(canonical || '').trim();
+    if (!normalized) return canonical;
+    return normalized.startsWith('http')
+      ? normalized
+      : new URL(normalized, Astro.site).href;
+  } catch {
+    return canonical;
+  }
+})();
+
+const normalizeJsonLdNode = (node) => {
+  if (!node || typeof node !== 'object') return [];
+  if (Array.isArray(node)) return node.flatMap(normalizeJsonLdNode);
+  if (Array.isArray(node['@graph'])) return node['@graph'].flatMap(normalizeJsonLdNode);
+  const { '@context': _, ...rest } = node;
+  return [rest];
+};
+
 const jsonLdRaw = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
-const jsonLdGraph = jsonLdRaw.length > 0
-  ? { '@context': 'https://schema.org', '@graph': jsonLdRaw.map(({ '@context': _, ...rest }) => rest) }
+const jsonLdNodes = jsonLdRaw.flatMap(normalizeJsonLdNode).filter((node) => Object.keys(node).length > 0);
+const jsonLdGraph = jsonLdNodes.length > 0
+  ? { '@context': 'https://schema.org', '@graph': jsonLdNodes }
   : null;
 
 // Assicura che l'immagine OG sia assoluta e genera og:image:secure_url se HTTPS
-const ogImageAbsolute = ogImage;
-const ogImageSecure = ogImage?.startsWith('https://') ? ogImage : undefined;
+const ogImageAbsolute = (() => {
+  if (!ogImage) return undefined;
+  if (ogImage.startsWith('http')) return ogImage;
+  try {
+    return new URL(ogImage, canonicalAbsolute || Astro.site).href;
+  } catch {
+    return ogImage;
+  }
+})();
+const ogImageSecure = ogImageAbsolute?.startsWith('https://') ? ogImageAbsolute : undefined;
 ---
 
 <title>{title}</title>
 <meta name="description" content={description} />
-<link rel="canonical" href={canonical} />
+<link rel="canonical" href={canonicalAbsolute} />
 
 {noindex && <meta name="robots" content="noindex, nofollow" />}
 
 <!-- Open Graph -->
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
-<meta property="og:url" content={canonical} />
+<meta property="og:url" content={canonicalAbsolute} />
 <meta property="og:type" content={ogType} />
 <meta property="og:site_name" content="ilDeposito.org" />
 <meta property="og:locale" content="it_IT" />
@@ -80,7 +109,9 @@ const ogImageSecure = ogImage?.startsWith('https://') ? ogImage : undefined;
 <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
 <meta name="twitter:title" content={title} />
 <meta name="twitter:description" content={description} />
-{ogImage && <meta name="twitter:image" content={ogImage} />}
+<meta name="twitter:url" content={canonicalAbsolute} />
+{ogImageAbsolute && <meta name="twitter:image" content={ogImageAbsolute} />}
+{ogImageAlt && <meta name="twitter:image:alt" content={ogImageAlt} />}
 
 {publishedTime && <meta property="article:published_time" content={publishedTime} />}
 {modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
