@@ -3,14 +3,17 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import HeaderWatermark from '../../components/ui/HeaderWatermark.astro';
 import PagefindList from '../../components/ui/PagefindList.astro';
-import { buildCollectionPageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildCollectionPageSchema, buildBreadcrumbSchema, buildItemListSchema } from '../../lib/schema.js';
 import { buildCanonical } from '../../lib/seo.js';
+import { getAllTraduzioniDetail } from '../../lib/api/index.js';
 import { getPageMeta } from '../../lib/pages.js';
 
+const traduzioni = await getAllTraduzioniDetail();
 const meta = getPageMeta('traduzioni.index');
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
 const jsonLd = [
   buildCollectionPageSchema(meta.metaTitle, meta.metaDescription, buildCanonical(Astro)),
+  buildItemListSchema('Le traduzioni dell\'archivio', traduzioni.map((traduzione) => ({ name: traduzione.titolo, url: `${siteUrl}/traduzioni/${traduzione.slug}` }))),
   buildBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
     { name: 'Traduzioni' },

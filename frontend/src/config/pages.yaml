@@ -84,6 +84,7 @@ canti.elenco:
   metaDescription: "Tutti i canti dell'archivio in ordine alfabetico"
   pageTitle: "I canti dell'archivio"
   pageDescription: "L'elenco completo e navigabile dei canti dell'archivio"
+  noindex: true
 
 # Pagina singolo canto — token: {titolo} {accordi} {autori} {primoAutoreTesto} {descrittore} {anno} {extra}
 #   accordi:          valorizzata se il canto ha gli accordi
@@ -110,6 +111,7 @@ autori.elenco:
   metaDescription: "Elenco completo degli autori in ordine alfabetico"
   pageTitle: "Tutti gli autori dell'archivio"
   pageDescription: "L'elenco completo e navigabile degli autori presenti nell'archivio"
+  noindex: true
 
 # Pagina singolo autore — token: {titolo} {bio} {count} {loc} {anni}
 #   bio:   biografia (informazioni) se presente
@@ -124,6 +126,7 @@ autori.detail:
 autori.canti:
   metaTitle: "Tutti i canti di {titolo}"
   metaDescription: "L'elenco completo dei canti di {titolo} presenti nell'archivio."
+  noindex: true
 
 
 # ─── Eventi ──────────────────────────────────────────────────────────────────
@@ -138,6 +141,7 @@ eventi.elenco:
   metaDescription: "L'elenco completo degli eventi presenti nell'archivio"
   pageTitle: "Gli eventi dell'archivio"
   pageDescription: "L'elenco completo degli eventi presenti nell'archivio."
+  noindex: true
 
 mappaCantata:
   metaTitle: "Mappa cantata — Gli eventi sulla mappa"
@@ -221,6 +225,7 @@ periodi.contenuti:
   metaDescription: "Canti, autori e eventi del periodo \"{titolo}\": esplora l'archivio completo di ilDeposito.org."
   pageTitle: "Contenuti: {titolo}"
   pageDescription: "Tutti i canti, gli autori e gli eventi del periodo"
+  noindex: true
 
 
 # ─── Tags (tassonomia) ───────────────────────────────────────────────────────

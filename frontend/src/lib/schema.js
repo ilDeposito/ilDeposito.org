@@ -302,7 +302,7 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
       }
 
       if (e.informazioni) {
-        eventSchema.description = stripHtml(e.informazioni).substring(0, 200);
+        eventSchema.description = stripHtml(String(e.informazioni)).substring(0, 200);
       }
 
       if (e.immagine) {

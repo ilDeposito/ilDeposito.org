@@ -9,7 +9,7 @@ import { getPageMeta } from '../../lib/pages.js';
 
 const meta = getPageMeta('eventi.elenco');
 ---
-<BaseLayout title={meta.metaTitle} description={meta.metaDescription}>
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription} noindex={meta.noindex}>
 
   <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">
     <HeaderWatermark />

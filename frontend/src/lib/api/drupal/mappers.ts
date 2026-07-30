@@ -205,7 +205,7 @@ export function mapEventoForCanto(raw: any, included?: any): EventoForCanto {
     titolo: a.title,
     slug: extractSlug(a.path?.alias),
     dataEvento: a.field_data_evento ?? null,
-    informazioni: a.field_informazioni ?? null,
+    informazioni: textValue(a.field_informazioni),
     immagine: resolveImageUrl(r.field_immagine, includedMap),
     localizzazioni: resolveRefs(r.field_localizzazione, includedMap),
     latitude: a.field_geofield?.lat ?? null,

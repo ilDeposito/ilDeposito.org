@@ -35,7 +35,7 @@ const jsonLd = [
   buildBreadcrumbSchema(breadcrumbItems.map((item) => ({ name: item.label, url: item.href ? `${siteUrl}${item.href}` : undefined }))),
 ];
 ---
-<BaseLayout title={meta.metaTitle} description={meta.metaDescription} jsonLd={jsonLd}>
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription} noindex={meta.noindex} jsonLd={jsonLd}>
 
   <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">
     <HeaderWatermark />
