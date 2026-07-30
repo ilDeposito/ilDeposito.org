@@ -22,6 +22,7 @@ interface Props {
   ogImageAlt?: string;
   noindex?: boolean;
   publishedTime?: string;
+  modifiedTime?: string;
   articleSection?: string;
   articleTags?: string[];
   profileFirstName?: string;
@@ -31,6 +32,8 @@ interface Props {
   eventEndTime?: string;
   eventLocation?: string;
   eventTimezone?: string;
+  musicMusicians?: string[];
+  musicReleaseDate?: string;
   jsonLd?: object | object[];
   preloadImage?: string;
   dnsPrefetch?: string[];
@@ -47,6 +50,7 @@ const {
   ogImageAlt,
   noindex = false,
   publishedTime,
+  modifiedTime,
   articleSection,
   articleTags,
   profileFirstName,
@@ -56,6 +60,8 @@ const {
   eventEndTime,
   eventLocation,
   eventTimezone,
+  musicMusicians,
+  musicReleaseDate,
   jsonLd,
   preloadImage,
   dnsPrefetch,
@@ -95,6 +101,7 @@ const isProduction = process.env.ENV === 'prod';
       ogImageAlt={ogImageAlt}
       noindex={noindex}
       publishedTime={publishedTime}
+      modifiedTime={modifiedTime}
       articleSection={articleSection}
       articleTags={articleTags}
       profileFirstName={profileFirstName}
@@ -104,6 +111,8 @@ const isProduction = process.env.ENV === 'prod';
       eventEndTime={eventEndTime}
       eventLocation={eventLocation}
       eventTimezone={eventTimezone}
+      musicMusicians={musicMusicians}
+      musicReleaseDate={musicReleaseDate}
       jsonLd={jsonLd}
     />
     {isProduction && (
