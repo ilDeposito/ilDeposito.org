@@ -172,6 +172,19 @@
    ═══════════════════════════════════════════════ */
 :root {
   --form-border-color: oklch(0.236 0 0 / 0.25);
+  color-scheme: light;
+}
+
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  font-synthesis-weight: none;
+  font-synthesis-style: none;
+}
+
+img, svg, video {
+  max-width: 100%;
+  height: auto;
 }
 
 .form-border {

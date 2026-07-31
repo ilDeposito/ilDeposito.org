@@ -18,9 +18,12 @@ const src = getImageUrl(imageUrl);
         alt={descrizione ?? ''}
         width={800}
         height={350}
-        format="webp"
-        quality={85}
+        widths={[400, 800]}
+        sizes="(max-width: 768px) 100vw, 800px"
+        formats={['avif', 'webp']}
+        quality={75}
         loading="lazy"
+        decoding="async"
         class="w-full object-cover rounded-sm"
       />
       {descrizione && (

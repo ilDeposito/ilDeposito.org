@@ -189,9 +189,13 @@ const autoriConDati = autori.map((autore) => ({
                   alt={autori[0] ? `Foto di ${autori[0].titolo}` : canto.titolo}
                   width={240}
                   height={240}
-                  format="webp"
-                  quality={80}
-                  loading={i < 4 ? 'eager' : 'lazy'}
+                  widths={[96, 128, 240]}
+                  sizes="(max-width: 768px) 64px, 128px"
+                  formats={['avif', 'webp']}
+                  quality={65}
+                  loading={i < 2 ? 'eager' : 'lazy'}
+                  fetchpriority={i === 0 ? 'high' : undefined}
+                  decoding="async"
                   class="w-16 h-16 md:w-32 md:h-32 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
                 />
               ) : autori.length > 0 ? (
@@ -257,9 +261,12 @@ const autoriConDati = autori.map((autore) => ({
                   alt={`Foto di ${autore.titolo}`}
                   width={200}
                   height={200}
-                  format="webp"
-                  quality={80}
-                  loading={i < 4 ? 'eager' : 'lazy'}
+                  widths={[96, 144, 200]}
+                  sizes="(max-width: 768px) 96px, 144px"
+                  formats={['avif', 'webp']}
+                  quality={65}
+                  loading={i < 2 ? 'eager' : 'lazy'}
+                  decoding="async"
                   class="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 group-hover:border-primary transition-all duration-300"
                 />
               ) : (
@@ -313,9 +320,12 @@ const autoriConDati = autori.map((autore) => ({
                     alt={periodo.titolo}
                     width={200}
                     height={200}
-                    format="webp"
-                    quality={80}
-                    loading={i < 4 ? 'eager' : 'lazy'}
+                    widths={[96, 144, 200]}
+                    sizes="(max-width: 768px) 96px, 144px"
+                    formats={['avif', 'webp']}
+                    quality={65}
+                    loading={i < 2 ? 'eager' : 'lazy'}
+                    decoding="async"
                     class="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover border-2 border-secondary/50 grayscale group-hover:grayscale-0 transition-all duration-300"
                   />
                 ) : (
@@ -375,10 +385,11 @@ const autoriConDati = autori.map((autore) => ({
                           alt={`Immagine: ${evento.titolo}`}
                           width={800}
                           height={450}
-                          format="webp"
-                          quality={75}
+                          formats={['avif', 'webp']}
+                          quality={70}
                           class="w-full h-full object-cover grayscale"
                           loading={i === startIndex ? 'eager' : 'lazy'}
+                          decoding="async"
                         />
                       ) : (
                         <div class="w-full h-full bg-base-300 flex items-center justify-center">

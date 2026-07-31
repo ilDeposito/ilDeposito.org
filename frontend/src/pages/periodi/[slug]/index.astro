@@ -108,10 +108,11 @@ const ogImage = await getOgImageForPeriodo(periodo);
             alt={"Immagine del periodo: " + periodo.titolo}
             width={160}
             height={160}
-            format="webp"
-            quality={80}
+            formats={['avif', 'webp']}
+            quality={72}
             loading="eager"
             fetchpriority="high"
+            decoding="async"
             class="w-20 h-20 rounded-full object-cover shrink-0 border-2 border-base-300"
           />
         )}
@@ -176,9 +177,10 @@ const ogImage = await getOgImageForPeriodo(periodo);
                     alt={autori[0] ? "Foto di " + autori[0].titolo : canto.titolo}
                     width={240}
                     height={240}
-                    format="webp"
-                    quality={80}
+                    formats={['avif', 'webp']}
+                    quality={72}
                     loading={i < 4 ? 'eager' : 'lazy'}
+                    decoding="async"
                     class="w-20 h-20 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
                   />
                 ) : autori.length > 0 ? (
@@ -243,9 +245,10 @@ const ogImage = await getOgImageForPeriodo(periodo);
                       alt={"Foto di " + autore.titolo}
                       width={240}
                       height={240}
-                      format="webp"
-                      quality={80}
+                      formats={['avif', 'webp']}
+                      quality={72}
                       loading="lazy"
+                      decoding="async"
                       class="w-20 h-20 md:w-36 md:h-36 rounded-full object-cover border-2 border-base-300 grayscale group-hover:grayscale-0 transition-all duration-300"
                     />
                   ) : (

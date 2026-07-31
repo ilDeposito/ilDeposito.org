@@ -51,10 +51,11 @@ const jsonLd = [
             alt={"Immagine del periodo: " + periodo.titolo}
             width={160}
             height={160}
-            format="webp"
-            quality={80}
+            formats={['avif', 'webp']}
+            quality={72}
             loading="eager"
             fetchpriority="high"
+            decoding="async"
             class="w-20 h-20 rounded-full object-cover shrink-0 border-2 border-base-300"
           />
         )}

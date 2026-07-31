@@ -33,10 +33,13 @@ const immagineUrl = getImageUrl(autore.immagine);
           alt={"Foto di " + autore.titolo}
           width={160}
           height={160}
-          format="webp"
-          quality={80}
+          widths={[80, 160]}
+          sizes="(max-width: 768px) 80px, 160px"
+          formats={['avif', 'webp']}
+          quality={75}
           loading="eager"
           fetchpriority="high"
+          decoding="async"
           data-pagefind-meta="image[src]"
           class="w-20 h-20 rounded-full object-cover shrink-0 border-2 border-base-300"
         />
