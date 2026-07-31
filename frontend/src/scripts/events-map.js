@@ -1,4 +1,3 @@
-import 'leaflet/dist/leaflet.css';
 import markerClusterCss from 'leaflet.markercluster/dist/MarkerCluster.css?inline';
 import markerClusterDefaultCss from 'leaflet.markercluster/dist/MarkerCluster.Default.css?inline';
 
@@ -36,17 +35,26 @@ class EventsMap extends HTMLElement {
 
     injectMarkerClusterCss();
 
+    const [{ default: L }, { default: markerIcon }, { default: markerIcon2x }, { default: markerShadow }, { default: leafletCssText }] = await Promise.all([
+      import('leaflet'),
+      import('leaflet/dist/images/marker-icon.png?url'),
+      import('leaflet/dist/images/marker-icon-2x.png?url'),
+      import('leaflet/dist/images/marker-shadow.png?url'),
+      import('leaflet/dist/leaflet.css?inline'),
+    ]);
+
+    if (!document.querySelector('style[data-leaflet-css]')) {
+      const style = document.createElement('style');
+      style.setAttribute('data-leaflet-css', '');
+      style.textContent = leafletCssText;
+      document.head.appendChild(style);
+    }
+
     const container = document.createElement('div');
     container.style.width = '100%';
     container.style.height = '100%';
     this.appendChild(container);
 
-    const [{ default: L }, { default: markerIcon }, { default: markerIcon2x }, { default: markerShadow }] = await Promise.all([
-      import('leaflet'),
-      import('leaflet/dist/images/marker-icon.png?url'),
-      import('leaflet/dist/images/marker-icon-2x.png?url'),
-      import('leaflet/dist/images/marker-shadow.png?url'),
-    ]);
     await import('leaflet.markercluster');
 
     delete L.Icon.Default.prototype._getIconUrl;

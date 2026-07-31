@@ -1,5 +1,3 @@
-import 'leaflet/dist/leaflet.css';
-
 class EventMap extends HTMLElement {
   connectedCallback() {
     const observer = new IntersectionObserver(
@@ -18,12 +16,19 @@ class EventMap extends HTMLElement {
     const lng = parseFloat(this.dataset.lng);
     if (Number.isNaN(lat) || Number.isNaN(lng)) return;
 
-    const [{ default: L }, { default: markerIcon }, { default: markerIcon2x }, { default: markerShadow }] = await Promise.all([
+    const [{ default: L }, { default: markerIcon }, { default: markerIcon2x }, { default: markerShadow }, { default: leafletCssText }] = await Promise.all([
       import('leaflet'),
       import('leaflet/dist/images/marker-icon.png?url'),
       import('leaflet/dist/images/marker-icon-2x.png?url'),
       import('leaflet/dist/images/marker-shadow.png?url'),
+      import('leaflet/dist/leaflet.css?inline'),
     ]);
+    if (!document.querySelector('style[data-leaflet-css]')) {
+      const style = document.createElement('style');
+      style.setAttribute('data-leaflet-css', '');
+      style.textContent = leafletCssText;
+      document.head.appendChild(style);
+    }
     delete L.Icon.Default.prototype._getIconUrl;
     L.Icon.Default.mergeOptions({
       iconUrl: markerIcon,
