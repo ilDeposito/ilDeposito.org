@@ -53,6 +53,7 @@ export function buildWebSiteSchema(siteUrl) {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
+    '@id': `${siteUrl}#website`,
     name: 'ilDeposito.org',
     url: siteUrl,
     description: 'Archivio online di canti di protesta politica e sociale',
@@ -61,7 +62,7 @@ export function buildWebSiteSchema(siteUrl) {
       '@type': 'Organization',
       name: 'ilDeposito.org',
       url: siteUrl,
-      logo: `${siteUrl}/favicon.svg`,
+      logo: { '@type': 'ImageObject', url: `${siteUrl}/favicon.svg` },
     },
     potentialAction: {
       '@type': 'SearchAction',
@@ -80,7 +81,7 @@ export function buildOrganizationSchema(siteUrl) {
     '@type': 'Organization',
     name: 'ilDeposito.org',
     url: siteUrl,
-    logo: `${siteUrl}/favicon.svg`,
+    logo: { '@type': 'ImageObject', url: `${siteUrl}/favicon.svg` },
     sameAs: [
       'https://www.facebook.com/ildeposito.org',
       'https://www.youtube.com/user/ildeposito',
@@ -154,7 +155,6 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
     inLanguage: linguaToIso(canto.lingue?.[0]?.titolo),
     isPartOf: {
       '@type': 'WebSite',
-      '@id': `${siteUrl}#website`,
       name: 'ilDeposito.org — Archivio canti di protesta',
       url: siteUrl,
     },
@@ -179,7 +179,7 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
     '@type': 'Organization',
     name: 'ilDeposito.org',
     url: siteUrl,
-    logo: `${siteUrl}/favicon.svg`,
+    logo: { '@type': 'ImageObject', url: `${siteUrl}/favicon.svg` },
   };
 
   if (canto.testo) {
@@ -189,7 +189,7 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
       lyricsText = (cutAt > 100 ? lyricsText.substring(0, cutAt) : lyricsText.substring(0, 500)).trimEnd() + '…';
     }
     schema.lyrics = {
-      '@type': 'CreativeWork',
+      '@type': 'Lyrics',
       text: lyricsText,
       inLanguage: linguaToIso(canto.lingue?.[0]?.titolo),
     };
@@ -240,8 +240,6 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
 
   if (canto.tematiche?.length > 0) {
     schema.genre = canto.tematiche.map((t) => t.titolo);
-    // category: rafforzare la classificazione gerarchica
-    schema.category = canto.tematiche.map((t) => t.titolo);
     taxonomyAbout.push(
       ...canto.tematiche
         .map((t) => buildTaxonomyTermEntity(t, siteUrl, 'Tematiche', '/tematiche', undefined))
@@ -260,10 +258,7 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
     );
   }
 
-  // temporalCoverage accetta testo libero oltre agli intervalli ISO: i periodi
-  // storici dell'archivio sono il dato temporale più ricco disponibile.
   if (canto.periodi?.length > 0) {
-    schema.temporalCoverage = canto.periodi.map((p) => p.titolo);
     taxonomyAbout.push(
       ...canto.periodi
         .map((p) => buildTaxonomyTermEntity(p, siteUrl, 'Periodi', '/periodi', `/periodi/${p.slug}`))
@@ -287,7 +282,7 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
   if (eventi.length > 0) {
     aboutItems.push(...eventi.map((e) => {
       const eventSchema = {
-        '@type': 'HistoricalEvent',
+        '@type': 'Event',
         '@id': `${siteUrl}/eventi/${e.slug}#evento`,
         name: e.titolo,
         url: `${siteUrl}/eventi/${e.slug}`,
@@ -296,9 +291,10 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
 
       if (e.dataEvento) {
         const giorno = toDateOnly(e.dataEvento);
-        if (!giorno) return eventSchema;
-        eventSchema.startDate = giorno;
-        eventSchema.endDate = giorno;
+        if (giorno) {
+          eventSchema.startDate = giorno;
+          eventSchema.endDate = giorno;
+        }
       }
 
       if (e.informazioni) {
@@ -357,36 +353,43 @@ export function buildCreativeWorkSchema(canto, siteUrl, ogImagePath, eventi = []
     const videoId = extractYouTubeVideoId(canto.videoUrl);
 
     if (videoId) {
-      const video = {
-        '@type': 'VideoObject',
-        name: canto.titolo,
-        description: `Video del canto ${canto.titolo} su ilDeposito.org`,
-        thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-        embedUrl: `https://www.youtube.com/embed/${videoId}`,
-        contentUrl: `https://www.youtube.com/watch?v=${videoId}`,
-        url: canto.videoUrl,
-      };
+      // Google richiede uploadDate (ISO 8601 YYYY-MM-DD) come campo obbligatorio
+      // per il rich result VideoObject. Se non c'è una data precisa dal CMS si
+      // preferisce omettere l'intero VideoObject piuttosto che emettere una data
+      // invalida (es. bare year "1965" non è accettato da Google).
+      const uploadDate = canto.dataCreazione || canto.dataModifica || null;
 
-      const uploadDate = canto.dataCreazione || canto.dataModifica || (canto.anno ? String(canto.anno) : null);
-      if (uploadDate) video.uploadDate = uploadDate;
+      if (uploadDate) {
+        const video = {
+          '@type': 'VideoObject',
+          name: canto.titolo,
+          description: `Video del canto ${canto.titolo} su ilDeposito.org`,
+          thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+          embedUrl: `https://www.youtube.com/embed/${videoId}`,
+          contentUrl: `https://www.youtube.com/watch?v=${videoId}`,
+          url: canto.videoUrl,
+          uploadDate,
+        };
 
-      // recordedAs (MusicRecording) è la proprietà corretta per collegare
-      // l'opera a una sua registrazione, invece del generico subjectOf.
-      schema.recordedAs = {
-        '@type': 'MusicRecording',
-        '@id': `${url}#recording`,
-        name: canto.titolo,
-        recordingOf: { '@id': `${url}#composition` },
-        video,
-      };
+        // recordedAs (MusicRecording) è la proprietà corretta per collegare
+        // l'opera a una sua registrazione, invece del generico subjectOf.
+        schema.recordedAs = {
+          '@type': 'MusicRecording',
+          '@id': `${url}#recording`,
+          name: canto.titolo,
+          recordingOf: { '@id': `${url}#composition` },
+          video,
+        };
+      }
     }
   }
 
   // Il PDF testo/accordi è generato per ogni canto in fase di build
   // (integrations/pdf-generator.js): associatedMedia lo rende un asset
-  // indicizzabile a sé, collegato all'opera.
+  // indicizzabile a sé, collegato all'opera. DataDownload estende MediaObject,
+  // che è il range corretto per associatedMedia.
   schema.associatedMedia = {
-    '@type': 'DigitalDocument',
+    '@type': 'DataDownload',
     name: `Testo${canto.accordi ? ' e accordi' : ''} di "${canto.titolo}" (PDF)`,
     url: `${siteUrl}/pdf/canti/ildeposito-${canto.slug}.pdf`,
     encodingFormat: 'application/pdf',
@@ -509,25 +512,25 @@ export function buildProfilePageSchema(autore, siteUrl, ogImagePath, canti = [])
   if (autore.dataCreazione) schema.datePublished = autore.dataCreazione;
   if (autore.dataModifica) schema.dateModified = autore.dataModifica;
 
-  // Le opere dell'autore come ItemList: i riferimenti @id #composition
-  // agganciano le pagine canto al profilo nel knowledge graph. Cap a 50 per
-  // non gonfiare l'HTML degli autori più prolifici (es. anonimo).
+  // ProfilePage può collegare pagine correlate senza imporre una relazione
+  // biografica inesistente tra persone e gruppi (es. colleague è solo Person).
+  if (autore.autoriCorrelati?.length > 0) {
+    schema.relatedLink = autore.autoriCorrelati.map(
+      (correlato) => `${siteUrl}/autori/${correlato.slug}`,
+    );
+  }
+
+  // Le opere dell'autore come array di MusicComposition: hasPart ha range
+  // CreativeWork, quindi i valori devono essere CreativeWork (o sottotipi).
+  // Gli @id #composition riconciliano le pagine canto nel knowledge graph.
+  // Cap a 50 per non gonfiare l'HTML degli autori più prolifici (es. anonimo).
   if (canti.length > 0) {
-    const opere = canti.slice(0, 50);
-    schema.hasPart = {
-      '@type': 'ItemList',
-      numberOfItems: opere.length,
-      itemListElement: opere.map((c, i) => ({
-        '@type': 'ListItem',
-        position: i + 1,
-        item: {
-          '@type': 'MusicComposition',
-          '@id': `${siteUrl}/canti/${c.slug}#composition`,
-          name: c.titolo,
-          url: `${siteUrl}/canti/${c.slug}`,
-        },
-      })),
-    };
+    schema.hasPart = canti.slice(0, 50).map((c) => ({
+      '@type': 'MusicComposition',
+      '@id': `${siteUrl}/canti/${c.slug}#composition`,
+      name: c.titolo,
+      url: `${siteUrl}/canti/${c.slug}`,
+    }));
   }
 
   return schema;
@@ -539,7 +542,7 @@ export function buildEventSchema(evento, siteUrl, ogImagePath) {
 
   const schema = {
     '@context': 'https://schema.org',
-    '@type': 'HistoricalEvent',
+    '@type': 'Event',
     // Stesso @id usato in about dalle pagine canto (riconciliazione entità).
     '@id': `${url}#evento`,
     name: evento.titolo,
@@ -558,22 +561,11 @@ export function buildEventSchema(evento, siteUrl, ogImagePath) {
     schema.description = stripHtml(evento.informazioni).substring(0, 200);
   }
 
-  schema.organizer = {
-    '@type': 'Organization',
-    name: 'ilDeposito.org',
-    url: siteUrl,
-    logo: `${siteUrl}/favicon.svg`,
-  };
-
   const taxonomyAbout = [];
 
-  // Stesso trattamento di buildCreativeWorkSchema sul canto: genre per le
-  // tematiche, keywords per i tag. Prima mancavano qui pur essendo presenti
-  // (e visibili in pagina) anche sull'evento.
+  // Le tematiche sono già espresse come DefinedTerm in about: genre non appartiene
+  // al dominio di Event (domainIncludes: CreativeWork, MusicGroup).
   if (evento.tematiche?.length > 0) {
-    schema.genre = evento.tematiche.map((t) => t.titolo);
-    // category: rafforzare la classificazione gerarchica
-    schema.category = evento.tematiche.map((t) => t.titolo);
     taxonomyAbout.push(
       ...evento.tematiche
         .map((t) => buildTaxonomyTermEntity(t, siteUrl, 'Tematiche', '/tematiche', undefined))
@@ -581,8 +573,8 @@ export function buildEventSchema(evento, siteUrl, ogImagePath) {
     );
   }
 
+  // keywords non appartiene al dominio di Event: i tag restano in about come DefinedTerm.
   if (evento.tags?.length > 0) {
-    schema.keywords = evento.tags.map((t) => t.titolo).join(', ');
     taxonomyAbout.push(
       ...evento.tags
         .map((t) => buildTaxonomyTermEntity(t, siteUrl, 'Tag', '/tags', `/tags/${t.slug}`))
@@ -594,6 +586,14 @@ export function buildEventSchema(evento, siteUrl, ogImagePath) {
     taxonomyAbout.push(
       ...evento.periodi
         .map((periodo) => buildTaxonomyTermEntity(periodo, siteUrl, 'Periodi', '/periodi', `/periodi/${periodo.slug}`))
+        .filter(Boolean),
+    );
+  }
+
+  if (evento.localizzazioni?.length > 0) {
+    taxonomyAbout.push(
+      ...evento.localizzazioni
+        .map((localizzazione) => buildTaxonomyTermEntity(localizzazione, siteUrl, 'Localizzazioni', '/localizzazioni', `/localizzazioni/${localizzazione.slug}`))
         .filter(Boolean),
     );
   }
@@ -647,9 +647,6 @@ export function buildEventSchema(evento, siteUrl, ogImagePath) {
 
   if (evento.links?.[0]?.uri) schema.sameAs = [evento.links[0].uri];
 
-  if (evento.dataCreazione) schema.datePublished = evento.dataCreazione;
-  if (evento.dataModifica) schema.dateModified = evento.dataModifica;
-
   return schema;
 }
 
@@ -691,7 +688,7 @@ export function buildTranslationSchema(traduzione, siteUrl) {
       lyricsText = (cutAt > 100 ? lyricsText.substring(0, cutAt) : lyricsText.substring(0, 500)).trimEnd() + '…';
     }
     schema.lyrics = {
-      '@type': 'CreativeWork',
+      '@type': 'Lyrics',
       text: lyricsText,
       inLanguage: linguaToIso(traduzione.lingue?.[0]?.titolo),
     };
@@ -727,7 +724,7 @@ export function buildWebPageSchema(title, description, url) {
   };
 }
 
-export function buildItemListSchema(name, items) {
+export function buildItemListSchema(name, items, { itemType = 'Thing', idSuffix = null } = {}) {
   return {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
@@ -737,9 +734,10 @@ export function buildItemListSchema(name, items) {
       '@type': 'ListItem',
       position: i + 1,
       item: {
-        '@type': 'Thing',
+        '@type': itemType,
+        ...(item.url && idSuffix ? { '@id': `${item.url}${idSuffix}` } : {}),
         name: item.name,
-        url: item.url,
+        ...(item.url ? { url: item.url } : {}),
       },
     })),
   };

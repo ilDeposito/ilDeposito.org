@@ -6,7 +6,7 @@ import HeaderWatermark from '../../components/ui/HeaderWatermark.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
 import Icon from '../../components/base/Icon.astro';
 import { getPeriodi, getImageUrl, getContenutiByPeriodoMap } from '../../lib/api/index.js';
-import { buildCollectionPageSchema, buildDefinedTermSetSchema, buildBreadcrumbSchema, buildItemListSchema } from '../../lib/schema.js';
+import { buildTaxonomyCollectionPageSchema, buildDefinedTermSetSchema, buildBreadcrumbSchema, buildItemListSchema } from '../../lib/schema.js';
 import { buildCanonical } from '../../lib/seo.js';
 import { getPageMeta } from '../../lib/pages.js';
 
@@ -15,10 +15,11 @@ const contenutiMap = await getContenutiByPeriodoMap();
 
 const meta = getPageMeta('periodi.index');
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const canonical = buildCanonical(Astro);
 const jsonLd = [
-  buildCollectionPageSchema(meta.metaTitle, meta.metaDescription, buildCanonical(Astro)),
-  buildDefinedTermSetSchema(meta.metaTitle, meta.metaDescription, buildCanonical(Astro)),
-  buildItemListSchema('I periodi storici dell\'archivio', periodi.map((periodo) => ({ name: periodo.titolo, url: `${siteUrl}/periodi/${periodo.slug}` }))),
+  buildTaxonomyCollectionPageSchema(meta.metaTitle, meta.metaDescription, canonical, { '@id': `${canonical}#set` }),
+  buildDefinedTermSetSchema(meta.metaTitle, meta.metaDescription, canonical),
+  buildItemListSchema('I periodi storici dell\'archivio', periodi.map((periodo) => ({ name: periodo.titolo, url: `${siteUrl}/periodi/${periodo.slug}` })), { itemType: 'DefinedTerm', idSuffix: '#term' }),
   buildBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
     { name: 'Periodi' },

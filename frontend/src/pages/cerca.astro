@@ -5,10 +5,21 @@ import HeaderWatermark from '../components/ui/HeaderWatermark.astro';
 import PagefindList from '../components/ui/PagefindList.astro';
 import Icon from '../components/base/Icon.astro';
 import { getPageMeta } from '../lib/pages.js';
+import { buildBreadcrumbSchema, buildWebPageSchema } from '../lib/schema.js';
+import { buildCanonical } from '../lib/seo.js';
 
 const meta = getPageMeta('cerca');
+const canonical = buildCanonical(Astro);
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') || 'https://www.ildeposito.org';
+const jsonLd = [
+  buildWebPageSchema(meta.metaTitle, meta.metaDescription, canonical),
+  buildBreadcrumbSchema([
+    { name: 'Home', url: `${siteUrl}/` },
+    { name: 'Cerca', url: canonical },
+  ]),
+];
 ---
-<BaseLayout title={meta.metaTitle} description={meta.metaDescription} noindex={meta.noindex}>
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription} noindex={meta.noindex} jsonLd={jsonLd}>
 
   <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">
     <HeaderWatermark />

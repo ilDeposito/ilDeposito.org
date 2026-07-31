@@ -6,10 +6,22 @@ import ShareModal from '../../components/ui/ShareModal.astro';
 import PagefindList from '../../components/ui/PagefindList.astro';
 import Icon from '../../components/base/Icon.astro';
 import { getPageMeta } from '../../lib/pages.js';
+import { buildBreadcrumbSchema, buildCollectionPageSchema } from '../../lib/schema.js';
+import { buildCanonical } from '../../lib/seo.js';
 
 const meta = getPageMeta('eventi.elenco');
+const canonical = buildCanonical(Astro);
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') || 'https://www.ildeposito.org';
+const jsonLd = [
+  buildCollectionPageSchema(meta.metaTitle, meta.metaDescription, canonical),
+  buildBreadcrumbSchema([
+    { name: 'Home', url: `${siteUrl}/` },
+    { name: 'Eventi', url: `${siteUrl}/eventi` },
+    { name: 'Elenco', url: canonical },
+  ]),
+];
 ---
-<BaseLayout title={meta.metaTitle} description={meta.metaDescription} noindex={meta.noindex}>
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription} noindex={meta.noindex} jsonLd={jsonLd}>
 
   <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">
     <HeaderWatermark />

@@ -5,7 +5,7 @@ import HeaderWatermark from '../../components/ui/HeaderWatermark.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
 import Icon from '../../components/base/Icon.astro';
 import { getLingue, getContenutiByLinguaMap } from '../../lib/api/index.js';
-import { buildCollectionPageSchema, buildDefinedTermSetSchema, buildBreadcrumbSchema, buildItemListSchema } from '../../lib/schema.js';
+import { buildTaxonomyCollectionPageSchema, buildDefinedTermSetSchema, buildBreadcrumbSchema, buildItemListSchema } from '../../lib/schema.js';
 import { buildCanonical } from '../../lib/seo.js';
 import { getPageMeta } from '../../lib/pages.js';
 
@@ -14,10 +14,11 @@ const contenutiMap = await getContenutiByLinguaMap();
 
 const meta = getPageMeta('lingue.index');
 const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const canonical = buildCanonical(Astro);
 const jsonLd = [
-  buildCollectionPageSchema(meta.metaTitle, meta.metaDescription, buildCanonical(Astro)),
-  buildDefinedTermSetSchema(meta.metaTitle, meta.metaDescription, buildCanonical(Astro)),
-  buildItemListSchema('Le lingue dell\'archivio', lingue.map((lingua) => ({ name: lingua.titolo, url: `${siteUrl}/lingue/${lingua.slug}` }))),
+  buildTaxonomyCollectionPageSchema(meta.metaTitle, meta.metaDescription, canonical, { '@id': `${canonical}#set` }),
+  buildDefinedTermSetSchema(meta.metaTitle, meta.metaDescription, canonical),
+  buildItemListSchema('Le lingue dell\'archivio', lingue.map((lingua) => ({ name: lingua.titolo, url: `${siteUrl}/lingue/${lingua.slug}` })), { itemType: 'DefinedTerm', idSuffix: '#term' }),
   buildBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
     { name: 'Lingue' },

@@ -8,6 +8,8 @@ import EventCard from '../../../components/ui/EventCard.astro';
 import { getEventiCalendario } from '../../../lib/api/index.js';
 import type { EventoCalendario } from '../../../lib/api/types.js';
 import { getPageMeta } from '../../../lib/pages.js';
+import { buildBreadcrumbSchema, buildCollectionPageSchema } from '../../../lib/schema.js';
+import { buildCanonical } from '../../../lib/seo.js';
 
 export async function getStaticPaths() {
   const allEventi = await getEventiCalendario();
@@ -45,8 +47,19 @@ const giornoLabel = `${dayNum} ${monthName}`;
 const meta = getPageMeta('calendario.giorno', { giorno: giornoLabel });
 const titolo = meta.pageTitle;
 const descrizione = meta.pageDescription;
+const canonical = buildCanonical(Astro);
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') || 'https://www.ildeposito.org';
+const jsonLd = [
+  buildCollectionPageSchema(meta.metaTitle, meta.metaDescription, canonical),
+  buildBreadcrumbSchema([
+    { name: 'Home', url: `${siteUrl}/` },
+    { name: 'Eventi', url: `${siteUrl}/eventi` },
+    { name: 'Calendario cantato', url: `${siteUrl}/archivio/calendario-cantato` },
+    { name: giornoLabel, url: canonical },
+  ]),
+];
 ---
-<BaseLayout title={meta.metaTitle} description={meta.metaDescription}>
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription} jsonLd={jsonLd}>
 
   <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">
     <HeaderWatermark />

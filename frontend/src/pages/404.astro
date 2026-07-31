@@ -2,8 +2,19 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/base/Icon.astro';
 import { getPageMeta } from '../lib/pages.js';
+import { buildBreadcrumbSchema, buildWebPageSchema } from '../lib/schema.js';
+import { buildCanonical } from '../lib/seo.js';
 
 const meta = getPageMeta('notFound');
+const canonical = buildCanonical(Astro);
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') || 'https://www.ildeposito.org';
+const jsonLd = [
+  buildWebPageSchema(meta.metaTitle, meta.metaDescription, canonical),
+  buildBreadcrumbSchema([
+    { name: 'Home', url: `${siteUrl}/` },
+    { name: '404', url: canonical },
+  ]),
+];
 
 const links = [
   { href: '/', label: 'Homepage', icon: 'house' },
@@ -14,7 +25,7 @@ const links = [
   { href: '/archivio/storia-cantata', label: 'La storia cantata', icon: 'hand-fist' },
 ];
 ---
-<BaseLayout title={meta.metaTitle} description={meta.metaDescription} noindex={meta.noindex}>
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription} noindex={meta.noindex} jsonLd={jsonLd}>
 
   <section class="bg-neutral text-neutral-content">
     <div class="max-w-6xl mx-auto px-4 py-8 md:py-12 flex flex-col items-center text-center gap-3">

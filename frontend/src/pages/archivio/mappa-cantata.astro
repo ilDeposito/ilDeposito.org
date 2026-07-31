@@ -6,6 +6,8 @@ import ShareModal from '../../components/ui/ShareModal.astro';
 import Icon from '../../components/base/Icon.astro';
 import { getEventiGeo } from '../../lib/api/index.js';
 import { getPageMeta } from '../../lib/pages.js';
+import { buildBreadcrumbSchema, buildWebPageSchema } from '../../lib/schema.js';
+import { buildCanonical } from '../../lib/seo.js';
 
 const meta = getPageMeta('mappaCantata');
 const eventiGeo = await getEventiGeo();
@@ -19,12 +21,23 @@ const eventiGeoJson = JSON.stringify(
     longitude:   e.longitude,
   }))
 );
+const canonical = buildCanonical(Astro);
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') || 'https://www.ildeposito.org';
+const jsonLd = [
+  buildWebPageSchema(meta.metaTitle, meta.metaDescription, canonical),
+  buildBreadcrumbSchema([
+    { name: 'Home', url: `${siteUrl}/` },
+    { name: 'Eventi', url: `${siteUrl}/eventi` },
+    { name: 'Mappa cantata', url: canonical },
+  ]),
+];
 ---
 <BaseLayout
   title={meta.metaTitle}
   description={meta.metaDescription}
   noindex={meta.noindex}
   dnsPrefetch={['https://tile.openstreetmap.org']}
+  jsonLd={jsonLd}
 >
 
   <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">

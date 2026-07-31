@@ -14,6 +14,8 @@ import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import HeaderWatermark from '../../components/ui/HeaderWatermark.astro';
 import Icon from '../../components/base/Icon.astro';
 import { getPageMeta } from '../../lib/pages.js';
+import { buildBreadcrumbSchema, buildCollectionPageSchema } from '../../lib/schema.js';
+import { buildCanonical } from '../../lib/seo.js';
 
 const meta = getPageMeta('canzonieri');
 
@@ -71,8 +73,17 @@ function formattaDimensione(bytes: number): string {
 const dataGenerazione = generatoIl
   ? new Date(generatoIl).toLocaleDateString('it-IT', { year: 'numeric', month: 'long', day: 'numeric' })
   : null;
+const canonical = buildCanonical(Astro);
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') || 'https://www.ildeposito.org';
+const jsonLd = [
+  buildCollectionPageSchema(meta.metaTitle, meta.metaDescription, canonical),
+  buildBreadcrumbSchema([
+    { name: 'Home', url: `${siteUrl}/` },
+    { name: 'Canzonieri', url: canonical },
+  ]),
+];
 ---
-<BaseLayout title={meta.metaTitle} description={meta.metaDescription} noindex={meta.noindex}>
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription} noindex={meta.noindex} jsonLd={jsonLd}>
   <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">
     <HeaderWatermark />
     <div class="relative z-10 max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">

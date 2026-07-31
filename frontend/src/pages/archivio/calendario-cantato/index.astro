@@ -7,6 +7,8 @@ import Icon from '../../../components/base/Icon.astro';
 import MonthCalendar from '../../../components/ui/MonthCalendar.astro';
 import { getEventiCalendario } from '../../../lib/api/index.js';
 import { getPageMeta } from '../../../lib/pages.js';
+import { buildBreadcrumbSchema, buildCollectionPageSchema } from '../../../lib/schema.js';
+import { buildCanonical } from '../../../lib/seo.js';
 
 const meta = getPageMeta('calendario.index');
 const eventi = await getEventiCalendario();
@@ -22,8 +24,18 @@ for (const evento of eventi) {
 }
 
 const year = new Date().getFullYear();
+const canonical = buildCanonical(Astro);
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') || 'https://www.ildeposito.org';
+const jsonLd = [
+  buildCollectionPageSchema(meta.metaTitle, meta.metaDescription, canonical),
+  buildBreadcrumbSchema([
+    { name: 'Home', url: `${siteUrl}/` },
+    { name: 'Eventi', url: `${siteUrl}/eventi` },
+    { name: 'Calendario cantato', url: canonical },
+  ]),
+];
 ---
-<BaseLayout title={meta.metaTitle} description={meta.metaDescription}>
+<BaseLayout title={meta.metaTitle} description={meta.metaDescription} jsonLd={jsonLd}>
 
   <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">
     <HeaderWatermark />

@@ -32,8 +32,7 @@ const jsonLd = [
   buildTaxonomyCollectionPageSchema(meta.metaTitle, meta.metaDescription, canonical, {
     '@id': `${canonical}#term`,
   }, {
-    isPartOf: { '@id': `${siteUrl}/localizzazioni#set` },
-    about: [{ '@id': `${canonical}#term` }],
+    isPartOf: `${siteUrl}/localizzazioni`,
   }),
   buildBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
