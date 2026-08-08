@@ -46,7 +46,10 @@ curl_setopt_array($curl, [
 $response = curl_exec($curl);
 $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
 $error = curl_error($curl);
-curl_close($curl);
+// Da PHP 8 il handle cURL viene rilasciato automaticamente; curl_close() e'
+// deprecato in PHP 8.5 e il suo warning non deve contaminare lo stdout, che
+// questo helper riserva esclusivamente al token di installazione.
+unset($curl);
 
 if (!is_string($response) || $status < 200 || $status >= 300) {
   fwrite(STDERR, "Token GitHub App non ottenuto (HTTP {$status}): {$error}\n");

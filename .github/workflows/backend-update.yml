@@ -30,6 +30,10 @@ jobs:
         id: app-token
         run: |
           TOKEN="$(./ildeposito.sh github-app-token)"
+          if [ -z "$TOKEN" ]; then
+            echo '::error::La GitHub App non ha restituito un installation token.'
+            exit 1
+          fi
           echo "::add-mask::$TOKEN"
           echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
 
