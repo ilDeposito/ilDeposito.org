@@ -52,6 +52,13 @@ $settings['ildeposito_stats_umami_website_id'] = getenv('UMAMI_WEBSITE_ID') ?: '
 // comando resta un no-op, così stage non posta per sbaglio su FB.
 $settings['ildeposito_utils_fbpost_webhook_url'] = getenv('FBPOST_WEBHOOK_URL') ?: '';
 
+// Anteprima frontend (ildeposito_preview): secret HMAC condiviso col
+// frontend Astro (rotta /preview/[uuid]) e URL base del frontend a cui
+// reindirizzare. Diversi per ambiente, impostati SOLO via env (non sotto
+// git): se assenti il local task "Anteprima Frontend" risponde con errore.
+$settings['ildeposito_preview_secret'] = getenv('ILDEPOSITO_PREVIEW_SECRET') ?: '';
+$settings['ildeposito_preview_frontend_url'] = getenv('ILDEPOSITO_PREVIEW_FRONTEND_URL') ?: '';
+
 $settings['enable_html5_validation'] = FALSE;
 
 $settings['trusted_host_patterns'] = [

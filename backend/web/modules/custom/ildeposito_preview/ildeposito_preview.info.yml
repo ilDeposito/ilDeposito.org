@@ -1,0 +1,5 @@
+name: ilDeposito Preview
+description: Anteprima del rendering frontend Astro per nodi non pubblicati.
+package: ilDeposito
+core_version_requirement: ^11 || ^12
+type: module

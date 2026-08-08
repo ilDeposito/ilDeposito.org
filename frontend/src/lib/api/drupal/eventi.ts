@@ -1,4 +1,5 @@
 import { fetchAllEventiRaw } from './store.js';
+import { fetchNodeByUuid } from './client.js';
 import { buildIncludedMap, extractSlug } from './resolvers.js';
 import { oggiRoma } from '../../date-utils.js';
 import {
@@ -9,6 +10,33 @@ import type {
   EventoPath, EventoForCanto, EventoDelGiorno, EventoMese,
   EventoCard, EventoCalendario, EventoGeo, EventoDetail,
 } from '../types.js';
+
+// Stessi fields/include della collezione (store.ts), applicati a una singola
+// risorsa per uuid con auth, senza filter[status] (nodo non pubblicato incluso).
+const EVENTO_PREVIEW_PARAMS = new URLSearchParams({
+  'fields[node--evento]': [
+    'drupal_internal__nid', 'title', 'path', 'created', 'changed',
+    'field_data_evento', 'field_informazioni', 'field_immagine',
+    'field_geofield', 'field_localizzazione', 'field_periodo',
+    'field_tags', 'field_tematiche', 'field_canti_correlati', 'field_links',
+    'field_visualizzazioni_totali',
+  ].join(','),
+  'fields[node--canto]': 'drupal_internal__nid,title,path,field_anno,field_capoverso,field_audio,field_canto_accordi,status',
+  'fields[taxonomy_term--localizzazioni]': 'name,path',
+  'fields[taxonomy_term--periodi]': 'name,path',
+  'fields[taxonomy_term--tags]': 'name,path',
+  'fields[taxonomy_term--tematiche]': 'name,path',
+  'fields[media--image]': 'field_media_image',
+  'fields[file--file]': 'uri',
+  'include': 'field_immagine,field_immagine.field_media_image,field_localizzazione,field_periodo,field_tags,field_tematiche,field_canti_correlati',
+});
+
+export async function getEventoPreview(uuid: string): Promise<EventoDetail | null> {
+  const res = await fetchNodeByUuid('evento', uuid, EVENTO_PREVIEW_PARAMS);
+  if (!res?.data) return null;
+  const map = buildIncludedMap(res.included);
+  return mapEventoDetail(res.data, map);
+}
 
 export async function getEventi(): Promise<EventoPath[]> {
   const { data } = await fetchAllEventiRaw();

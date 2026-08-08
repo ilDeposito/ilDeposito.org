@@ -1,0 +1,323 @@
+---
+// Markup del canto estratto da pages/canti/[slug].astro perché sia
+// riusabile anche dalla rotta di anteprima SSR (preview/[uuid].astro),
+// senza duplicare template tra build statica e anteprima.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../ui/Breadcrumb.astro';
+import HeaderWatermark from '../ui/HeaderWatermark.astro';
+import ShareModal from '../ui/ShareModal.astro';
+import SegnalazioneModal from '../ui/SegnalazioneModal.astro';
+import Icon from '../base/Icon.astro';
+import type { CantoDetail, EventoForCanto } from '../../lib/api/types.js';
+import { getUniqueAutori } from '../../lib/related-canti.js';
+import type { RelatedCanto } from '../../lib/related-canti.js';
+import { buildCreativeWorkSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildCantoTitle, buildCantoDescription, linguaToIso } from '../../lib/seo.js';
+
+interface Props {
+  canto: CantoDetail;
+  eventi: EventoForCanto[];
+  relatedCanti: RelatedCanto[];
+  ogImage?: string;
+}
+
+const { canto, eventi, relatedCanti, ogImage } = Astro.props;
+
+const autoriUnici = getUniqueAutori(canto);
+const periodo = canto.periodi[0];
+
+const formatData = (data: string | null) =>
+  data
+    ? new Date(data).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '';
+
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const breadcrumbItems = [
+  { label: 'Home', href: '/' },
+  { label: 'Canti', href: '/canti' },
+  { label: canto.titolo },
+];
+
+const musicMusicians = autoriUnici.map((a) => `${siteUrl}/autori/${a.slug}`);
+const musicReleaseDate = canto.anno ? String(canto.anno) : undefined;
+
+const jsonLd = [
+  buildCreativeWorkSchema(canto, siteUrl, ogImage, eventi, relatedCanti),
+  buildBreadcrumbSchema(breadcrumbItems.map((item) => ({ name: item.label, url: item.href ? `${siteUrl}${item.href}` : undefined }))),
+];
+---
+<BaseLayout
+  title={buildCantoTitle(canto)}
+  pagefindTitle={canto.titolo}
+  description={buildCantoDescription(canto)}
+  pagefindType="canti"
+  ogType="music.composition"
+  ogImage={ogImage}
+  ogImageAlt={ogImage ? `Immagine per ${canto.titolo}` : undefined}
+  publishedTime={canto.dataCreazione ?? undefined}
+  articleSection="Canti di protesta"
+  articleTags={canto.tags.map((t) => t.titolo)}
+  musicMusicians={musicMusicians}
+  musicReleaseDate={musicReleaseDate}
+  jsonLd={jsonLd}
+>
+
+  <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">
+    <HeaderWatermark />
+    <div class="relative z-10 max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">
+      <Breadcrumb items={breadcrumbItems} />
+
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{canto.titolo}</h1>
+
+      {autoriUnici.length > 0 && (
+        <p class="font-serif italic font-bold text-base">
+          <span class="text-base-content">Autori: </span>
+          <span class="text-primary">
+            {autoriUnici.map((a, i) => (
+              <>{i > 0 && ', '}<a href={`/autori/${a.slug}`} class="underline hover:no-underline">{a.titolo}</a></>
+            ))}
+          </span>
+        </p>
+      )}
+
+      {periodo && (
+        <p class="font-serif italic font-bold text-base">
+          <span class="text-base-content">Periodo: </span>
+          <a href={`/periodi/${periodo.slug}`} class="text-primary underline hover:no-underline">{periodo.titolo}</a>
+        </p>
+      )}
+
+      {canto.anno && <p class="font-serif italic font-bold text-base text-base-content">Anno: {canto.anno}</p>}
+
+      <div class="flex items-center gap-4 text-base text-base-content mt-1">
+        {canto.videoUrl && (
+          <youtube-player data-video-url={canto.videoUrl} data-canto-slug={canto.slug} class="contents">
+            <button type="button" data-yt-toggle class="inline-flex items-center gap-1 cursor-pointer" aria-label="Ascolta questo canto">
+              <span data-yt-icon-play class="leading-none"><Icon name="play-fill" /></span>
+              <span data-yt-icon-pause class="hidden leading-none"><Icon name="pause" /></span>
+              <span data-yt-label>Ascolta</span>
+            </button>
+
+            <dialog class="modal">
+              <div class="modal-box max-w-sm bg-base-200">
+                <h3 class="font-serif font-semibold text-lg text-primary mb-3">Contenuto esterno</h3>
+                <p class="text-sm text-base-content/80 mb-2">
+                  Per riprodurre l'audio verrà caricato un player da YouTube.
+                  Questo comporta l'invio di dati a Google e l'impostazione di cookie di terze parti.
+                </p>
+                <p class="text-sm text-base-content/80 mb-4">
+                  Maggiori informazioni nella nostra <a href="/informazioni/privacy" class="text-primary underline">informativa sulla privacy</a>.
+                </p>
+                <div class="flex justify-end gap-2">
+                  <button type="button" data-yt-cancel class="btn btn-sm btn-ghost border-0 shadow-none">Annulla</button>
+                  <button type="button" data-yt-accept class="btn btn-sm btn-primary border-0 shadow-none">Accetta e ascolta</button>
+                </div>
+              </div>
+              <form method="dialog" class="modal-backdrop"><button>chiudi</button></form>
+            </dialog>
+
+            <div data-yt-iframe-wrap class="absolute opacity-0 pointer-events-none w-0 h-0 overflow-hidden" inert></div>
+          </youtube-player>
+        )}
+
+        <share-button data-title={canto.titolo} class="contents">
+          <button type="button" class="inline-flex items-center gap-1 cursor-pointer" aria-label="Condividi questo canto">
+            <Icon name="share-network" />
+            Condividi
+          </button>
+          <ShareModal pageType="canto" />
+        </share-button>
+
+        <a href="#scheda-canto" class="inline-flex items-center gap-1">
+          <Icon name="arrow-down" />
+          Scheda
+        </a>
+      </div>
+
+      {eventi.length > 0 && (
+        <div class="mt-2">
+          <p class="font-serif font-bold text-base md:text-lg text-base-content">Storia cantata</p>
+          {eventi.map((evento) => (
+            <a href={`/eventi/${evento.slug}`} class="block text-base text-primary">
+              {formatData(evento.dataEvento)} – {evento.titolo}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  </header>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+  <article data-pagefind-body class="flex flex-col gap-6 max-w-2xl mx-auto mt-6">
+
+    <!-- Metadati Pagefind (nascosti, per ricerca e facet) -->
+    <span class="sr-only" data-pagefind-weight="10">{canto.titolo}</span>
+    <span class="sr-only" data-pagefind-meta="capoverso" data-pagefind-weight="7">{canto.capoverso}</span>
+    {canto.anno && <span class="sr-only" data-pagefind-meta="anno">{canto.anno}</span>}
+    {autoriUnici.length > 0 && <span class="sr-only" data-pagefind-meta="autori" data-pagefind-weight="5">{autoriUnici.map(a => a.titolo).join(', ')}</span>}
+    {autoriUnici.map(a => <span class="sr-only" data-pagefind-filter={`autori:${a.titolo}`}></span>)}
+    <span class="sr-only" data-pagefind-sort="titolo">{canto.titolo}</span>
+    <span class="sr-only" data-pagefind-sort={`visualizzazioni:${String(canto.visualizzazioni).padStart(10, '0')}`}></span>
+    {periodo && <span class="sr-only" data-pagefind-filter={`periodi:${periodo.titolo}`}></span>}
+    {canto.tags.map(t => <span class="sr-only" data-pagefind-filter={`tags:${t.titolo}`}></span>)}
+    {canto.lingue.map(l => <span class="sr-only" data-pagefind-filter={`lingue:${l.titolo}`}></span>)}
+    <span class="sr-only" data-pagefind-filter={`accordi:${canto.accordi ? 'sì' : 'no'}`} data-pagefind-meta={`accordi:${canto.accordi ? 'sì' : 'no'}`}></span>
+    <span class="sr-only" data-pagefind-filter={`audio:${canto.videoUrl ? 'sì' : 'no'}`} data-pagefind-meta={`audio:${canto.videoUrl ? 'sì' : 'no'}`}></span>
+
+    <!-- Testo / Accordi -->
+    <section>
+      {canto.accordi ? (
+        <song-lyrics class="block">
+          <div data-pagefind-ignore class="flex justify-center gap-4 mb-3" role="tablist">
+            <button type="button" id="tab-testo" data-tab="testo" role="tab" aria-selected="true" aria-controls="panel-testo" tabindex="0" class="font-serif font-bold text-base px-4 pb-2 border-b-2 border-secondary text-base-content cursor-pointer">Testo</button>
+            <button type="button" id="tab-accordi" data-tab="accordi" role="tab" aria-selected="false" aria-controls="panel-accordi" tabindex="-1" class="font-serif font-bold text-base px-4 pb-2 border-b-2 border-transparent text-base-content/70 cursor-pointer">Accordi</button>
+          </div>
+          <pre id="panel-testo" data-panel="testo" role="tabpanel" aria-labelledby="tab-testo" tabindex="0" lang={linguaToIso(canto.lingue?.[0]?.titolo)} class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{canto.testo}</pre>
+          <div id="panel-accordi" data-panel="accordi" role="tabpanel" aria-labelledby="tab-accordi" tabindex="0" data-pagefind-ignore class="hidden text-center">
+            <div data-transpose-toolbar class="inline-flex items-center gap-3 mb-5 text-sm text-base-content/70 bg-base-200 rounded-lg px-4 py-2">
+              <span class="font-serif font-semibold">Cambia la tonalità</span>
+              <button type="button" data-transpose="-1" class="btn btn-xs border-0 bg-base-300 text-base-content/70 min-w-8" aria-label="Abbassa di mezzo tono">−1</button>
+              <button type="button" data-transpose="+1" class="btn btn-xs border-0 bg-base-300 text-base-content/70 min-w-8" aria-label="Alza di mezzo tono">+1</button>
+              <button type="button" data-transpose-reset disabled class="btn btn-xs btn-ghost text-base-content/70 invisible" aria-label="Tonalità originale">Reset</button>
+            </div>
+            <pre class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap text-left [&>.chord-line]:font-bold [&>.chord-line]:text-base-content">{canto.accordi}</pre>
+          </div>
+        </song-lyrics>
+      ) : (
+        <pre lang={linguaToIso(canto.lingue?.[0]?.titolo)} class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{canto.testo}</pre>
+      )}
+      <div data-pagefind-ignore class="flex justify-start mt-4">
+        <a href={`/pdf/canti/ildeposito-${canto.slug}.pdf`} download data-pdf-download={canto.slug} class="inline-flex items-center gap-1 text-base text-base-content">
+          <Icon name="file-pdf" />
+          Scarica PDF
+        </a>
+      </div>
+    </section>
+
+    {relatedCanti.length > 0 && (
+      <section data-pagefind-ignore class="flex flex-col gap-2 w-full mt-6">
+        <h2 class="font-serif font-bold text-base md:text-lg text-base-content">Canti simili</h2>
+        <div class="flex flex-col divide-y divide-secondary/30">
+          {relatedCanti.map((related) => (
+            <div class="flex flex-col gap-1 py-3 hover:bg-base-200 transition-colors rounded-lg">
+              <h3 class="font-serif font-semibold text-primary flex items-center gap-2">
+                <a href={`/canti/${related.slug}`} class="hover:underline">{related.titolo}</a>
+                <Icon name="headphones" class={related.videoUrl ? 'text-primary' : 'text-base-content/50'} label={related.videoUrl ? 'Audio disponibile' : undefined} />
+                <Icon name="guitar" class={related.accordi ? 'text-primary' : 'text-base-content/50'} label={related.accordi ? 'Accordi disponibili' : undefined} />
+              </h3>
+              {related.autori && <p class="text-base text-base-content/70">{related.autori}</p>}
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Fonte -->
+    {canto.fonte && (
+      <section class="flex flex-col gap-2">
+        <h2 class="font-serif font-bold text-base md:text-lg text-base-content">Fonte</h2>
+        <div class="rich-text text-base text-base-content/80" set:html={canto.fonte} />
+      </section>
+    )}
+
+    <!-- Informazioni -->
+    {canto.informazioni && (
+      <section class="flex flex-col gap-2">
+        <h2 class="font-serif font-bold text-base md:text-lg text-base-content">Informazioni</h2>
+        <div class="rich-text text-base text-base-content/80" set:html={canto.informazioni} />
+      </section>
+    )}
+
+    <!-- Scheda canto -->
+    <section id="scheda-canto" data-pagefind-ignore class="flex flex-col gap-1 scroll-mt-16" style="content-visibility:auto;contain-intrinsic-size:auto 300px">
+      <h2 class="font-serif font-bold text-lg md:text-xl text-base-content mb-2">Scheda canto</h2>
+
+      {canto.autoriTesto.length > 0 && (
+        <p class="text-base">
+          <span class="text-base-content">Autori testo: </span>
+          <span class="text-primary">
+            {canto.autoriTesto.map((a, i) => (
+              <>{i > 0 && ', '}<a href={`/autori/${a.slug}`} class="underline hover:no-underline">{a.titolo}</a></>
+            ))}
+          </span>
+        </p>
+      )}
+
+      {canto.autoriMusica.length > 0 && (
+        <p class="text-base">
+          <span class="text-base-content">Autori musica: </span>
+          <span class="text-primary">
+            {canto.autoriMusica.map((a, i) => (
+              <>{i > 0 && ', '}<a href={`/autori/${a.slug}`} class="underline hover:no-underline">{a.titolo}</a></>
+            ))}
+          </span>
+        </p>
+      )}
+
+      {periodo && (
+        <p class="text-base">
+          <span class="text-base-content">Periodo: </span>
+          <a href={`/periodi/${periodo.slug}`} class="text-primary underline hover:no-underline">{periodo.titolo}</a>
+        </p>
+      )}
+
+      {canto.tematiche.length > 0 && (
+        <p class="text-base">
+          <span class="text-base-content">Tematiche: </span>
+          <span class="text-primary">{canto.tematiche.map((t) => t.titolo).join(', ')}</span>
+        </p>
+      )}
+
+      {canto.anno && (
+        <p class="text-base">
+          <span class="text-base-content">Anno: </span>
+          <span class="text-primary">{canto.anno}</span>
+        </p>
+      )}
+
+      {canto.lingue.length > 0 && (
+        <p class="text-base">
+          <span class="text-base-content">Lingua: </span>
+          <span class="text-primary">
+            {canto.lingue.map((l, i) => (
+              <>{i > 0 && ', '}<a href={`/lingue/${l.slug}`} class="underline hover:no-underline">{l.titolo}</a></>
+            ))}
+          </span>
+        </p>
+      )}
+
+      {canto.tags.length > 0 && (
+        <p class="text-base">
+          <span class="text-base-content">Tags: </span>
+          <span class="text-primary">
+            {canto.tags.map((t, i) => (
+              <>{i > 0 && ', '}<a href={`/tags/${t.slug}`} class="underline hover:no-underline">{t.titolo}</a></>
+            ))}
+          </span>
+        </p>
+      )}
+
+      {canto.videoUrl && (
+        <p class="text-base">
+          <span class="text-base-content">Video: </span>
+          <a href={canto.videoUrl} target="_blank" rel="noopener noreferrer" class="text-primary underline break-all">
+            Guarda il video su YouTube
+            <span class="sr-only"> (si apre in una nuova finestra)</span>
+          </a>
+        </p>
+      )}
+    </section>
+
+  </article>
+
+  <script>
+    import '../../scripts/song-lyrics.js';
+    import '../../scripts/share-button.js';
+    import '../../scripts/youtube-player.js';
+    import '../../scripts/pdf-download.js';
+  </script>
+  </div>
+
+  <SegnalazioneModal cantoUrl={`${siteUrl}/canti/${canto.slug}`} />
+
+</BaseLayout>

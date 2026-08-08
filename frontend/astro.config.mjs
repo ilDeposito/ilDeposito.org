@@ -1,11 +1,16 @@
 import { defineConfig } from 'astro/config';
 import { loadEnv } from 'vite';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import yaml from '@rollup/plugin-yaml';
 import sitemap from '@astrojs/sitemap';
 import node from '@astrojs/node';
 
-const { DRUPAL_API_URL } = loadEnv(process.env.NODE_ENV ?? 'production', process.cwd(), '');
+// Unico .env per il monorepo: vive nella root del repo, non in frontend/
+// (vedi anche vite.envDir sotto, che allinea il resto della pipeline Vite).
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
+const { DRUPAL_API_URL } = loadEnv(process.env.NODE_ENV ?? 'production', repoRoot, '');
 const drupalHost = new URL(DRUPAL_API_URL || 'http://localhost').hostname;
 // jsonapi-fetch.js legge process.env (non import.meta.env): gira fuori dalla
 // pipeline Vite, come pdf-runner.js. Stage/prod lo impostano già via Docker;
@@ -111,6 +116,16 @@ export default defineConfig({
   ],
 
   vite: {
+    // Unico .env per tutto il progetto: legge dalla root del monorepo invece
+    // di richiedere un frontend/.env duplicato (usato solo in dev locale,
+    // stage/prod passano le env via Docker Compose, non tramite questo file).
+    envDir: '../',
+    server: {
+      // Vite blocca di default gli host non-localhost (protezione DNS
+      // rebinding): il dev server gira dentro DDEV dietro il router, quindi
+      // va raggiunto tramite l'hostname *.ddev.site, non localhost.
+      allowedHosts: ['.ddev.site'],
+    },
     plugins: [
       yaml(),
       tailwindcss(),

@@ -63,6 +63,49 @@ export async function fetchJsonApi(path: string, params?: URLSearchParams): Prom
 // solo la granularità di paginazione, non il concorrenza reale verso Drupal.
 const PAGE_CONCURRENCY = 4;
 
+// Fetch di una singola risorsa JSON:API per UUID, con Basic Auth.
+// A differenza di fetchJsonApi/fetchAllJsonApi (fetch pubblico, usato per la
+// build statica) questa richiede credenziali di servizio con permesso di
+// vedere contenuti non pubblicati: serve solo alla rotta di anteprima SSR
+// (preview/[uuid].astro), che deve poter risolvere nodi in bozza.
+export async function fetchNodeByUuid(
+  bundle: string,
+  uuid: string,
+  params: URLSearchParams,
+): Promise<JsonApiResponse | null> {
+  const user = (import.meta.env.DRUPAL_API_USER as string) || process.env.DRUPAL_API_USER || '';
+  const pass = (import.meta.env.DRUPAL_API_PASS as string) || process.env.DRUPAL_API_PASS || '';
+  if (!user || !pass) {
+    throw new Error('DRUPAL_API_USER/DRUPAL_API_PASS non configurate: richieste per la fetch di anteprima (contenuti non pubblicati)');
+  }
+
+  const url = new URL(`/jsonapi/node/${bundle}/${uuid}`, DRUPAL_API_URL);
+  for (const [key, value] of params) {
+    url.searchParams.set(key, value);
+  }
+
+  const credentials = Buffer.from(`${user}:${pass}`).toString('base64');
+
+  await acquireSlot();
+  try {
+    const res = await fetch(url.toString(), {
+      headers: {
+        Accept: 'application/vnd.api+json',
+        Authorization: `Basic ${credentials}`,
+      },
+    });
+
+    if (res.status === 404) return null;
+    if (!res.ok) {
+      throw new Error(`Drupal JSON:API fetch anteprima fallito per "${bundle}/${uuid}": ${res.status} ${res.statusText}`);
+    }
+
+    return res.json();
+  } finally {
+    releaseSlot();
+  }
+}
+
 export async function fetchAllJsonApi(path: string, params?: URLSearchParams): Promise<JsonApiResponse> {
   const allData: any[] = [];
   const allIncluded: any[] = [];
