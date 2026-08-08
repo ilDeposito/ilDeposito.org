@@ -387,6 +387,116 @@ cmd_composer() {
     ${COMPOSE} exec -T php composer --working-dir=/var/www/html "$@"
 }
 
+send_telegram() {
+    local message="$1"
+    if [[ -z "${TELEGRAM_BOT_TOKEN:-}" || -z "${TELEGRAM_CHAT_ID:-}" ]]; then
+        warn "Telegram non configurato: notifica saltata"
+        return 0
+    fi
+
+    if curl --fail --silent --show-error --max-time 20 \
+        --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+        --data-urlencode "text=${message}" \
+        "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" >/dev/null; then
+        ok "Notifica Telegram inviata"
+    else
+        warn "Invio Telegram fallito"
+    fi
+}
+
+cmd_telegram() {
+    local message="${*:?Uso: ./ildeposito.sh telegram <messaggio>}"
+    send_telegram "${message}"
+}
+
+# Stampa un token temporaneo della GitHub App gia' usata da Drupal. La chiave
+# privata resta sul runner e il workflow maschera subito il token prodotto.
+cmd_github_app_token() {
+    if [[ "${ENV}" != "stage" ]]; then
+        error "github-app-token va eseguito solo in stage (ENV=${ENV})"
+        exit 1
+    fi
+    cmd_exec -T php php /var/www/html/script/github-app-token.php
+}
+
+# Prepara il branch e applica l'aggiornamento Drupal. Commit, push e PR sono
+# gestiti dal workflow, che e' l'unico contesto con il token GitHub App.
+cmd_backend_update() {
+    local result_file="${PROJECT_ROOT}/.backend-update-modules"
+    local outdated_file="${PROJECT_ROOT}/.backend-update-outdated.json"
+    local branch date outdated_count config_output
+
+    if [[ "${ENV}" != "stage" ]]; then
+        error "backend-update va eseguito solo in stage (ENV=${ENV})"
+        exit 1
+    fi
+    if [[ "$(git -C "${PROJECT_ROOT}" branch --show-current)" != "main" ]]; then
+        error "backend-update richiede il branch main attivo"
+        exit 1
+    fi
+    if ! git -C "${PROJECT_ROOT}" diff --quiet || ! git -C "${PROJECT_ROOT}" diff --cached --quiet; then
+        error "Working copy non pulita: aggiornamento annullato"
+        exit 1
+    fi
+    if ! git -C "${PROJECT_ROOT}" rev-parse --verify origin/main >/dev/null 2>&1 || \
+       [[ "$(git -C "${PROJECT_ROOT}" rev-parse HEAD)" != "$(git -C "${PROJECT_ROOT}" rev-parse origin/main)" ]]; then
+        error "HEAD non e' allineato a origin/main: aggiornamento annullato"
+        exit 1
+    fi
+
+    rm -f "${result_file}" "${outdated_file}"
+    info "Verifico aggiornamenti Composer per drupal/*..."
+    if ! cmd_composer outdated --no-interaction --format=json 'drupal/*' >"${outdated_file}"; then
+        error "composer outdated non e' riuscito"
+        rm -f "${outdated_file}"
+        exit 1
+    fi
+
+    outdated_count="$(cmd_exec -T php php /var/www/html/script/drupal-package-outdated.php /var/www/html/.backend-update-outdated.json)"
+    if [[ "${outdated_count}" == "0" ]]; then
+        rm -f "${outdated_file}"
+        ok "Nessun aggiornamento Drupal disponibile"
+        return 0
+    fi
+
+    date="$(date +%F)"
+    branch="upgrade/${date}"
+    if git -C "${PROJECT_ROOT}" show-ref --verify --quiet "refs/heads/${branch}" || \
+       git -C "${PROJECT_ROOT}" ls-remote --exit-code --heads origin "${branch}" >/dev/null 2>&1; then
+        error "Il branch ${branch} esiste gia': risolvere l'upgrade precedente prima di riprovare"
+        exit 1
+    fi
+
+    info "Creo branch ${branch} (${outdated_count} aggiornamenti Drupal)..."
+    git -C "${PROJECT_ROOT}" switch -c "${branch}"
+    info "Aggiorno dipendenze Drupal..."
+    cmd_composer update --no-interaction --with-dependencies 'drupal/*'
+    info "Eseguo aggiornamenti database Drupal..."
+    cmd_drush updatedb -y
+
+    if ! config_output="$(cmd_drush config:status 2>&1)" || \
+       [[ "${config_output}" != *"No differences"* ]]; then
+        printf '%s\n' "${config_output}" >&2
+        error "Config drift rilevato dopo updatedb"
+        return 42
+    fi
+
+    info "Configurazione pulita: rebuild cache, import e build contenuti..."
+    cmd_drush cache:rebuild
+    cmd_drush config:import -y
+    cmd_build_frontend content
+    cmd_exec -T php php /var/www/html/script/drupal-package-updates.php \
+        /var/www/html/.backend-update-outdated.json \
+        /var/www/html/composer.lock >"${result_file}"
+    rm -f "${outdated_file}"
+
+    if [[ ! -s "${result_file}" ]]; then
+        error "Impossibile determinare i pacchetti Drupal aggiornati"
+        exit 1
+    fi
+    ok "Aggiornamento backend completato sul branch ${branch}"
+}
+
 # Allinea stage a prod: DB + file caricati. Prod e stage vivono sullo stesso
 # host (vedi working-directory in deploy-{stage,prod}.yml), quindi si legge
 # direttamente il backup.sql di prod da filesystem, senza scp. Pensato per
@@ -545,6 +655,9 @@ ${BOLD}Comandi:${NC}
   backup            Backup completo: dump DB (schema vuoto per cache*/search_api_db_*) + dump immagini
                       entrambi in bz2 in backup/ildeposito/, retention 30 giorni (uso da cron)
   composer <args>   Esegui comando composer
+  backend-update    [solo stage] Crea upgrade/YYYY-MM-DD e applica/valida aggiornamenti drupal/*
+  github-app-token  [solo stage] Stampa un token temporaneo della GitHub App (solo workflow)
+  telegram <msg>    Invia un messaggio Telegram usando le variabili del .env
   exec <srv> <cmd>  Esegui comando in un container
   shell [servizio]  Shell nel container (default: php)
   logs [servizio]   Visualizza i log
@@ -570,6 +683,9 @@ case "${1:-}" in
     allinea-prod)    cmd_allinea_prod ;;
     backup)          cmd_backup ;;
     composer)        shift; cmd_composer "$@" ;;
+    backend-update) cmd_backend_update ;;
+    github-app-token) cmd_github_app_token ;;
+    telegram)       shift; cmd_telegram "$@" ;;
     exec)            shift; cmd_exec "$@" ;;
     shell)           shift; cmd_shell "$@" ;;
     logs)            shift; cmd_logs "$@" ;;
