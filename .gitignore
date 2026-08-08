@@ -32,3 +32,7 @@ backend/.deploy-version
 # Hash dei file di config nginx dell'ultimo deploy (vedi cmd_build_frontend
 # in ildeposito.sh): rileva se serve un force-recreate di frontend-web.
 .nginx-conf.hash
+
+# Stato effimero dell'aggiornamento automatico Drupal sul runner stage.
+.backend-update-modules
+.backend-update-outdated.json

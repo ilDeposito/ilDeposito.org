@@ -1,0 +1,163 @@
+name: Backend Drupal Update
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  # Update e deploy non devono modificare insieme la working copy/DB stage.
+  group: deploy-stage
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: self-hosted
+    defaults:
+      run:
+        working-directory: /home/ubuntu/sergej/websites/ildeposito/stage
+
+    steps:
+      - name: Synchronize stage checkout with main
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo '::error::Working copy stage non pulita: aggiornamento annullato.'
+            exit 1
+          fi
+          git fetch origin main
+          git switch main
+          git reset --hard origin/main
+
+      - name: Create a GitHub App installation token
+        id: app-token
+        run: |
+          TOKEN="$(./ildeposito.sh github-app-token)"
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Configure Git identity and authenticated remote
+        env:
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          echo "ORIGINAL_REMOTE=$(git remote get-url origin)" >> "$GITHUB_ENV"
+          git config user.name 'ildeposito-updater[bot]'
+          git config user.email 'ildeposito-updater[bot]@users.noreply.github.com'
+          git remote set-url origin "https://x-access-token:${APP_TOKEN}@github.com/ilDeposito/ilDeposito.org.git"
+
+      - name: Update Drupal dependencies and validate stage
+        id: update
+        continue-on-error: true
+        run: ./ildeposito.sh backend-update
+
+      - name: Detect whether an update was available
+        id: availability
+        if: steps.update.outcome == 'success'
+        run: |
+          if [[ "$(git branch --show-current)" =~ ^upgrade/[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+            echo 'available=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'available=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Roll back stage after failed validation
+        if: steps.update.outcome == 'failure'
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          FAILED_BRANCH="$(git branch --show-current)"
+          ./ildeposito.sh telegram "Aggiornamento backend stage fallito (${FAILED_BRANCH}). Rollback avviato. ${RUN_URL}"
+          git remote set-url origin "$ORIGINAL_REMOTE"
+          git fetch origin main
+          git switch main
+          git reset --hard origin/main
+          if [ "$FAILED_BRANCH" != main ]; then
+            git branch -D "$FAILED_BRANCH" || true
+          fi
+          if ! ./ildeposito.sh allinea-prod; then
+            ./ildeposito.sh telegram "CRITICO: rollback aggiornamento backend stage fallito. Intervento richiesto. ${RUN_URL}"
+            exit 1
+          fi
+          ./ildeposito.sh telegram "Aggiornamento backend stage annullato; stage riallineato a prod. ${RUN_URL}"
+          exit 1
+
+      - name: Commit and push upgrade branch
+        if: steps.update.outcome == 'success' && steps.availability.outputs.available == 'true'
+        id: push
+        continue-on-error: true
+        run: |
+          BRANCH="$(git branch --show-current)"
+          if ! [[ "$BRANCH" =~ ^upgrade/[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+            echo "::error::Branch inatteso dopo l'update: $BRANCH"
+            exit 1
+          fi
+          if [ ! -s .backend-update-modules ]; then
+            echo '::error::Lista dei moduli aggiornati assente.'
+            exit 1
+          fi
+          git add -A backend
+          if git diff --cached --quiet; then
+            echo '::error::Composer non ha prodotto file versionati da committare.'
+            exit 1
+          fi
+          git commit -F .backend-update-modules
+          git push --set-upstream origin "$BRANCH"
+          git remote set-url origin "$ORIGINAL_REMOTE"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+
+      - name: Create ready pull request and enable auto-merge
+        if: steps.push.outcome == 'success'
+        id: pull-request
+        continue-on-error: true
+        uses: actions/github-script@v7
+        env:
+          BRANCH: ${{ steps.push.outputs.branch }}
+          MODULES_FILE: .backend-update-modules
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const fs = require('fs');
+            const modules = fs.readFileSync(process.env.MODULES_FILE, 'utf8').trim();
+            const { data: pr } = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Aggiornamento Drupal — ${process.env.BRANCH.replace('upgrade/', '')}`,
+              head: process.env.BRANCH,
+              base: 'main',
+              body: `Aggiornamenti rilevati e validati automaticamente su stage:\n\n${modules}`,
+              draft: false,
+            });
+            await github.graphql(
+              `mutation EnableAutoMerge($id: ID!) {
+                enablePullRequestAutoMerge(input: {pullRequestId: $id, mergeMethod: SQUASH}) {
+                  pullRequest { number }
+                }
+              }`,
+              { id: pr.node_id },
+            );
+            core.notice(`PR #${pr.number} creata con auto-merge abilitato: ${pr.html_url}`);
+
+      - name: Roll back stage after Git/PR failure
+        if: >-
+          always() && steps.availability.outputs.available == 'true' &&
+          (steps.push.outcome == 'failure' || steps.pull-request.outcome == 'failure')
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          FAILED_BRANCH="$(git branch --show-current)"
+          ./ildeposito.sh telegram "Pubblicazione aggiornamento backend fallita (${FAILED_BRANCH}). Rollback avviato. ${RUN_URL}"
+          git remote set-url origin "$ORIGINAL_REMOTE"
+          git fetch origin main
+          git switch main
+          git reset --hard origin/main
+          if [ "$FAILED_BRANCH" != main ]; then
+            git branch -D "$FAILED_BRANCH" || true
+          fi
+          ./ildeposito.sh allinea-prod || {
+            ./ildeposito.sh telegram "CRITICO: rollback backend stage fallito. Intervento richiesto. ${RUN_URL}"
+            exit 1
+          }
+          ./ildeposito.sh telegram "Aggiornamento backend stage annullato; stage riallineato a prod. ${RUN_URL}"
+
+      - name: Mark publication failure
+        if: >-
+          always() && steps.availability.outputs.available == 'true' &&
+          (steps.push.outcome == 'failure' || steps.pull-request.outcome == 'failure')
+        run: exit 1
