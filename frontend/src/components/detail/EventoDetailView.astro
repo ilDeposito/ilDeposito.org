@@ -1,0 +1,223 @@
+---
+// Markup dell'evento estratto da pages/eventi/[slug].astro perché sia
+// riusabile anche dalla rotta di anteprima SSR (preview/[uuid].astro).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../ui/Breadcrumb.astro';
+import HeaderWatermark from '../ui/HeaderWatermark.astro';
+import ShareModal from '../ui/ShareModal.astro';
+import Icon from '../base/Icon.astro';
+import type { EventoDetail } from '../../lib/api/types.js';
+import { buildEventSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildEventoTitle, buildEventoDescription } from '../../lib/seo.js';
+
+interface Props {
+  evento: EventoDetail;
+  ogImage?: string;
+}
+
+const { evento, ogImage } = Astro.props;
+
+const periodo = evento.periodi[0];
+const hasCoordinate = evento.latitude != null && evento.longitude != null;
+
+const formatData = (data: string) =>
+  new Date(data).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const breadcrumbItems = [
+  { label: 'Home', href: '/' },
+  { label: 'Eventi', href: '/eventi' },
+  { label: evento.titolo },
+];
+const publishedTime = evento.dataEvento ? new Date(evento.dataEvento).toISOString().split('T')[0] : undefined;
+const eventStartTime = evento.dataEvento ? new Date(evento.dataEvento).toISOString() : undefined;
+const eventEndTime = evento.dataEvento ? new Date(evento.dataEvento).toISOString() : undefined;
+const eventLocation = evento.localizzazioni?.[0]?.titolo || undefined;
+const eventTimezone = 'Europe/Rome';
+const jsonLd = [
+  buildEventSchema(evento, siteUrl, ogImage),
+  buildBreadcrumbSchema(breadcrumbItems.map((item) => ({ name: item.label, url: item.href ? `${siteUrl}${item.href}` : undefined }))),
+];
+---
+<BaseLayout
+  title={buildEventoTitle(evento)}
+  description={buildEventoDescription(evento)}
+  pagefindType="eventi"
+  ogType="article"
+  ogImage={ogImage}
+  ogImageAlt={ogImage ? `Immagine per ${evento.titolo}` : undefined}
+  publishedTime={publishedTime}
+  modifiedTime={evento.dataModifica}
+  eventStartTime={eventStartTime}
+  eventEndTime={eventEndTime}
+  eventLocation={eventLocation}
+  eventTimezone={eventTimezone}
+  articleSection="Eventi storici"
+  articleTags={evento.tags.map((t) => t.titolo)}
+  jsonLd={jsonLd}
+  dnsPrefetch={hasCoordinate ? ['https://tile.openstreetmap.org'] : undefined}
+>
+
+  <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">
+    <HeaderWatermark />
+    <div class="relative z-10 max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
+      <Breadcrumb items={breadcrumbItems} />
+
+      <h1 class="font-serif font-bold text-2xl md:text-3xl text-base-content">{evento.titolo}</h1>
+
+      <p class="font-serif italic text-base text-base-content/70">
+        {evento.localizzazioni.map((l, i) => (
+          <>
+            {i > 0 && ', '}
+            <a href={`/localizzazioni/${l.slug}`} class="text-primary underline hover:no-underline">{l.titolo}</a>
+          </>
+        ))}
+        {' · '}{evento.dataEvento && formatData(evento.dataEvento)}
+      </p>
+
+      <a href="/archivio/storia-cantata" class="btn btn-primary gap-2 w-fit border-0">
+        <Icon name="calendar-star" />
+        <span class="font-serif italic font-bold uppercase text-sm">La storia cantata</span>
+      </a>
+
+      <div class="flex items-center gap-4 text-base text-base-content">
+        <share-button data-title={evento.titolo} class="contents">
+          <button type="button" class="inline-flex items-center gap-1 cursor-pointer" aria-label="Condividi questo evento">
+            <Icon name="share-network" />
+            Condividi
+          </button>
+          <ShareModal pageType="evento" />
+        </share-button>
+
+        <a href="#scheda-evento" class="inline-flex items-center gap-1">
+          <Icon name="arrow-down" />
+          Scheda
+        </a>
+      </div>
+    </div>
+  </header>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+  <article data-pagefind-body class="flex flex-col gap-6 max-w-2xl mx-auto mt-6">
+
+    <!-- Metadati Pagefind (nascosti, per facet e sort) -->
+    <span class="sr-only" data-pagefind-weight="10">{evento.titolo}</span>
+    <span class="sr-only" data-pagefind-sort="titolo">{evento.titolo}</span>
+    <span class="sr-only" data-pagefind-sort={`visualizzazioni:${String(evento.visualizzazioni).padStart(10, '0')}`}></span>
+    {periodo && <span class="sr-only" data-pagefind-filter={`periodi:${periodo.titolo}`}></span>}
+    {evento.tags.map(t => <span class="sr-only" data-pagefind-filter={`tags:${t.titolo}`}></span>)}
+    {evento.localizzazioni.map(l => <span class="sr-only" data-pagefind-filter={`localizzazioni:${l.titolo}`}></span>)}
+    <!-- Meta per display nella card dell'elenco -->
+    {evento.localizzazioni[0] && <span class="sr-only" data-pagefind-meta={`localizzazioni:${evento.localizzazioni[0].titolo}`}></span>}
+    {evento.localizzazioni[0] && <span class="sr-only" data-pagefind-meta={`localizzazioni_slug:${evento.localizzazioni[0].slug}`}></span>}
+    {periodo && <span class="sr-only" data-pagefind-meta={`periodi:${periodo.titolo}`}></span>}
+    {periodo && <span class="sr-only" data-pagefind-meta={`periodi_slug:${periodo.slug}`}></span>}
+    {evento.dataEvento && <span class="sr-only" data-pagefind-meta={`data_display:${formatData(evento.dataEvento)}`}></span>}
+    {evento.dataEvento && <span class="sr-only" data-pagefind-sort={`data_evento:${new Date(evento.dataEvento).getTime()}`}></span>}
+
+    <!-- Canti collegati -->
+    {evento.cantiCollegati.length > 0 && (
+      <section data-pagefind-ignore class="flex flex-col gap-2">
+        <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
+          Canti collegati
+        </h2>
+
+        <ul role="list" class="flex flex-col divide-y divide-base-300">
+          {evento.cantiCollegati.map((canto) => (
+            <li class="flex flex-col gap-1 py-3 hover:bg-base-200 transition-colors rounded-lg">
+              <p class="text-sm text-base-content/70 flex items-center gap-2">
+                {canto.anno && <span class="italic">{canto.anno}</span>}
+                {canto.anno && <span aria-hidden="true">·</span>}
+                <Icon name="headphones" class={canto.videoUrl ? 'text-primary' : 'text-base-content/50'} label={canto.videoUrl ? 'Audio disponibile' : undefined} />
+                <Icon name="guitar" class={canto.accordi ? 'text-primary' : 'text-base-content/50'} label={canto.accordi ? 'Accordi disponibili' : undefined} />
+              </p>
+              <h3 class="font-serif font-bold text-primary">
+                <a href={`/canti/${canto.slug}`} class="hover:underline">{canto.titolo}</a>
+              </h3>
+              {canto.capoverso && (
+                <p class="italic text-base text-base-content/70">{canto.capoverso}</p>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    <!-- Informazioni -->
+    {evento.informazioni && (
+      <section class="flex flex-col gap-2">
+        <h2 class="font-serif font-bold text-base md:text-lg text-base-content">Informazioni</h2>
+        <div class="rich-text text-base text-base-content/80" set:html={evento.informazioni} />
+      </section>
+    )}
+
+    <!-- Mappa -->
+    {hasCoordinate && (
+      <section>
+        <event-map
+          data-lat={evento.latitude}
+          data-lng={evento.longitude}
+          data-title={evento.titolo}
+          role="region"
+          aria-label={`Mappa: ${evento.titolo}`}
+          class="isolate block h-64 w-full rounded-lg overflow-hidden border border-base-300"
+        ></event-map>
+      </section>
+    )}
+
+    <!-- Scheda evento -->
+    <section id="scheda-evento" data-pagefind-ignore class="flex flex-col gap-1 scroll-mt-16">
+      <h2 class="font-serif font-bold text-lg md:text-xl text-base-content mb-2">Scheda evento</h2>
+
+      {evento.localizzazioni.length > 0 && (
+        <p class="text-base">
+          <span class="text-base-content">Localizzazione: </span>
+          <span class="text-primary">
+            {evento.localizzazioni.map((l, i) => (
+              <>{i > 0 && ', '}<a href={`/localizzazioni/${l.slug}`} class="underline hover:no-underline">{l.titolo}</a></>
+            ))}
+          </span>
+        </p>
+      )}
+
+      {evento.dataEvento && (
+        <p class="text-base">
+          <span class="text-base-content">Data: </span>
+          <span class="text-primary">{formatData(evento.dataEvento)}</span>
+        </p>
+      )}
+
+      {periodo && (
+        <p class="text-base">
+          <span class="text-base-content">Periodo: </span>
+          <a href={`/periodi/${periodo.slug}`} class="text-primary underline hover:no-underline">{periodo.titolo}</a>
+        </p>
+      )}
+
+      {evento.tematiche.length > 0 && (
+        <p class="text-sm flex items-center gap-2 flex-wrap">
+          <span class="text-base-content">Tematiche: </span>
+          {evento.tematiche.map((t) => <span class="badge badge-secondary">{t.titolo}</span>)}
+        </p>
+      )}
+
+      {evento.tags.length > 0 && (
+        <p class="text-base">
+          <span class="text-base-content">Tag: </span>
+          <span class="text-primary">
+            {evento.tags.map((t, i) => (
+              <>{i > 0 && ', '}<a href={`/tags/${t.slug}`} class="underline hover:no-underline">{t.titolo}</a></>
+            ))}
+          </span>
+        </p>
+      )}
+    </section>
+
+  </article>
+
+  <script>
+    import '../../scripts/event-map.js';
+    import '../../scripts/share-button.js';
+  </script>
+  </div>
+</BaseLayout>

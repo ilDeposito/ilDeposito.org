@@ -1,0 +1,119 @@
+---
+// Markup della traduzione estratto da pages/traduzioni/[slug].astro perché
+// sia riusabile anche dalla rotta di anteprima SSR (preview/[uuid].astro).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../ui/Breadcrumb.astro';
+import HeaderWatermark from '../ui/HeaderWatermark.astro';
+import ShareModal from '../ui/ShareModal.astro';
+import Icon from '../base/Icon.astro';
+import type { TraduzioneDetail } from '../../lib/api/types.js';
+import { buildTranslationSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildTraduzioneTitle, buildTraduzioneDescription, linguaToIso } from '../../lib/seo.js';
+
+interface Props {
+  traduzione: TraduzioneDetail;
+}
+
+const { traduzione } = Astro.props;
+
+const cantoOriginale = traduzione.cantoOriginale;
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const breadcrumbItems = [
+  { label: 'Home', href: '/' },
+  { label: 'Traduzioni', href: '/traduzioni' },
+  { label: traduzione.titolo },
+];
+const jsonLd = [
+  buildTranslationSchema(traduzione, siteUrl),
+  buildBreadcrumbSchema(breadcrumbItems.map((item) => ({ name: item.label, url: item.href ? `${siteUrl}${item.href}` : undefined }))),
+];
+---
+<BaseLayout
+  title={buildTraduzioneTitle(traduzione)}
+  description={buildTraduzioneDescription(traduzione)}
+  pagefindType="traduzioni"
+  ogType="music.composition"
+  publishedTime={traduzione.dataCreazione}
+  modifiedTime={traduzione.dataModifica}
+  articleSection="Traduzioni"
+  jsonLd={jsonLd}
+>
+
+  <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">
+    <HeaderWatermark />
+    <div class="relative z-10 max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">
+      <Breadcrumb items={breadcrumbItems} />
+
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{traduzione.titolo}</h1>
+
+      {traduzione.lingue.length > 0 && (
+        <p class="font-serif italic font-bold text-base">
+          <span class="text-base-content">Lingua: </span>
+          <span class="text-primary">
+            {traduzione.lingue.map((l, i) => (
+              <>{i > 0 && ', '}<a href={`/lingue/${l.slug}`} class="underline hover:no-underline">{l.titolo}</a></>
+            ))}
+          </span>
+        </p>
+      )}
+
+      {cantoOriginale && (
+        <p class="font-serif italic font-bold text-base">
+          <span class="text-base-content">Canto originale: </span>
+          <a href={`/canti/${cantoOriginale.slug}`} class="text-primary underline hover:no-underline">{cantoOriginale.titolo}</a>
+          {cantoOriginale.lingue.length > 0 && (
+            <span class="text-base-content/70">
+              ({cantoOriginale.lingue.map((l) => l.titolo).join(', ')})
+            </span>
+          )}
+        </p>
+      )}
+
+      <div class="flex items-center gap-4 text-base text-base-content mt-1">
+        <share-button data-title={traduzione.titolo} class="contents">
+          <button type="button" class="inline-flex items-center gap-1 cursor-pointer" aria-label="Condividi questa traduzione">
+            <Icon name="share-network" />
+            Condividi
+          </button>
+          <ShareModal pageType="traduzione" />
+        </share-button>
+      </div>
+    </div>
+  </header>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+  <article data-pagefind-body class="flex flex-col gap-6 max-w-2xl mx-auto mt-6">
+
+    <!-- Metadati Pagefind (nascosti, per facet e card elenco) -->
+    <span class="sr-only" data-pagefind-weight="10">{traduzione.titolo}</span>
+    <span class="sr-only" data-pagefind-sort="titolo">{traduzione.titolo}</span>
+    <span class="sr-only" data-pagefind-sort={`visualizzazioni:${String(traduzione.visualizzazioni).padStart(10, '0')}`}></span>
+    {traduzione.lingue.map(l => <span class="sr-only" data-pagefind-filter={`lingue:${l.titolo}`}></span>)}
+    {cantoOriginale && (
+      <>
+        <span class="sr-only" data-pagefind-meta={`canto_originale_titolo:${cantoOriginale.titolo}`}></span>
+        <span class="sr-only" data-pagefind-meta={`canto_originale_slug:${cantoOriginale.slug}`}></span>
+        <span class="sr-only" data-pagefind-weight="5">{cantoOriginale.titolo}</span>
+      </>
+    )}
+
+    <!-- Testo -->
+    <section>
+      <pre lang={linguaToIso(traduzione.lingue?.[0]?.titolo)} class="font-mono text-base text-base-content/70 leading-relaxed whitespace-pre-wrap">{traduzione.testo}</pre>
+    </section>
+
+    <!-- Informazioni -->
+    {traduzione.informazioni && (
+      <section class="flex flex-col gap-2">
+        <h2 class="font-serif font-bold text-lg md:text-xl text-base-content">Informazioni</h2>
+        <div class="rich-text text-base text-base-content/80" set:html={traduzione.informazioni} />
+      </section>
+    )}
+
+  </article>
+
+  <script>
+    import '../../scripts/share-button.js';
+  </script>
+  </div>
+</BaseLayout>

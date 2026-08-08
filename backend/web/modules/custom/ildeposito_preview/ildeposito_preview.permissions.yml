@@ -1,0 +1,3 @@
+preview drupal content:
+  title: 'Anteprima frontend del contenuto'
+  description: 'Consente di generare il link di anteprima frontend per un nodo, anche non pubblicato.'

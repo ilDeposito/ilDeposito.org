@@ -1,7 +1,28 @@
 import { fetchAllTraduzioniRaw } from './store.js';
+import { fetchNodeByUuid } from './client.js';
 import { buildIncludedMap, extractSlug } from './resolvers.js';
 import { mapTraduzioneDetail } from './mappers.js';
 import type { TraduzionePath, TraduzioneDetail } from '../types.js';
+
+// Stessi fields/include della collezione (store.ts), applicati a una singola
+// risorsa per uuid con auth, senza filter[status] (nodo non pubblicato incluso).
+const TRADUZIONE_PREVIEW_PARAMS = new URLSearchParams({
+  'fields[node--traduzione]': [
+    'drupal_internal__nid', 'title', 'path', 'created', 'changed',
+    'field_canto_testo', 'field_informazioni', 'field_lingua',
+    'field_canti_correlati', 'field_visualizzazioni_totali',
+  ].join(','),
+  'fields[node--canto]': 'drupal_internal__nid,title,path,field_lingua',
+  'fields[taxonomy_term--lingue]': 'name,path',
+  'include': 'field_lingua,field_canti_correlati,field_canti_correlati.field_lingua',
+});
+
+export async function getTraduzionePreview(uuid: string): Promise<TraduzioneDetail | null> {
+  const res = await fetchNodeByUuid('traduzione', uuid, TRADUZIONE_PREVIEW_PARAMS);
+  if (!res?.data) return null;
+  const map = buildIncludedMap(res.included);
+  return mapTraduzioneDetail(res.data, map);
+}
 
 export async function getTraduzioni(): Promise<TraduzionePath[]> {
   const { data } = await fetchAllTraduzioniRaw();

@@ -31,6 +31,7 @@ module:
   ildeposito_build: 0
   ildeposito_contatti: 0
   ildeposito_monolog: 0
+  ildeposito_preview: 0
   ildeposito_redirects: 0
   ildeposito_stats: 0
   ildeposito_utils: 0

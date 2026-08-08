@@ -1,0 +1,91 @@
+---
+// Rotta SSR di anteprima: renderizza un nodo Drupal (anche non pubblicato)
+// con i componenti reali usati in build statica, dietro un link firmato
+// generato dal local task "Anteprima Frontend" (modulo ildeposito_preview).
+export const prerender = false;
+
+import CantoDetailView from '../../components/detail/CantoDetailView.astro';
+import AutoreDetailView from '../../components/detail/AutoreDetailView.astro';
+import EventoDetailView from '../../components/detail/EventoDetailView.astro';
+import TraduzioneDetailView from '../../components/detail/TraduzioneDetailView.astro';
+import PaginaDetailView from '../../components/detail/PaginaDetailView.astro';
+import {
+  getCantoPreview, getAutorePreview, getEventoPreview, getTraduzionePreview, getPaginaPreview,
+} from '../../lib/api/index.js';
+import { verifyPreviewToken } from '../../lib/preview-auth.js';
+import type { CantoDetail, AutoreDetail, EventoDetail, TraduzioneDetail, PaginaDetail } from '../../lib/api/types.js';
+
+const tag = '[preview]';
+const ts = () => new Date().toISOString();
+
+const { uuid } = Astro.params;
+
+const type = Astro.url.searchParams.get('type') ?? '';
+const expires = Astro.url.searchParams.get('expires');
+const token = Astro.url.searchParams.get('token');
+
+const secret = (import.meta.env.ILDEPOSITO_PREVIEW_SECRET as string) || process.env.ILDEPOSITO_PREVIEW_SECRET || '';
+
+if (!uuid) {
+  return new Response('Not found', { status: 404 });
+}
+
+const check = verifyPreviewToken(uuid, expires, token, secret);
+if (!check.ok) {
+  console.warn(`${ts()} ${tag} Accesso negato (${check.reason}) — uuid: ${uuid}, type: ${type}`);
+  return new Response('Accesso negato', { status: 403 });
+}
+
+let canto: CantoDetail | null = null;
+let autore: AutoreDetail | null = null;
+let evento: EventoDetail | null = null;
+let traduzione: TraduzioneDetail | null = null;
+let pagina: PaginaDetail | null = null;
+
+try {
+  switch (type) {
+    case 'canto':
+      canto = await getCantoPreview(uuid);
+      break;
+    case 'autore':
+      autore = await getAutorePreview(uuid);
+      break;
+    case 'evento':
+      evento = await getEventoPreview(uuid);
+      break;
+    case 'traduzione':
+      traduzione = await getTraduzionePreview(uuid);
+      break;
+    case 'pagina':
+      pagina = await getPaginaPreview(uuid);
+      break;
+    default:
+      console.warn(`${ts()} ${tag} Bundle non supportato per l'anteprima: "${type}"`);
+      return new Response('Tipo di contenuto non supportato', { status: 400 });
+  }
+} catch (err) {
+  console.error(`${ts()} ${tag} Errore fetch anteprima (uuid: ${uuid}, type: ${type}):`, err);
+  return new Response('Errore interno', { status: 500 });
+}
+
+if (!canto && !autore && !evento && !traduzione && !pagina) {
+  return new Response('Nodo non trovato', { status: 404 });
+}
+
+console.log(`${ts()} ${tag} Anteprima servita — uuid: ${uuid}, type: ${type}`);
+---
+{canto && (
+  <CantoDetailView canto={canto} eventi={[]} relatedCanti={[]} />
+)}
+{autore && (
+  <AutoreDetailView autore={autore} tuttiCanti={[]} />
+)}
+{evento && (
+  <EventoDetailView evento={evento} />
+)}
+{traduzione && (
+  <TraduzioneDetailView traduzione={traduzione} />
+)}
+{pagina && (
+  <PaginaDetailView pagina={pagina} canonical={Astro.url.href} />
+)}

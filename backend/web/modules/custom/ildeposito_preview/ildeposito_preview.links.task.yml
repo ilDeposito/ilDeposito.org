@@ -1,0 +1,9 @@
+ildeposito_preview.redirect:
+  route_name: ildeposito_preview.redirect
+  title: 'Anteprima Frontend'
+  base_route: entity.node.canonical
+  weight: 20
+  options:
+    attributes:
+      target: '_blank'
+      rel: 'noopener'

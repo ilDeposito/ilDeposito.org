@@ -1,0 +1,164 @@
+---
+// Markup dell'autore estratto da pages/autori/[slug].astro perché sia
+// riusabile anche dalla rotta di anteprima SSR (preview/[uuid].astro).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AuthorHeader from '../ui/AuthorHeader.astro';
+import Icon from '../base/Icon.astro';
+import type { AutoreDetail, CantoInAutore } from '../../lib/api/types.js';
+import { buildProfilePageSchema, buildBreadcrumbSchema } from '../../lib/schema.js';
+import { buildAutoreTitle, buildAutoreDescription } from '../../lib/seo.js';
+
+interface Props {
+  autore: AutoreDetail;
+  tuttiCanti: CantoInAutore[];
+  ogImage?: string;
+}
+
+const { autore, tuttiCanti, ogImage } = Astro.props;
+
+const haPiuDiDieci = tuttiCanti.length > 10;
+
+const canti = haPiuDiDieci
+  ? [...tuttiCanti]
+      .sort((a, b) => (b.visualizzazioni ?? 0) - (a.visualizzazioni ?? 0))
+      .slice(0, 10)
+  : [...tuttiCanti].sort((a, b) => a.titolo.localeCompare(b.titolo, 'it'));
+
+const siteUrl = Astro.site?.href?.replace(/\/$/, '') || 'https://www.ildeposito.org';
+const breadcrumbItems = [
+  { label: 'Home', href: '/' },
+  { label: 'Autori', href: '/autori' },
+  { label: autore.titolo },
+];
+// Per lo schema le opere vanno in ordine di rilevanza: il cap a 50 nel builder
+// scarta così i canti meno visti, non una coda arbitraria.
+const cantiPerSchema = [...tuttiCanti].sort(
+  (a, b) => (b.visualizzazioni ?? 0) - (a.visualizzazioni ?? 0)
+);
+const jsonLd = [
+  buildProfilePageSchema(autore, siteUrl, ogImage, cantiPerSchema),
+  buildBreadcrumbSchema(breadcrumbItems.map((item) => ({ name: item.label, url: item.href ? `${siteUrl}${item.href}` : undefined }))),
+];
+---
+<BaseLayout
+  title={buildAutoreTitle(autore)}
+  description={buildAutoreDescription(autore, tuttiCanti.length)}
+  pagefindType="autori"
+  ogType="profile"
+  ogImage={ogImage}
+  ogImageAlt={ogImage ? `Foto di ${autore.titolo}` : undefined}
+  profileFirstName={autore.nome || undefined}
+  profileLastName={autore.cognome || undefined}
+  profileUsername={autore.slug}
+  publishedTime={autore.dataCreazione}
+  modifiedTime={autore.dataModifica}
+  jsonLd={jsonLd}
+>
+
+  <AuthorHeader autore={autore} breadcrumbItems={breadcrumbItems} cantiSlug={haPiuDiDieci ? `${autore.slug}/canti` : undefined} />
+
+  <div class="max-w-6xl mx-auto px-4 py-8">
+  <article data-pagefind-body class="flex flex-col gap-6 max-w-2xl mx-auto">
+
+    <!-- Metadati Pagefind (nascosti, per facet e display nell'elenco) -->
+    <span class="sr-only" data-pagefind-weight="10" data-pagefind-meta="title">{autore.titolo}</span>
+    <span class="sr-only" data-pagefind-sort="titolo">{autore.titolo}</span>
+    <span class="sr-only" data-pagefind-sort="cognome">{autore.cognome}</span>
+    <span class="sr-only" data-pagefind-sort={`visualizzazioni:${String(autore.visualizzazioni).padStart(10, '0')}`}></span>
+    <span class="sr-only" data-pagefind-meta={`num_canti:${tuttiCanti.length}`}></span>
+    {autore.localizzazioni.length > 0 && (
+      <span class="sr-only" data-pagefind-meta={`localizzazioni:${autore.localizzazioni.map((l) => l.titolo).join(', ')}`}></span>
+    )}
+    {autore.localizzazioni.map((l) => (
+      <span class="sr-only" data-pagefind-filter={`localizzazioni:${l.titolo}`}></span>
+    ))}
+    {autore.periodi.map((p) => (
+      <span class="sr-only" data-pagefind-filter={`periodi:${p.titolo}`}></span>
+    ))}
+
+    <!-- Informazioni -->
+    {autore.informazioni && (
+      <blockquote
+        class="rich-text border-l-4 border-secondary pl-4 py-2 italic text-lg md:text-xl text-base-content/80"
+        style="content-visibility:auto;contain-intrinsic-size:auto 200px"
+        set:html={autore.informazioni}
+      />
+    )}
+
+    <!-- I canti principali -->
+    {canti.length > 0 && (
+      <section data-pagefind-ignore class="flex flex-col gap-8">
+        <h2 class="font-serif font-bold text-lg md:text-xl text-base-content text-center w-fit mx-auto border-b-2 border-secondary pb-2">
+          I canti principali
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+          {canti.map((canto) => (
+            <div class="flex flex-col gap-1.5 group relative">
+              <h3 class="font-serif font-bold text-xl md:text-2xl text-primary leading-tight flex items-center gap-2">
+                <a href={`/canti/${canto.slug}`} class="hover:underline after:absolute after:inset-0">{canto.titolo}</a>
+                <span class="flex items-center gap-1 shrink-0 relative z-10">
+                  <Icon name="headphones" class={`text-sm ${canto.videoUrl ? 'text-primary' : 'text-base-content/50'}`} />
+                  <Icon name="guitar" class={`text-sm ${canto.accordi ? 'text-primary' : 'text-base-content/50'}`} />
+                </span>
+              </h3>
+
+              {canto.capoverso && (
+                <p class="italic text-base text-base-content/70 line-clamp-2">{canto.capoverso}</p>
+              )}
+
+              {canto.anno && (
+                <p class="text-base text-base-content/70 flex items-center gap-2">
+                  <Icon name="calendar-blank" class="text-sm shrink-0" />
+                  {canto.anno}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {haPiuDiDieci && (
+          <a href={`/autori/${autore.slug}/canti`} class="btn btn-primary self-center gap-2">
+            <Icon name="arrow-right" />
+            Tutti i canti
+          </a>
+        )}
+      </section>
+    )}
+
+    <!-- Autori collegati -->
+    {autore.autoriCorrelati.length > 0 && (
+      <section class="flex flex-col gap-2">
+        <h2 class="font-serif font-bold text-lg md:text-xl text-base-content">Autori collegati</h2>
+        <p class="text-base text-base-content">
+          {autore.autoriCorrelati.map((correlato, i) => (
+            <>
+              {i > 0 && <span aria-hidden="true"> · </span>}
+              <a href={`/autori/${correlato.slug}`} class="text-primary underline">{correlato.titolo}</a>
+            </>
+          ))}
+        </p>
+      </section>
+    )}
+
+    <!-- Collegamenti esterni -->
+    {autore.links.length > 0 && (
+      <section class="flex flex-col gap-2">
+        <h2 class="font-serif font-bold text-lg md:text-xl text-base-content">Collegamenti esterni</h2>
+        <ul role="list" class="flex flex-col gap-1">
+          {autore.links.map((link) => (
+            <li>
+              <a href={link.uri} target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-primary underline">
+                <Icon name="books" class="text-sm shrink-0" />
+                {link.title || link.uri}
+                <span class="sr-only"> (si apre in una nuova finestra)</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+  </article>
+  </div>
+</BaseLayout>

@@ -8,11 +8,13 @@ dependencies:
   module:
     - filter
     - ildeposito_contatti
+    - node
 id: api
 label: Api
 weight: 5
 is_admin: false
 permissions:
+  - 'bypass node access'
   - 'create ildeposito contatti'
   - 'use text format basic_html'
   - 'use text format restricted_html'

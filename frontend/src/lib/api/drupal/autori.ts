@@ -1,7 +1,32 @@
 import { fetchAllAutoriRaw, fetchAllCantiRaw } from './store.js';
+import { fetchNodeByUuid } from './client.js';
 import { buildIncludedMap, extractSlug, resolveImageUrl } from './resolvers.js';
 import { mapAutoreCard, mapAutoreDetail, mapCantoInAutore } from './mappers.js';
 import type { AutorePath, AutoreCard, AutoreDetail, CantoInAutore } from '../types.js';
+
+// Stessi fields/include della collezione (store.ts), applicati a una singola
+// risorsa per uuid con auth, senza filter[status] (nodo non pubblicato incluso).
+const AUTORE_PREVIEW_PARAMS = new URLSearchParams({
+  'fields[node--autore]': [
+    'drupal_internal__nid', 'title', 'path', 'created', 'changed',
+    'field_nome', 'field_cognome', 'field_informazioni', 'field_immagine',
+    'field_localizzazione', 'field_periodo', 'field_links',
+    'field_anno_di_nascita', 'field_anno_di_morte', 'field_visualizzazioni_totali',
+    'field_autori_correlati',
+  ].join(','),
+  'fields[taxonomy_term--localizzazioni]': 'name,path',
+  'fields[taxonomy_term--periodi]': 'name,path',
+  'fields[media--image]': 'field_media_image',
+  'fields[file--file]': 'uri',
+  'include': 'field_localizzazione,field_periodo,field_immagine,field_immagine.field_media_image,field_autori_correlati',
+});
+
+export async function getAutorePreview(uuid: string): Promise<AutoreDetail | null> {
+  const res = await fetchNodeByUuid('autore', uuid, AUTORE_PREVIEW_PARAMS);
+  if (!res?.data) return null;
+  const map = buildIncludedMap(res.included);
+  return mapAutoreDetail(res.data, map);
+}
 
 export async function getAutori(): Promise<AutorePath[]> {
   const { data } = await fetchAllAutoriRaw();

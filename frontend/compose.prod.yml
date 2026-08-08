@@ -54,6 +54,9 @@ services:
       DRUPAL_API_USER: ${DRUPAL_API_USER}
       DRUPAL_API_PASS: ${DRUPAL_API_PASS}
       ALTCHA_HMAC_KEY: ${ALTCHA_HMAC_KEY}
+      # Secret HMAC condiviso con Drupal (ildeposito_preview_secret in
+      # settings.php) per verificare i token dei link di anteprima frontend.
+      ILDEPOSITO_PREVIEW_SECRET: ${ILDEPOSITO_PREVIEW_SECRET:-}
       # Letta dalla pagina /canzonieri (SSR) per elencare i canzonieri
       # generati dal cron settimanale (./ildeposito.sh build-canzonieri),
       # fuori dal ciclo di build Astro — vedi docker-entrypoint.sh.

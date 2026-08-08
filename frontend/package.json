@@ -33,11 +33,13 @@
     "sharp": "^0.35.3"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.10",
     "@playwright/test": "^1.52.0",
     "@rollup/plugin-yaml": "^5.0.0",
     "@tailwindcss/vite": "^4.3.0",
     "daisyui": "^5.5.20",
     "pagefind": "^1.5.2",
-    "tailwindcss": "^4.3.0"
+    "tailwindcss": "^4.3.0",
+    "typescript": "^6.0.3"
   }
 }
