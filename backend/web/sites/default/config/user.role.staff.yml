@@ -60,6 +60,7 @@ permissions:
   - 'edit terms in periodi'
   - 'edit terms in tags'
   - 'edit terms in tematiche'
+  - 'preview drupal content'
   - 'trigger frontend build'
   - 'use text format basic_html'
   - 'use text format restricted_html'
