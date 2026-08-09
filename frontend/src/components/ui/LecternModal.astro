@@ -1,0 +1,211 @@
+---
+import Icon from '../base/Icon.astro';
+
+interface Props {
+  titolo: string;
+  testo: string;
+  accordi: string | null;
+}
+
+const { titolo, testo, accordi } = Astro.props;
+const hasAccordi = Boolean(accordi);
+---
+
+<lectern-modal data-has-accordi={hasAccordi ? 'true' : 'false'}>
+  <div class="lectern-cta">
+    <button type="button" data-lectern-open class="btn btn-primary border-0 shadow-sm gap-2 px-5">
+      <Icon name="book-open" />
+      Apri modalità leggio
+    </button>
+  </div>
+
+  <dialog data-lectern-dialog aria-labelledby="lectern-title">
+    <div class="lectern-shell" data-theme="light" data-font-size="2">
+      <div class="lectern-topbar">
+        <div class="lectern-topbar-container">
+        <header class="lectern-toolbar">
+          <div class="lectern-heading">
+            <h2 id="lectern-title">{titolo}</h2>
+            <p data-lectern-status class="sr-only" aria-live="polite"></p>
+          </div>
+          <button type="button" class="lectern-close" data-lectern-close aria-label="Chiudi il leggio" title="Chiudi il leggio"><Icon name="x" class="leading-none" /></button>
+        </header>
+
+        <div class="lectern-controls" aria-label="Strumenti del leggio">
+          <div class="lectern-tool-row lectern-primary-tools">
+            <div class="lectern-tool-group lectern-scroll-group">
+              <span class="lectern-tool-label">Scorrimento</span>
+              <div class="lectern-tool-actions">
+                <button type="button" data-lectern-speed="-1" aria-label="Rallenta lo scorrimento" title="Rallenta lo scorrimento"><Icon name="minus" /></button>
+                <button type="button" data-lectern-scroll aria-pressed="false" aria-label="Avvia scorrimento automatico" title="Avvia scorrimento automatico">
+                  <span data-icon-scroll-play class="contents"><Icon name="play-fill" /></span>
+                  <span data-icon-scroll-pause class="hidden"><Icon name="pause" /></span>
+                </button>
+                <button type="button" data-lectern-speed="1" aria-label="Accelera lo scorrimento" title="Accelera lo scorrimento"><Icon name="plus" /></button>
+              </div>
+            </div>
+            <div class="lectern-tool-group">
+              <span class="lectern-tool-label">Sempre acceso</span>
+              <button type="button" data-lectern-wake-lock aria-pressed="false" aria-label="Mantieni lo schermo attivo" title="Mantieni lo schermo attivo">
+                <span data-icon-wake-off class="contents"><Icon name="push-pin-fill" /></span>
+                <span data-icon-wake-on class="hidden"><Icon name="push-pin-slash-fill" /></span>
+              </button>
+            </div>
+            <div class="lectern-tool-group">
+              <span class="lectern-tool-label" data-lectern-theme-label>Scuro</span>
+              <button type="button" data-lectern-theme aria-pressed="false" aria-label="Passa al tema scuro" title="Passa al tema scuro">
+                <span data-icon-theme-light class="contents"><Icon name="moon-fill" /></span>
+                <span data-icon-theme-dark class="hidden"><Icon name="sun-fill" /></span>
+              </button>
+            </div>
+            {hasAccordi && (
+              <div class="lectern-tool-group lectern-accordi-primary">
+                <span class="lectern-tool-label">Accordi</span>
+                <button type="button" data-lectern-toggle-accordi aria-pressed="true" aria-label="Nascondi accordi" title="Nascondi accordi">
+                  <span data-icon-show-accordi class="contents"><Icon name="eye-slash-fill" /></span>
+                  <span data-icon-hide-accordi class="hidden"><Icon name="eye-fill" /></span>
+                </button>
+              </div>
+            )}
+            <div class="lectern-tool-group lectern-options-toggle-group">
+              <span class="lectern-tool-label">Opzioni</span>
+              <button type="button" data-lectern-options-toggle aria-expanded="false" aria-controls="lectern-options" aria-label="Mostra opzioni del leggio" title="Mostra opzioni del leggio"><Icon name="gear-fill" /></button>
+            </div>
+          </div>
+          <div id="lectern-options" data-lectern-options class="lectern-options" hidden>
+          <div class="lectern-tool-row lectern-secondary-tools">
+            {hasAccordi && (
+              <div class="lectern-tool-group lectern-accordi-secondary">
+                <span class="lectern-tool-label">Accordi</span>
+                <button type="button" data-lectern-toggle-accordi aria-pressed="true" aria-label="Nascondi accordi" title="Nascondi accordi">
+                  <span data-icon-show-accordi class="contents"><Icon name="eye-slash-fill" /></span>
+                  <span data-icon-hide-accordi class="hidden"><Icon name="eye-fill" /></span>
+                </button>
+              </div>
+            )}
+            <div class="lectern-tool-group">
+              <span class="lectern-tool-label">Dimensione</span>
+              <div class="lectern-tool-actions">
+                <button type="button" data-lectern-font="-1" aria-label="Riduci il testo" title="Riduci il testo"><Icon name="minus" /></button>
+                <button type="button" data-lectern-font="1" aria-label="Ingrandisci il testo" title="Ingrandisci il testo"><Icon name="plus" /></button>
+              </div>
+            </div>
+            {hasAccordi && (
+              <div class="lectern-tool-group" data-lectern-transpose-controls>
+                <span class="lectern-tool-label">Tonalità</span>
+                <div class="lectern-tool-actions">
+                  <button type="button" data-lectern-transpose="-1" aria-label="Abbassa di mezzo tono" title="Abbassa di mezzo tono"><Icon name="minus" /></button>
+                  <button type="button" data-lectern-transpose="1" aria-label="Alza di mezzo tono" title="Alza di mezzo tono"><Icon name="plus" /></button>
+                </div>
+              </div>
+            )}
+          </div>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      <div class="lectern-container">
+        <div data-lectern-reader class="lectern-reader" tabindex="0" aria-label={`Testo di ${titolo}`}>
+          <pre data-lectern-content class="lectern-content"></pre>
+        </div>
+      </div>
+      <pre data-lectern-source="testo" hidden>{testo}</pre>
+      {hasAccordi && <pre data-lectern-source="accordi" hidden>{accordi}</pre>}
+    </div>
+  </dialog>
+</lectern-modal>
+
+<style>
+  lectern-modal { display: block; width: 100%; }
+  .lectern-cta { text-align: center; }
+
+  [data-lectern-dialog] {
+    box-sizing: border-box;
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    background: transparent;
+  }
+
+  [data-lectern-dialog]::backdrop { background: oklch(0 0 0 / 0.8); }
+
+  .lectern-shell {
+    --lectern-bg: oklch(0.96 0.013 92);
+    --lectern-text: oklch(0.236 0 0);
+    --lectern-border: oklch(0.45 0.165 27 / 0.35);
+    min-height: 100%;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background: var(--lectern-bg);
+    color: var(--lectern-text);
+  }
+
+  .lectern-shell[data-theme="dark"] {
+    --lectern-bg: oklch(0.18 0.01 60);
+    --lectern-text: oklch(0.95 0.008 75);
+    --lectern-border: oklch(0.78 0.11 86 / 0.65);
+  }
+
+  .lectern-topbar { flex: none; width: 100%; background: color-mix(in oklab, var(--lectern-bg) 88%, var(--lectern-text)); border-bottom: 2px solid oklch(0.50 0.111 86); }
+  .lectern-topbar-container { position: relative; max-width: 72rem; margin: 0 auto; }
+  .lectern-container { min-height: 0; flex: 1; width: 100%; max-width: 72rem; margin: 0 auto; display: flex; flex-direction: column; }
+  .lectern-toolbar { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: max(0.75rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) 0.75rem max(1rem, env(safe-area-inset-left)); }
+  .lectern-heading { min-width: 0; }
+  .lectern-heading h2 { font-family: var(--font-serif); font-size: clamp(1.125rem, 4vw, 1.5rem); font-weight: 700; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lectern-close { position: absolute; z-index: 2; top: max(0.5rem, env(safe-area-inset-top)); right: max(0.5rem, env(safe-area-inset-right)); width: 2.75rem; height: 2.75rem; border-radius: 0.375rem; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.5rem; line-height: 1; }
+  .lectern-controls { flex: none; display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; padding: 0 1rem 0.75rem; }
+  .lectern-options { width: 100%; padding-top: 0.25rem; }
+  .lectern-tool-row { display: flex; align-items: stretch; gap: 0.5rem; flex-wrap: wrap; }
+  .lectern-controls button { min-width: 2.25rem; min-height: 2.25rem; border-radius: 0.375rem; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; touch-action: manipulation; }
+  .lectern-controls button:hover, .lectern-controls button:focus-visible, .lectern-close:hover, .lectern-close:focus-visible { background: oklch(0.45 0.165 27 / 0.12); outline: 2px solid var(--lectern-border); outline-offset: 1px; }
+  .lectern-controls button[aria-pressed="true"] { background: oklch(0.45 0.165 27); color: oklch(0.97 0.008 75); }
+  .lectern-tool-group { flex: none; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; padding: 0.375rem 0.5rem; border-radius: 0.375rem; background: color-mix(in oklab, var(--lectern-bg) 96%, white); }
+  .lectern-tool-label { font-size: 0.75rem; font-weight: 600; text-align: center; white-space: nowrap; }
+  .lectern-tool-actions { display: flex; gap: 0.25rem; }
+  .lectern-scroll-group .lectern-tool-actions { gap: 0; }
+  .lectern-scroll-group .lectern-tool-actions button { min-width: 2rem; }
+  .lectern-accordi-secondary { display: none; }
+  .lectern-reader { min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 2rem max(1rem, env(safe-area-inset-right)) max(2rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); }
+  .lectern-content { max-width: 48rem; margin: 0 auto; color: var(--lectern-text); font-family: var(--font-mono); line-height: 1.7; white-space: pre-wrap; overflow-wrap: normal; }
+  .lectern-content :global(.chord-line) { color: var(--lectern-text); font-weight: 700 !important; }
+  .lectern-shell[data-font-size="0"] .lectern-content { font-size: 0.8rem; }
+  .lectern-shell[data-font-size="1"] .lectern-content { font-size: 0.9rem; }
+  .lectern-shell[data-font-size="2"] .lectern-content { font-size: 1rem; }
+  .lectern-shell[data-font-size="3"] .lectern-content { font-size: 1.1rem; }
+  .lectern-shell[data-font-size="4"] .lectern-content { font-size: 1.2rem; }
+  .lectern-shell[data-font-size="5"] .lectern-content { font-size: 1.3rem; }
+  .lectern-shell[data-font-size="6"] .lectern-content { font-size: 1.4rem; }
+  .lectern-shell[data-font-size="7"] .lectern-content { font-size: 1.5rem; }
+  .lectern-shell[data-font-size="8"] .lectern-content { font-size: 1.6rem; }
+  .lectern-shell[data-font-size="9"] .lectern-content { font-size: 1.7rem; }
+  .lectern-shell[data-font-size="10"] .lectern-content { font-size: 1.8rem; }
+  .lectern-shell[data-font-size="11"] .lectern-content { font-size: 1.9rem; }
+  .lectern-shell[data-font-size="12"] .lectern-content { font-size: 2rem; }
+
+  /* Desktop (Tailwind's lg breakpoint): every tool is immediately available. */
+  @media (min-width: 1024px) {
+    .lectern-controls { flex-direction: row; flex-wrap: wrap; align-items: flex-start; }
+    .lectern-primary-tools, .lectern-options, .lectern-secondary-tools { display: contents; }
+    .lectern-options[hidden] { display: contents !important; }
+    .lectern-options-toggle-group { display: none; }
+  }
+
+  /* Tablet and mobile: keep the primary tools visible; reveal the rest on demand. */
+  @media (max-width: 1023px) {
+    .lectern-toolbar { padding-right: max(1rem, env(safe-area-inset-right)); }
+    .lectern-controls { gap: 0.75rem; }
+    .lectern-tool-row { gap: 0.5rem; }
+    .lectern-controls button { min-height: 2rem; }
+    .lectern-accordi-primary { display: none; }
+    .lectern-accordi-secondary { display: flex; }
+    .lectern-close { top: max(0.25rem, env(safe-area-inset-top)); right: max(0.25rem, env(safe-area-inset-right)); }
+    .lectern-reader { padding-top: 1.5rem; }
+  }
+</style>
