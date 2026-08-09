@@ -92,7 +92,7 @@ jobs:
             echo "::error::Branch inatteso dopo l'update: $BRANCH"
             exit 1
           fi
-          if [ ! -s .backend-update-modules ]; then
+          if [ ! -s backend/.backend-update-modules ]; then
             echo '::error::Lista dei moduli aggiornati assente.'
             exit 1
           fi
@@ -101,7 +101,7 @@ jobs:
             echo '::error::Composer non ha prodotto file versionati da committare.'
             exit 1
           fi
-          git commit -F .backend-update-modules
+          git commit -F backend/.backend-update-modules
           git push --set-upstream origin "$BRANCH"
           git remote set-url origin "$ORIGINAL_REMOTE"
           echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
@@ -113,7 +113,7 @@ jobs:
         uses: actions/github-script@v7
         env:
           BRANCH: ${{ steps.push.outputs.branch }}
-          MODULES_FILE: .backend-update-modules
+          MODULES_FILE: backend/.backend-update-modules
         with:
           github-token: ${{ steps.app-token.outputs.token }}
           script: |
