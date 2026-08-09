@@ -96,47 +96,39 @@ jobs:
       - name: Build frontend
         run: ./ildeposito.sh build-frontend
 
-      # Smoke test disabilitato temporaneamente: stage.ildeposito.org è ora
-      # dietro forward_auth Authelia, che non accetta l'Authorization Basic
-      # di curl (redirect al portale di login) → falsi negativi. Riattivare
-      # dopo aver adattato il check al flusso Authelia.
-      # - name: Smoke test
-      #   run: |
-      #     # Poll invece di sleep fisso: esce al primo 200, fallisce dopo ~30s.
-      #     for i in $(seq 1 10); do
-      #       STATUS=$(curl -sk -o /dev/null -w "%{http_code}" \
-      #         -u "${{ secrets.STAGE_AUTH_USER }}:${{ secrets.STAGE_AUTH_PASS }}" \
-      #         https://stage.ildeposito.org/)
-      #       echo "HTTP status: $STATUS (tentativo $i/10)"
-      #       [ "$STATUS" = "200" ] && exit 0
-      #       sleep 3
-      #     done
-      #     exit 1
+      - name: Smoke test
+        run: |
+          # Poll invece di sleep fisso: esce al primo 200, fallisce dopo ~30s.
+          for i in $(seq 1 10); do
+            STATUS=$(curl -sk -o /dev/null -w "%{http_code}" \
+              -u "${{ secrets.STAGE_AUTH_USER }}:${{ secrets.STAGE_AUTH_PASS }}" \
+              https://stage.ildeposito.org/)
+            echo "HTTP status: $STATUS (tentativo $i/10)"
+            [ "$STATUS" = "200" ] && exit 0
+            sleep 3
+          done
+          exit 1
 
-      # E2E tests (Playwright) disabilitati temporaneamente: httpCredentials
-      # (Basic Auth) non funziona più contro stage.ildeposito.org, ora dietro
-      # forward_auth Authelia (sessione/cookie, non Authorization header).
-      # Riattivare dopo aver adattato il login al flusso Authelia.
-      # - name: E2E tests (Playwright)
-      #   env:
-      #     STAGE_AUTH_USER: ${{ secrets.STAGE_AUTH_USER }}
-      #     STAGE_AUTH_PASS: ${{ secrets.STAGE_AUTH_PASS }}
-      #   working-directory: /home/ubuntu/sergej/websites/ildeposito/stage/frontend
-      #   run: |
-      #     # npm ci cancella e reinstalla sempre node_modules: sul runner
-      #     # self-hosted (persistente tra deploy) lo eseguiamo solo se
-      #     # package-lock.json è cambiato dall'ultima volta, stesso pattern
-      #     # usato per il volume node_modules in docker-entrypoint.sh.
-      #     LOCK_HASH=$(md5sum package-lock.json | cut -d' ' -f1)
-      #     LOCK_MARKER=".node_modules_hash"
-      #     if [ ! -d node_modules ] || [ "$(cat "$LOCK_MARKER" 2>/dev/null)" != "$LOCK_HASH" ]; then
-      #       npm ci
-      #       echo "$LOCK_HASH" > "$LOCK_MARKER"
-      #     else
-      #       echo "package-lock.json invariato, skip npm ci."
-      #     fi
-      #     # Niente --with-deps: le dipendenze di sistema sono già sul runner
-      #     # (installate dai deploy precedenti); 'install' scarica il browser
-      #     # solo se la versione richiesta manca da ~/.cache/ms-playwright.
-      #     npx playwright install chromium
-      #     npx playwright test
+      - name: E2E tests (Playwright)
+        env:
+          STAGE_AUTH_USER: ${{ secrets.STAGE_AUTH_USER }}
+          STAGE_AUTH_PASS: ${{ secrets.STAGE_AUTH_PASS }}
+        working-directory: /home/ubuntu/sergej/websites/ildeposito/stage/frontend
+        run: |
+          # npm ci cancella e reinstalla sempre node_modules: sul runner
+          # self-hosted (persistente tra deploy) lo eseguiamo solo se
+          # package-lock.json è cambiato dall'ultima volta, stesso pattern
+          # usato per il volume node_modules in docker-entrypoint.sh.
+          LOCK_HASH=$(md5sum package-lock.json | cut -d' ' -f1)
+          LOCK_MARKER=".node_modules_hash"
+          if [ ! -d node_modules ] || [ "$(cat "$LOCK_MARKER" 2>/dev/null)" != "$LOCK_HASH" ]; then
+            npm ci
+            echo "$LOCK_HASH" > "$LOCK_MARKER"
+          else
+            echo "package-lock.json invariato, skip npm ci."
+          fi
+          # Niente --with-deps: le dipendenze di sistema sono già sul runner
+          # (installate dai deploy precedenti); 'install' scarica il browser
+          # solo se la versione richiesta manca da ~/.cache/ms-playwright.
+          npx playwright install chromium
+          npx playwright test

@@ -9,7 +9,7 @@ jobs:
     if: >-
       github.event.pull_request.merged == true &&
       github.event.pull_request.base.ref == 'main' &&
-      startsWith(github.event.pull_request.head.ref, 'upgrade/')
+      startsWith(github.event.pull_request.head.ref, 'backend-upgrade/')
     runs-on: self-hosted
     defaults:
       run:

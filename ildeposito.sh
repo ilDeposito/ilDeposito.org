@@ -461,7 +461,7 @@ cmd_backend_update() {
     fi
 
     date="$(date +%F)"
-    branch="upgrade/${date}"
+    branch="backend-upgrade/${date}"
     if git -C "${PROJECT_ROOT}" show-ref --verify --quiet "refs/heads/${branch}" || \
        git -C "${PROJECT_ROOT}" ls-remote --exit-code --heads origin "${branch}" >/dev/null 2>&1; then
         error "Il branch ${branch} esiste gia': risolvere l'upgrade precedente prima di riprovare"
@@ -656,7 +656,7 @@ ${BOLD}Comandi:${NC}
   backup            Backup completo: dump DB (schema vuoto per cache*/search_api_db_*) + dump immagini
                       entrambi in bz2 in backup/ildeposito/, retention 30 giorni (uso da cron)
   composer <args>   Esegui comando composer
-  backend-update    [solo stage] Crea upgrade/YYYY-MM-DD e applica/valida aggiornamenti drupal/*
+  backend-update    [solo stage] Crea backend-upgrade/YYYY-MM-DD e applica/valida aggiornamenti drupal/*
   github-app-token  [solo stage] Stampa un token temporaneo della GitHub App (solo workflow)
   telegram <msg>    Invia un messaggio Telegram usando le variabili del .env
   exec <srv> <cmd>  Esegui comando in un container

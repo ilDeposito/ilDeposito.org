@@ -55,7 +55,7 @@ jobs:
         id: availability
         if: steps.update.outcome == 'success'
         run: |
-          if [[ "$(git branch --show-current)" =~ ^upgrade/[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+          if [[ "$(git branch --show-current)" =~ ^backend-upgrade/[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
             echo 'available=true' >> "$GITHUB_OUTPUT"
           else
             echo 'available=false' >> "$GITHUB_OUTPUT"
@@ -88,7 +88,7 @@ jobs:
         continue-on-error: true
         run: |
           BRANCH="$(git branch --show-current)"
-          if ! [[ "$BRANCH" =~ ^upgrade/[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+          if ! [[ "$BRANCH" =~ ^backend-upgrade/[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
             echo "::error::Branch inatteso dopo l'update: $BRANCH"
             exit 1
           fi
@@ -122,7 +122,7 @@ jobs:
             const { data: pr } = await github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `Aggiornamento Drupal — ${process.env.BRANCH.replace('upgrade/', '')}`,
+              title: `Aggiornamento Drupal — ${process.env.BRANCH.replace('backend-upgrade/', '')}`,
               head: process.env.BRANCH,
               base: 'main',
               body: `Aggiornamenti rilevati e validati automaticamente su stage:\n\n${modules}`,
