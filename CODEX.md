@@ -8,6 +8,25 @@
 - Backend: Composer/Drush 13, MariaDB, Redis; DDEV locale, Docker Compose stage/prod.
 - Config principali: `.ddev/config.yaml`, `compose.yml`, `backend/composer.json`, `frontend/astro.config.mjs`.
 
+## Context Discipline
+
+`CODEX.md` is the default operational context. Read only the smallest relevant
+document below when the task needs detail; do not load `CLAUDE.md` by default
+(it is the long-form reference for other assistants and duplicates much of this
+file).
+
+| Need | Read on demand |
+|---|---|
+| Astro routes, data layer, SSR, build output | `docs/frontend.md` |
+| Drupal modules, firewall, editor workflows | `docs/backend.md` |
+| Local/stage/prod operations and infrastructure | the relevant section of `CLAUDE.md` |
+| A package command or dependency | the closest `package.json` or `composer.json` |
+
+- Search narrowly first (`rtk rg --files <area>`), then open only matched files.
+- Inspect existing scripts/tests before running a build; verify only the affected
+  area unless a full build is required.
+- Keep replies and code comments concise; do not restate repository context.
+
 ## Key File Structure
 
 ```text

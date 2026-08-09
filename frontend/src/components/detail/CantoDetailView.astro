@@ -7,6 +7,7 @@ import Breadcrumb from '../ui/Breadcrumb.astro';
 import HeaderWatermark from '../ui/HeaderWatermark.astro';
 import ShareModal from '../ui/ShareModal.astro';
 import SegnalazioneModal from '../ui/SegnalazioneModal.astro';
+import LecternModal from '../ui/LecternModal.astro';
 import Icon from '../base/Icon.astro';
 import type { CantoDetail, EventoForCanto } from '../../lib/api/types.js';
 import { getUniqueAutori } from '../../lib/related-canti.js';
@@ -148,7 +149,7 @@ const jsonLd = [
   </header>
   <div class="max-w-6xl mx-auto px-4 py-8">
 
-  <article data-pagefind-body class="flex flex-col gap-6 max-w-2xl mx-auto mt-6">
+  <article data-pagefind-body class="flex flex-col gap-6 max-w-2xl mx-auto mt-2">
 
     <!-- Metadati Pagefind (nascosti, per ricerca e facet) -->
     <span class="sr-only" data-pagefind-weight="10">{canto.titolo}</span>
@@ -166,6 +167,9 @@ const jsonLd = [
 
     <!-- Testo / Accordi -->
     <section>
+      <div data-pagefind-ignore class="mb-5">
+        <LecternModal titolo={canto.titolo} testo={canto.testo} accordi={canto.accordi} />
+      </div>
       {canto.accordi ? (
         <song-lyrics class="block">
           <div data-pagefind-ignore class="flex justify-center gap-4 mb-3" role="tablist">
@@ -312,6 +316,7 @@ const jsonLd = [
 
   <script>
     import '../../scripts/song-lyrics.js';
+    import '../../scripts/lectern-modal.js';
     import '../../scripts/share-button.js';
     import '../../scripts/youtube-player.js';
     import '../../scripts/pdf-download.js';

@@ -12,6 +12,7 @@
     "build:pdf": "node scripts/generate-pdfs.mjs",
     "preview": "astro preview",
     "astro": "astro",
+    "test:unit": "node --test tests/chords.test.mjs",
     "test:e2e": "playwright test"
   },
   "dependencies": {
