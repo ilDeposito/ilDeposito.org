@@ -93,8 +93,10 @@ jobs:
             echo "Nessuna modifica alla config Search API, skip rebuild indice."
           fi
 
-      - name: Build frontend
-        run: ./ildeposito.sh build-frontend
+      # Frontend disabilitato temporaneamente: questo deploy automatico
+      # deve coprire solo la parte Drupal. Lo riattiveremo al termine del task.
+      # - name: Build frontend
+      #   run: ./ildeposito.sh build-frontend
 
       # Smoke test disabilitato temporaneamente: stage.ildeposito.org è ora
       # dietro forward_auth Authelia, che non accetta l'Authorization Basic
