@@ -422,8 +422,9 @@ cmd_github_app_token() {
 # Prepara il branch e applica l'aggiornamento Drupal. Commit, push e PR sono
 # gestiti dal workflow, che e' l'unico contesto con il token GitHub App.
 cmd_backend_update() {
-    local result_file="${PROJECT_ROOT}/.backend-update-modules"
-    local outdated_file="${PROJECT_ROOT}/.backend-update-outdated.json"
+    # Il container PHP monta backend/ come /var/www/html.
+    local result_file="${PROJECT_ROOT}/backend/.backend-update-modules"
+    local outdated_file="${PROJECT_ROOT}/backend/.backend-update-outdated.json"
     local branch date outdated_count config_output
 
     if [[ "${ENV}" != "stage" ]]; then
