@@ -5,7 +5,7 @@
 Automatizzare l'aggiornamento delle dipendenze `drupal/*` in stage:
 
 1. rilevare aggiornamenti Composer;
-2. creare un branch `upgrade/YYYY-MM-DD`;
+2. creare un branch `backend-upgrade/YYYY-MM-DD`;
 3. aggiornare dipendenze e database Drupal;
 4. fermare la procedura e ripristinare stage se la configurazione attiva differisce dai file versionati;
 5. creare una pull request con auto-merge;
@@ -42,7 +42,7 @@ In **Repository Settings → Rules → Rulesets**, modificare o creare la regola
 - in **Settings → General → Pull Requests**, abilitare **Allow auto-merge**;
 - facoltativo ma consigliato: **Automatically delete head branches**.
 
-Una regola di protezione rivolta a `main` non può richiedere review solo alle PR non `upgrade/*`: una review obbligatoria bloccherebbe anche queste PR. La garanzia per questo flusso deve quindi essere il check obbligatorio del workflow.
+Una regola di protezione rivolta a `main` non può richiedere review solo alle PR non `backend-upgrade/*`: una review obbligatoria bloccherebbe anche queste PR. La garanzia per questo flusso deve quindi essere il check obbligatorio del workflow.
 
 ### 2. GitHub App di automazione
 
@@ -104,7 +104,7 @@ Nota: la sintassi richiesta può aggiornare anche dipendenze transitive necessar
 
 Nel workflow, dopo il successo del comando:
 
-1. creare `upgrade/YYYY-MM-DD` a partire da `origin/main`;
+1. creare `backend-upgrade/YYYY-MM-DD` a partire da `origin/main`;
 2. eseguire il comando di update;
 3. verificare che i soli file attesi siano modificati (almeno `backend/composer.lock`, ed eventualmente `backend/composer.json` e file di scaffold); 
 4. configurare identità Git dell'App/bot;
@@ -135,7 +135,7 @@ Per notificare il merge riuscito, usare un workflow su `pull_request` con tipo `
 
 - `github.event.pull_request.merged == true`;
 - base branch `main`;
-- head branch che inizia per `upgrade/`.
+- head branch che inizia per `backend-upgrade/`.
 
 La notifica deve includere numero e URL della PR, SHA risultante su `main` e link alla run del deploy stage, se disponibile.
 
