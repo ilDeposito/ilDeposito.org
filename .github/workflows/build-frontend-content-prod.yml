@@ -9,8 +9,8 @@ on:
         default: 'GitHub'
 
 concurrency:
-  group: build-frontend-prod
-  cancel-in-progress: true
+  group: prod-operations
+  cancel-in-progress: false
 
 jobs:
   build:

@@ -5,7 +5,7 @@ on:
 
 concurrency:
   # Update e deploy non devono modificare insieme la working copy/DB stage.
-  group: deploy-stage
+  group: stage-operations
   cancel-in-progress: false
 
 jobs:
@@ -96,6 +96,11 @@ jobs:
             echo '::error::Lista dei moduli aggiornati assente.'
             exit 1
           fi
+          {
+            echo 'modules<<EOF'
+            cat backend/.backend-update-modules
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
           git add -A backend
           if git diff --cached --quiet; then
             echo '::error::Composer non ha prodotto file versionati da committare.'
@@ -110,15 +115,14 @@ jobs:
         if: steps.push.outcome == 'success'
         id: pull-request
         continue-on-error: true
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           BRANCH: ${{ steps.push.outputs.branch }}
-          MODULES_FILE: backend/.backend-update-modules
+          MODULES: ${{ steps.push.outputs.modules }}
         with:
           github-token: ${{ steps.app-token.outputs.token }}
           script: |
-            const fs = require('fs');
-            const modules = fs.readFileSync(process.env.MODULES_FILE, 'utf8').trim();
+            const modules = process.env.MODULES.trim();
             const { data: pr } = await github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,

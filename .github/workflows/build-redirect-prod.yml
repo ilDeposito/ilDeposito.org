@@ -8,11 +8,10 @@ on:
         required: false
         default: 'GitHub'
 
-# Stesso gruppo di concorrenza delle altre build-frontend-prod: astro-builder
-# ha un container_name fisso in compose, quindi due `docker compose run`
-# concorrenti sullo stesso ambiente andrebbero in conflitto sul nome.
+# Stesso gruppo di tutte le operazioni prod: oltre ad astro-builder, deploy e
+# build condividono working copy, volumi e container dell'ambiente.
 concurrency:
-  group: build-frontend-prod
+  group: prod-operations
   cancel-in-progress: false
 
 jobs:
