@@ -6,7 +6,9 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-stage
+  # Tutte le operazioni stage modificano la stessa working copy e gli stessi
+  # container: devono essere serializzate, incluse le build manuali.
+  group: stage-operations
   cancel-in-progress: false
 
 jobs:

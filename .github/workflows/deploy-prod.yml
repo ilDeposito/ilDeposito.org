@@ -5,9 +5,16 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Tag di release da distribuire (es. v1.21)'
+        required: true
+        type: string
 
 concurrency:
-  group: deploy-prod
+  # Tutte le operazioni prod modificano la stessa working copy e gli stessi
+  # container: devono essere serializzate, incluse le build manuali.
+  group: prod-operations
   cancel-in-progress: false
 
 jobs:
@@ -34,20 +41,34 @@ jobs:
           # Retention a 10 file, a prescindere dall'età (non su base temporale).
           ls -1t backup/deploy/pre-deploy-*.sql.bz2 | tail -n +11 | xargs -r rm -f --
 
-      - name: Checkout tag
+      - name: Checkout release tag
         run: |
           # Drupal (status report) può aver indurito sites/default a 555:
           # git reset deve poter fare unlink dei file dentro la directory.
           # Difesa in profondità oltre a skip_permissions_hardening nei settings.
           chmod u+w backend/web/sites/default backend/web/sites/default/*.php backend/web/sites/default/*.yml 2>/dev/null || true
           git fetch origin --tags --prune
-          # Trigger su tag → deploy del tag; workflow_dispatch da un branch
-          # (es. main dalla UI) → deploy della punta del branch remoto.
-          if [ "${{ github.ref_type }}" = "tag" ]; then
-            git reset --hard "tags/${{ github.ref_name }}"
+          # Un push di tag distribuisce quel tag. Nel dispatch manuale il tag
+          # inserito e il ref scelto nella UI devono coincidere: non è mai
+          # consentito eseguire il workflow da un branch arbitrario in prod.
+          if [ "${{ github.event_name }}" = "push" ]; then
+            RELEASE_TAG="${{ github.ref_name }}"
           else
-            git reset --hard "origin/${{ github.ref_name }}"
+            RELEASE_TAG="${{ inputs.release_tag }}"
+            if [ "${{ github.ref_type }}" != "tag" ] || [ "${{ github.ref_name }}" != "$RELEASE_TAG" ]; then
+              echo "::error::Per il deploy manuale seleziona e inserisci lo stesso tag di release."
+              exit 1
+            fi
           fi
+          if ! [[ "$RELEASE_TAG" =~ ^v[0-9]+(\.[0-9]+)*(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
+            echo "::error::Tag di release non valido: $RELEASE_TAG"
+            exit 1
+          fi
+          if ! git rev-parse --verify --quiet "refs/tags/${RELEASE_TAG}^{commit}" >/dev/null; then
+            echo "::error::Il tag di release non esiste: $RELEASE_TAG"
+            exit 1
+          fi
+          git reset --hard "refs/tags/${RELEASE_TAG}"
           {
             git describe --tags --always
             git log -1 --pretty=%s
