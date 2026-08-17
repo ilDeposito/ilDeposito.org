@@ -87,8 +87,10 @@ const jsonLd = [
   ...(eventi.length > 0
     ? [buildItemListSchema(
         `Gli eventi più visti del periodo "${periodo.titolo}"`,
-        eventi.map((e) => ({ name: e.titolo, url: `${siteUrl}/eventi/${e.slug}` })),
-        { itemType: 'Event', idSuffix: '#evento' }
+        // La lista contiene riferimenti alle pagine evento, non dati completi
+        // dell'evento: usare il tipo predefinito Thing evita Event incompleti
+        // (privi di startDate e location) nel JSON-LD della pagina periodo.
+        eventi.map((e) => ({ name: e.titolo, url: `${siteUrl}/eventi/${e.slug}` }))
       )]
     : []),
 ];
