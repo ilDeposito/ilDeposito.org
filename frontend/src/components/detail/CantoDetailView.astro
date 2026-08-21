@@ -168,7 +168,7 @@ const jsonLd = [
     <!-- Testo / Accordi -->
     <section>
       <div data-pagefind-ignore class="mb-5">
-        <LecternModal titolo={canto.titolo} testo={canto.testo} accordi={canto.accordi} />
+        <LecternModal titolo={canto.titolo} cantoSlug={canto.slug} testo={canto.testo} accordi={canto.accordi} />
       </div>
       {canto.accordi ? (
         <song-lyrics class="block">

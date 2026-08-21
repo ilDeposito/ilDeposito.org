@@ -1,4 +1,5 @@
 import { renderAccordi } from './chords.js';
+import { track } from '../lib/analytics.js';
 
 const MIN_FONT_SIZE = 0;
 const MAX_FONT_SIZE = 12;
@@ -48,6 +49,7 @@ class LecternModal extends HTMLElement {
   }
 
   open() {
+    track('leggio', { canto: this.dataset.cantoSlug ?? '' });
     this.semitones = 0;
     this.showingAccordi = this.hasAccordi;
     this.fontSize = 2;

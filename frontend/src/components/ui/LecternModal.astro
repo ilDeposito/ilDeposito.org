@@ -3,15 +3,16 @@ import Icon from '../base/Icon.astro';
 
 interface Props {
   titolo: string;
+  cantoSlug: string;
   testo: string;
   accordi: string | null;
 }
 
-const { titolo, testo, accordi } = Astro.props;
+const { titolo, cantoSlug, testo, accordi } = Astro.props;
 const hasAccordi = Boolean(accordi);
 ---
 
-<lectern-modal data-has-accordi={hasAccordi ? 'true' : 'false'}>
+<lectern-modal data-canto-slug={cantoSlug} data-has-accordi={hasAccordi ? 'true' : 'false'}>
   <div class="lectern-cta">
     <button type="button" data-lectern-open class="btn btn-primary border-0 shadow-sm gap-2 px-5">
       <Icon name="book-open" />
