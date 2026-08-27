@@ -86,10 +86,16 @@ cmd_build() {
     # svuotato dist/ comunque prima di provare a compilare).
     local canzonieri_dir="${PROJECT_ROOT}/frontend/dist/client/pdf/canzonieri"
     local canzonieri_backup="${PROJECT_ROOT}/frontend/.cache/canzonieri"
+    local notebook_pdf="${PROJECT_ROOT}/frontend/dist/client/ildeposito-notebook.pdf"
+    local notebook_pdf_backup="${PROJECT_ROOT}/frontend/.cache/ildeposito-notebook.pdf"
     if [[ -d "$canzonieri_dir" ]]; then
         rm -rf "$canzonieri_backup"
         mkdir -p "$(dirname "$canzonieri_backup")"
         mv "$canzonieri_dir" "$canzonieri_backup"
+    fi
+    if [[ -f "$notebook_pdf" ]]; then
+        mkdir -p "$(dirname "$notebook_pdf_backup")"
+        mv "$notebook_pdf" "$notebook_pdf_backup"
     fi
 
     info "Avvio build Astro..."
@@ -120,6 +126,9 @@ cmd_build() {
     if [[ -d "$canzonieri_backup" ]]; then
         mkdir -p "${PROJECT_ROOT}/frontend/dist/client/pdf"
         mv "$canzonieri_backup" "$canzonieri_dir"
+    fi
+    if [[ -f "$notebook_pdf_backup" ]]; then
+        mv "$notebook_pdf_backup" "$notebook_pdf"
     fi
 
     count=$(find "${PROJECT_ROOT}/frontend/dist" -name "*.html" 2>/dev/null | wc -l | tr -d ' ')
@@ -179,6 +188,36 @@ cmd_canzonieri() {
         info "Pagina: https://frontend.ildeposito11.ddev.site/canzonieri"
     else
         error "Generazione canzonieri fallita"
+        exit 1
+    fi
+}
+
+# Genera il PDF arricchito destinato a NotebookLM. Il file e' scritto nella
+# document root statica (frontend/dist/client), non nella directory pubblica
+# dei canzonieri, ed e' volutamente disponibile soltanto attraverso local.sh.
+cmd_canzoniere_notebook() {
+    local dist_client="${PROJECT_ROOT}/frontend/dist/client"
+    if [[ ! -d "$dist_client" ]]; then
+        error "Build statica non trovata in frontend/dist/client"
+        info "Esegui prima: ./local.sh build"
+        exit 1
+    fi
+
+    if [[ ! -f "${PROJECT_ROOT}/frontend/.env" ]]; then
+        error "frontend/.env non trovato"
+        exit 1
+    fi
+    set -a
+    source "${PROJECT_ROOT}/frontend/.env"
+    set +a
+
+    local output_file="${dist_client}/ildeposito-notebook.pdf"
+    info "Generazione canzoniere NotebookLM (puo' richiedere qualche minuto)..."
+    if (cd "${PROJECT_ROOT}/frontend" && LOCAL_CANZONIERE_NOTEBOOK=1 NOTEBOOK_CANZONIERE_OUT_FILE="$output_file" node scripts/generate-notebook-canzoniere.mjs); then
+        ok "Canzoniere NotebookLM generato nella document root"
+        info "PDF: https://frontend.ildeposito11.ddev.site/ildeposito-notebook.pdf"
+    else
+        error "Generazione canzoniere NotebookLM fallita"
         exit 1
     fi
 }
@@ -593,6 +632,7 @@ usage() {
     printf "  %b%-22s%b %s\n" "$CYAN"   "restart"          "$NC" "Riavvia l'ambiente locale"
     printf "  %b%-22s%b %s\n" "$CYAN"   "build"            "$NC" "Build statica del frontend Astro (con progresso)"
     printf "  %b%-22s%b %s\n" "$CYAN"   "canzonieri"       "$NC" "Rigenera i canzonieri collettivi in frontend/dist/client/pdf/canzonieri (richiede build)"
+    printf "  %b%-22s%b %s\n" "$CYAN"   "canzoniere-notebook" "$NC" "Genera il PDF locale per NotebookLM in frontend/dist/client/ildeposito-notebook.pdf (richiede build)"
     printf "  %b%-22s%b %s\n" "$CYAN"   "linkcheck"        "$NC" "Verifica link interni rotti nel build statico"
     printf "  %b%-22s%b %s\n" "$CYAN"   ""                 "$NC" "  --check-external verifica anche i link esterni via HTTP (YouTube via oEmbed)"
     printf "  %b%-22s%b %s\n" "$CYAN"   ""                 "$NC" "  --timeout=ms --concurrency=n (default 8000ms, 8 richieste parallele)"
@@ -610,6 +650,7 @@ _local_sh() {
         'restart:Riavvia l'\''ambiente locale'
         'build:Build statica del frontend Astro'
         'canzonieri:Rigenera i canzonieri collettivi'
+        'canzoniere-notebook:Genera il PDF locale per NotebookLM'
         'linkcheck:Verifica link interni rotti nel build statico'
         'outdated:Verifica aggiornamenti backend e frontend'
         'upgrade:Aggiorna pacchetti (backend | frontend)'
@@ -638,6 +679,7 @@ case "${1:-}" in
     restart)           cmd_restart ;;
     build)             cmd_build ;;
     canzonieri)        cmd_canzonieri ;;
+    canzoniere-notebook) cmd_canzoniere_notebook ;;
     linkcheck)         shift; cmd_linkcheck "$@" ;;
     outdated)     cmd_outdated ;;
     upgrade)           cmd_upgrade "${2:-}" ;;
