@@ -16,10 +16,3 @@ services:
 
   Drupal\ildeposito_utils\Service\FacebookPageClient:
     alias: ildeposito_utils.facebook_page_client
-
-  ildeposito_utils.facebook_scheduled_comment_manager:
-    class: Drupal\ildeposito_utils\Service\FacebookScheduledCommentManager
-    arguments: ['@state', '@ildeposito_utils.facebook_page_client']
-
-  Drupal\ildeposito_utils\Service\FacebookScheduledCommentManager:
-    alias: ildeposito_utils.facebook_scheduled_comment_manager
