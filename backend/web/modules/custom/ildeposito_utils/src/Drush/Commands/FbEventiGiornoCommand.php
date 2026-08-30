@@ -123,6 +123,7 @@ final class FbEventiGiornoCommand extends Command {
         $this->reportSkip($event, $output, 'field_descrizione_social contiene soltanto URL');
         continue;
       }
+      $message = $this->buildFacebookMessage($description, $link);
 
       if ($dry_run) {
         $scheduled++;
@@ -131,7 +132,7 @@ final class FbEventiGiornoCommand extends Command {
       }
 
       try {
-        $this->scheduleLinkPost($description, $link, $scheduled_at->getTimestamp());
+        $this->scheduleLinkPost($message, $link, $scheduled_at->getTimestamp());
       }
       catch (\Throwable $exception) {
         $this->logger()->error('Pubblicazione Facebook fallita per evento @nid: @message', [
@@ -174,13 +175,14 @@ final class FbEventiGiornoCommand extends Command {
       'absolute' => TRUE,
       'base_url' => self::PUBLIC_BASE_URL,
     ])->toString();
+    $message = $this->buildFacebookMessage($description, $link);
     if ($dry_run) {
       $output->writeln(sprintf('<info>[dry-run] Test evento %d: pubblicazione immediata con link %s</info>', $event->id(), $link));
       return Command::SUCCESS;
     }
 
     try {
-      $this->publishLinkImmediately($description, $link);
+      $this->publishLinkImmediately($message, $link);
     }
     catch (\Throwable $exception) {
       $this->logger()->error('Test pubblicazione Facebook fallito per evento @nid: @message', [
@@ -231,6 +233,13 @@ final class FbEventiGiornoCommand extends Command {
 
     // Evita spazi lasciati dall'URL rimosso a fine o in mezzo al testo.
     return trim((string) preg_replace('/[ \t]{2,}/', ' ', $without_urls ?? $description));
+  }
+
+  /**
+   * Aggiunge l'invito alla lettura con l'URL canonico dell'evento.
+   */
+  private function buildFacebookMessage(string $description, string $link): string {
+    return $description . "\n🎵 Leggi la scheda dell'evento e i canti collegati su " . $link;
   }
 
   private function reportSkip(NodeInterface $event, OutputInterface $output, string $reason): void {
