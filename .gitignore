@@ -36,3 +36,6 @@ backend/.deploy-version
 # Stato effimero dell'aggiornamento automatico Drupal sul runner stage.
 .backend-update-modules
 .backend-update-outdated.json
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
