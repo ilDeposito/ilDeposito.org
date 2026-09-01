@@ -93,6 +93,13 @@ final class FbPostCommand extends Command {
         $output->writeln(sprintf('<comment>Evento %d saltato: descrizione social vuota.</comment>', $event->id()));
         continue;
       }
+      $descrizione = $this->removeUrlsFromDescription($descrizione);
+      if ($descrizione === '') {
+        $this->logger()->warning('Evento @nid saltato: field_descrizione_social contiene soltanto URL.', ['@nid' => $event->id()]);
+        $output->writeln(sprintf('<comment>Evento %d saltato: descrizione social contiene soltanto URL.</comment>', $event->id()));
+        continue;
+      }
+      $messaggio = $this->buildFacebookMessage($descrizione);
 
       $link = Url::fromRoute('entity.node.canonical', ['node' => $event->id()], [
         'absolute' => TRUE,
@@ -103,7 +110,7 @@ final class FbPostCommand extends Command {
       try {
         $this->httpClient->post($webhookUrl, [
           'form_params' => [
-            'text' => $descrizione,
+            'text' => $messaggio,
             'url' => $link,
             'time' => $time,
           ],
@@ -127,6 +134,28 @@ final class FbPostCommand extends Command {
 
   private function logger(): \Psr\Log\LoggerInterface {
     return \Drupal::logger('ildeposito_utils');
+  }
+
+  /**
+   * Rimuove dal post principale tutti gli URL, inclusi quelli Bitly.
+   */
+  private function removeUrlsFromDescription(string $description): string {
+    $without_urls = preg_replace(
+      '~\b(?:(?:https?://|www\.)[^\s<>()]+|(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,63}(?:/[^\s<>()]*)?)~iu',
+      '',
+      $description,
+    );
+
+    return trim((string) preg_replace('/[ \t]{2,}/', ' ', $without_urls ?? $description));
+  }
+
+  /**
+   * Formatta l'etichetta iniziale e aggiunge l'invito alla lettura della card.
+   */
+  private function buildFacebookMessage(string $description): string {
+    $description = preg_replace('/^\[[^\]]+\]\h*/u', '📅 ', $description) ?? $description;
+
+    return $description . "\n🎵 Leggi la scheda dell'evento e i canti collegati nella card qui sotto.";
   }
 
   /**

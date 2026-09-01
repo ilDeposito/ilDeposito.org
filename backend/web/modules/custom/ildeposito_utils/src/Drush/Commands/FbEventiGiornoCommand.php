@@ -48,6 +48,11 @@ final class FbEventiGiornoCommand extends Command {
   // lanciato a ridosso della prima fascia.
   private const MINIMUM_SCHEDULE_DELAY = 600;
 
+  // Modalità temporanea per confrontare la distribuzione di un post creato
+  // subito con quella dei post programmati. Da ripristinare a FALSE dopo il
+  // test, prima di riattivare la normale esecuzione giornaliera.
+  private const PUBLISH_IMMEDIATELY_FOR_MANUAL_TEST = TRUE;
+
   // In CLI Drush non esiste un request context affidabile: il link deve
   // puntare al frontend pubblico, non all'host backend Drupal.
   private const PUBLIC_BASE_URL = 'https://www.ildeposito.org';
@@ -92,20 +97,24 @@ final class FbEventiGiornoCommand extends Command {
       return Command::SUCCESS;
     }
 
-    $hours = self::HOURS_SCHEDULE[count($events)] ?? self::HOURS_SCHEDULE_DEFAULT;
-    $now = new DrupalDateTime('now');
+    $publish_immediately = self::PUBLISH_IMMEDIATELY_FOR_MANUAL_TEST;
+    $hours = $publish_immediately ? [] : (self::HOURS_SCHEDULE[count($events)] ?? self::HOURS_SCHEDULE_DEFAULT);
+    $now = $publish_immediately ? NULL : new DrupalDateTime('now');
     $scheduled = 0;
     foreach (array_values($events) as $key => $event) {
-      $hour = $hours[$key] ?? NULL;
-      if ($hour === NULL) {
-        $this->reportSkip($event, $output, 'nessuna fascia oraria disponibile');
-        continue;
-      }
+      $scheduled_at = NULL;
+      if (!$publish_immediately) {
+        $hour = $hours[$key] ?? NULL;
+        if ($hour === NULL) {
+          $this->reportSkip($event, $output, 'nessuna fascia oraria disponibile');
+          continue;
+        }
 
-      $scheduled_at = new DrupalDateTime('today ' . $hour . ':00:00');
-      if ($scheduled_at->getTimestamp() < $now->getTimestamp() + self::MINIMUM_SCHEDULE_DELAY) {
-        $this->reportSkip($event, $output, 'fascia oraria già trascorsa o troppo vicina');
-        continue;
+        $scheduled_at = new DrupalDateTime('today ' . $hour . ':00:00');
+        if ($scheduled_at->getTimestamp() < $now->getTimestamp() + self::MINIMUM_SCHEDULE_DELAY) {
+          $this->reportSkip($event, $output, 'fascia oraria già trascorsa o troppo vicina');
+          continue;
+        }
       }
 
       $description = trim((string) $event->get('field_descrizione_social')->value);
@@ -123,16 +132,24 @@ final class FbEventiGiornoCommand extends Command {
         $this->reportSkip($event, $output, 'field_descrizione_social contiene soltanto URL');
         continue;
       }
-      $message = $this->buildFacebookMessage($description, $link);
+      $message = $this->buildFacebookMessage($description);
 
       if ($dry_run) {
         $scheduled++;
-        $output->writeln(sprintf('<info>[dry-run] Evento %d: testo + link %s alle %s</info>', $event->id(), $link, $scheduled_at->format('H:i')));
+        $output->writeln($publish_immediately
+          ? sprintf('<info>[dry-run] Evento %d: pubblicazione immediata con link %s</info>', $event->id(), $link)
+          : sprintf('<info>[dry-run] Evento %d: testo + link %s alle %s</info>', $event->id(), $link, $scheduled_at->format('H:i')),
+        );
         continue;
       }
 
       try {
-        $this->scheduleLinkPost($message, $link, $scheduled_at->getTimestamp());
+        if ($publish_immediately) {
+          $this->publishLinkImmediately($message, $link);
+        }
+        else {
+          $this->scheduleLinkPost($message, $link, $scheduled_at->getTimestamp());
+        }
       }
       catch (\Throwable $exception) {
         $this->logger()->error('Pubblicazione Facebook fallita per evento @nid: @message', [
@@ -144,7 +161,10 @@ final class FbEventiGiornoCommand extends Command {
       }
 
       $scheduled++;
-      $output->writeln(sprintf('<info>Evento %d programmato su Facebook alle %s.</info>', $event->id(), $scheduled_at->format('H:i')));
+      $output->writeln($publish_immediately
+        ? sprintf('<info>Evento %d pubblicato subito su Facebook.</info>', $event->id())
+        : sprintf('<info>Evento %d programmato su Facebook alle %s.</info>', $event->id(), $scheduled_at->format('H:i')),
+      );
     }
 
     $label = $dry_run ? 'verificati' : 'programmati';
@@ -175,7 +195,7 @@ final class FbEventiGiornoCommand extends Command {
       'absolute' => TRUE,
       'base_url' => self::PUBLIC_BASE_URL,
     ])->toString();
-    $message = $this->buildFacebookMessage($description, $link);
+    $message = $this->buildFacebookMessage($description);
     if ($dry_run) {
       $output->writeln(sprintf('<info>[dry-run] Test evento %d: pubblicazione immediata con link %s</info>', $event->id(), $link));
       return Command::SUCCESS;
@@ -236,10 +256,12 @@ final class FbEventiGiornoCommand extends Command {
   }
 
   /**
-   * Aggiunge l'invito alla lettura con l'URL canonico dell'evento.
+   * Formatta l'etichetta iniziale e aggiunge l'invito alla lettura della card.
    */
-  private function buildFacebookMessage(string $description, string $link): string {
-    return $description . "\n🎵 Leggi la scheda dell'evento e i canti collegati su " . $link;
+  private function buildFacebookMessage(string $description): string {
+    $description = preg_replace('/^\[[^\]]+\]\h*/u', '📅 ', $description) ?? $description;
+
+    return $description . "\n🎵 Leggi la scheda dell'evento e i canti collegati nella card qui sotto.";
   }
 
   private function reportSkip(NodeInterface $event, OutputInterface $output, string $reason): void {
