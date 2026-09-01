@@ -155,7 +155,7 @@ final class FbPostCommand extends Command {
   private function buildFacebookMessage(string $description): string {
     $description = preg_replace('/^\[[^\]]+\]\h*/u', '📅 ', $description) ?? $description;
 
-    return $description . "\n🎵 Leggi la scheda dell'evento e i canti collegati nella card qui sotto.";
+    return $description . "\n🎵 Leggi la scheda dell'evento e i canti collegati nel link qui sotto.";
   }
 
   /**
