@@ -48,9 +48,8 @@ final class FbEventiGiornoCommand extends Command {
   // lanciato a ridosso della prima fascia.
   private const MINIMUM_SCHEDULE_DELAY = 600;
 
-  // Modalità temporanea per confrontare la distribuzione di un post creato
-  // subito con quella dei post programmati. Da ripristinare a FALSE dopo il
-  // test, prima di riattivare la normale esecuzione giornaliera.
+  // Test temporaneo richiesto: l'esecuzione del comando pubblica subito il
+  // primo evento del giorno. Riportare a FALSE per riattivare le fasce orarie.
   private const PUBLISH_IMMEDIATELY_FOR_MANUAL_TEST = TRUE;
 
   // In CLI Drush non esiste un request context affidabile: il link deve
@@ -87,7 +86,7 @@ final class FbEventiGiornoCommand extends Command {
       return Command::SUCCESS;
     }
 
-    if ($test_immediate) {
+    if ($test_immediate || self::PUBLISH_IMMEDIATELY_FOR_MANUAL_TEST) {
       return $this->executeImmediateTest($dry_run, $output);
     }
 
@@ -97,24 +96,20 @@ final class FbEventiGiornoCommand extends Command {
       return Command::SUCCESS;
     }
 
-    $publish_immediately = self::PUBLISH_IMMEDIATELY_FOR_MANUAL_TEST;
-    $hours = $publish_immediately ? [] : (self::HOURS_SCHEDULE[count($events)] ?? self::HOURS_SCHEDULE_DEFAULT);
-    $now = $publish_immediately ? NULL : new DrupalDateTime('now');
+    $hours = self::HOURS_SCHEDULE[count($events)] ?? self::HOURS_SCHEDULE_DEFAULT;
+    $now = new DrupalDateTime('now');
     $scheduled = 0;
     foreach (array_values($events) as $key => $event) {
-      $scheduled_at = NULL;
-      if (!$publish_immediately) {
-        $hour = $hours[$key] ?? NULL;
-        if ($hour === NULL) {
-          $this->reportSkip($event, $output, 'nessuna fascia oraria disponibile');
-          continue;
-        }
+      $hour = $hours[$key] ?? NULL;
+      if ($hour === NULL) {
+        $this->reportSkip($event, $output, 'nessuna fascia oraria disponibile');
+        continue;
+      }
 
-        $scheduled_at = new DrupalDateTime('today ' . $hour . ':00:00');
-        if ($scheduled_at->getTimestamp() < $now->getTimestamp() + self::MINIMUM_SCHEDULE_DELAY) {
-          $this->reportSkip($event, $output, 'fascia oraria già trascorsa o troppo vicina');
-          continue;
-        }
+      $scheduled_at = new DrupalDateTime('today ' . $hour . ':00:00');
+      if ($scheduled_at->getTimestamp() < $now->getTimestamp() + self::MINIMUM_SCHEDULE_DELAY) {
+        $this->reportSkip($event, $output, 'fascia oraria già trascorsa o troppo vicina');
+        continue;
       }
 
       $description = trim((string) $event->get('field_descrizione_social')->value);
@@ -136,20 +131,12 @@ final class FbEventiGiornoCommand extends Command {
 
       if ($dry_run) {
         $scheduled++;
-        $output->writeln($publish_immediately
-          ? sprintf('<info>[dry-run] Evento %d: pubblicazione immediata con link %s</info>', $event->id(), $link)
-          : sprintf('<info>[dry-run] Evento %d: testo + link %s alle %s</info>', $event->id(), $link, $scheduled_at->format('H:i')),
-        );
+        $output->writeln(sprintf('<info>[dry-run] Evento %d: testo + link %s alle %s</info>', $event->id(), $link, $scheduled_at->format('H:i')));
         continue;
       }
 
       try {
-        if ($publish_immediately) {
-          $this->publishLinkImmediately($message, $link);
-        }
-        else {
-          $this->scheduleLinkPost($message, $link, $scheduled_at->getTimestamp());
-        }
+        $this->scheduleLinkPost($message, $link, $scheduled_at->getTimestamp());
       }
       catch (\Throwable $exception) {
         $this->logger()->error('Pubblicazione Facebook fallita per evento @nid: @message', [
@@ -161,10 +148,7 @@ final class FbEventiGiornoCommand extends Command {
       }
 
       $scheduled++;
-      $output->writeln($publish_immediately
-        ? sprintf('<info>Evento %d pubblicato subito su Facebook.</info>', $event->id())
-        : sprintf('<info>Evento %d programmato su Facebook alle %s.</info>', $event->id(), $scheduled_at->format('H:i')),
-      );
+      $output->writeln(sprintf('<info>Evento %d programmato su Facebook alle %s.</info>', $event->id(), $scheduled_at->format('H:i')));
     }
 
     $label = $dry_run ? 'verificati' : 'programmati';
