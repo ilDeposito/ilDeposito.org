@@ -48,6 +48,10 @@ final class FbEventiGiornoCommand extends Command {
   // lanciato a ridosso della prima fascia.
   private const MINIMUM_SCHEDULE_DELAY = 600;
 
+  // Test temporaneo richiesto: l'esecuzione del comando pubblica subito il
+  // primo evento del giorno. Riportare a FALSE per riattivare le fasce orarie.
+  private const PUBLISH_IMMEDIATELY_FOR_MANUAL_TEST = TRUE;
+
   // In CLI Drush non esiste un request context affidabile: il link deve
   // puntare al frontend pubblico, non all'host backend Drupal.
   private const PUBLIC_BASE_URL = 'https://www.ildeposito.org';
@@ -82,7 +86,7 @@ final class FbEventiGiornoCommand extends Command {
       return Command::SUCCESS;
     }
 
-    if ($test_immediate) {
+    if ($test_immediate || self::PUBLISH_IMMEDIATELY_FOR_MANUAL_TEST) {
       return $this->executeImmediateTest($dry_run, $output);
     }
 
