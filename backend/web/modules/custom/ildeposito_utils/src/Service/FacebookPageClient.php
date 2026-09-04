@@ -99,6 +99,16 @@ final class FacebookPageClient {
   }
 
   /**
+   * Invia una richiesta POST multipart a un edge della Pagina configurata.
+   *
+   * @param array<int, array{name: string, contents: mixed, filename?: string}> $multipart
+   *   Parti multipart da inviare.
+   */
+  public function postMultipartToPage(string $edge, array $multipart): ResponseInterface {
+    return $this->postMultipart(sprintf('%s/%s', $this->getPageId(), ltrim($edge, '/')), $multipart);
+  }
+
+  /**
    * Invia una richiesta POST a un edge della Pagina configurata.
    *
    * Esempi di edge: "photos", "feed", "comments".

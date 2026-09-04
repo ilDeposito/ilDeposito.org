@@ -7,6 +7,7 @@ namespace Drupal\ildeposito_utils\Drush\Commands;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Url;
+use Drupal\file\FileInterface;
 use Drupal\ildeposito_utils\Service\FacebookPageClient;
 use Drupal\node\NodeInterface;
 use Drush\Commands\AutowireTrait;
@@ -19,12 +20,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Pubblica direttamente sulla Pagina Facebook gli eventi del giorno.
  *
- * Per ogni evento con anniversario oggi crea un post-link programmato, usando
- * field_descrizione_social come testo e l'URL pubblico del nodo come link.
+ * Per ogni evento con anniversario oggi crea una foto programmata, usando
+ * l'immagine dell'evento e field_descrizione_social come didascalia.
  */
 #[AsCommand(
   name: self::NAME,
-  description: 'Programma descrizione e link dell’evento per gli eventi con anniversario oggi.',
+  description: 'Programma foto, descrizione e URL dell’evento per gli eventi con anniversario oggi.',
   aliases: ['iufbeventigiorno'],
 )]
 final class FbEventiGiornoCommand extends Command {
@@ -118,21 +119,26 @@ final class FbEventiGiornoCommand extends Command {
         'absolute' => TRUE,
         'base_url' => self::PUBLIC_BASE_URL,
       ])->toString();
+      $image = $this->getEventImage($event);
+      if (!$image instanceof FileInterface) {
+        $this->reportSkip($event, $output, 'immagine dell’evento assente o non valida');
+        continue;
+      }
       $description = $this->removeUrlsFromDescription($description);
       if ($description === '') {
         $this->reportSkip($event, $output, 'field_descrizione_social contiene soltanto URL');
         continue;
       }
-      $message = $this->buildFacebookMessage($description);
+      $message = $this->buildFacebookMessage($description, $link);
 
       if ($dry_run) {
         $scheduled++;
-        $output->writeln(sprintf('<info>[dry-run] Evento %d: testo + link %s alle %s</info>', $event->id(), $link, $scheduled_at->format('H:i')));
+        $output->writeln(sprintf('<info>[dry-run] Evento %d: foto + testo alle %s</info>', $event->id(), $scheduled_at->format('H:i')));
         continue;
       }
 
       try {
-        $this->scheduleLinkPost($message, $link, $scheduled_at->getTimestamp());
+        $this->schedulePhotoPost($message, $image, $scheduled_at->getTimestamp());
       }
       catch (\Throwable $exception) {
         $this->logger()->error('Pubblicazione Facebook fallita per evento @nid: @message', [
@@ -154,7 +160,7 @@ final class FbEventiGiornoCommand extends Command {
   }
 
   /**
-   * Pubblica subito il primo evento del giorno per verificare l'integrazione.
+   * Pubblica subito la foto del primo evento del giorno per verificare l'integrazione.
    */
   private function executeImmediateTest(bool $dry_run, OutputInterface $output): int {
     $events = $this->getEventiAnniversarioOggi();
@@ -175,14 +181,19 @@ final class FbEventiGiornoCommand extends Command {
       'absolute' => TRUE,
       'base_url' => self::PUBLIC_BASE_URL,
     ])->toString();
-    $message = $this->buildFacebookMessage($description);
+    $image = $this->getEventImage($event);
+    if (!$image instanceof FileInterface) {
+      $this->reportSkip($event, $output, 'immagine dell’evento assente o non valida');
+      return Command::FAILURE;
+    }
+    $message = $this->buildFacebookMessage($description, $link);
     if ($dry_run) {
-      $output->writeln(sprintf('<info>[dry-run] Test evento %d: pubblicazione immediata con link %s</info>', $event->id(), $link));
+      $output->writeln(sprintf('<info>[dry-run] Test evento %d: pubblicazione immediata della foto</info>', $event->id()));
       return Command::SUCCESS;
     }
 
     try {
-      $this->publishLinkImmediately($message, $link);
+      $this->publishPhotoImmediately($message, $image);
     }
     catch (\Throwable $exception) {
       $this->logger()->error('Test pubblicazione Facebook fallito per evento @nid: @message', [
@@ -198,25 +209,43 @@ final class FbEventiGiornoCommand extends Command {
   }
 
   /**
-   * Pubblica subito un post-link della Pagina.
+   * Pubblica subito una foto della Pagina.
    */
-  private function publishLinkImmediately(string $description, string $link): void {
-    $this->facebookPageClient->postToPage('feed', [
-      'message' => $description,
-      'link' => $link,
-    ]);
+  private function publishPhotoImmediately(string $description, FileInterface $image): void {
+    $this->postPhoto($description, $image);
   }
 
   /**
-   * Crea un post-link della Pagina e lo programma all'orario indicato.
+   * Crea una foto della Pagina e la programma all'orario indicato.
    */
-  private function scheduleLinkPost(string $description, string $link, int $scheduled_publish_time): void {
-    $this->facebookPageClient->postToPage('feed', [
-      'message' => $description,
-      'link' => $link,
-      'published' => 'false',
-      'scheduled_publish_time' => (string) $scheduled_publish_time,
-    ]);
+  private function schedulePhotoPost(string $description, FileInterface $image, int $scheduled_publish_time): void {
+    $this->postPhoto($description, $image, $scheduled_publish_time);
+  }
+
+  /**
+   * Carica una foto nell'edge della Pagina, immediatamente o programmata.
+   */
+  private function postPhoto(string $description, FileInterface $image, ?int $scheduled_publish_time = NULL): void {
+    $file = fopen($image->getFileUri(), 'rb');
+    if ($file === FALSE) {
+      throw new \RuntimeException(sprintf('Impossibile leggere il file immagine %d.', $image->id()));
+    }
+
+    $multipart = [
+      ['name' => 'caption', 'contents' => $description],
+      ['name' => 'source', 'contents' => $file, 'filename' => $image->getFilename()],
+    ];
+    if ($scheduled_publish_time !== NULL) {
+      $multipart[] = ['name' => 'published', 'contents' => 'false'];
+      $multipart[] = ['name' => 'scheduled_publish_time', 'contents' => (string) $scheduled_publish_time];
+    }
+
+    try {
+      $this->facebookPageClient->postMultipartToPage('photos', $multipart);
+    }
+    finally {
+      fclose($file);
+    }
   }
 
   /**
@@ -238,10 +267,23 @@ final class FbEventiGiornoCommand extends Command {
   /**
    * Formatta l'etichetta iniziale e aggiunge l'invito alla lettura della card.
    */
-  private function buildFacebookMessage(string $description): string {
+  private function buildFacebookMessage(string $description, string $link): string {
     $description = preg_replace('/^\[[^\]]+\]\h*/u', '📅 ', $description) ?? $description;
 
-    return $description . "\n🎵 Leggi la scheda dell'evento e i canti collegati nel link qui sotto.";
+    return $description . "\n🎵 Leggi la scheda dell'evento e i canti collegati qui: " . $link;
+  }
+
+  /**
+   * Restituisce il file dell'immagine Media associata all'evento.
+   */
+  private function getEventImage(NodeInterface $event): ?FileInterface {
+    $media = $event->get('field_immagine')->entity;
+    if ($media === NULL || !$media->hasField('field_media_image')) {
+      return NULL;
+    }
+
+    $image = $media->get('field_media_image')->entity;
+    return $image instanceof FileInterface ? $image : NULL;
   }
 
   private function reportSkip(NodeInterface $event, OutputInterface $output, string $reason): void {
