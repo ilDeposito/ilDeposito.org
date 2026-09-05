@@ -6,6 +6,7 @@ namespace Drupal\ildeposito_utils\EventSubscriber;
 
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Queue\QueueFactory;
+use Drupal\Core\Queue\RequeueException;
 use Drupal\Core\Queue\QueueWorkerManagerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
@@ -41,6 +42,10 @@ final class FacebookTelegramQueueTerminateSubscriber implements EventSubscriberI
       try {
         $worker->processItem($item->data);
         $queue->deleteItem($item);
+      }
+      catch (RequeueException) {
+        $queue->releaseItem($item);
+        return;
       }
       catch (\Throwable $exception) {
         $queue->releaseItem($item);
