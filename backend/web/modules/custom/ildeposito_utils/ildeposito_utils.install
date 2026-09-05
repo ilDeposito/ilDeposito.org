@@ -41,6 +41,11 @@ function ildeposito_utils_schema(): array {
           'unsigned' => TRUE,
           'not null' => FALSE,
         ],
+        'processing_started' => [
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => FALSE,
+        ],
       ],
       'primary key' => ['facebook_post_id'],
       'indexes' => [
@@ -58,5 +63,20 @@ function ildeposito_utils_update_10001(): void {
   if (!$schema->tableExists('ildeposito_utils_facebook_telegram')) {
     $definition = ildeposito_utils_schema()['ildeposito_utils_facebook_telegram'];
     $schema->createTable('ildeposito_utils_facebook_telegram', $definition);
+  }
+}
+
+/**
+ * Aggiunge il lease che impedisce a webhook e cron di pubblicare in parallelo.
+ */
+function ildeposito_utils_update_10002(): void {
+  $schema = \Drupal::database()->schema();
+  if ($schema->tableExists('ildeposito_utils_facebook_telegram')
+    && !$schema->fieldExists('ildeposito_utils_facebook_telegram', 'processing_started')) {
+    $schema->addField('ildeposito_utils_facebook_telegram', 'processing_started', [
+      'type' => 'int',
+      'unsigned' => TRUE,
+      'not null' => FALSE,
+    ]);
   }
 }

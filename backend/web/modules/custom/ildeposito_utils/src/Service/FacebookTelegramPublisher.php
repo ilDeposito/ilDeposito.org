@@ -15,6 +15,19 @@ final class FacebookTelegramPublisher {
 
   private const TABLE = 'ildeposito_utils_facebook_telegram';
 
+  private const PROCESSING_LEASE = 600;
+
+  private const TELEGRAM_UTM = [
+    'utm_source' => 'telegram',
+    'utm_medium' => 'social',
+    'utm_campaign' => 'facebook_sync',
+    'utm_content' => 'facebook_post',
+  ];
+
+  public const RESULT_DONE = 'done';
+
+  public const RESULT_BUSY = 'busy';
+
   public function __construct(
     private readonly FacebookPageClient $facebookPageClient,
     private readonly ClientInterface $httpClient,
@@ -33,14 +46,13 @@ final class FacebookTelegramPublisher {
   /**
    * Pubblica una sola volta un post identificato dalla Graph API.
    */
-  public function publish(string $facebookPostId): void {
+  public function publish(string $facebookPostId): string {
     if (!$this->isConfigured()) {
       throw new \LogicException('Replica Facebook -> Telegram non configurata.');
     }
 
-    $row = $this->loadOrCreateRecord($facebookPostId);
-    if ($row !== NULL && $row->status === 'sent') {
-      return;
+    if (!$this->claimRecord($facebookPostId)) {
+      return $this->isSent($facebookPostId) ? self::RESULT_DONE : self::RESULT_BUSY;
     }
 
     $post = $this->getFacebookPost($facebookPostId);
@@ -49,6 +61,7 @@ final class FacebookTelegramPublisher {
       ->fields(['status' => 'sent', 'telegram_message_id' => $messageId, 'sent' => time()])
       ->condition('facebook_post_id', $facebookPostId)
       ->execute();
+    return self::RESULT_DONE;
   }
 
   /**
@@ -74,14 +87,14 @@ final class FacebookTelegramPublisher {
    * @param array<string, mixed> $post
    */
   private function sendToTelegram(array $post): int {
-    $text = trim((string) ($post['message'] ?? ''));
+    $text = $this->tagIldepositoUrls(trim((string) ($post['message'] ?? '')));
     $urls = $this->collectUrls($post['attachments'] ?? []);
     $eventUrl = $this->findEventUrl(array_merge($urls, $this->urlsInText($text)));
 
     // I post automatici della Storia Cantata rimandano alla scheda evento:
     // sul canale e' piu' utile la preview OpenGraph del sito della foto FB.
     if ($eventUrl !== NULL) {
-      return $this->sendMessage($this->appendUrl($text, $eventUrl));
+      return $this->sendMessage($this->appendUrl($text, $this->tagIldepositoUrl($eventUrl)));
     }
 
     $photoUrl = trim((string) ($post['full_picture'] ?? ''));
@@ -91,7 +104,7 @@ final class FacebookTelegramPublisher {
 
     $linkUrl = $urls[0] ?? NULL;
     if ($linkUrl !== NULL) {
-      $text = $this->appendUrl($text, $linkUrl);
+      $text = $this->appendUrl($text, $this->tagIldepositoUrl($linkUrl));
     }
     if ($text === '') {
       $text = trim((string) ($post['permalink_url'] ?? ''));
@@ -111,13 +124,10 @@ final class FacebookTelegramPublisher {
       'timeout' => 30,
       'connect_timeout' => 10,
     ]);
-    $contentLength = (int) $image->getHeaderLine('Content-Length');
-    if ($contentLength > 10 * 1024 * 1024) {
-      throw new \RuntimeException('La foto Facebook supera il limite Telegram di 10 MB.');
-    }
+    $imageData = $this->fitPhotoForTelegram((string) $image->getBody());
 
     if (mb_strlen($caption) > 1024) {
-      $messageId = $this->telegramPhotoRequest($image->getBody(), []);
+      $messageId = $this->telegramPhotoRequest($imageData, []);
       $this->sendMessage($caption);
       return $messageId;
     }
@@ -126,7 +136,7 @@ final class FacebookTelegramPublisher {
     if ($caption !== '') {
       $parameters['caption'] = $caption;
     }
-    return $this->telegramPhotoRequest($image->getBody(), $parameters);
+    return $this->telegramPhotoRequest($imageData, $parameters);
   }
 
   private function sendMessage(string $text): int {
@@ -236,6 +246,40 @@ final class FacebookTelegramPublisher {
   }
 
   /**
+   * Aggiunge attribution UTM solo ai link verso il sito che Umami misura.
+   */
+  private function tagIldepositoUrls(string $text): string {
+    return (string) preg_replace_callback(
+      '~https?://[^\s<>]+~u',
+      fn (array $match): string => $this->tagIldepositoUrl($match[0]),
+      $text,
+    );
+  }
+
+  private function tagIldepositoUrl(string $url): string {
+    $parts = parse_url($url);
+    $host = is_array($parts) ? strtolower((string) ($parts['host'] ?? '')) : '';
+    if (!is_array($parts) || !in_array($host, ['ildeposito.org', 'www.ildeposito.org'], TRUE)) {
+      return $url;
+    }
+
+    $query = [];
+    parse_str((string) ($parts['query'] ?? ''), $query);
+    $query = array_merge($query, self::TELEGRAM_UTM);
+
+    $tagged = ($parts['scheme'] ?? 'https') . '://' . $parts['host'];
+    if (isset($parts['port'])) {
+      $tagged .= ':' . $parts['port'];
+    }
+    $tagged .= $parts['path'] ?? '/';
+    $tagged .= '?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+    if (isset($parts['fragment'])) {
+      $tagged .= '#' . $parts['fragment'];
+    }
+    return $tagged;
+  }
+
+  /**
    * @return array<int, string>
    */
   private function splitText(string $text, int $limit): array {
@@ -251,14 +295,82 @@ final class FacebookTelegramPublisher {
     return $chunks;
   }
 
-  private function loadOrCreateRecord(string $facebookPostId): ?object {
+  /**
+   * Riduce una foto oltre il limite Bot API senza cambiarne il significato.
+   */
+  private function fitPhotoForTelegram(string $imageData): string {
+    $limit = 10 * 1024 * 1024;
+    if (strlen($imageData) <= $limit) {
+      return $imageData;
+    }
+    if (!function_exists('imagecreatefromstring')) {
+      throw new \RuntimeException('La foto Facebook supera 10 MB e GD non e disponibile per ridurla.');
+    }
+
+    $source = @imagecreatefromstring($imageData);
+    if ($source === FALSE) {
+      throw new \RuntimeException('Impossibile ridurre la foto Facebook per Telegram.');
+    }
+    $width = imagesx($source);
+    $height = imagesy($source);
+    $scale = min(1, 2560 / max($width, $height));
+    try {
+      for ($attempt = 0; $attempt < 6; $attempt++) {
+        $targetWidth = max(1, (int) round($width * $scale));
+        $targetHeight = max(1, (int) round($height * $scale));
+        $target = imagecreatetruecolor($targetWidth, $targetHeight);
+        imagecopyresampled($target, $source, 0, 0, 0, 0, $targetWidth, $targetHeight, $width, $height);
+        ob_start();
+        imagejpeg($target, NULL, 85);
+        $encoded = (string) ob_get_clean();
+        imagedestroy($target);
+        if (strlen($encoded) <= $limit) {
+          return $encoded;
+        }
+        $scale *= 0.7;
+      }
+    }
+    finally {
+      imagedestroy($source);
+    }
+    throw new \RuntimeException('Impossibile ridurre la foto Facebook sotto il limite Telegram di 10 MB.');
+  }
+
+  /**
+   * Acquisisce un lease atomico; quello scaduto puo' essere recuperato.
+   */
+  private function claimRecord(string $facebookPostId): bool {
+    $this->ensureRecord($facebookPostId);
+    $now = time();
+    $stale = $this->database->condition('AND')
+      ->condition('status', 'publishing')
+      ->condition('processing_started', $now - self::PROCESSING_LEASE, '<=');
+    $available = $this->database->condition('OR')
+      ->condition('status', 'pending')
+      ->condition($stale);
+    return (bool) $this->database->update(self::TABLE)
+      ->fields(['status' => 'publishing', 'processing_started' => $now])
+      ->condition('facebook_post_id', $facebookPostId)
+      ->condition($available)
+      ->execute();
+  }
+
+  private function isSent(string $facebookPostId): bool {
+    return (string) $this->database->select(self::TABLE, 'f')
+      ->fields('f', ['status'])
+      ->condition('facebook_post_id', $facebookPostId)
+      ->execute()
+      ->fetchField() === 'sent';
+  }
+
+  private function ensureRecord(string $facebookPostId): void {
     $record = $this->database->select(self::TABLE, 'f')
       ->fields('f')
       ->condition('facebook_post_id', $facebookPostId)
       ->execute()
       ->fetchObject();
     if ($record !== FALSE) {
-      return $record;
+      return;
     }
     try {
       $this->database->insert(self::TABLE)
@@ -272,11 +384,6 @@ final class FacebookTelegramPublisher {
     catch (\Exception) {
       // Un secondo webhook puo' vincere la race: rilegge il record.
     }
-    return $this->database->select(self::TABLE, 'f')
-      ->fields('f')
-      ->condition('facebook_post_id', $facebookPostId)
-      ->execute()
-      ->fetchObject() ?: NULL;
   }
 
   private function getTelegramToken(): string {

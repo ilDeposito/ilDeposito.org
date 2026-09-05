@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\ildeposito_utils\Drush\Commands;
 
 use Drupal\Core\Queue\QueueFactory;
+use Drupal\Core\State\StateInterface;
 use Drupal\ildeposito_utils\Service\FacebookPageClient;
 use Drupal\ildeposito_utils\Service\FacebookTelegramPublisher;
 use Drush\Commands\AutowireTrait;
@@ -27,10 +28,15 @@ final class FacebookTelegramSyncCommand extends Command {
 
   private const QUEUE_NAME = 'ildeposito_utils_facebook_telegram';
 
+  private const STATE_BASELINE = 'ildeposito_utils.facebook_telegram_sync_baseline';
+
+  private const STATE_LAST_SYNC = 'ildeposito_utils.facebook_telegram_sync_last_sync';
+
   public function __construct(
     private readonly FacebookPageClient $facebookPageClient,
     private readonly FacebookTelegramPublisher $publisher,
     private readonly QueueFactory $queueFactory,
+    private readonly StateInterface $state,
   ) {
     parent::__construct();
   }
@@ -40,6 +46,22 @@ final class FacebookTelegramSyncCommand extends Command {
       $output->writeln('<comment>Replica Facebook -> Telegram non configurata.</comment>');
       return Command::SUCCESS;
     }
+
+    $now = time();
+    $baseline = (int) $this->state->get(self::STATE_BASELINE, 0);
+    if ($baseline <= 0) {
+      // La prima esecuzione e' deliberatamente silenziosa: il fallback non
+      // deve ripubblicare contenuti Facebook antecedenti all'attivazione.
+      $this->state->set(self::STATE_BASELINE, $now);
+      $this->state->set(self::STATE_LAST_SYNC, $now);
+      $output->writeln('<info>Baseline inizializzata: nessun post Facebook accodato.</info>');
+      return Command::SUCCESS;
+    }
+
+    $lastSync = (int) $this->state->get(self::STATE_LAST_SYNC, $baseline);
+    // Sovrapposizione di 10 minuti per eventuali ritardi Meta/cron, senza
+    // mai scendere prima dell'istante in cui la replica e' stata attivata.
+    $cutoff = max($baseline + 1, $lastSync - 600);
 
     $response = $this->facebookPageClient->getFromPage('feed', [
       'fields' => 'id,created_time',
@@ -52,7 +74,6 @@ final class FacebookTelegramSyncCommand extends Command {
       throw new \RuntimeException('Facebook ha restituito un feed non JSON.', 0, $exception);
     }
 
-    $cutoff = time() - 900;
     $queued = 0;
     foreach ($payload['data'] ?? [] as $post) {
       $postId = is_array($post) ? ($post['id'] ?? NULL) : NULL;
@@ -63,7 +84,8 @@ final class FacebookTelegramSyncCommand extends Command {
       $this->queueFactory->get(self::QUEUE_NAME)->createItem(['facebook_post_id' => $postId]);
       $queued++;
     }
-    $output->writeln(sprintf('<info>%d post Facebook recenti accodati.</info>', $queued));
+    $this->state->set(self::STATE_LAST_SYNC, $now);
+    $output->writeln(sprintf('<info>%d post Facebook successivi alla baseline accodati.</info>', $queued));
     return Command::SUCCESS;
   }
 

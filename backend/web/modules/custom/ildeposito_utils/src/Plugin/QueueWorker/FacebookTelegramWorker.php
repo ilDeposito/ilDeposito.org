@@ -6,6 +6,7 @@ namespace Drupal\ildeposito_utils\Plugin\QueueWorker;
 
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\Attribute\QueueWorker;
+use Drupal\Core\Queue\RequeueException;
 use Drupal\Core\Queue\QueueWorkerBase;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\ildeposito_utils\Service\FacebookTelegramPublisher;
@@ -39,7 +40,11 @@ final class FacebookTelegramWorker extends QueueWorkerBase implements ContainerF
     if (!is_string($postId) || $postId === '') {
       return;
     }
-    $this->publisher->publish($postId);
+    if ($this->publisher->publish($postId) === FacebookTelegramPublisher::RESULT_BUSY) {
+      // L'altro canale (webhook o cron) ha gia' il lease: manteniamo l'item
+      // finche' non lo marca inviato o il lease scade dopo un crash.
+      throw new RequeueException();
+    }
   }
 
 }
