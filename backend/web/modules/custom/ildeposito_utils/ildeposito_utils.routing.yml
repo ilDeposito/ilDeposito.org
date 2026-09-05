@@ -5,3 +5,11 @@ ildeposito_utils.dashboard:
     _title: 'Dashboard'
   requirements:
     _user_is_logged_in: 'TRUE'
+
+ildeposito_utils.facebook_webhook:
+  path: '/api/facebook/webhook'
+  defaults:
+    _controller: '\Drupal\ildeposito_utils\Controller\FacebookWebhookController::receive'
+  requirements:
+    _access: 'TRUE'
+  methods: [GET, POST]

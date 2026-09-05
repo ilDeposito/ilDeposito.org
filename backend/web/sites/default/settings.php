@@ -60,6 +60,13 @@ $settings['ildeposito_utils_fb_system_user_token'] = getenv('FB_SYSTEM_USER_TOKE
 $settings['ildeposito_utils_fb_app_secret'] = getenv('FB_APP_SECRET') ?: '';
 $settings['ildeposito_utils_fb_graph_api_version'] = getenv('FB_GRAPH_API_VERSION') ?: 'v26.0';
 
+// Replica dei post della Pagina Facebook nel canale Telegram. Sono separati
+// dagli alert tecnici (TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID), che non devono
+// mai finire su un canale pubblico.
+$settings['ildeposito_utils_fb_webhook_verify_token'] = getenv('FB_WEBHOOK_VERIFY_TOKEN') ?: '';
+$settings['ildeposito_utils_telegram_channel_bot_token'] = getenv('TELEGRAM_CHANNEL_BOT_TOKEN') ?: '';
+$settings['ildeposito_utils_telegram_channel_chat_id'] = getenv('TELEGRAM_CHANNEL_CHAT_ID') ?: '';
+
 // Anteprima frontend (ildeposito_preview): secret HMAC condiviso col
 // frontend Astro (rotta /preview/[uuid]) e URL base del frontend a cui
 // reindirizzare. Diversi per ambiente, impostati SOLO via env (non sotto
