@@ -1,0 +1,62 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @file
+ * Schema per la replica Facebook -> Telegram.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function ildeposito_utils_schema(): array {
+  return [
+    'ildeposito_utils_facebook_telegram' => [
+      'description' => 'Registro idempotente delle pubblicazioni Facebook replicate su Telegram.',
+      'fields' => [
+        'facebook_post_id' => [
+          'type' => 'varchar',
+          'length' => 80,
+          'not null' => TRUE,
+        ],
+        'status' => [
+          'type' => 'varchar',
+          'length' => 16,
+          'not null' => TRUE,
+          'default' => 'pending',
+        ],
+        'telegram_message_id' => [
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => FALSE,
+        ],
+        'created' => [
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ],
+        'sent' => [
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => FALSE,
+        ],
+      ],
+      'primary key' => ['facebook_post_id'],
+      'indexes' => [
+        'status' => ['status'],
+      ],
+    ],
+  ];
+}
+
+/**
+ * Crea il registro per installazioni che avevano gia' il modulo attivo.
+ */
+function ildeposito_utils_update_10001(): void {
+  $schema = \Drupal::database()->schema();
+  if (!$schema->tableExists('ildeposito_utils_facebook_telegram')) {
+    $definition = ildeposito_utils_schema()['ildeposito_utils_facebook_telegram'];
+    $schema->createTable('ildeposito_utils_facebook_telegram', $definition);
+  }
+}

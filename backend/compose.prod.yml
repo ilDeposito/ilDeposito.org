@@ -61,7 +61,9 @@ services:
       caddy.route.0_request_header: "-Remote-User"
       caddy.route.1_request_header: "-Remote-Groups"
       caddy.route.2_request_header: "-Remote-Email"
-      caddy.route.3_@public_path.path: /jsonapi* /sites/default/files*
+      # Il webhook Meta deve arrivare senza sessione Authelia; e' l'unica
+      # rotta /api esposta e valida poi la firma X-Hub-Signature-256 in Drupal.
+      caddy.route.3_@public_path.path: /jsonapi* /sites/default/files* /api/facebook/webhook
       caddy.route.4_reverse_proxy: "@public_path ildeposito-prod-nginx:80"
       caddy.route.4_reverse_proxy.transport: http
       caddy.route.4_reverse_proxy.transport.keepalive: "off"

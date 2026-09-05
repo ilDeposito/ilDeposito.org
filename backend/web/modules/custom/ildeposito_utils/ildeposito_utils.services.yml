@@ -16,3 +16,21 @@ services:
 
   Drupal\ildeposito_utils\Service\FacebookPageClient:
     alias: ildeposito_utils.facebook_page_client
+
+  Drupal\ildeposito_utils\Service\FacebookTelegramPublisher:
+    autowire: true
+
+  Drupal\ildeposito_utils\Controller\FacebookWebhookController:
+    autowire: true
+
+  Drupal\ildeposito_utils\EventSubscriber\FacebookTelegramQueueTerminateSubscriber:
+    arguments:
+      - '@queue'
+      - '@plugin.manager.queue_worker'
+      - '@logger.channel.ildeposito_utils'
+    tags:
+      - { name: event_subscriber }
+
+  logger.channel.ildeposito_utils:
+    parent: logger.channel_base
+    arguments: ['ildeposito_utils']

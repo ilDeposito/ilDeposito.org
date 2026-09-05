@@ -53,6 +53,28 @@ final class FacebookPageClient {
   }
 
   /**
+   * Legge un edge della Pagina configurata.
+   *
+   * @param array<string, scalar|array<scalar>> $query
+   *   Parametri della richiesta.
+   */
+  public function getFromPage(string $edge, array $query = []): ResponseInterface {
+    return $this->getAsPage(sprintf('%s/%s', $this->getPageId(), ltrim($edge, '/')), $query);
+  }
+
+  /**
+   * Legge una risorsa Graph come Pagina, non come System User.
+   *
+   * @param array<string, scalar|array<scalar>> $query
+   *   Parametri della richiesta.
+   */
+  public function getAsPage(string $path, array $query = []): ResponseInterface {
+    return $this->httpClient->request('GET', $this->buildUrl($path), [
+      'query' => array_merge($query, $this->pageAuthenticationParameters()),
+    ]);
+  }
+
+  /**
    * Invia una richiesta GET autenticata alla Graph API.
    *
    * @param array<string, scalar|array<scalar>> $query
