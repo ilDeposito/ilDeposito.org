@@ -34,8 +34,8 @@ final class FbEventiGiornoCommand extends Command {
 
   public const NAME = 'ildeposito:fb-eventigiorno';
 
-  // Stesse fasce del precedente ildeposito:fb-post, che delegava la
-  // programmazione a Make.com.
+  // Le fasce definiscono soltanto l'ora. Ogni pubblicazione riceve un minuto
+  // casuale tra 01 e 29, per non concentrare i post all'inizio dell'ora.
   private const HOURS_SCHEDULE = [
     1 => ['7'],
     2 => ['7', '13'],
@@ -43,6 +43,23 @@ final class FbEventiGiornoCommand extends Command {
     4 => ['7', '12', '16', '18'],
   ];
   private const HOURS_SCHEDULE_DEFAULT = ['7', '9', '11', '13', '15', '17', '19'];
+
+  /**
+   * Inviti alternativi alla lettura, scelti casualmente per variare le
+   * didascalie pubblicate sulla Pagina.
+   */
+  private const CALL_TO_ACTIONS = [
+    '🎵 Leggi la scheda dell\'evento e scopri i canti collegati:',
+    '🎶 Scopri i canti legati a questo evento e leggi la scheda completa:',
+    '📖 Approfondisci l\'evento e scopri i canti collegati:',
+    '🔎 Scopri la storia dell\'evento e i canti ad esso collegati:',
+    '🎵 Scopri i canti collegati e approfondisci l\'evento:',
+    '📚 Leggi la scheda completa e scopri i canti legati all\'evento:',
+    '🎶 Scopri quali canti sono legati a questo evento:',
+    '🔗 Approfondisci l\'evento e consulta i canti collegati:',
+    '🎼 Esplora i canti collegati a questo evento e la sua storia:',
+    '👉 Scopri la scheda dell\'evento e i canti collegati:',
+  ];
 
   // Meta richiede che scheduled_publish_time sia almeno dieci minuti nel
   // futuro. Il margine evita chiamate destinate a fallire se il comando viene
@@ -73,21 +90,31 @@ final class FbEventiGiornoCommand extends Command {
       InputOption::VALUE_NONE,
       'TEST TEMPORANEO: pubblica subito soltanto il primo evento del giorno.',
     );
+    $this->addOption(
+      'date',
+      NULL,
+      InputOption::VALUE_REQUIRED,
+      'Solo con --dry-run: simula la pubblicazione per la data YYYY-MM-DD.',
+    );
   }
 
   protected function execute(InputInterface $input, OutputInterface $output): int {
     $dry_run = (bool) $input->getOption('dry-run');
     $test_immediate = (bool) $input->getOption('test-immediate');
+    $reference_date = $this->getReferenceDate((string) $input->getOption('date'), $dry_run, $output);
+    if (!$reference_date instanceof DrupalDateTime) {
+      return Command::FAILURE;
+    }
     if (!$dry_run && !$this->facebookPageClient->isConfigured()) {
       $output->writeln('<comment>Facebook Graph API non configurata (servono FB_PAGE_ID e FB_SYSTEM_USER_TOKEN): comando disattivato in questo ambiente.</comment>');
       return Command::SUCCESS;
     }
 
     if ($test_immediate) {
-      return $this->executeImmediateTest($dry_run, $output);
+      return $this->executeImmediateTest($dry_run, $output, $reference_date);
     }
 
-    $events = $this->getEventiAnniversarioOggi();
+    $events = $this->getEventiAnniversarioOggi($reference_date);
     if ($events === []) {
       $output->writeln('Nessun evento con anniversario oggi.');
       return Command::SUCCESS;
@@ -103,7 +130,8 @@ final class FbEventiGiornoCommand extends Command {
         continue;
       }
 
-      $scheduled_at = new DrupalDateTime('today ' . $hour . ':00:00');
+      $minute = random_int(1, 29);
+      $scheduled_at = new DrupalDateTime(sprintf('%s %s:%02d:00', $reference_date->format('Y-m-d'), $hour, $minute));
       if ($scheduled_at->getTimestamp() < $now->getTimestamp() + self::MINIMUM_SCHEDULE_DELAY) {
         $this->reportSkip($event, $output, 'fascia oraria già trascorsa o troppo vicina');
         continue;
@@ -134,6 +162,7 @@ final class FbEventiGiornoCommand extends Command {
       if ($dry_run) {
         $scheduled++;
         $output->writeln(sprintf('<info>[dry-run] Evento %d: foto + testo alle %s</info>', $event->id(), $scheduled_at->format('H:i')));
+        $output->writeln($message);
         continue;
       }
 
@@ -162,8 +191,8 @@ final class FbEventiGiornoCommand extends Command {
   /**
    * Pubblica subito la foto del primo evento del giorno per verificare l'integrazione.
    */
-  private function executeImmediateTest(bool $dry_run, OutputInterface $output): int {
-    $events = $this->getEventiAnniversarioOggi();
+  private function executeImmediateTest(bool $dry_run, OutputInterface $output, DrupalDateTime $reference_date): int {
+    $events = $this->getEventiAnniversarioOggi($reference_date);
     $event = reset($events);
     if (!$event instanceof NodeInterface) {
       $output->writeln('Nessun evento con anniversario oggi.');
@@ -269,8 +298,9 @@ final class FbEventiGiornoCommand extends Command {
    */
   private function buildFacebookMessage(string $description, string $link): string {
     $description = preg_replace('/^\[[^\]]+\]\h*/u', '📅 ', $description) ?? $description;
+    $call_to_action = self::CALL_TO_ACTIONS[random_int(0, count(self::CALL_TO_ACTIONS) - 1)];
 
-    return $description . "\n🎵 Leggi la scheda dell'evento e i canti collegati qui: " . $link;
+    return $description . "\n" . $call_to_action . ' ' . $link;
   }
 
   /**
@@ -302,9 +332,9 @@ final class FbEventiGiornoCommand extends Command {
    * @return \Drupal\node\NodeInterface[]
    *   Eventi pubblicati il cui anniversario cade oggi, ordinati per titolo.
    */
-  private function getEventiAnniversarioOggi(): array {
+  private function getEventiAnniversarioOggi(DrupalDateTime $reference_date): array {
     $storage = $this->entityTypeManager->getStorage('node');
-    $month_day = (new DrupalDateTime('now'))->format('m-d');
+    $month_day = $reference_date->format('m-d');
 
     $ids = $storage->getQuery()
       ->accessCheck(FALSE)
@@ -327,6 +357,38 @@ final class FbEventiGiornoCommand extends Command {
     }
 
     return $events;
+  }
+
+  /**
+   * Restituisce la data della simulazione, oppure il giorno corrente.
+   */
+  private function getReferenceDate(string $date_option, bool $dry_run, OutputInterface $output): ?DrupalDateTime {
+    $date_option = trim($date_option);
+    if ($date_option === '') {
+      return new DrupalDateTime('now');
+    }
+    if (!$dry_run) {
+      $output->writeln('<error>L’opzione --date è consentita solo insieme a --dry-run.</error>');
+      return NULL;
+    }
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_option)) {
+      $output->writeln('<error>La data deve avere il formato YYYY-MM-DD.</error>');
+      return NULL;
+    }
+
+    try {
+      $reference_date = new DrupalDateTime($date_option);
+    }
+    catch (\Exception) {
+      $output->writeln('<error>La data indicata non è valida.</error>');
+      return NULL;
+    }
+    if ($reference_date->format('Y-m-d') !== $date_option) {
+      $output->writeln('<error>La data indicata non è valida.</error>');
+      return NULL;
+    }
+
+    return $reference_date;
   }
 
 }
