@@ -28,6 +28,8 @@ final class FacebookTelegramPublisher {
 
   public const RESULT_BUSY = 'busy';
 
+  public const RESULT_IGNORED = 'ignored';
+
   public function __construct(
     private readonly FacebookPageClient $facebookPageClient,
     private readonly ClientInterface $httpClient,
@@ -52,10 +54,19 @@ final class FacebookTelegramPublisher {
     }
 
     if (!$this->claimRecord($facebookPostId)) {
-      return $this->isSent($facebookPostId) ? self::RESULT_DONE : self::RESULT_BUSY;
+      return match ($this->getRecordStatus($facebookPostId)) {
+        'sent' => self::RESULT_DONE,
+        'ignored' => self::RESULT_IGNORED,
+        default => self::RESULT_BUSY,
+      };
     }
 
     $post = $this->getFacebookPost($facebookPostId);
+    if (!$this->isOfficialPost($post)) {
+      $this->markIgnored($facebookPostId);
+      return self::RESULT_IGNORED;
+    }
+
     $messageId = $this->sendToTelegram($post);
     $this->database->update(self::TABLE)
       ->fields(['status' => 'sent', 'telegram_message_id' => $messageId, 'sent' => time()])
@@ -69,7 +80,7 @@ final class FacebookTelegramPublisher {
    */
   private function getFacebookPost(string $facebookPostId): array {
     $response = $this->facebookPageClient->getAsPage($facebookPostId, [
-      'fields' => 'id,message,created_time,permalink_url,full_picture,attachments{media_type,url,unshimmed_url,target,media,subattachments}',
+      'fields' => 'id,from{id},message,created_time,permalink_url,full_picture,attachments{media_type,url,unshimmed_url,target,media,subattachments{media_type,media}}',
     ]);
     try {
       $post = json_decode((string) $response->getBody(), TRUE, 512, JSON_THROW_ON_ERROR);
@@ -84,6 +95,20 @@ final class FacebookTelegramPublisher {
   }
 
   /**
+   * Accetta soltanto i post creati dalla Pagina configurata.
+   *
+   * Il feed puo' contenere anche contenuti di visitatori: in caso di autore
+   * assente preferiamo ignorare il post, anziche' pubblicarlo sul canale.
+   *
+   * @param array<string, mixed> $post
+   */
+  private function isOfficialPost(array $post): bool {
+    $author = $post['from'] ?? [];
+    return is_array($author)
+      && (string) ($author['id'] ?? '') === $this->facebookPageClient->getPageId();
+  }
+
+  /**
    * @param array<string, mixed> $post
    */
   private function sendToTelegram(array $post): int {
@@ -95,6 +120,21 @@ final class FacebookTelegramPublisher {
     // sul canale e' piu' utile la preview OpenGraph del sito della foto FB.
     if ($eventUrl !== NULL) {
       return $this->sendMessage($this->appendUrl($text, $this->tagIldepositoUrl($eventUrl)));
+    }
+
+    // Facebook popola full_picture anche per i post-link (per esempio con la
+    // thumbnail di YouTube). In quel caso la foto non e' un allegato nativo:
+    // preserviamo invece il collegamento originale, senza il redirect shim.
+    $linkUrl = $this->findUnshimmedAttachmentUrl($post['attachments'] ?? []);
+    if ($linkUrl !== NULL) {
+      return $this->sendMessage($this->appendUrl($text, $this->tagIldepositoUrl($linkUrl)));
+    }
+
+    $albumPhotoUrls = $this->collectAlbumPhotoUrls($post['attachments'] ?? []);
+    if (count($albumPhotoUrls) >= 2) {
+      $permalink = trim((string) ($post['permalink_url'] ?? ''));
+      $caption = $permalink === '' ? $text : $this->appendUrl($text, $permalink);
+      return $this->sendPhotoAlbum($albumPhotoUrls, $caption);
     }
 
     $photoUrl = trim((string) ($post['full_picture'] ?? ''));
@@ -137,6 +177,51 @@ final class FacebookTelegramPublisher {
       $parameters['caption'] = $caption;
     }
     return $this->telegramPhotoRequest($imageData, $parameters);
+  }
+
+  /**
+   * @param array<int, string> $photoUrls
+   */
+  private function sendPhotoAlbum(array $photoUrls, string $caption): int {
+    $media = [];
+    $multipart = [
+      ['name' => 'chat_id', 'contents' => $this->getTelegramChatId()],
+    ];
+    foreach ($photoUrls as $index => $photoUrl) {
+      $image = $this->httpClient->get($photoUrl, [
+        'stream' => TRUE,
+        'timeout' => 30,
+        'connect_timeout' => 10,
+      ]);
+      $name = 'photo_' . $index;
+      $mediaItem = [
+        'type' => 'photo',
+        'media' => 'attach://' . $name,
+      ];
+      if ($index === 0 && mb_strlen($caption) <= 1024 && $caption !== '') {
+        $mediaItem['caption'] = $caption;
+      }
+      $media[] = $mediaItem;
+      $multipart[] = [
+        'name' => $name,
+        'contents' => $this->fitPhotoForTelegram((string) $image->getBody()),
+        'filename' => 'facebook-album-' . $index . '.jpg',
+      ];
+    }
+    $multipart[] = [
+      'name' => 'media',
+      'contents' => json_encode($media, JSON_THROW_ON_ERROR),
+    ];
+    $response = $this->httpClient->post('https://api.telegram.org/bot' . $this->getTelegramToken() . '/sendMediaGroup', [
+      'multipart' => $multipart,
+      'timeout' => 60,
+      'connect_timeout' => 10,
+    ]);
+    $messageId = $this->telegramMessageId((string) $response->getBody());
+    if (mb_strlen($caption) > 1024) {
+      $this->sendMessage($caption);
+    }
+    return $messageId;
   }
 
   private function sendMessage(string $text): int {
@@ -186,7 +271,9 @@ final class FacebookTelegramPublisher {
     catch (\JsonException $exception) {
       throw new \RuntimeException('Telegram ha restituito una risposta non JSON.', 0, $exception);
     }
-    $messageId = is_array($payload) ? ($payload['result']['message_id'] ?? NULL) : NULL;
+    $result = is_array($payload) ? ($payload['result'] ?? NULL) : NULL;
+    $message = is_array($result) && isset($result[0]) ? $result[0] : $result;
+    $messageId = is_array($message) ? ($message['message_id'] ?? NULL) : NULL;
     if (!is_int($messageId)) {
       throw new \RuntimeException('Telegram non ha confermato la pubblicazione.');
     }
@@ -216,6 +303,67 @@ final class FacebookTelegramPublisher {
     };
     $walk($attachments);
     return array_values(array_unique($urls));
+  }
+
+  /**
+   * Restituisce l'URL originale di un allegato-link o di una condivisione.
+   *
+   * Le foto native espongono normalmente solo l'URL Facebook dell'allegato;
+   * usare esclusivamente unshimmed_url evita di convertirle in messaggi testuali.
+   */
+  private function findUnshimmedAttachmentUrl(mixed $attachments): ?string {
+    $url = NULL;
+    $walk = static function (mixed $value) use (&$walk, &$url): void {
+      if (!is_array($value) || $url !== NULL) {
+        return;
+      }
+      $candidate = $value['unshimmed_url'] ?? NULL;
+      if (is_string($candidate) && filter_var($candidate, FILTER_VALIDATE_URL)) {
+        $url = $candidate;
+        return;
+      }
+      foreach ($value as $child) {
+        if (is_array($child)) {
+          $walk($child);
+        }
+      }
+    };
+    $walk($attachments);
+    return $url;
+  }
+
+  /**
+   * Restituisce al massimo dieci immagini di un album Facebook, il limite di
+   * un singolo sendMediaGroup Telegram.
+   *
+   * @return array<int, string>
+   */
+  private function collectAlbumPhotoUrls(mixed $attachments): array {
+    $attachments = is_array($attachments) ? ($attachments['data'] ?? []) : [];
+    if (!is_array($attachments)) {
+      return [];
+    }
+    foreach ($attachments as $attachment) {
+      if (!is_array($attachment) || ($attachment['media_type'] ?? NULL) !== 'album') {
+        continue;
+      }
+      $subattachments = $attachment['subattachments']['data'] ?? [];
+      if (!is_array($subattachments)) {
+        continue;
+      }
+      $urls = [];
+      foreach ($subattachments as $subattachment) {
+        $url = is_array($subattachment) ? ($subattachment['media']['image']['src'] ?? NULL) : NULL;
+        if (is_string($url) && filter_var($url, FILTER_VALIDATE_URL)) {
+          $urls[] = $url;
+        }
+      }
+      $urls = array_values(array_unique($urls));
+      if (count($urls) >= 2) {
+        return array_slice($urls, 0, 10);
+      }
+    }
+    return [];
   }
 
   /**
@@ -355,12 +503,19 @@ final class FacebookTelegramPublisher {
       ->execute();
   }
 
-  private function isSent(string $facebookPostId): bool {
+  private function getRecordStatus(string $facebookPostId): string {
     return (string) $this->database->select(self::TABLE, 'f')
       ->fields('f', ['status'])
       ->condition('facebook_post_id', $facebookPostId)
       ->execute()
-      ->fetchField() === 'sent';
+      ->fetchField();
+  }
+
+  private function markIgnored(string $facebookPostId): void {
+    $this->database->update(self::TABLE)
+      ->fields(['status' => 'ignored', 'sent' => time()])
+      ->condition('facebook_post_id', $facebookPostId)
+      ->execute();
   }
 
   private function ensureRecord(string $facebookPostId): void {
