@@ -195,9 +195,9 @@ prod() {
   {
     printf '# %s\n\n## Modifiche\n\n' "$version"
     if [[ -n "$previous_tag" ]]; then
-      git log "${previous_tag}..${sha}" --pretty=format:'- %s (%h)%n'
+      git log "${previous_tag}..${sha}" --pretty=tformat:'- %s (%h)'
     else
-      git log "$sha" --pretty=format:'- %s (%h)%n'
+      git log "$sha" --pretty=tformat:'- %s (%h)'
     fi
   } > "$notes_file"
   grep -q '^- ' "$notes_file" || die 'Non ci sono commit nuovi rispetto all’ultima release.'
