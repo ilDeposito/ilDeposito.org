@@ -116,13 +116,14 @@ render_progress() {
 }
 
 watch_run() {
-  local run_id="$1" expected_steps="$2" deployment_label="$3" snapshot='' previous_snapshot='' state_line='' status='' conclusion='' interactive=0 started_at elapsed elapsed_seconds
+  local run_id="$1" expected_steps="$2" deployment_label="$3" snapshot='' previous_snapshot='' state_line='' status='' conclusion='' interactive=0 started_at elapsed elapsed_seconds poll_ticks=0
   [[ -t 1 ]] && interactive=1
   started_at="$(date +%s)"
   PROGRESS_LINES=0
   render_progress '' "$expected_steps" "$interactive" '00:00'
   while :; do
-    snapshot="$(gh run view "$run_id" --repo "$REPOSITORY" --json status,conclusion,jobs --jq '
+    if (( poll_ticks == 0 )); then
+      snapshot="$(gh run view "$run_id" --repo "$REPOSITORY" --json status,conclusion,jobs --jq '
       [
         "RUN\t" + .status + "\t" + (.conclusion // ""),
         (.jobs[]? as $job |
@@ -132,6 +133,8 @@ watch_run() {
             "STEP\t\($job.name)\t\($job.status)\t\($job.conclusion // "")"
           end)
       ] | .[]')"
+      poll_ticks=6
+    fi
     elapsed_seconds="$(( $(date +%s) - started_at ))"
     elapsed="$(format_duration "$elapsed_seconds")"
     if (( interactive )) || [[ "$snapshot" != "$previous_snapshot" ]]; then
@@ -141,7 +144,11 @@ watch_run() {
 
     state_line="${snapshot%%$'\n'*}"
     IFS=$'\t' read -r _ status conclusion <<< "$state_line"
-    [[ "$status" == completed ]] || { sleep 3; continue; }
+    [[ "$status" == completed ]] || {
+      poll_ticks="$((poll_ticks - 1))"
+      sleep 0.5
+      continue
+    }
     [[ "$conclusion" == success ]] && { ok "${deployment_label} eseguito in $(format_duration_words "$elapsed_seconds")."; return 0; }
     failure "${deployment_label} fallito dopo $(format_duration_words "$elapsed_seconds"): ${conclusion:-sconosciuto}."
     return 1
