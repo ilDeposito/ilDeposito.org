@@ -15,46 +15,100 @@ require_command() {
 ensure_main_is_ready() {
   [[ "$(git branch --show-current)" == 'main' ]] || die 'Passa prima al branch main.'
   [[ -z "$(git status --porcelain)" ]] || die 'La working tree contiene modifiche non committate.'
-  git fetch origin main --tags
+  git fetch origin main --tags --quiet
   local_head="$(git rev-parse HEAD)"
   remote_head="$(git rev-parse origin/main)"
   [[ "$local_head" == "$remote_head" ]] || die 'Il checkout locale non coincide con origin/main: aggiorna main prima di continuare.'
   printf '%s\n' "$local_head"
 }
 
-latest_run_id() {
-  local workflow="$1" event="$2" branch="$3" sha="$4"
+known_run_ids() {
+  local workflow="$1" event="$2" branch="$3"
+  gh run list --repo "$REPOSITORY" --workflow "$workflow" --event "$event" --branch "$branch" \
+    --limit 100 --json databaseId --jq '.[].databaseId'
+}
+
+is_known_run() {
+  local run_id="$1" known_runs="$2"
+  [[ $'\n'"$known_runs"$'\n' == *$'\n'"$run_id"$'\n'* ]]
+}
+
+latest_new_run_id() {
+  local workflow="$1" event="$2" branch="$3" sha="$4" known_runs="$5"
   local run_id=''
   for _ in {1..20}; do
-    run_id="$(gh run list --repo "$REPOSITORY" --workflow "$workflow" --event "$event" --branch "$branch" --limit 20 --json databaseId,headSha --jq ".[] | select(.headSha == \"$sha\") | .databaseId" | head -n1)"
-    [[ -n "$run_id" ]] && { printf '%s\n' "$run_id"; return; }
+    while IFS= read -r run_id; do
+      [[ -n "$run_id" ]] && ! is_known_run "$run_id" "$known_runs" && {
+        printf '%s\n' "$run_id"
+        return
+      }
+    done < <(gh run list --repo "$REPOSITORY" --workflow "$workflow" --event "$event" --branch "$branch" \
+      --limit 100 --json databaseId,headSha --jq ".[] | select(.headSha == \"$sha\") | .databaseId")
     sleep 2
   done
   return 1
 }
 
+snapshot_contains_line() {
+  local snapshot="$1" line="$2"
+  [[ $'\n'"$snapshot"$'\n' == *$'\n'"$line"$'\n'* ]]
+}
+
+print_run_snapshot() {
+  local snapshot="$1" previous_snapshot="$2" line='' kind name status conclusion
+  while IFS=$'\t' read -r kind name status conclusion; do
+    line="$kind"$'\t'"$name"$'\t'"$status"$'\t'"$conclusion"
+    snapshot_contains_line "$previous_snapshot" "$line" && continue
+    case "$kind" in
+      RUN) ;;
+      STEP)
+        case "$status" in
+          queued|pending|waiting) printf '  • %s — in attesa\n' "$name" ;;
+          in_progress) printf '  • %s — in corso\n' "$name" ;;
+          completed)
+            [[ "$conclusion" == success ]] && printf '  • %s — completato\n' "$name" \
+              || printf '  • %s — %s\n' "$name" "${conclusion:-concluso}"
+            ;;
+        esac
+        ;;
+    esac
+  done <<< "$snapshot"
+}
+
 watch_run() {
-  local run_id="$1"
-  info "Run: https://github.com/${REPOSITORY}/actions/runs/${run_id}"
-  if gh run watch "$run_id" --repo "$REPOSITORY" --exit-status; then
-    info 'Operazione completata con successo.'
-    printf '\nLog della run:\n'
-    gh run view "$run_id" --repo "$REPOSITORY" --log
-  else
-    local status=$?
-    printf '\nLog degli step falliti:\n' >&2
-    gh run view "$run_id" --repo "$REPOSITORY" --log-failed >&2 || true
-    return "$status"
-  fi
+  local run_id="$1" snapshot='' previous_snapshot='' state_line='' status='' conclusion=''
+  while :; do
+    snapshot="$(gh run view "$run_id" --repo "$REPOSITORY" --json status,conclusion,jobs --jq '
+      [
+        "RUN\t" + .status + "\t" + (.conclusion // ""),
+        (.jobs[]? as $job |
+          if ($job.steps | type) == "array" then
+            $job.steps[] | "STEP\t\(.name)\t\(.status)\t\(.conclusion // "")"
+          else
+            "STEP\t\($job.name)\t\($job.status)\t\($job.conclusion // "")"
+          end)
+      ] | .[]')"
+    if [[ "$snapshot" != "$previous_snapshot" ]]; then
+      print_run_snapshot "$snapshot" "$previous_snapshot"
+      previous_snapshot="$snapshot"
+    fi
+
+    state_line="${snapshot%%$'\n'*}"
+    IFS=$'\t' read -r _ status conclusion <<< "$state_line"
+    [[ "$status" == completed ]] || { sleep 3; continue; }
+    [[ "$conclusion" == success ]] && { info 'Workflow completato.'; return 0; }
+    return 1
+  done
 }
 
 deploy_stage() {
-  local sha
+  local sha known_runs
   sha="$(ensure_main_is_ready)"
-  info "Avvio deploy stage per ${sha:0:7}..."
-  gh workflow run "$STAGE_WORKFLOW" --repo "$REPOSITORY" --ref main -f operation=deploy
+  known_runs="$(known_run_ids "$STAGE_WORKFLOW" workflow_dispatch main)"
+  info 'Lancio il workflow del repository main su stage...'
+  gh workflow run "$STAGE_WORKFLOW" --repo "$REPOSITORY" --ref main -f operation=deploy >/dev/null
   local run_id
-  run_id="$(latest_run_id "$STAGE_WORKFLOW" workflow_dispatch main "$sha")" \
+  run_id="$(latest_new_run_id "$STAGE_WORKFLOW" workflow_dispatch main "$sha" "$known_runs")" \
     || die 'La run stage non è comparsa entro 40 secondi.'
   watch_run "$run_id"
 }
@@ -109,12 +163,13 @@ release() {
 
   [[ "$(ensure_main_is_ready)" == "$sha" ]] || die 'main è cambiato durante la preparazione della release.'
   [[ -n "$(last_successful_stage_run "$sha")" ]] || die 'Manca un deploy stage riuscito per il commit corrente.'
+  local known_runs run_id
+  known_runs="$(known_run_ids "$PROD_WORKFLOW" push "$version")"
   git tag -a "$version" "$sha" -m "Release ${version}"
   git push origin "refs/tags/${version}"
   gh release create "$version" --repo "$REPOSITORY" --verify-tag --title "$version" --notes-file "$notes_file"
 
-  local run_id
-  run_id="$(latest_run_id "$PROD_WORKFLOW" push "$version" "$sha")" \
+  run_id="$(latest_new_run_id "$PROD_WORKFLOW" push "$version" "$sha" "$known_runs")" \
     || die 'Tag e release creati, ma la run produzione non è comparsa entro 40 secondi.'
   watch_run "$run_id"
 }

@@ -26,9 +26,22 @@ jobs:
       run:
         working-directory: /home/ubuntu/sergej/websites/ildeposito/stage
     steps:
-      - name: Run stage operation
+      - name: Prepara deploy e dipendenze
+        if: inputs.operation == 'deploy'
+        env:
+          DEPLOY_REF: ${{ github.sha }}
+        run: ./ildeposito.sh pipeline deploy-prepare --ref "$DEPLOY_REF"
+      - name: Aggiorna Drupal e indice di ricerca
+        if: inputs.operation == 'deploy'
+        run: ./ildeposito.sh pipeline deploy-update
+      - name: Genera sito e PDF
+        if: inputs.operation == 'deploy'
+        env:
+          BUILD_SOURCE: ${{ inputs.source }}
+        run: ./ildeposito.sh pipeline deploy-build --source "$BUILD_SOURCE"
+      - name: Esegue operazione di pubblicazione
+        if: inputs.operation != 'deploy'
         env:
           OPERATION: ${{ inputs.operation }}
-          DEPLOY_REF: ${{ github.sha }}
           BUILD_SOURCE: ${{ inputs.source }}
-        run: ./ildeposito.sh pipeline "$OPERATION" --ref "$DEPLOY_REF" --source "$BUILD_SOURCE"
+        run: ./ildeposito.sh pipeline "$OPERATION" --source "$BUILD_SOURCE"

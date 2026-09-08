@@ -26,7 +26,8 @@ pubblicato su `origin/main`.
    ```
 
    Lo script verifica che il checkout locale coincida con `origin/main`, avvia
-   `stage.yml`, resta in attesa e stampa i log finali del workflow.
+   `stage.yml`, resta in attesa e mostra le macro-fasi del deploy: preparazione
+   e dipendenze, aggiornamento Drupal e generazione del sito.
 
 2. Verificare il risultato su stage.
 
@@ -44,6 +45,19 @@ pubblicato su `origin/main`.
 `release` richiede che `stage.yml` abbia concluso con successo un deploy dello
 stesso commit attuale di `main`. Per usare gli script dal computer locale basta
 autenticare una volta GitHub CLI con `gh auth login`.
+
+Durante un deploy completo il terminale mostra solo queste macro-fasi:
+
+1. **Prepara deploy e dipendenze**: controllo di Drupal, backup del database,
+   checkout del commit o tag, avvio dei container e `composer install`.
+2. **Aggiorna Drupal e indice di ricerca**: modalità manutenzione,
+   aggiornamenti del database e della configurazione, cache e indice Search
+   API.
+3. **Genera sito e PDF** (e, in produzione, i redirect): build del frontend e
+   pubblicazione degli artefatti.
+
+I log completi restano disponibili solo nella pagina della run su GitHub, se
+servono per analizzare un errore.
 
 ## Operazioni di stage
 

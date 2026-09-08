@@ -428,26 +428,44 @@ rebuild_search_index_if_needed() {
     fi
 }
 
-cmd_deploy() {
-    local ref='' source='GitHub' old_head
+parse_deploy_options() {
+    DEPLOY_REF=''
+    DEPLOY_SOURCE='GitHub'
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --ref) ref="${2:-}"; shift 2 ;;
-            --source) source="${2:-GitHub}"; shift 2 ;;
-            *) error "Opzione deploy sconosciuta: $1"; exit 1 ;;
+            --ref) DEPLOY_REF="${2:-}"; shift 2 ;;
+            --source) DEPLOY_SOURCE="${2:-GitHub}"; shift 2 ;;
+            *) error "Opzione deploy sconosciuta: $1"; return 1 ;;
         esac
     done
-    [[ -n "$ref" ]] || { error 'Uso: ./ildeposito.sh deploy --ref <commit|tag>'; exit 1; }
+    [[ -n "$DEPLOY_REF" ]] || { error 'Uso: ./ildeposito.sh deploy --ref <commit|tag>'; return 1; }
+}
 
-    DEPLOY_MAINTENANCE_MODE=0
-    trap deploy_cleanup EXIT INT TERM
+deploy_state_file() {
+    printf '%s\n' 'backup/deploy/.deploy-previous-head'
+}
+
+cmd_deploy_prepare() {
+    local old_head state_file
+    parse_deploy_options "$@" || return
     cmd_drush status --fields=drupal-version,db-status,bootstrap
     cmd_drush config:status 2>/dev/null | grep -v 'No differences' && warn 'Config drift rilevato' || true
     backup_pre_deploy
-    old_head="$(sync_deploy_checkout "$ref")"
+    old_head="$(sync_deploy_checkout "$DEPLOY_REF")"
+    state_file="$(deploy_state_file)"
+    printf '%s\n' "$old_head" > "$state_file"
     cmd_up
     wait_for_db_ready
     cmd_composer install --no-dev --optimize-autoloader
+}
+
+cmd_deploy_update() {
+    local old_head state_file
+    state_file="$(deploy_state_file)"
+    [[ -s "$state_file" ]] || { error 'Manca lo stato di preparazione del deploy'; return 1; }
+    old_head="$(<"$state_file")"
+    DEPLOY_MAINTENANCE_MODE=0
+    trap deploy_cleanup EXIT INT TERM
     DEPLOY_MAINTENANCE_MODE=1
     cmd_drush sset system.maintenance_mode 1
     cmd_drush cache:rebuild
@@ -458,11 +476,30 @@ cmd_deploy() {
     cmd_drush sset system.maintenance_mode 0
     DEPLOY_MAINTENANCE_MODE=0
     cmd_drush cache:rebuild
+    trap - EXIT INT TERM
+}
+
+cmd_deploy_build() {
+    local source='GitHub' state_file
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --source) source="${2:-GitHub}"; shift 2 ;;
+            *) error "Opzione deploy-build sconosciuta: $1"; return 1 ;;
+        esac
+    done
     cmd_build_frontend full --source "$source"
     if [[ "${ENV}" == "prod" ]]; then
         cmd_build_redirect --source "$source"
     fi
-    trap - EXIT INT TERM
+    state_file="$(deploy_state_file)"
+    rm -f "$state_file"
+}
+
+cmd_deploy() {
+    parse_deploy_options "$@" || return
+    cmd_deploy_prepare --ref "$DEPLOY_REF" --source "$DEPLOY_SOURCE"
+    cmd_deploy_update
+    cmd_deploy_build --source "$DEPLOY_SOURCE"
     ok "Deploy ${ENV} completato"
 }
 
@@ -471,6 +508,9 @@ cmd_pipeline() {
     shift || true
     case "$operation" in
         deploy) cmd_deploy "$@" ;;
+        deploy-prepare) cmd_deploy_prepare "$@" ;;
+        deploy-update) cmd_deploy_update ;;
+        deploy-build) cmd_deploy_build "$@" ;;
         content) cmd_build_frontend content "$@" ;;
         full) cmd_build_frontend full "$@" ;;
         pdf) cmd_build_frontend pdf "$@" ;;
@@ -478,7 +518,7 @@ cmd_pipeline() {
             [[ "${ENV}" == "prod" ]] || { error 'redirect è disponibile solo in produzione'; exit 1; }
             cmd_build_redirect "$@"
             ;;
-        *) error 'Operazione pipeline non valida: usa deploy|content|full|pdf|redirect'; exit 1 ;;
+        *) error 'Operazione pipeline non valida: usa deploy|deploy-prepare|deploy-update|deploy-build|content|full|pdf|redirect'; exit 1 ;;
     esac
 }
 
