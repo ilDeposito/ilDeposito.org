@@ -22,7 +22,7 @@ pubblicato su `origin/main`.
 1. Eseguire il deploy di `main` su stage:
 
    ```sh
-   ./deploy.sh deploy-stage
+   ./deploy.sh stage
    ```
 
    Lo script verifica che il checkout locale coincida con `origin/main`, avvia
@@ -34,7 +34,7 @@ pubblicato su `origin/main`.
 3. Creare il rilascio:
 
    ```sh
-   ./deploy.sh release
+   ./deploy.sh prod
    ```
 
    Lo script mostra gli ultimi tre tag, richiede una versione con editing da
@@ -44,7 +44,7 @@ pubblicato su `origin/main`.
    conferma crea il tag annotato e la GitHub Release; il push del tag avvia
    automaticamente `prod.yml` e lo script attende anche questo deploy.
 
-`release` richiede che l’ultima run di `stage.yml` per il commit attuale di
+`prod` richiede che l’ultima run di `stage.yml` per il commit attuale di
 `main` sia conclusa con successo. Anche `prod.yml` esegue lo stesso controllo,
 quindi un tag non può aggirarlo. Per usare gli script dal computer locale basta
 autenticare una volta GitHub CLI con `gh auth login`.
@@ -82,7 +82,7 @@ gh workflow run stage.yml --ref main -f operation=content
 ## Operazioni di produzione
 
 Un push di un tag che inizia con `v` avvia sempre `deploy`: il workflow
-distribuisce esattamente quel tag. È il percorso usato da `./deploy.sh release`.
+distribuisce esattamente quel tag. È il percorso usato da `./deploy.sh prod`.
 
 L'avvio manuale di `prod.yml` serve alle operazioni di manutenzione. Per un
 deploy manuale occorre selezionare come ref il tag da distribuire e fornire lo

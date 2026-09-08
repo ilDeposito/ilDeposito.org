@@ -170,17 +170,17 @@ last_successful_stage_run() {
   printf '%s\n' "$run_id"
 }
 
-release() {
+prod() {
   local sha
   sha="$(ensure_main_is_ready)"
 
-  printf 'Ultimi tre tag:\n'
-  git tag --sort=-creatordate | head -n 3
-
   local stage_run
   stage_run="$(last_successful_stage_run "$sha")"
-  [[ -n "$stage_run" ]] || die "Nessun deploy stage riuscito trovato per ${sha:0:7}. Esegui prima: ./deploy.sh deploy-stage"
+  [[ -n "$stage_run" ]] || die "Non puoi avviare il deploy in produzione: manca un deploy stage riuscito per ${sha:0:7}. Esegui prima: ./deploy.sh stage"
   info "Stage verificato: run ${stage_run}."
+
+  printf 'Ultimi tre tag:\n'
+  git tag --sort=-creatordate | head -n 3
 
   local version
   read -e -r -p 'Nuova versione (es. v2.5.0): ' version
@@ -232,8 +232,8 @@ usage() {
 Uso: ./deploy.sh <comando>
 
 Comandi:
-  deploy-stage  Avvia e segue il deploy manuale di main su stage.
-  release       Crea interattivamente tag e GitHub Release dopo il deploy stage.
+  stage  Avvia e segue il deploy manuale di main su stage.
+  prod   Crea interattivamente tag e GitHub Release dopo il deploy stage.
 EOF
 }
 
@@ -242,8 +242,8 @@ require_command gh
 git rev-parse --show-toplevel >/dev/null 2>&1 || die 'Esegui il comando dentro il repository.'
 
 case "${1:-}" in
-  deploy-stage) deploy_stage ;;
-  release) release ;;
+  stage) deploy_stage ;;
+  prod) prod ;;
   -h|--help|help|'') usage ;;
   *) die "Comando sconosciuto: $1" ;;
 esac

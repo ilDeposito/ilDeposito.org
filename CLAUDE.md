@@ -116,9 +116,9 @@ BASIC_AUTH_HASH=...                    # Hash bcrypt per Caddy
 
 ### CI/CD — GitHub Actions
 
-**`.github/workflows/stage.yml`**: operazioni manuali su stage (self-hosted runner). `./deploy.sh deploy-stage` avvia l'operazione `deploy` sul ref `main` e ne segue l'esito.
+**`.github/workflows/stage.yml`**: operazioni manuali su stage (self-hosted runner). `./deploy.sh stage` avvia l'operazione `deploy` sul ref `main` e ne segue l'esito.
 
-**`.github/workflows/prod.yml`**: deploy automatico al push di un tag `v*` e build manuali. `./deploy.sh release` crea tag e GitHub Release solo dopo un deploy stage riuscito sullo stesso commit.
+**`.github/workflows/prod.yml`**: deploy automatico al push di un tag `v*` e build manuali. `./deploy.sh prod` crea tag e GitHub Release solo dopo un deploy stage riuscito sullo stesso commit.
 
 La procedura comune vive in `./ildeposito.sh deploy`: backup DB → checkout → `up` → Composer → aggiornamenti Drupal → build frontend.
 
