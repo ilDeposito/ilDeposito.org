@@ -4,9 +4,17 @@ set -euo pipefail
 REPOSITORY='ilDeposito/ilDeposito.org'
 STAGE_WORKFLOW='stage.yml'
 PROD_WORKFLOW='prod.yml'
+RED=$'\033[0;31m'
+GREEN=$'\033[0;32m'
+YELLOW=$'\033[0;33m'
+CYAN=$'\033[0;36m'
+DIM=$'\033[0;2m'
+RESET=$'\033[0m'
 
 die() { printf 'Errore: %s\n' "$*" >&2; exit 1; }
-info() { printf '▸ %s\n' "$*"; }
+info() { printf '%s▸%s %s\n' "$CYAN" "$RESET" "$*"; }
+ok() { printf '%s✓%s %s\n' "$GREEN" "$RESET" "$*"; }
+failure() { printf '%s✗%s %s\n' "$RED" "$RESET" "$*" >&2; }
 
 require_command() {
   command -v "$1" >/dev/null 2>&1 || die "Comando richiesto non disponibile: $1"
@@ -54,6 +62,14 @@ snapshot_contains_line() {
   [[ $'\n'"$snapshot"$'\n' == *$'\n'"$line"$'\n'* ]]
 }
 
+is_macro_step() {
+  case "$1" in
+    'Verifica deploy stage'|'Prepara deploy e dipendenze'|'Aggiorna Drupal e indice di ricerca'| \
+    'Genera sito e PDF'|'Genera sito, PDF e redirect'|'Esegue operazione di pubblicazione') return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 print_run_snapshot() {
   local snapshot="$1" previous_snapshot="$2" line='' kind name status conclusion
   while IFS=$'\t' read -r kind name status conclusion; do
@@ -62,12 +78,14 @@ print_run_snapshot() {
     case "$kind" in
       RUN) ;;
       STEP)
+        is_macro_step "$name" || continue
         case "$status" in
-          queued|pending|waiting) printf '  • %s — in attesa\n' "$name" ;;
-          in_progress) printf '  • %s — in corso\n' "$name" ;;
+          queued|pending|waiting) printf '  %s○%s %s %s— da eseguire%s\n' "$RED" "$RESET" "$name" "$DIM" "$RESET" ;;
+          in_progress) printf '  %s◐%s %s %s— in corso%s\n' "$YELLOW" "$RESET" "$name" "$DIM" "$RESET" ;;
           completed)
-            [[ "$conclusion" == success ]] && printf '  • %s — completato\n' "$name" \
-              || printf '  • %s — %s\n' "$name" "${conclusion:-concluso}"
+            [[ "$conclusion" == skipped ]] && continue
+            [[ "$conclusion" == success ]] && printf '  %s✓%s %s %s— completato%s\n' "$GREEN" "$RESET" "$name" "$DIM" "$RESET" \
+              || printf '  %s✗%s %s %s— %s%s\n' "$RED" "$RESET" "$name" "$DIM" "${conclusion:-errore}" "$RESET"
             ;;
         esac
         ;;
@@ -96,8 +114,8 @@ watch_run() {
     state_line="${snapshot%%$'\n'*}"
     IFS=$'\t' read -r _ status conclusion <<< "$state_line"
     [[ "$status" == completed ]] || { sleep 3; continue; }
-    [[ "$conclusion" == success ]] && { info 'Workflow completato.'; return 0; }
-    printf 'Errore: workflow fallito: %s.\n' "${conclusion:-sconosciuto}" >&2
+    [[ "$conclusion" == success ]] && { ok 'Workflow completato.'; return 0; }
+    failure "Workflow fallito: ${conclusion:-sconosciuto}."
     return 1
   done
 }
