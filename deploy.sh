@@ -174,8 +174,8 @@ release() {
   local sha
   sha="$(ensure_main_is_ready)"
 
-  printf 'Ultime tre release:\n'
-  gh release list --repo "$REPOSITORY" --limit 3 || true
+  printf 'Ultimi tre tag:\n'
+  git tag --sort=-creatordate | head -n 3
 
   local stage_run
   stage_run="$(last_successful_stage_run "$sha")"
@@ -183,12 +183,12 @@ release() {
   info "Stage verificato: run ${stage_run}."
 
   local version
-  read -r -p 'Nuova versione (es. v2.5.0): ' version
+  read -e -r -p 'Nuova versione (es. v2.5.0): ' version
   [[ "$version" =~ ^v[0-9]+(\.[0-9]+)*(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]] || die 'Versione non valida.'
   ! git rev-parse --verify --quiet "refs/tags/${version}" >/dev/null || die "Il tag ${version} esiste già localmente."
   ! git ls-remote --exit-code --tags origin "refs/tags/${version}" >/dev/null 2>&1 || die "Il tag ${version} esiste già su origin."
 
-  local previous_tag notes_file editor
+  local previous_tag notes_file
   previous_tag="$(gh release list --repo "$REPOSITORY" --limit 1 --json tagName --jq '.[0].tagName')"
   notes_file="$(mktemp)"
   trap 'rm -f "${notes_file:-}"' EXIT
@@ -202,15 +202,15 @@ release() {
   } > "$notes_file"
   grep -q '^- ' "$notes_file" || die 'Non ci sono commit nuovi rispetto all’ultima release.'
 
-  editor="${EDITOR:-vi}"
-  command -v "$editor" >/dev/null 2>&1 || die "Editor non disponibile: ${editor}"
-  "$editor" "$notes_file"
+  require_command nano
+  printf '\nSi apre nano: salva con Ctrl+O, premi Invio per confermare il nome del file, poi esci con Ctrl+X.\n\n'
+  nano "$notes_file"
 
   printf '\nVerrà pubblicata la release %s sul commit %s:\n\n' "$version" "${sha:0:7}"
   cat "$notes_file"
   printf '\n'
   local confirmation
-  read -r -p 'Confermi la pubblicazione? [y/N] ' confirmation
+  read -e -r -p 'Confermi la pubblicazione? [y/N] ' confirmation
   [[ "$confirmation" =~ ^[yY]$ ]] || { info 'Release annullata.'; return; }
 
   [[ "$(ensure_main_is_ready)" == "$sha" ]] || die 'main è cambiato durante la preparazione della release.'

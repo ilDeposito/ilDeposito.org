@@ -37,8 +37,10 @@ pubblicato su `origin/main`.
    ./deploy.sh release
    ```
 
-   Lo script mostra gli ultimi tre rilasci, richiede una versione, prepara le
-   note con i commit dall'ultimo rilascio e le apre in `$EDITOR`. Dopo la
+   Lo script mostra gli ultimi tre tag, richiede una versione con editing da
+   tastiera, prepara le note con i commit dall'ultimo rilascio e le apre in
+   `nano`. In `nano`, salva con `Ctrl+O`, premi `Invio` per confermare il
+   nome del file, poi esci con `Ctrl+X`. Dopo la
    conferma crea il tag annotato e la GitHub Release; il push del tag avvia
    automaticamente `prod.yml` e lo script attende anche questo deploy.
 
