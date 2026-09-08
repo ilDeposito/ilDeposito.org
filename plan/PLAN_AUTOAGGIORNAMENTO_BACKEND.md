@@ -1,5 +1,10 @@
 # Piano — autoaggiornamento backend Drupal su stage
 
+> **Piano archiviato (2026-09-08).** La funzionalità non è mai stata attivata.
+> I workflow `backend-update.yml` e `backend-update-merged.yml` sono stati rimossi;
+> le istruzioni seguenti restano come documentazione storica e non vanno applicate.
+> Il comando CLI `./ildeposito.sh backend-update` rimane disponibile nel repository.
+
 ## Obiettivo
 
 Automatizzare l'aggiornamento delle dipendenze `drupal/*` in stage:

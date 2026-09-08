@@ -28,7 +28,7 @@ final class GitHubWorkflowClient {
   // (vedi "concurrency:" nei rispettivi .github/workflows/*.yml). Tutte le
   // operazioni di un ambiente sono serializzate: modificano la stessa working
   // copy, gli stessi volumi Docker e gli stessi container.
-  private const GROUP_STAGE = ['build-frontend-content-stage.yml', 'build-frontend-stage.yml', 'build-frontend-pdf-stage.yml', 'deploy-stage.yml', 'backend-update.yml'];
+  private const GROUP_STAGE = ['build-frontend-content-stage.yml', 'build-frontend-stage.yml', 'build-frontend-pdf-stage.yml', 'deploy-stage.yml'];
   private const GROUP_PROD = ['build-frontend-content-prod.yml', 'build-frontend-prod.yml', 'build-frontend-pdf-prod.yml', 'build-redirect-prod.yml', 'deploy-prod.yml'];
 
   private const CONCURRENCY_GROUPS = [
@@ -36,7 +36,6 @@ final class GitHubWorkflowClient {
     'build-frontend-stage.yml' => self::GROUP_STAGE,
     'build-frontend-pdf-stage.yml' => self::GROUP_STAGE,
     'deploy-stage.yml' => self::GROUP_STAGE,
-    'backend-update.yml' => self::GROUP_STAGE,
     'build-frontend-content-prod.yml' => self::GROUP_PROD,
     'build-frontend-prod.yml' => self::GROUP_PROD,
     'build-frontend-pdf-prod.yml' => self::GROUP_PROD,
