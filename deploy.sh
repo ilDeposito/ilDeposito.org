@@ -57,44 +57,53 @@ latest_new_run_id() {
   return 1
 }
 
-snapshot_contains_line() {
-  local snapshot="$1" line="$2"
-  [[ $'\n'"$snapshot"$'\n' == *$'\n'"$line"$'\n'* ]]
+progress_step_status() {
+  local snapshot="$1" expected_name="$2" kind name status conclusion
+  while IFS=$'\t' read -r kind name status conclusion; do
+    [[ "$kind" == STEP && "$name" == "$expected_name" ]] && {
+      printf '%s\t%s\n' "$status" "$conclusion"
+      return
+    }
+  done <<< "$snapshot"
+  printf 'queued\t\n'
 }
 
-is_macro_step() {
-  case "$1" in
-    'Verifica deploy stage'|'Prepara deploy e dipendenze'|'Aggiorna Drupal e indice di ricerca'| \
-    'Genera sito e PDF'|'Genera sito, PDF e redirect'|'Esegue operazione di pubblicazione') return 0 ;;
-    *) return 1 ;;
+print_progress_step() {
+  local name="$1" status="$2" conclusion="$3"
+  case "$status" in
+    queued|pending|waiting) printf '  %s○%s %s %s— da eseguire%s\n' "$RED" "$RESET" "$name" "$DIM" "$RESET" ;;
+    in_progress) printf '  %s◐%s %s %s— in corso%s\n' "$YELLOW" "$RESET" "$name" "$DIM" "$RESET" ;;
+    completed)
+      if [[ "$conclusion" == success ]]; then
+        printf '  %s✓%s %s %s— completato%s\n' "$GREEN" "$RESET" "$name" "$DIM" "$RESET"
+      elif [[ "$conclusion" == skipped ]]; then
+        printf '  %s–%s %s %s— non eseguito%s\n' "$DIM" "$RESET" "$name" "$DIM" "$RESET"
+      else
+        printf '  %s✗%s %s %s— %s%s\n' "$RED" "$RESET" "$name" "$DIM" "${conclusion:-errore}" "$RESET"
+      fi
+      ;;
   esac
 }
 
-print_run_snapshot() {
-  local snapshot="$1" previous_snapshot="$2" line='' kind name status conclusion
-  while IFS=$'\t' read -r kind name status conclusion; do
-    line="$kind"$'\t'"$name"$'\t'"$status"$'\t'"$conclusion"
-    snapshot_contains_line "$previous_snapshot" "$line" && continue
-    case "$kind" in
-      RUN) ;;
-      STEP)
-        is_macro_step "$name" || continue
-        case "$status" in
-          queued|pending|waiting) printf '  %s○%s %s %s— da eseguire%s\n' "$RED" "$RESET" "$name" "$DIM" "$RESET" ;;
-          in_progress) printf '  %s◐%s %s %s— in corso%s\n' "$YELLOW" "$RESET" "$name" "$DIM" "$RESET" ;;
-          completed)
-            [[ "$conclusion" == skipped ]] && continue
-            [[ "$conclusion" == success ]] && printf '  %s✓%s %s %s— completato%s\n' "$GREEN" "$RESET" "$name" "$DIM" "$RESET" \
-              || printf '  %s✗%s %s %s— %s%s\n' "$RED" "$RESET" "$name" "$DIM" "${conclusion:-errore}" "$RESET"
-            ;;
-        esac
-        ;;
-    esac
-  done <<< "$snapshot"
+render_progress() {
+  local snapshot="$1" expected_steps="$2" interactive="$3" name status conclusion
+  local -a steps
+  IFS='|' read -r -a steps <<< "$expected_steps"
+  if (( interactive && PROGRESS_LINES > 0 )); then
+    printf '\033[%dA\033[J' "$PROGRESS_LINES"
+  fi
+  for name in "${steps[@]}"; do
+    IFS=$'\t' read -r status conclusion < <(progress_step_status "$snapshot" "$name")
+    print_progress_step "$name" "$status" "$conclusion"
+  done
+  PROGRESS_LINES="${#steps[@]}"
 }
 
 watch_run() {
-  local run_id="$1" snapshot='' previous_snapshot='' state_line='' status='' conclusion=''
+  local run_id="$1" expected_steps="$2" snapshot='' previous_snapshot='' state_line='' status='' conclusion='' interactive=0
+  [[ -t 1 ]] && interactive=1
+  PROGRESS_LINES=0
+  render_progress '' "$expected_steps" "$interactive"
   while :; do
     snapshot="$(gh run view "$run_id" --repo "$REPOSITORY" --json status,conclusion,jobs --jq '
       [
@@ -107,7 +116,7 @@ watch_run() {
           end)
       ] | .[]')"
     if [[ "$snapshot" != "$previous_snapshot" ]]; then
-      print_run_snapshot "$snapshot" "$previous_snapshot"
+      render_progress "$snapshot" "$expected_steps" "$interactive"
       previous_snapshot="$snapshot"
     fi
 
@@ -129,7 +138,7 @@ deploy_stage() {
   local run_id
   run_id="$(latest_new_run_id "$STAGE_WORKFLOW" workflow_dispatch main "$sha" "$known_runs")" \
     || die 'La run stage non è comparsa entro 40 secondi.'
-  watch_run "$run_id" || die 'Il deploy stage non è riuscito.'
+  watch_run "$run_id" 'Prepara deploy e dipendenze|Aggiorna Drupal e indice di ricerca|Genera sito e PDF' || die 'Il deploy stage non è riuscito.'
 }
 
 last_successful_stage_run() {
@@ -195,7 +204,7 @@ release() {
 
   run_id="$(latest_new_run_id "$PROD_WORKFLOW" push "$version" "$sha" "$known_runs")" \
     || die 'Tag e release creati, ma la run produzione non è comparsa entro 40 secondi.'
-  watch_run "$run_id" || die 'Il deploy in produzione non è riuscito.'
+  watch_run "$run_id" 'Verifica deploy stage|Prepara deploy e dipendenze|Aggiorna Drupal e indice di ricerca|Genera sito, PDF e redirect' || die 'Il deploy in produzione non è riuscito.'
 }
 
 usage() {
