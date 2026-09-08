@@ -21,3 +21,4 @@ settings:
     - profile
     - email
     - groups
+  provider_slug: ''
