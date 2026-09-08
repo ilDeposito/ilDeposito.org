@@ -220,10 +220,11 @@ release() {
   git tag -a "$version" "$sha" -m "Release ${version}"
   git push origin "refs/tags/${version}"
   gh release create "$version" --repo "$REPOSITORY" --verify-tag --title "$version" --notes-file "$notes_file"
+  info "Lancio il workflow del repository per il rilascio del tag ${version} in produzione..."
 
   run_id="$(latest_new_run_id "$PROD_WORKFLOW" push "$version" "$sha" "$known_runs")" \
     || die 'Tag e release creati, ma la run produzione non è comparsa entro 40 secondi.'
-  watch_run "$run_id" 'Verifica deploy stage|Prepara deploy e dipendenze|Aggiorna Drupal e indice di ricerca|Genera sito, PDF e redirect' 'Deploy in produzione' || die 'Il deploy in produzione non è riuscito.'
+  watch_run "$run_id" 'Verifica deploy stage|Prepara deploy e dipendenze|Aggiorna Drupal e indice di ricerca|Genera sito, PDF e redirect' "Deploy in Produzione della versione ${version}" || die 'Il deploy in produzione non è riuscito.'
 }
 
 usage() {
