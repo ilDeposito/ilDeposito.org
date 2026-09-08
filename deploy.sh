@@ -90,6 +90,16 @@ format_duration() {
   printf '%02d:%02d' "$((seconds / 60))" "$((seconds % 60))"
 }
 
+format_duration_words() {
+  local seconds="$1" minutes remaining_seconds
+  minutes="$((seconds / 60))"
+  remaining_seconds="$((seconds % 60))"
+  local minute_word='minuti' second_word='secondi'
+  [[ "$minutes" == 1 ]] && minute_word='minuto'
+  [[ "$remaining_seconds" == 1 ]] && second_word='secondo'
+  printf '%d %s e %d %s' "$minutes" "$minute_word" "$remaining_seconds" "$second_word"
+}
+
 render_progress() {
   local snapshot="$1" expected_steps="$2" interactive="$3" elapsed="$4" name status conclusion
   local -a steps
@@ -106,7 +116,7 @@ render_progress() {
 }
 
 watch_run() {
-  local run_id="$1" expected_steps="$2" snapshot='' previous_snapshot='' state_line='' status='' conclusion='' interactive=0 started_at elapsed
+  local run_id="$1" expected_steps="$2" deployment_label="$3" snapshot='' previous_snapshot='' state_line='' status='' conclusion='' interactive=0 started_at elapsed elapsed_seconds
   [[ -t 1 ]] && interactive=1
   started_at="$(date +%s)"
   PROGRESS_LINES=0
@@ -122,7 +132,8 @@ watch_run() {
             "STEP\t\($job.name)\t\($job.status)\t\($job.conclusion // "")"
           end)
       ] | .[]')"
-    elapsed="$(format_duration "$(( $(date +%s) - started_at ))")"
+    elapsed_seconds="$(( $(date +%s) - started_at ))"
+    elapsed="$(format_duration "$elapsed_seconds")"
     if (( interactive )) || [[ "$snapshot" != "$previous_snapshot" ]]; then
       render_progress "$snapshot" "$expected_steps" "$interactive" "$elapsed"
       previous_snapshot="$snapshot"
@@ -131,8 +142,8 @@ watch_run() {
     state_line="${snapshot%%$'\n'*}"
     IFS=$'\t' read -r _ status conclusion <<< "$state_line"
     [[ "$status" == completed ]] || { sleep 3; continue; }
-    [[ "$conclusion" == success ]] && { ok "Workflow completato in ${elapsed}."; return 0; }
-    failure "Workflow fallito dopo ${elapsed}: ${conclusion:-sconosciuto}."
+    [[ "$conclusion" == success ]] && { ok "${deployment_label} eseguito in $(format_duration_words "$elapsed_seconds")."; return 0; }
+    failure "${deployment_label} fallito dopo $(format_duration_words "$elapsed_seconds"): ${conclusion:-sconosciuto}."
     return 1
   done
 }
@@ -146,7 +157,7 @@ deploy_stage() {
   local run_id
   run_id="$(latest_new_run_id "$STAGE_WORKFLOW" workflow_dispatch main "$sha" "$known_runs")" \
     || die 'La run stage non è comparsa entro 40 secondi.'
-  watch_run "$run_id" 'Prepara deploy e dipendenze|Aggiorna Drupal e indice di ricerca|Genera sito e PDF' || die 'Il deploy stage non è riuscito.'
+  watch_run "$run_id" 'Prepara deploy e dipendenze|Aggiorna Drupal e indice di ricerca|Genera sito e PDF' 'Deploy in Stage' || die 'Il deploy stage non è riuscito.'
 }
 
 last_successful_stage_run() {
@@ -212,7 +223,7 @@ release() {
 
   run_id="$(latest_new_run_id "$PROD_WORKFLOW" push "$version" "$sha" "$known_runs")" \
     || die 'Tag e release creati, ma la run produzione non è comparsa entro 40 secondi.'
-  watch_run "$run_id" 'Verifica deploy stage|Prepara deploy e dipendenze|Aggiorna Drupal e indice di ricerca|Genera sito, PDF e redirect' || die 'Il deploy in produzione non è riuscito.'
+  watch_run "$run_id" 'Verifica deploy stage|Prepara deploy e dipendenze|Aggiorna Drupal e indice di ricerca|Genera sito, PDF e redirect' 'Deploy in produzione' || die 'Il deploy in produzione non è riuscito.'
 }
 
 usage() {
