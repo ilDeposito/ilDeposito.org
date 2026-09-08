@@ -28,19 +28,12 @@ final class GitHubWorkflowClient {
   // (vedi "concurrency:" nei rispettivi .github/workflows/*.yml). Tutte le
   // operazioni di un ambiente sono serializzate: modificano la stessa working
   // copy, gli stessi volumi Docker e gli stessi container.
-  private const GROUP_STAGE = ['build-frontend-content-stage.yml', 'build-frontend-stage.yml', 'build-frontend-pdf-stage.yml', 'deploy-stage.yml'];
-  private const GROUP_PROD = ['build-frontend-content-prod.yml', 'build-frontend-prod.yml', 'build-frontend-pdf-prod.yml', 'build-redirect-prod.yml', 'deploy-prod.yml'];
+  private const GROUP_STAGE = ['stage.yml'];
+  private const GROUP_PROD = ['prod.yml'];
 
   private const CONCURRENCY_GROUPS = [
-    'build-frontend-content-stage.yml' => self::GROUP_STAGE,
-    'build-frontend-stage.yml' => self::GROUP_STAGE,
-    'build-frontend-pdf-stage.yml' => self::GROUP_STAGE,
-    'deploy-stage.yml' => self::GROUP_STAGE,
-    'build-frontend-content-prod.yml' => self::GROUP_PROD,
-    'build-frontend-prod.yml' => self::GROUP_PROD,
-    'build-frontend-pdf-prod.yml' => self::GROUP_PROD,
-    'build-redirect-prod.yml' => self::GROUP_PROD,
-    'deploy-prod.yml' => self::GROUP_PROD,
+    'stage.yml' => self::GROUP_STAGE,
+    'prod.yml' => self::GROUP_PROD,
   ];
 
   public function __construct(
@@ -58,14 +51,14 @@ final class GitHubWorkflowClient {
     return 'https://github.com/' . self::REPO;
   }
 
-  public function triggerWorkflow(string $workflow): bool {
+  public function triggerWorkflow(string $workflow, array $inputs = []): bool {
     try {
       // "inputs.source" arriva al workflow come "${{ inputs.source }}" e
       // viene passato a ildeposito.sh (--source) per distinguere nel log
       // Drupal un trigger partito da qui da un run manuale su GitHub, che
       // invece lascia il default dell'input ("GitHub", vedi .github/workflows).
       $this->apiRequest('POST', "/repos/" . self::REPO . "/actions/workflows/{$workflow}/dispatches", [
-        'json' => ['ref' => 'main', 'inputs' => ['source' => 'backend']],
+        'json' => ['ref' => 'main', 'inputs' => ['source' => 'backend'] + $inputs],
       ]);
       return TRUE;
     }

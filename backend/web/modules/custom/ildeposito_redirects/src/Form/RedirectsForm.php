@@ -38,9 +38,9 @@ final class RedirectsForm extends FormBase {
   private const PATH_PATTERN_FROM = '#^/(?:[A-Za-z0-9\-_.]*|\*)(?:/(?:[A-Za-z0-9\-_.]*|\*))*\*?$#';
 
   // Workflow GitHub che rigenera _redirects.conf e ricarica nginx (vedi
-  // ildeposito.sh build-redirect). Solo prod: a differenza di
-  // build-frontend-*, non esiste un equivalente stage/local.
-  private const PUBLISH_WORKFLOW = 'build-redirect-prod.yml';
+  // ildeposito.sh build-redirect). Solo prod: stage non espone questa
+  // operazione agli editor.
+  private const PUBLISH_WORKFLOW = 'prod.yml';
 
   public function __construct(
     protected readonly StateInterface $state,
@@ -230,7 +230,7 @@ final class RedirectsForm extends FormBase {
   }
 
   public function publishSubmit(array &$form, FormStateInterface $form_state): void {
-    if (!$this->githubClient->triggerWorkflow(self::PUBLISH_WORKFLOW)) {
+    if (!$this->githubClient->triggerWorkflow(self::PUBLISH_WORKFLOW, ['operation' => 'redirect'])) {
       $this->messenger()->addError($this->t('Impossibile avviare la pubblicazione. Verifica la configurazione GitHub App e riprova.'));
       return;
     }

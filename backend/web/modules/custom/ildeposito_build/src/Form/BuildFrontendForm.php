@@ -18,15 +18,15 @@ final class BuildFrontendForm extends FormBase {
 
   private const WORKFLOWS = [
     'content' => [
-      'stage' => 'build-frontend-content-stage.yml',
-      'prod' => 'build-frontend-content-prod.yml',
+      'stage' => 'stage.yml',
+      'prod' => 'prod.yml',
       // In locale non esiste una build: si aggancia al workflow di stage.
-      'local' => 'build-frontend-content-stage.yml',
+      'local' => 'stage.yml',
     ],
     'full' => [
-      'stage' => 'build-frontend-stage.yml',
-      'prod' => 'build-frontend-prod.yml',
-      'local' => 'build-frontend-stage.yml',
+      'stage' => 'stage.yml',
+      'prod' => 'prod.yml',
+      'local' => 'stage.yml',
     ],
   ];
 
@@ -103,7 +103,7 @@ final class BuildFrontendForm extends FormBase {
     $mode = (string) ($form_state->getTriggeringElement()['#name'] ?? 'full');
     $workflow = self::getWorkflow($mode);
 
-    if (!$this->githubClient->triggerWorkflow($workflow)) {
+    if (!$this->githubClient->triggerWorkflow($workflow, ['operation' => $mode])) {
       $this->messenger()->addError($this->t('Impossibile avviare la build. Verifica la configurazione GitHub App e riprova.'));
       return;
     }

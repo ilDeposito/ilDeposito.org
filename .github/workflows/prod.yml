@@ -1,0 +1,60 @@
+name: Production
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Operazione da eseguire in produzione
+        required: true
+        default: deploy
+        type: choice
+        options: [deploy, content, full, pdf, redirect]
+      release_tag:
+        description: Tag da distribuire (obbligatorio solo per deploy manuale)
+        required: false
+        type: string
+      source:
+        description: Origine del trigger
+        required: false
+        default: GitHub
+        type: string
+
+concurrency:
+  group: prod-operations
+  cancel-in-progress: false
+
+jobs:
+  production:
+    runs-on: self-hosted
+    defaults:
+      run:
+        working-directory: /home/ubuntu/sergej/websites/ildeposito/prod
+    steps:
+      - name: Resolve operation
+        id: operation
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_OPERATION: ${{ inputs.operation }}
+          INPUT_TAG: ${{ inputs.release_tag }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$EVENT_NAME" = push ]; then
+            echo 'operation=deploy' >> "$GITHUB_OUTPUT"
+            echo "ref=$REF_NAME" >> "$GITHUB_OUTPUT"
+          else
+            echo "operation=$INPUT_OPERATION" >> "$GITHUB_OUTPUT"
+            echo "ref=$INPUT_TAG" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Run production operation
+        env:
+          OPERATION: ${{ steps.operation.outputs.operation }}
+          DEPLOY_REF: ${{ steps.operation.outputs.ref }}
+          BUILD_SOURCE: ${{ inputs.source || 'GitHub' }}
+        run: |
+          if [ "$OPERATION" = deploy ]; then
+            ./ildeposito.sh pipeline deploy --ref "$DEPLOY_REF" --source "$BUILD_SOURCE"
+          else
+            ./ildeposito.sh pipeline "$OPERATION" --source "$BUILD_SOURCE"
+          fi

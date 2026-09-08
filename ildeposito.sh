@@ -210,16 +210,11 @@ resolve_build_source() {
     fi
 }
 
-# Etichetta usata nel log Drupal: replica il naming dei file in
-# .github/workflows/ (build-frontend[-content|-pdf]-{stage,prod}.yml) così il
-# messaggio in watchdog è correlabile 1:1 alla run GitHub Actions. "canzonieri"
-# non ha un workflow dedicato (solo cron server): l'etichetta è solo
-# descrittiva, nessun file reale con quel nome.
+# Etichetta usata nel log Drupal. Le build GitHub passano dai due workflow
+# unificati stage.yml e prod.yml; "canzonieri" resta un cron server.
 build_workflow_label() {
     case "$1" in
-        full)       echo "build-frontend-${ENV}.yml" ;;
-        content)    echo "build-frontend-content-${ENV}.yml" ;;
-        pdf)        echo "build-frontend-pdf-${ENV}.yml" ;;
+        full|content|pdf) echo "${ENV}.yml ($1)" ;;
         canzonieri) echo "build-canzonieri-${ENV}.yml" ;;
     esac
 }
@@ -317,7 +312,7 @@ _run_build_frontend() {
 cmd_build_redirect() {
     local source label
     source="$(resolve_build_source "$@")"
-    label="build-redirect-prod.yml"
+    label="prod.yml (redirect)"
 
     # Un solo evento in watchdog: vedi cmd_build_frontend.
     if _run_build_redirect; then
@@ -351,6 +346,140 @@ _run_build_redirect() {
 
 cmd_drush() {
     ${COMPOSE} exec -T php drush -r /var/www/html/web "$@"
+}
+
+deploy_cleanup() {
+    local status="$?"
+    if [[ "${DEPLOY_MAINTENANCE_MODE:-0}" == "1" ]]; then
+        warn "Ripristino maintenance mode dopo deploy interrotto..."
+        DEPLOY_MAINTENANCE_MODE=0
+        cmd_drush sset system.maintenance_mode 0 || true
+        cmd_drush cache:rebuild || true
+    fi
+    exit "$status"
+}
+
+backup_pre_deploy() {
+    info "Backup database ${ENV}..."
+    mkdir -p backup/deploy
+    local timestamp
+    timestamp="$(date +%Y%m%d-%H%M%S)"
+    cmd_drush sql:dump --result-file="/var/backup_migrate/deploy/pre-deploy-${timestamp}.sql"
+    cmd_exec -T php bzip2 "/var/backup_migrate/deploy/pre-deploy-${timestamp}.sql"
+    ls -1t backup/deploy/pre-deploy-*.sql.bz2 2>/dev/null | tail -n +11 | xargs -r rm -f --
+}
+
+wait_for_db_ready() {
+    info "Attendo database..."
+    for i in $(seq 1 10); do
+        if cmd_drush status --fields=db-status 2>/dev/null | grep -q Connected; then
+            return 0
+        fi
+        info "Database non pronto (${i}/10)..."
+        sleep 5
+    done
+    error "Database non raggiungibile"
+    return 1
+}
+
+sync_deploy_checkout() {
+    local ref="$1" old_head target
+    chmod u+w backend/web/sites/default backend/web/sites/default/*.php backend/web/sites/default/*.yml 2>/dev/null || true
+    old_head="$(git rev-parse HEAD)"
+
+    if [[ "${ENV}" == "stage" ]]; then
+        [[ "${GITHUB_EVENT_NAME:-workflow_dispatch}" != "workflow_dispatch" || "${GITHUB_REF_NAME:-main}" == "main" ]] \
+            || { error "Il deploy stage manuale va avviato dal ref main"; return 1; }
+        git fetch origin main
+        target="$(git rev-parse "${ref}^{commit}")"
+        git merge-base --is-ancestor "$target" origin/main \
+            || { error "Il commit stage non appartiene a origin/main"; return 1; }
+    else
+        [[ "$ref" =~ ^v[0-9]+(\.[0-9]+)*(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]] \
+            || { error "Tag di release non valido: $ref"; return 1; }
+        if [[ "${GITHUB_EVENT_NAME:-push}" == "workflow_dispatch" ]]; then
+            [[ "${GITHUB_REF_TYPE:-}" == "tag" && "${GITHUB_REF_NAME:-}" == "$ref" ]] \
+                || { error "Per il deploy manuale prod seleziona lo stesso tag indicato"; return 1; }
+        fi
+        git fetch origin main --tags --prune
+        target="$(git rev-parse "refs/tags/${ref}^{commit}")"
+        git merge-base --is-ancestor "$target" origin/main \
+            || { error "Il tag $ref non punta a un commit già presente in main"; return 1; }
+    fi
+
+    git reset --hard "$target"
+    {
+        git describe --tags --always
+        git log -1 --pretty=%s
+    } > backend/.deploy-version
+    printf '%s\n' "$old_head"
+}
+
+rebuild_search_index_if_needed() {
+    local old_head="$1"
+    if [[ "${ENV}" == "prod" ]] || git diff --name-only "$old_head" HEAD -- \
+        backend/web/sites/default/config/sync/search_api.index.*.yml \
+        backend/web/sites/default/config/sync/search_api.server.*.yml | grep -q .; then
+        info "Rebuild indice Search API..."
+        cmd_drush search-api:rebuild-tracker ildeposito
+        cmd_drush search-api:index ildeposito
+    else
+        info "Nessuna modifica Search API, skip rebuild indice."
+    fi
+}
+
+cmd_deploy() {
+    local ref='' source='GitHub' old_head
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --ref) ref="${2:-}"; shift 2 ;;
+            --source) source="${2:-GitHub}"; shift 2 ;;
+            *) error "Opzione deploy sconosciuta: $1"; exit 1 ;;
+        esac
+    done
+    [[ -n "$ref" ]] || { error 'Uso: ./ildeposito.sh deploy --ref <commit|tag>'; exit 1; }
+
+    DEPLOY_MAINTENANCE_MODE=0
+    trap deploy_cleanup EXIT INT TERM
+    cmd_drush status --fields=drupal-version,db-status,bootstrap
+    cmd_drush config:status 2>/dev/null | grep -v 'No differences' && warn 'Config drift rilevato' || true
+    backup_pre_deploy
+    old_head="$(sync_deploy_checkout "$ref")"
+    cmd_up
+    wait_for_db_ready
+    cmd_composer install --no-dev --optimize-autoloader
+    DEPLOY_MAINTENANCE_MODE=1
+    cmd_drush sset system.maintenance_mode 1
+    cmd_drush cache:rebuild
+    cmd_drush updatedb -y
+    cmd_drush config:import -y
+    cmd_drush cache:rebuild
+    rebuild_search_index_if_needed "$old_head"
+    cmd_drush sset system.maintenance_mode 0
+    DEPLOY_MAINTENANCE_MODE=0
+    cmd_drush cache:rebuild
+    cmd_build_frontend full --source "$source"
+    if [[ "${ENV}" == "prod" ]]; then
+        cmd_build_redirect --source "$source"
+    fi
+    trap - EXIT INT TERM
+    ok "Deploy ${ENV} completato"
+}
+
+cmd_pipeline() {
+    local operation="${1:-}"
+    shift || true
+    case "$operation" in
+        deploy) cmd_deploy "$@" ;;
+        content) cmd_build_frontend content "$@" ;;
+        full) cmd_build_frontend full "$@" ;;
+        pdf) cmd_build_frontend pdf "$@" ;;
+        redirect)
+            [[ "${ENV}" == "prod" ]] || { error 'redirect è disponibile solo in produzione'; exit 1; }
+            cmd_build_redirect "$@"
+            ;;
+        *) error 'Operazione pipeline non valida: usa deploy|content|full|pdf|redirect'; exit 1 ;;
+    esac
 }
 
 # Import delle migrazioni nell'ordine di dipendenza definito in
@@ -656,6 +785,8 @@ ${BOLD}Comandi:${NC}
   backup            Backup completo: dump DB (schema vuoto per cache*/search_api_db_*) + dump immagini
                       entrambi in bz2 in backup/ildeposito/, retention 30 giorni (uso da cron)
   composer <args>   Esegui comando composer
+  deploy --ref <ref> Aggiorna codice, Drupal e frontend sul ref indicato (stage: commit main; prod: tag)
+  pipeline <azione> Esegue deploy|content|full|pdf|redirect (redirect solo prod)
   backend-update    [solo stage] Crea backend-upgrade/YYYY-MM-DD-HH-MM e applica/valida aggiornamenti drupal/*
   github-app-token  [solo stage] Stampa un token temporaneo della GitHub App (solo workflow)
   telegram <msg>    Invia un messaggio Telegram usando le variabili del .env
@@ -684,6 +815,8 @@ case "${1:-}" in
     allinea-prod)    cmd_allinea_prod ;;
     backup)          cmd_backup ;;
     composer)        shift; cmd_composer "$@" ;;
+    deploy)          shift; cmd_deploy "$@" ;;
+    pipeline)        shift; cmd_pipeline "$@" ;;
     backend-update) cmd_backend_update ;;
     github-app-token) cmd_github_app_token ;;
     telegram)       shift; cmd_telegram "$@" ;;

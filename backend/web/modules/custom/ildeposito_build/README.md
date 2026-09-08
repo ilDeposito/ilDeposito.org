@@ -24,7 +24,7 @@ Gestisce tutta la comunicazione con GitHub API v3:
 - Trigger: `POST /repos/{repo}/actions/workflows/{workflow}/dispatches`
 - Verifica run attive/in coda (repo-wide, un'unica chiamata): `GET /repos/{repo}/actions/runs`, filtrata client-side per workflow (incluso lo stesso concurrency group, vedi `CONCURRENCY_GROUPS`) e per stato (`queued`, `in_progress`, `waiting`)
 
-Repo target: `ilDeposito/ilDeposito.org`, branch `main`. Usato anche da `ildeposito_redirects` (pulsante "Pubblica redirect"), che condivide lo stesso concurrency group `build-frontend-prod` su GitHub Actions con le build di contenuti/PDF in produzione.
+Repo target: `ilDeposito/ilDeposito.org`, branch `main`. Usato anche da `ildeposito_redirects` (pulsante "Pubblica redirect"): tutte le operazioni produzione condividono il workflow `prod.yml` e il relativo concurrency group.
 
 ### Access Check (`BuildAccessCheck`)
 Blocca l'accesso alla route `/admin/pubblica-contenuti` se la variabile d'ambiente `ILDEPOSITO_ENV` non è `stage` o `prod`. In locale (DDEV) il pulsante non compare mai.
@@ -36,12 +36,12 @@ La whitelist è configurata nel codice in `JsonApiWriteFirewall::ALLOWED_WRITES`
 
 ## Workflow attivati
 
-Il form espone due pulsanti, ognuno agganciato a un workflow diverso in base all'ambiente (`ILDEPOSITO_ENV`):
+Il form espone due pulsanti. Entrambi avviano il workflow dell'ambiente (`stage.yml` o `prod.yml`) con un input `operation` distinto:
 
 | Ambiente | Pubblica contenuti | Pubblica contenuti + PDF |
 |---|---|---|
-| Stage | `build-frontend-content-stage.yml` | `build-frontend-stage.yml` |
-| Produzione | `build-frontend-content-prod.yml` | `build-frontend-prod.yml` |
+| Stage | `stage.yml`, `content` | `stage.yml`, `full` |
+| Produzione | `prod.yml`, `content` | `prod.yml`, `full` |
 
 "Pubblica contenuti" salta la rigenerazione PDF (`SKIP_PDF=1`, vedi `docker-entrypoint.sh`), quindi è più veloce; "Pubblica contenuti + PDF" rigenera anche i PDF dei canti modificati.
 
@@ -52,7 +52,7 @@ L'esito di ogni build (frontend e redirect) finisce nel log Drupal (`/admin/repo
 | Fonte | Come viene riconosciuta |
 |---|---|
 | `backend` | Pulsante "Pubblica" in Drupal: `GitHubWorkflowClient::triggerWorkflow()` passa l'input `source: backend` al `workflow_dispatch` |
-| `GitHub` | Run manuale da UI/app GitHub (l'input `source` resta al default `GitHub`), oppure workflow di deploy innescati da push (`deploy-{stage,prod}.yml`, che non hanno l'input e quindi non passano `--source`: `ildeposito.sh` rileva comunque `GITHUB_ACTIONS=true` e usa `GitHub`) |
+| `GitHub` | Run manuale da GitHub CLI/UI o deploy di produzione innescato dal tag |
 | `server` | Esecuzione diretta sul server (crontab, SSH, `allinea-prod`): nessun `--source` e nessuna variabile `GITHUB_ACTIONS` |
 
 Messaggi: `Build completata con successo - {fonte}: {workflow}.yml` oppure `Build fallita (exit N) - {fonte}: {workflow}.yml`, scritti a fine run. Il comando drush `ildeposito:log` (in `src/Drush/Commands/BuildLogCommand.php`) scrive il messaggio nel canale `ildeposito_build`; se drush/DB non rispondono, `ildeposito.sh` logga solo un warning locale e non interrompe la build.
