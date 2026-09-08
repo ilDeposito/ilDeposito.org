@@ -52,6 +52,49 @@ function ildeposito_utils_schema(): array {
         'status' => ['status'],
       ],
     ],
+    'ildeposito_utils_facebook_instagram' => [
+      'description' => 'Registro idempotente delle foto Facebook replicate su Instagram.',
+      'fields' => [
+        'facebook_post_id' => [
+          'type' => 'varchar',
+          'length' => 80,
+          'not null' => TRUE,
+        ],
+        'status' => [
+          'type' => 'varchar',
+          'length' => 16,
+          'not null' => TRUE,
+          'default' => 'pending',
+        ],
+        'instagram_creation_id' => [
+          'type' => 'varchar',
+          'length' => 80,
+          'not null' => FALSE,
+        ],
+        'instagram_media_id' => [
+          'type' => 'varchar',
+          'length' => 80,
+          'not null' => FALSE,
+        ],
+        'created' => [
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ],
+        'sent' => [
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => FALSE,
+        ],
+        'processing_started' => [
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => FALSE,
+        ],
+      ],
+      'primary key' => ['facebook_post_id'],
+      'indexes' => ['status' => ['status']],
+    ],
   ];
 }
 
@@ -78,5 +121,16 @@ function ildeposito_utils_update_10002(): void {
       'unsigned' => TRUE,
       'not null' => FALSE,
     ]);
+  }
+}
+
+/**
+ * Crea il registro idempotente delle pubblicazioni Facebook -> Instagram.
+ */
+function ildeposito_utils_update_10003(): void {
+  $schema = \Drupal::database()->schema();
+  if (!$schema->tableExists('ildeposito_utils_facebook_instagram')) {
+    $definition = ildeposito_utils_schema()['ildeposito_utils_facebook_instagram'];
+    $schema->createTable('ildeposito_utils_facebook_instagram', $definition);
   }
 }

@@ -20,6 +20,9 @@ services:
   Drupal\ildeposito_utils\Service\FacebookTelegramPublisher:
     autowire: true
 
+  Drupal\ildeposito_utils\Service\FacebookInstagramPublisher:
+    autowire: true
+
   Drupal\ildeposito_utils\Controller\FacebookWebhookController:
     autowire: true
 
