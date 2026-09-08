@@ -97,6 +97,7 @@ watch_run() {
     IFS=$'\t' read -r _ status conclusion <<< "$state_line"
     [[ "$status" == completed ]] || { sleep 3; continue; }
     [[ "$conclusion" == success ]] && { info 'Workflow completato.'; return 0; }
+    printf 'Errore: workflow fallito: %s.\n' "${conclusion:-sconosciuto}" >&2
     return 1
   done
 }
@@ -110,7 +111,7 @@ deploy_stage() {
   local run_id
   run_id="$(latest_new_run_id "$STAGE_WORKFLOW" workflow_dispatch main "$sha" "$known_runs")" \
     || die 'La run stage non è comparsa entro 40 secondi.'
-  watch_run "$run_id"
+  watch_run "$run_id" || die 'Il deploy stage non è riuscito.'
 }
 
 last_successful_stage_run() {
@@ -171,7 +172,7 @@ release() {
 
   run_id="$(latest_new_run_id "$PROD_WORKFLOW" push "$version" "$sha" "$known_runs")" \
     || die 'Tag e release creati, ma la run produzione non è comparsa entro 40 secondi.'
-  watch_run "$run_id"
+  watch_run "$run_id" || die 'Il deploy in produzione non è riuscito.'
 }
 
 usage() {

@@ -30,7 +30,11 @@ jobs:
         if: inputs.operation == 'deploy'
         env:
           DEPLOY_REF: ${{ github.sha }}
-        run: ./ildeposito.sh pipeline deploy-prepare --ref "$DEPLOY_REF"
+        run: |
+          git fetch origin main --quiet
+          git show "$DEPLOY_REF:ildeposito.sh" > .ildeposito-deploy.sh
+          trap 'rm -f .ildeposito-deploy.sh' EXIT
+          bash ./.ildeposito-deploy.sh pipeline deploy-prepare --ref "$DEPLOY_REF"
       - name: Aggiorna Drupal e indice di ricerca
         if: inputs.operation == 'deploy'
         run: ./ildeposito.sh pipeline deploy-update

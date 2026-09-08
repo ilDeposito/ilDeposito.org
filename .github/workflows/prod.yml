@@ -38,7 +38,11 @@ jobs:
     steps:
       - name: Prepara deploy e dipendenze
         if: env.OPERATION == 'deploy'
-        run: ./ildeposito.sh pipeline deploy-prepare --ref "$DEPLOY_REF"
+        run: |
+          git fetch origin main --tags --quiet
+          git show "refs/tags/${DEPLOY_REF}:ildeposito.sh" > .ildeposito-deploy.sh
+          trap 'rm -f .ildeposito-deploy.sh' EXIT
+          bash ./.ildeposito-deploy.sh pipeline deploy-prepare --ref "$DEPLOY_REF"
       - name: Aggiorna Drupal e indice di ricerca
         if: env.OPERATION == 'deploy'
         run: ./ildeposito.sh pipeline deploy-update
