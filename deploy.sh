@@ -4,6 +4,8 @@ set -euo pipefail
 REPOSITORY='ilDeposito/ilDeposito.org'
 STAGE_WORKFLOW='stage.yml'
 PROD_WORKFLOW='prod.yml'
+TIMER_REFRESH_SECONDS=0.5
+GITHUB_STATUS_POLL_TICKS=20
 RED=$'\033[0;31m'
 GREEN=$'\033[0;32m'
 YELLOW=$'\033[0;33m'
@@ -133,7 +135,7 @@ watch_run() {
             "STEP\t\($job.name)\t\($job.status)\t\($job.conclusion // "")"
           end)
       ] | .[]')"
-      poll_ticks=6
+      poll_ticks="$GITHUB_STATUS_POLL_TICKS"
     fi
     elapsed_seconds="$(( $(date +%s) - started_at ))"
     elapsed="$(format_duration "$elapsed_seconds")"
@@ -146,7 +148,7 @@ watch_run() {
     IFS=$'\t' read -r _ status conclusion <<< "$state_line"
     [[ "$status" == completed ]] || {
       poll_ticks="$((poll_ticks - 1))"
-      sleep 0.5
+      sleep "$TIMER_REFRESH_SECONDS"
       continue
     }
     [[ "$conclusion" == success ]] && { ok "${deployment_label} eseguito in $(format_duration_words "$elapsed_seconds")."; return 0; }
