@@ -85,25 +85,32 @@ print_progress_step() {
   esac
 }
 
+format_duration() {
+  local seconds="$1"
+  printf '%02d:%02d' "$((seconds / 60))" "$((seconds % 60))"
+}
+
 render_progress() {
-  local snapshot="$1" expected_steps="$2" interactive="$3" name status conclusion
+  local snapshot="$1" expected_steps="$2" interactive="$3" elapsed="$4" name status conclusion
   local -a steps
   IFS='|' read -r -a steps <<< "$expected_steps"
   if (( interactive && PROGRESS_LINES > 0 )); then
     printf '\033[%dA\033[J' "$PROGRESS_LINES"
   fi
+  printf '  %sTempo trascorso: %s%s\n\n' "$DIM" "$elapsed" "$RESET"
   for name in "${steps[@]}"; do
     IFS=$'\t' read -r status conclusion < <(progress_step_status "$snapshot" "$name")
     print_progress_step "$name" "$status" "$conclusion"
   done
-  PROGRESS_LINES="${#steps[@]}"
+  PROGRESS_LINES="$(( ${#steps[@]} + 2 ))"
 }
 
 watch_run() {
-  local run_id="$1" expected_steps="$2" snapshot='' previous_snapshot='' state_line='' status='' conclusion='' interactive=0
+  local run_id="$1" expected_steps="$2" snapshot='' previous_snapshot='' state_line='' status='' conclusion='' interactive=0 started_at elapsed
   [[ -t 1 ]] && interactive=1
+  started_at="$(date +%s)"
   PROGRESS_LINES=0
-  render_progress '' "$expected_steps" "$interactive"
+  render_progress '' "$expected_steps" "$interactive" '00:00'
   while :; do
     snapshot="$(gh run view "$run_id" --repo "$REPOSITORY" --json status,conclusion,jobs --jq '
       [
@@ -115,16 +122,17 @@ watch_run() {
             "STEP\t\($job.name)\t\($job.status)\t\($job.conclusion // "")"
           end)
       ] | .[]')"
-    if [[ "$snapshot" != "$previous_snapshot" ]]; then
-      render_progress "$snapshot" "$expected_steps" "$interactive"
+    elapsed="$(format_duration "$(( $(date +%s) - started_at ))")"
+    if (( interactive )) || [[ "$snapshot" != "$previous_snapshot" ]]; then
+      render_progress "$snapshot" "$expected_steps" "$interactive" "$elapsed"
       previous_snapshot="$snapshot"
     fi
 
     state_line="${snapshot%%$'\n'*}"
     IFS=$'\t' read -r _ status conclusion <<< "$state_line"
     [[ "$status" == completed ]] || { sleep 3; continue; }
-    [[ "$conclusion" == success ]] && { ok 'Workflow completato.'; return 0; }
-    failure "Workflow fallito: ${conclusion:-sconosciuto}."
+    [[ "$conclusion" == success ]] && { ok "Workflow completato in ${elapsed}."; return 0; }
+    failure "Workflow fallito dopo ${elapsed}: ${conclusion:-sconosciuto}."
     return 1
   done
 }
