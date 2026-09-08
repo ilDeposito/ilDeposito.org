@@ -273,7 +273,10 @@ final class FbEventiGiornoCommand extends Command {
       $this->facebookPageClient->postMultipartToPage('photos', $multipart);
     }
     finally {
-      fclose($file);
+      // Il client HTTP puo' chiudere lo stream multipart dopo l'invio.
+      if (is_resource($file)) {
+        fclose($file);
+      }
     }
   }
 
