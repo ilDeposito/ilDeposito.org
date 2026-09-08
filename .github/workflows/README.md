@@ -42,8 +42,9 @@ pubblicato su `origin/main`.
    conferma crea il tag annotato e la GitHub Release; il push del tag avvia
    automaticamente `prod.yml` e lo script attende anche questo deploy.
 
-`release` richiede che `stage.yml` abbia concluso con successo un deploy dello
-stesso commit attuale di `main`. Per usare gli script dal computer locale basta
+`release` richiede che l’ultima run di `stage.yml` per il commit attuale di
+`main` sia conclusa con successo. Anche `prod.yml` esegue lo stesso controllo,
+quindi un tag non può aggirarlo. Per usare gli script dal computer locale basta
 autenticare una volta GitHub CLI con `gh auth login`.
 
 Durante un deploy completo il terminale mostra solo queste macro-fasi:

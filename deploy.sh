@@ -115,8 +115,13 @@ deploy_stage() {
 }
 
 last_successful_stage_run() {
-  local sha="$1"
-  gh run list --repo "$REPOSITORY" --workflow "$STAGE_WORKFLOW" --status success --limit 50 --json databaseId,headSha,event --jq ".[] | select(.headSha == \"$sha\" and .event == \"workflow_dispatch\") | .databaseId" | head -n1
+  local sha="$1" run_id='' status='' conclusion='' row
+  row="$(gh run list --repo "$REPOSITORY" --workflow "$STAGE_WORKFLOW" --event workflow_dispatch --limit 100 \
+    --json databaseId,headSha,status,conclusion --jq ".[] | select(.headSha == \"$sha\") | [.databaseId, .status, (.conclusion // \"\")] | @tsv" | head -n1)"
+  [[ -n "$row" ]] || return 0
+  IFS=$'\t' read -r run_id status conclusion <<< "$row"
+  [[ "$status" == completed && "$conclusion" == success ]] || return 0
+  printf '%s\n' "$run_id"
 }
 
 release() {
