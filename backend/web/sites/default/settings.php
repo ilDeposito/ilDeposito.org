@@ -67,6 +67,12 @@ $settings['ildeposito_utils_fb_webhook_verify_token'] = getenv('FB_WEBHOOK_VERIF
 $settings['ildeposito_utils_telegram_channel_bot_token'] = getenv('TELEGRAM_CHANNEL_BOT_TOKEN') ?: '';
 $settings['ildeposito_utils_telegram_channel_chat_id'] = getenv('TELEGRAM_CHANNEL_CHAT_ID') ?: '';
 
+// Mastodon: l'istanza e il token sono segreti per ambiente. La pubblicazione
+// non viene attivata da queste sole impostazioni: saranno usate quando verrà
+// definita la politica editoriale di replica.
+$settings['ildeposito_utils_mastodon_base_url'] = rtrim(getenv('MASTODON_BASE_URL') ?: '', '/');
+$settings['ildeposito_utils_mastodon_access_token'] = getenv('MASTODON_ACCESS_TOKEN') ?: '';
+
 // Anteprima frontend (ildeposito_preview): secret HMAC condiviso col
 // frontend Astro (rotta /preview/[uuid]) e URL base del frontend a cui
 // reindirizzare. Diversi per ambiente, impostati SOLO via env (non sotto

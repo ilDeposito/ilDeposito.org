@@ -95,6 +95,19 @@ function ildeposito_utils_schema(): array {
       'primary key' => ['facebook_post_id'],
       'indexes' => ['status' => ['status']],
     ],
+    'ildeposito_utils_facebook_mastodon' => [
+      'description' => 'Registro idempotente delle pubblicazioni Facebook replicate su Mastodon.',
+      'fields' => [
+        'facebook_post_id' => ['type' => 'varchar', 'length' => 80, 'not null' => TRUE],
+        'status' => ['type' => 'varchar', 'length' => 16, 'not null' => TRUE, 'default' => 'pending'],
+        'mastodon_status_id' => ['type' => 'varchar', 'length' => 80, 'not null' => FALSE],
+        'created' => ['type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE],
+        'sent' => ['type' => 'int', 'unsigned' => TRUE, 'not null' => FALSE],
+        'processing_started' => ['type' => 'int', 'unsigned' => TRUE, 'not null' => FALSE],
+      ],
+      'primary key' => ['facebook_post_id'],
+      'indexes' => ['status' => ['status']],
+    ],
   ];
 }
 
@@ -132,5 +145,13 @@ function ildeposito_utils_update_10003(): void {
   if (!$schema->tableExists('ildeposito_utils_facebook_instagram')) {
     $definition = ildeposito_utils_schema()['ildeposito_utils_facebook_instagram'];
     $schema->createTable('ildeposito_utils_facebook_instagram', $definition);
+  }
+}
+
+/** Crea il registro idempotente delle pubblicazioni Facebook -> Mastodon. */
+function ildeposito_utils_update_10004(): void {
+  $schema = \Drupal::database()->schema();
+  if (!$schema->tableExists('ildeposito_utils_facebook_mastodon')) {
+    $schema->createTable('ildeposito_utils_facebook_mastodon', ildeposito_utils_schema()['ildeposito_utils_facebook_mastodon']);
   }
 }

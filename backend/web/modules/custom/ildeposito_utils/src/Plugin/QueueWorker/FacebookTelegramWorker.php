@@ -11,6 +11,7 @@ use Drupal\Core\Queue\QueueWorkerBase;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\ildeposito_utils\Service\FacebookInstagramPublisher;
 use Drupal\ildeposito_utils\Service\FacebookTelegramPublisher;
+use Drupal\ildeposito_utils\Service\FacebookMastodonPublisher;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -29,6 +30,7 @@ final class FacebookTelegramWorker extends QueueWorkerBase implements ContainerF
     mixed $plugin_definition,
     private readonly FacebookTelegramPublisher $publisher,
     private readonly FacebookInstagramPublisher $instagramPublisher,
+    private readonly FacebookMastodonPublisher $mastodonPublisher,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
   }
@@ -40,6 +42,7 @@ final class FacebookTelegramWorker extends QueueWorkerBase implements ContainerF
       $plugin_definition,
       $container->get(FacebookTelegramPublisher::class),
       $container->get(FacebookInstagramPublisher::class),
+      $container->get(FacebookMastodonPublisher::class),
     );
   }
 
@@ -54,6 +57,9 @@ final class FacebookTelegramWorker extends QueueWorkerBase implements ContainerF
     if ($this->publisher->publish($postId) === FacebookTelegramPublisher::RESULT_BUSY) {
       // L'altro canale (webhook o cron) ha gia' il lease: manteniamo l'item
       // finche' non lo marca inviato o il lease scade dopo un crash.
+      throw new RequeueException();
+    }
+    if ($this->mastodonPublisher->isConfigured() && $this->mastodonPublisher->publish($postId) === FacebookMastodonPublisher::RESULT_BUSY) {
       throw new RequeueException();
     }
   }
