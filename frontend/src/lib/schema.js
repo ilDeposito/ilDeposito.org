@@ -724,6 +724,11 @@ export function buildWebPageSchema(title, description, url) {
   };
 }
 
+/**
+ * @param {string} name
+ * @param {{ name: string, url?: string }[]} items
+ * @param {{ itemType?: string, idSuffix?: string | null }} options
+ */
 export function buildItemListSchema(name, items, { itemType = 'Thing', idSuffix = null } = {}) {
   return {
     '@context': 'https://schema.org',

@@ -23,6 +23,8 @@ interface Props {
   jsonLd?: object | object[];
 }
 
+type JsonLdNode = Record<string, unknown>;
+
 const {
   title,
   description,
@@ -59,11 +61,12 @@ const canonicalAbsolute = (() => {
   }
 })();
 
-const normalizeJsonLdNode = (node) => {
+const normalizeJsonLdNode = (node: unknown): JsonLdNode[] => {
   if (!node || typeof node !== 'object') return [];
   if (Array.isArray(node)) return node.flatMap(normalizeJsonLdNode);
-  if (Array.isArray(node['@graph'])) return node['@graph'].flatMap(normalizeJsonLdNode);
-  const { '@context': _, ...rest } = node;
+  const jsonLdNode = node as JsonLdNode;
+  if (Array.isArray(jsonLdNode['@graph'])) return jsonLdNode['@graph'].flatMap(normalizeJsonLdNode);
+  const { '@context': _, ...rest } = jsonLdNode;
   return [rest];
 };
 
