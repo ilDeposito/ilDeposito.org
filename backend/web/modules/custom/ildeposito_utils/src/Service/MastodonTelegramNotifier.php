@@ -11,7 +11,7 @@ use GuzzleHttp\ClientInterface;
 final class MastodonTelegramNotifier {
   private const STATE_LAST_ID = 'ildeposito_utils.mastodon_notifications_last_id';
   public function __construct(private readonly MastodonClient $mastodon, private readonly ClientInterface $httpClient, private readonly StateInterface $state) {}
-  public function isConfigured(): bool { return $this->mastodon->isConfigured() && getenv('TELEGRAM_BOT_TOKEN') && getenv('TELEGRAM_CHAT_ID'); }
+  public function isConfigured(): bool { return getenv('ILDEPOSITO_ENV') === 'prod' && $this->mastodon->isConfigured() && getenv('TELEGRAM_BOT_TOKEN') && getenv('TELEGRAM_CHAT_ID'); }
   /** Prima esecuzione silenziosa; le successive inoltrano ogni tipo ricevuto. */
   public function sync(): int {
     if (!$this->isConfigured()) throw new \LogicException('Notifiche Mastodon non configurate.');
