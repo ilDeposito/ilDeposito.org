@@ -1,15 +1,23 @@
-# Frontend — Astro 6
+# Frontend — Astro 7.3
 
 ## Architettura
 
-Sito pubblico decoupled: **Astro 6** con `output: 'static'` (SSG) e adapter `@astrojs/node` (`mode: 'standalone'`). Tutte le pagine sono prerenderizzate a build time; solo due endpoint girano lato server on-demand (SSR), dichiarando `export const prerender = false`:
+Sito pubblico decoupled: **Astro 7.3** con `output: 'static'` (SSG) e adapter `@astrojs/node` 11 (`mode: 'standalone'`). Tutte le pagine sono prerenderizzate a build time; solo due endpoint girano lato server on-demand (SSR), dichiarando `export const prerender = false`:
 
 - `src/pages/api/altcha.ts` — challenge ALTCHA (captcha proof-of-work)
 - `src/pages/api/modulo_contatti.ts` — submit del form contatti verso Drupal JSON:API (scrittura)
 
 Il resto del sito consuma dati **una tantum a build time** dal backend Drupal via JSON:API — nessuna chiamata client-side ai contenuti.
 
-Stack: Tailwind v4, DaisyUI v5 (tema custom `ildeposito`), TypeScript strict, nessun framework di hydration (web components vanilla).
+Stack: Tailwind 4.3, DaisyUI 5.7 (tema custom `ildeposito`), TypeScript 6 strict, nessun framework di hydration (web components vanilla).
+
+## Versioni frontend
+
+Il file `package.json` è la fonte di verità; le versioni principali aggiornate
+sono Astro 7.3.2, `@astrojs/node` 11.1.5, Tailwind 4.3.3, DaisyUI 5.7.32,
+Fontsource 5.3.0, Playwright 1.63.0, PDFKit 0.20.2, ALTCHA 3.2.2/
+`altcha-lib` 2.4.0 e Sharp 0.35.4. TypeScript resta alla 6.0.3: l'attuale
+`@astrojs/check` non supporta ancora TypeScript 7.
 
 ## Infrastruttura stage/prod
 

@@ -153,8 +153,19 @@ watch_run() {
     }
     [[ "$conclusion" == success ]] && { ok "${deployment_label} eseguito in $(format_duration_words "$elapsed_seconds")."; return 0; }
     failure "${deployment_label} fallito dopo $(format_duration_words "$elapsed_seconds"): ${conclusion:-sconosciuto}."
+    print_failed_run_logs "$run_id"
     return 1
   done
+}
+
+print_failed_run_logs() {
+  local run_id="$1" run_url=''
+  printf '\n%sLog dei passaggi falliti (run %s):%s\n' "$YELLOW" "$run_id" "$RESET" >&2
+  if ! gh run view "$run_id" --repo "$REPOSITORY" --log-failed >&2; then
+    failure 'Impossibile recuperare i log del fallimento dalla GitHub CLI.'
+  fi
+  run_url="$(gh run view "$run_id" --repo "$REPOSITORY" --json url --jq .url 2>/dev/null || true)"
+  [[ -n "$run_url" ]] && printf 'Run GitHub: %s\n' "$run_url" >&2
 }
 
 deploy_stage() {

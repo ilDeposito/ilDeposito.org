@@ -19,7 +19,7 @@ Il progetto è un monorepo con due applicazioni indipendenti:
 
 - **Backend** ([`backend/`](backend/)) — Drupal 11, espone i contenuti
   tramite JSON:API
-- **Frontend** ([`frontend/`](frontend/)) — Astro 6, consuma le API a build
+- **Frontend** ([`frontend/`](frontend/)) — Astro 7.3, consuma le API a build
   time e genera un sito statico, con alcuni endpoint server-side on-demand
   (form contatti)
 

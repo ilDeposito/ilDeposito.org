@@ -1,7 +1,7 @@
 # Audit & Refactoring Schema.org + Open Graph — ilDeposito.org
 
 **Data:** 2026-07-30  
-**Progetto:** ilDeposito.org (Drupal 11 headless + Astro 6)  
+**Progetto:** ilDeposito.org (Drupal 11 headless + Astro 7.3)
 **Dominio:** Canti di protesta politica e sociale italiani
 
 ---

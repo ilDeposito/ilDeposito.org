@@ -6,7 +6,7 @@ Linee guida e stato delle ottimizzazioni per PageSpeed Insights, Core Web Vitals
 
 ## Architettura attuale
 
-Il frontend è un sito **statico SSG** (Astro 6). Tutto l'HTML è pre-renderizzato a build time. Non c'è SSR, non c'è hydration framework. Il JS client-side è limitato a web components vanilla (~200 righe totali).
+Il frontend è un sito **statico SSG** (Astro 7.3). Tutto l'HTML è pre-renderizzato a build time. Non c'è SSR, non c'è hydration framework. Il JS client-side è limitato a web components vanilla (~200 righe totali).
 
 ---
 

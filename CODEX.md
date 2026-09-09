@@ -2,7 +2,7 @@
 
 ## Project Overview & Stack
 
-- Headless monorepo: Drupal 11/PHP 8.3 (`backend/`) + Astro 6 (`frontend/`).
+- Headless monorepo: Drupal 11/PHP 8.3 (`backend/`) + Astro 7.3 (`frontend/`).
 - Drupal JSON:API; Astro SSG con SSR solo per `/api/*`.
 - Frontend: Node >=22.12, TypeScript strict, Tailwind v4, DaisyUI v5, Pagefind, Playwright.
 - Backend: Composer/Drush 13, MariaDB, Redis; DDEV locale, Docker Compose stage/prod.

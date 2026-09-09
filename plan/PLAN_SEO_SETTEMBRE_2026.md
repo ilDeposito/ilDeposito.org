@@ -17,7 +17,7 @@ contenuti dal browser: il modello SSG attuale va conservato.
 
 ### Generazione e dati
 
-- Astro 6 produce un sito statico (`output: 'static'`, `trailingSlash:
+- Astro 7.3 produce un sito statico (`output: 'static'`, `trailingSlash:
   'never'`); solo `src/pages/api/altcha.ts` e
   `src/pages/api/modulo_contatti.ts` sono SSR. Nginx serve il client statico e
   inoltra solo `/api/*` a Node.

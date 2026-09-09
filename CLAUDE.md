@@ -4,12 +4,12 @@ Archivio online di canti di protesta politica e sociale italiani.
 
 ## Architettura
 
-Monorepo con due applicazioni indipendenti: **Drupal 11** (backend/CMS) espone contenuti via **JSON:API**, **Astro 6** (frontend) li consuma a build time. Rendering **ibrido**: `output: 'static'` prerenderizza tutte le pagine a build time (SSG), ma l'adapter Node abilita alcuni endpoint server on-demand (SSR) per il form contatti — vedi [Rendering ibrido](#rendering-ibrido-ssg--ssr-on-demand).
+Monorepo con due applicazioni indipendenti: **Drupal 11** (backend/CMS) espone contenuti via **JSON:API**, **Astro 7.3** (frontend) li consuma a build time. Rendering **ibrido**: `output: 'static'` prerenderizza tutte le pagine a build time (SSG), ma l'adapter Node abilita alcuni endpoint server on-demand (SSR) per il form contatti — vedi [Rendering ibrido](#rendering-ibrido-ssg--ssr-on-demand).
 
 | Componente | Path | Stack | Ruolo |
 |---|---|---|---|
 | **Backend** | `backend/` | Drupal 11 + PHP 8.3 + Radix 6 (Bootstrap 5) | CMS, JSON:API, admin |
-| **Frontend** | `frontend/` | Astro 6 + Tailwind v4 + DaisyUI v5 + Node adapter | Sito pubblico (SSG + SSR on-demand) |
+| **Frontend** | `frontend/` | Astro 7.3 + Node adapter 11 + Tailwind 4.3 + DaisyUI 5.7 | Sito pubblico (SSG + SSR on-demand) |
 
 Il frontend raggiunge il backend tramite la rete Docker interna (`drupal-api` alias nginx) in staging/prod, oppure via `http://ildeposito11.ddev.site` in locale.
 
@@ -195,14 +195,14 @@ backend/
 - Hook OOP con attributi `#[Hook]` (Drupal 11.1+)
 - PHPStan installato — non introdurre nuovi errori
 
-## Frontend — Astro 6
+## Frontend — Astro 7.3
 
 ### Path principali
 
 ```
 frontend/
 ├── astro.config.mjs                     # output static + adapter Node, site www.ildeposito.org, sitemap, PDF generator
-├── package.json                         # Astro 6.4, Tailwind v4, DaisyUI v5, Node >= 22.12
+├── package.json                         # Astro 7.3, adapter Node 11, Tailwind 4.3, DaisyUI 5.7, PDFKit 0.20, Playwright 1.63
 ├── tsconfig.json                        # extends astro/tsconfigs/strict
 ├── pagefind.toml                        # force_language = "it"
 ├── Dockerfile                           # Node 22-alpine (stage/prod builder)

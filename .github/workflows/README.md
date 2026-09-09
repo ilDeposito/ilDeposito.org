@@ -59,8 +59,9 @@ Durante un deploy completo il terminale mostra solo queste macro-fasi:
 3. **Genera sito e PDF** (e, in produzione, i redirect): build del frontend e
    pubblicazione degli artefatti.
 
-I log completi restano disponibili solo nella pagina della run su GitHub, se
-servono per analizzare un errore.
+Se un deploy lanciato con `./deploy.sh` fallisce, lo script stampa direttamente
+i log dei soli passaggi falliti e il link alla run GitHub. I log completi
+restano comunque disponibili nella pagina della run.
 
 ## Operazioni di stage
 
