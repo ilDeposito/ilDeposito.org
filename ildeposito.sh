@@ -270,8 +270,13 @@ cmd_build_frontend() {
 }
 
 _run_build_frontend() {
-    local mode="$1"
+    local mode="$1" build_git_ref
     info "Build frontend Astro [${ENV}] modalità: ${mode}..."
+
+    # Mantiene nel footer il riferimento del codice realmente in build: su
+    # produzione è il tag di release, su stage/local il descrittore Git più
+    # vicino al commit corrente.
+    build_git_ref="$(git describe --tags --always 2>/dev/null || true)"
 
     info "Rebuild immagine astro-builder..."
     ${COMPOSE} build astro-builder
@@ -279,7 +284,7 @@ _run_build_frontend() {
     wait_for_nginx_healthy
 
     info "Avvio build..."
-    ${COMPOSE} run --rm astro-builder sh docker-entrypoint.sh "${mode}"
+    ${COMPOSE} run --rm -e "BUILD_GIT_REF=${build_git_ref}" astro-builder sh docker-entrypoint.sh "${mode}"
 
     if [[ "${mode}" != "pdf" && "${mode}" != "canzonieri" ]]; then
         # frontend-web può essere stato ricreato pochi secondi prima da

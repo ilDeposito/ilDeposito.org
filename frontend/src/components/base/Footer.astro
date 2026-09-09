@@ -3,6 +3,14 @@ import logoRaw from '../../assets/images/ildeposito-logo.svg?raw';
 import Icon from './Icon.astro';
 
 const buildDate = import.meta.env.BUILD_DATE;
+const buildGitRef = import.meta.env.BUILD_GIT_REF;
+const buildInfo = buildGitRef && buildDate
+  ? `Versione: ${buildGitRef} · Last build: ${buildDate}`
+  : buildGitRef
+    ? `Versione: ${buildGitRef}`
+    : buildDate
+      ? `Last build: ${buildDate}`
+      : 'build dev';
 ---
 
 <footer class="w-full font-sans" style="content-visibility:auto;contain-intrinsic-size:auto 400px">
@@ -94,7 +102,7 @@ const buildDate = import.meta.env.BUILD_DATE;
       <a href="/informazioni">informazioni</a> · <a href="/informazioni/privacy">privacy</a> · <a href="/informazioni/contatti">contatti</a>
     </p>
 
-    <p class="text-neutral-content/60 text-xs text-right">{buildDate ? `Last build: ${buildDate}` : 'build dev'}</p>
+    <p class="text-neutral-content/60 text-xs text-right">{buildInfo}</p>
 
   </div>
   </div>
