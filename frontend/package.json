@@ -17,21 +17,21 @@
   },
   "dependencies": {
     "@astrojs/node": "^10.1.4",
-    "@astrojs/rss": "^4.0.18",
-    "@astrojs/sitemap": "^3.7.3",
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.4",
     "@fontsource/bitter": "^5.2.10",
     "@fontsource/ibm-plex-mono": "^5.2.7",
     "@fontsource/source-sans-3": "^5.2.9",
     "@phosphor-icons/core": "^2.1.1",
-    "altcha": "^3.1.0",
-    "altcha-lib": "^2.2.0",
-    "astro": "^6.4.4",
+    "altcha": "^3.2.2",
+    "altcha-lib": "^2.4.0",
+    "astro": "^6.4.8",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "pdf-lib": "^1.17.1",
     "pdfkit": "^0.19.1",
     "qrcode": "^1.5.4",
-    "sharp": "^0.35.3"
+    "sharp": "^0.35.4"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
