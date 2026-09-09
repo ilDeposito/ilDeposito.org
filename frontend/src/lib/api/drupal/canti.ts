@@ -68,6 +68,19 @@ export async function getCantiRecenti(limit = 50): Promise<CantoRecente[]> {
     .map(mapCantoRecente);
 }
 
+export async function getCantiRecentiDettaglio(limit = 20): Promise<CantoDetail[]> {
+  const { data, included } = await fetchAllCantiRaw();
+  const map = buildIncludedMap(included);
+  return [...data]
+    .sort((a: any, b: any) => {
+      const da = a.attributes.created ?? '';
+      const db = b.attributes.created ?? '';
+      return db.localeCompare(da);
+    })
+    .slice(0, limit)
+    .map((item: any) => mapCantoDetail(item, map));
+}
+
 export async function getCantiPiuVisti(limit = 10): Promise<CantoCard[]> {
   const { data, included } = await fetchAllCantiRaw();
   const map = buildIncludedMap(included);

@@ -1,4 +1,4 @@
-export { getCanti, getCantiRecenti, getCantiPiuVisti, getCantiByPeriodo, getCanto, getAllCantiDetail, getCantoPreview } from './canti.js';
+export { getCanti, getCantiRecenti, getCantiRecentiDettaglio, getCantiPiuVisti, getCantiByPeriodo, getCanto, getAllCantiDetail, getCantoPreview } from './canti.js';
 export { getAutori, getAutoriPiuVisti, getAutoriByPeriodo, getAutore, getAutoriImmaginiMap, getCantiByAutoreMap, getAllAutoriDetail, getAutorePreview } from './autori.js';
 export {
   getEventi, getEventiForCanto, getEventiForCantoMap, getEventiDelMese, getEventiDelGiorno,

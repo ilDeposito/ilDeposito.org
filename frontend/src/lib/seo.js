@@ -109,7 +109,7 @@ export function resolveOgImage(imagePath, site) {
 const formatDataIT = (data) =>
   new Date(data).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
 
-function cantoVars(canto) {
+function cantoVars(canto, { includeCapoverso = true, includeInformazioni = true } = {}) {
   const autori = [...(canto.autoriTesto ?? []), ...(canto.autoriMusica ?? [])].filter(
     (a, i, arr) => arr.findIndex((x) => x.slug === a.slug) === i
   );
@@ -119,7 +119,7 @@ function cantoVars(canto) {
     autori: autori.map((a) => a.titolo).join(' e '),
     primoAutoreTesto: canto.autoriTesto?.[0]?.titolo || '',
     anno: canto.anno || '',
-    extra: canto.capoverso || stripHtml(canto.informazioni || ''),
+    extra: (includeCapoverso ? canto.capoverso : '') || (includeInformazioni ? stripHtml(canto.informazioni || '') : ''),
   };
 }
 
@@ -180,6 +180,15 @@ export function buildCantoDescription(canto) {
   return getPageMeta('canti.detail', cantoVars(canto)).metaDescription;
 }
 
+export function buildCantoRssDescription(canto) {
+  const description = getPageMeta('canti.detail', cantoVars(canto, {
+    includeCapoverso: false,
+    includeInformazioni: false,
+  })).metaDescription;
+  const capoverso = stripHtml(canto.capoverso);
+  return capoverso ? `${description}<br><strong>Capoverso:</strong> ${capoverso}` : description;
+}
+
 export function buildAutoreTitle(autore) {
   return getPageMeta('autori.detail', autoreVars(autore)).metaTitle;
 }
@@ -200,4 +209,3 @@ export function buildTraduzioneTitle(traduzione) {
 export function buildTraduzioneDescription(traduzione) {
   return getPageMeta('traduzioni.detail', traduzioneVars(traduzione)).metaDescription;
 }
-
