@@ -2,7 +2,7 @@ export { getCanti, getCantiRecenti, getCantiRecentiDettaglio, getCantiPiuVisti, 
 export { getAutori, getAutoriPiuVisti, getAutoriByPeriodo, getAutore, getAutoriImmaginiMap, getCantiByAutoreMap, getAllAutoriDetail, getAutorePreview } from './autori.js';
 export {
   getEventi, getEventiForCanto, getEventiForCantoMap, getEventiDelMese, getEventiDelGiorno,
-  getEventiPiuVisti, getEventiByPeriodo, getEventiCalendario, getEventiGeo, getEvento, getAllEventiDetail, getEventoPreview,
+  getEventiPiuVisti, getEventiByPeriodo, getEventiCalendario, getEventiAnniversarioRecenti, getEventiGeo, getEvento, getAllEventiDetail, getEventoPreview,
 } from './eventi.js';
 export { getTraduzioni, getTraduzione, getAllTraduzioniDetail, getTraduzionePreview } from './traduzioni.js';
 export {

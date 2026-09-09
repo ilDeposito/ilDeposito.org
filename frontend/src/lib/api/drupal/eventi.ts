@@ -145,6 +145,38 @@ export async function getEventiCalendario(): Promise<EventoCalendario[]> {
     .map((item: any) => mapEventoCalendario(item, map));
 }
 
+function anniversaryTimestamp(dataEvento: string, today: { day: number; month: number; year: number }): number {
+  const date = new Date(dataEvento);
+  const month = date.getUTCMonth();
+  const day = date.getUTCDate();
+  const inYear = (year: number) => {
+    const anniversary = new Date(Date.UTC(year, month, day));
+    // Il 29 febbraio cade il 28 negli anni non bisestili.
+    if (anniversary.getUTCMonth() !== month) return Date.UTC(year, month + 1, 0);
+    return anniversary.getTime();
+  };
+  const todayTimestamp = Date.UTC(today.year, today.month - 1, today.day);
+  const anniversaryThisYear = inYear(today.year);
+  return anniversaryThisYear > todayTimestamp ? inYear(today.year - 1) : anniversaryThisYear;
+}
+
+export async function getEventiAnniversarioRecenti(limit = 20): Promise<EventoDetail[]> {
+  const { data, included } = await fetchAllEventiRaw();
+  const map = buildIncludedMap(included);
+  const today = oggiRoma();
+
+  return data
+    .filter((item: any) => item.attributes.field_data_evento)
+    .sort((a: any, b: any) => {
+      const diff = anniversaryTimestamp(b.attributes.field_data_evento, today)
+        - anniversaryTimestamp(a.attributes.field_data_evento, today);
+      if (diff !== 0) return diff;
+      return String(a.attributes.field_data_evento).localeCompare(String(b.attributes.field_data_evento));
+    })
+    .slice(0, limit)
+    .map((item: any) => mapEventoDetail(item, map));
+}
+
 export async function getEventiGeo(): Promise<EventoGeo[]> {
   const { data } = await fetchAllEventiRaw();
   return data
