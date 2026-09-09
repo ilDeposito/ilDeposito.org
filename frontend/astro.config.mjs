@@ -70,8 +70,11 @@ async function buildLastmodMap() {
     }));
   } catch (err) {
     // Niente lastmod è meglio di una build rotta: la sitemap resta valida,
-    // solo senza quel campo per questa build.
-    console.warn(`[sitemap] lastmod non disponibile (Drupal non raggiungibile?): ${err.message}`);
+    // solo senza quel campo per questa build. Localmente Drupal può non essere
+    // avviato; stage/prod impostano il flag e conservano il warning utile.
+    if (process.env.SITEMAP_LASTMOD_REQUIRED === '1') {
+      console.warn(`[sitemap] lastmod non disponibile (Drupal non raggiungibile?): ${err.message}`);
+    }
   }
   return map;
 }

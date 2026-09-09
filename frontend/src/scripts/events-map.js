@@ -1,7 +1,6 @@
 import markerClusterCss from 'leaflet.markercluster/dist/MarkerCluster.css?inline';
 import markerClusterDefaultCss from 'leaflet.markercluster/dist/MarkerCluster.Default.css?inline';
 
-const cssInjected = false;
 function injectMarkerClusterCss() {
   if (document.querySelector('[data-marker-cluster-css]')) return;
   const style = document.createElement('style');

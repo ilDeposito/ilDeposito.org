@@ -25,7 +25,7 @@ class ShareButton extends HTMLElement {
         this.appendChild(clone);
         dialog = this.querySelector('dialog');
         dialog.addEventListener('close', () => button.focus());
-        this._bindDialog(dialog, title, pageType);
+        this._bindDialog(dialog, pageType);
       }
 
       const facebook = dialog.querySelector('[data-share="facebook"]');
@@ -44,7 +44,7 @@ class ShareButton extends HTMLElement {
     });
   }
 
-  _bindDialog(dialog, title, pageType) {
+  _bindDialog(dialog, pageType) {
     // Link social (facebook/whatsapp/telegram/email/x): un solo listener
     // delegato, tracciato prima della navigazione verso il canale esterno.
     dialog.querySelectorAll('[data-share]:not([data-share="copy"])').forEach((link) => {

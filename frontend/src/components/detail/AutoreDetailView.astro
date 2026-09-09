@@ -50,8 +50,8 @@ const jsonLd = [
   profileFirstName={autore.nome || undefined}
   profileLastName={autore.cognome || undefined}
   profileUsername={autore.slug}
-  publishedTime={autore.dataCreazione}
-  modifiedTime={autore.dataModifica}
+  publishedTime={autore.dataCreazione ?? undefined}
+  modifiedTime={autore.dataModifica ?? undefined}
   jsonLd={jsonLd}
 >
 

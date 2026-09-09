@@ -133,5 +133,5 @@ const ogImageSecure = ogImageAbsolute?.startsWith('https://') ? ogImageAbsolute 
 {musicReleaseDate && <meta property="music:release_date" content={musicReleaseDate} />}
 
 {jsonLdGraph && (
-  <script type="application/ld+json" set:html={JSON.stringify(jsonLdGraph)} />
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLdGraph)} />
 )}

@@ -1,5 +1,5 @@
 import type {
-  Ref, LinkRef,
+  LinkRef,
   CantoRecente, CantoCard, CantoDetail, CantoInAutore, CantoCollegato,
   AutoreCard, AutoreDetail,
   EventoForCanto, EventoDelGiorno, EventoMese, EventoCard, EventoCalendario, EventoGeo, EventoDetail,

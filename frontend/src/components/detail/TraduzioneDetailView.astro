@@ -33,8 +33,8 @@ const jsonLd = [
   description={buildTraduzioneDescription(traduzione)}
   pagefindType="traduzioni"
   ogType="music.composition"
-  publishedTime={traduzione.dataCreazione}
-  modifiedTime={traduzione.dataModifica}
+  publishedTime={traduzione.dataCreazione ?? undefined}
+  modifiedTime={traduzione.dataModifica ?? undefined}
   articleSection="Traduzioni"
   jsonLd={jsonLd}
 >
