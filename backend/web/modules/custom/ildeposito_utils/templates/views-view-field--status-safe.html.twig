@@ -1,0 +1,20 @@
+{#
+/**
+ * @file
+ * Safe override of Gin's views-view-field--status.html.twig.
+ *
+ * Search API results can lack node_field_data_langcode. Calling
+ * hasTranslation() with that missing value emits a PHP 8.3 deprecation.
+ */
+#}
+{% set entity = row._entity %}
+{% set langcode = row.node_field_data_langcode ?? null %}
+{% if langcode and entity.hasTranslation(langcode) %}
+  {% set entity = row._entity.getTranslation(langcode) %}
+{% endif %}
+
+{% if entity.isPublished() %}
+  <span class="marker marker--published">{{ output -}}</span>
+{% else %}
+  <span class="marker">{{ output -}}</span>
+{% endif %}

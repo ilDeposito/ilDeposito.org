@@ -108,6 +108,30 @@ final class IldepositoUtilsHooks {
   }
 
   /**
+   * Sostituisce il template Gin del campo status nelle Views.
+   *
+   * Le righe restituite da Search API non espongono sempre
+   * node_field_data_langcode. Gin 5.0.15 lo passa comunque a
+   * ContentEntityBase::hasTranslation(), causando una deprecazione PHP 8.3
+   * per ogni risultato. L'override conserva il template di Gin e aggiunge
+   * solo il controllo del valore nullo, senza modificare core o contrib.
+   *
+   * @see https://www.drupal.org/project/gin/issues/3591598
+   */
+  #[Hook('theme_registry_alter')]
+  public function themeRegistryAlter(array &$theme_registry): void {
+    if (!isset($theme_registry['views_view_field__status'])) {
+      return;
+    }
+
+    $module_path = \Drupal::service('extension.list.module')->getPath('ildeposito_utils');
+    $theme_registry['views_view_field__status']['template'] = 'views-view-field--status-safe';
+    $theme_registry['views_view_field__status']['path'] = $module_path . '/templates';
+    $theme_registry['views_view_field__status']['theme path'] = $module_path;
+    $theme_registry['views_view_field__status']['type'] = 'module';
+  }
+
+  /**
    * Etichette leggibili per l'ambiente (ILDEPOSITO_ENV), usate nell'oggetto
    * della notifica di login.
    */
