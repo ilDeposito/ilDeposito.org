@@ -29,6 +29,17 @@ if [[ -z "${ENV:-}" ]]; then
     exit 1
 fi
 
+# Docker Compose include backend/compose.yml con backend/.env come file di
+# variabili (tag delle immagini e valori Docker4Drupal, non credenziali di
+# ambiente). Il file è ignorato per non versionare configurazioni locali:
+# inizializziamolo dal template quando un runner stage/prod è stato preparato
+# da zero. Se l'amministratore lo ha personalizzato, non lo sovrascriviamo.
+BACKEND_ENV_FILE="${PROJECT_ROOT}/backend/.env"
+if [[ ! -f "${BACKEND_ENV_FILE}" ]]; then
+    cp "${PROJECT_ROOT}/backend/.env.example" "${BACKEND_ENV_FILE}"
+    info "Creato backend/.env dal template"
+fi
+
 PROJECT_NAME="ildeposito-${ENV}"
 export COMPOSE_PROJECT_NAME="${PROJECT_NAME}"
 COMPOSE="docker compose --project-directory ${PROJECT_ROOT}"
