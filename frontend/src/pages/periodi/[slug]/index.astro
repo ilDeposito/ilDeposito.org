@@ -1,5 +1,5 @@
 ---
-import { Image } from 'astro:assets';
+import { Image, Picture } from 'astro:assets';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../../components/ui/Breadcrumb.astro';
 import HeaderWatermark from '../../../components/ui/HeaderWatermark.astro';
@@ -105,7 +105,7 @@ const ogImage = await getOgImageForPeriodo(periodo);
 
       <div class="flex items-center gap-4">
         {immagineUrl && (
-          <Image
+          <Picture
             src={immagineUrl}
             alt={"Immagine del periodo: " + periodo.titolo}
             width={160}
@@ -174,7 +174,7 @@ const ogImage = await getOgImageForPeriodo(periodo);
             <div class="flex items-start gap-5 group relative">
               <div class="shrink-0">
                 {immagineUrl ? (
-                  <Image
+                  <Picture
                     src={immagineUrl}
                     alt={autori[0] ? "Foto di " + autori[0].titolo : canto.titolo}
                     width={240}
@@ -242,7 +242,7 @@ const ogImage = await getOgImageForPeriodo(periodo);
               <div class="flex items-start gap-5 group relative">
                 <div class="shrink-0">
                   {autoreImgUrl ? (
-                    <Image
+                    <Picture
                       src={autoreImgUrl}
                       alt={"Foto di " + autore.titolo}
                       width={240}

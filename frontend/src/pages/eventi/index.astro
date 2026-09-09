@@ -1,5 +1,5 @@
 ---
-import { Image } from 'astro:assets';
+import { Picture } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import HeaderWatermark from '../../components/ui/HeaderWatermark.astro';
@@ -129,7 +129,7 @@ const eventiGeoJson = JSON.stringify(
                   <div data-item inert={i !== startIndex} class="min-w-full">
                     <a href={`/eventi/${evento.slug}`} class="block relative h-64">
                       {imgUrls[i] ? (
-                        <Image
+                        <Picture
                           src={imgUrls[i]}
                           alt={"Immagine dell'evento: " + evento.titolo}
                           width={800}
@@ -219,7 +219,7 @@ const eventiGeoJson = JSON.stringify(
               <li class="flex items-start gap-5 group relative">
                 <div class="shrink-0">
                   {immagineUrl ? (
-                    <Image
+                    <Picture
                       src={immagineUrl}
                       alt={"Immagine dell'evento: " + evento.titolo}
                       width={240}

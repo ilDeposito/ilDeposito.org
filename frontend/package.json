@@ -16,7 +16,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@astrojs/node": "^10.1.4",
+    "@astrojs/node": "^11.1.5",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.4",
     "@fontsource/bitter": "^5.2.10",
@@ -25,7 +25,7 @@
     "@phosphor-icons/core": "^2.1.1",
     "altcha": "^3.2.2",
     "altcha-lib": "^2.4.0",
-    "astro": "^6.4.8",
+    "astro": "^7.3.2",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "pdf-lib": "^1.17.1",
@@ -37,10 +37,10 @@
     "@astrojs/check": "^0.9.10",
     "@playwright/test": "^1.52.0",
     "@rollup/plugin-yaml": "^5.0.0",
-    "@tailwindcss/vite": "^4.3.0",
+    "@tailwindcss/vite": "^4.3.3",
     "daisyui": "^5.5.20",
     "pagefind": "^1.5.2",
-    "tailwindcss": "^4.3.0",
+    "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3"
   }
 }

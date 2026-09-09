@@ -4,7 +4,7 @@ import Breadcrumb from '../../components/ui/Breadcrumb.astro';
 import HeaderWatermark from '../../components/ui/HeaderWatermark.astro';
 import ShareModal from '../../components/ui/ShareModal.astro';
 import Icon from '../../components/base/Icon.astro';
-import { Image } from 'astro:assets';
+import { Picture } from 'astro:assets';
 import { getTags, getContenutiByTagMap, getImageUrl } from '../../lib/api/index.js';
 import { buildTaxonomyCollectionPageSchema, buildDefinedTermSetSchema, buildBreadcrumbSchema, buildItemListSchema } from '../../lib/schema.js';
 import { buildCanonical } from '../../lib/seo.js';
@@ -58,7 +58,7 @@ const jsonLd = [
           <li class="flex items-start gap-5 group relative">
             <div class="shrink-0">
               {immagineUrl ? (
-                <Image
+                <Picture
                   src={immagineUrl}
                   alt={"Immagine del tag: " + tag.titolo}
                   width={240}

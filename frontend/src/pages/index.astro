@@ -1,5 +1,5 @@
 ---
-import { Image, getImage } from 'astro:assets';
+import { Picture, getImage } from 'astro:assets';
 import ildepositoHome from '../assets/images/ildeposito_home.png';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/base/Icon.astro';
@@ -181,7 +181,7 @@ const autoriConDati = autori.map((autore) => ({
           <div class="flex items-start gap-5 group relative">
             <div class="shrink-0">
               {immagineUrl ? (
-                <Image
+                <Picture
                   src={immagineUrl}
                   alt={autori[0] ? `Foto di ${autori[0].titolo}` : canto.titolo}
                   width={240}
@@ -253,7 +253,7 @@ const autoriConDati = autori.map((autore) => ({
           <a href={`/autori/${autore.slug}`} class="flex flex-col items-center gap-3 group">
             <div class="shrink-0">
               {immagineUrl ? (
-                <Image
+                <Picture
                   src={immagineUrl}
                   alt={`Foto di ${autore.titolo}`}
                   width={200}
@@ -312,7 +312,7 @@ const autoriConDati = autori.map((autore) => ({
             <a href={`/periodi/${periodo.slug}`} class="flex flex-col items-center gap-3 group">
               <div class="shrink-0">
                 {immagineUrl ? (
-                  <Image
+                  <Picture
                     src={immagineUrl}
                     alt={periodo.titolo}
                     width={200}
@@ -377,7 +377,7 @@ const autoriConDati = autori.map((autore) => ({
                   <div data-item inert={i !== startIndex} class="min-w-full">
                     <a href={`/eventi/${evento.slug}`} class="block relative h-56 md:h-72">
                       {imgUrls[i] ? (
-                        <Image
+                        <Picture
                           src={imgUrls[i]}
                           alt={`Immagine: ${evento.titolo}`}
                           width={800}
