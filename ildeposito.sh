@@ -31,14 +31,19 @@ fi
 
 # Docker Compose include backend/compose.yml con backend/.env come file di
 # variabili (tag delle immagini e valori Docker4Drupal, non credenziali di
-# ambiente). Il file è ignorato per non versionare configurazioni locali:
-# inizializziamolo dal template quando un runner stage/prod è stato preparato
-# da zero. Se l'amministratore lo ha personalizzato, non lo sovrascriviamo.
-BACKEND_ENV_FILE="${PROJECT_ROOT}/backend/.env"
-if [[ ! -f "${BACKEND_ENV_FILE}" ]]; then
-    cp "${PROJECT_ROOT}/backend/.env.example" "${BACKEND_ENV_FILE}"
-    info "Creato backend/.env dal template"
-fi
+# ambiente). Il file è ignorato per non versionare configurazioni locali.
+# Va controllato sia all'avvio, sia dopo il checkout di deploy: un checkout
+# precedente può ancora tracciarlo e `git reset --hard` lo rimuove quando il
+# commit di destinazione lo ignora.
+ensure_backend_env() {
+    local backend_env_file="${PROJECT_ROOT}/backend/.env"
+    if [[ ! -f "${backend_env_file}" ]]; then
+        cp "${PROJECT_ROOT}/backend/.env.example" "${backend_env_file}"
+        info "Creato backend/.env dal template"
+    fi
+}
+
+ensure_backend_env
 
 PROJECT_NAME="ildeposito-${ENV}"
 export COMPOSE_PROJECT_NAME="${PROJECT_NAME}"
@@ -419,6 +424,7 @@ sync_deploy_checkout() {
     fi
 
     git reset --hard "$target"
+    ensure_backend_env
     {
         git describe --tags --always
         git log -1 --pretty=%s
