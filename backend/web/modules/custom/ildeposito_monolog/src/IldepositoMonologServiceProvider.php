@@ -11,7 +11,7 @@ use Monolog\Formatter\LineFormatter;
 
 /**
  * Aggancia un handler Telegram a TUTTI i canali dblog, solo se
- * TELEGRAM_BOT_TOKEN e TELEGRAM_CHAT_ID sono valorizzate nell'ambiente
+ * TELEGRAM_ERRORI_BOT_TOKEN e TELEGRAM_ERRORI_CHAT_ID sono valorizzate nell'ambiente
  * (impostate solo nel .env di produzione, vedi .env.example): altrove
  * (staging, DDEV) resta un no-op, stesso pattern già usato per
  * ildeposito_utils_fbpost_webhook_url in settings.php.
@@ -32,8 +32,8 @@ class IldepositoMonologServiceProvider extends ServiceProviderBase {
    * {@inheritdoc}
    */
   public function alter(ContainerBuilder $container): void {
-    $token = getenv('TELEGRAM_BOT_TOKEN');
-    $chatId = getenv('TELEGRAM_CHAT_ID');
+    $token = getenv('TELEGRAM_ERRORI_BOT_TOKEN');
+    $chatId = getenv('TELEGRAM_ERRORI_CHAT_ID');
 
     if (!$token || !$chatId) {
       return;

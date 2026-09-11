@@ -580,15 +580,15 @@ cmd_composer() {
 
 send_telegram() {
     local message="$1"
-    if [[ -z "${TELEGRAM_BOT_TOKEN:-}" || -z "${TELEGRAM_CHAT_ID:-}" ]]; then
+    if [[ -z "${TELEGRAM_ERRORI_BOT_TOKEN:-}" || -z "${TELEGRAM_ERRORI_CHAT_ID:-}" ]]; then
         warn "Telegram non configurato: notifica saltata"
         return 0
     fi
 
     if curl --fail --silent --show-error --max-time 20 \
-        --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+        --data-urlencode "chat_id=${TELEGRAM_ERRORI_CHAT_ID}" \
         --data-urlencode "text=${message}" \
-        "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" >/dev/null; then
+        "https://api.telegram.org/bot${TELEGRAM_ERRORI_BOT_TOKEN}/sendMessage" >/dev/null; then
         ok "Notifica Telegram inviata"
     else
         warn "Invio Telegram fallito"

@@ -23,7 +23,7 @@ Il trigger periodico non sarà definito nel workflow: sarà un crontab sul serve
 - Il workflow `.github/workflows/deploy-stage.yml` parte su ogni push a `main`.
 - Sul runner stage esegue `git fetch origin main` e `git reset --hard origin/main`: dopo il merge la working copy stage torna quindi esplicitamente a `main`.
 - `./ildeposito.sh allinea-prod` esiste, è limitato all'ambiente stage e ripristina database/file da prod, eseguendo poi `updatedb`, `config:import`, cache rebuild e build frontend.
-- Le variabili `TELEGRAM_BOT_TOKEN` e `TELEGRAM_CHAT_ID` esistono già nell'ambiente Docker, ma serve un meccanismo esplicito per notificare anche gli errori dello script/workflow.
+- Le variabili `TELEGRAM_ERRORI_BOT_TOKEN` e `TELEGRAM_ERRORI_CHAT_ID` esistono già nell'ambiente Docker, ma serve un meccanismo esplicito per notificare anche gli errori dello script/workflow.
 
 ## Decisioni prese
 
