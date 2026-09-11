@@ -199,17 +199,16 @@ prod() {
   [[ -n "$stage_run" ]] || die "Non puoi avviare il deploy in produzione: manca un deploy stage riuscito per ${sha:0:7}. Esegui prima: ./deploy.sh stage"
   info "Stage verificato: run ${stage_run}."
 
-  printf 'Ultimi tre tag:\n'
-  git tag --sort=-creatordate | head -n 3
+  local previous_tag
+  previous_tag="$(gh release list --repo "$REPOSITORY" --limit 1 --json tagName --jq '.[0].tagName')"
 
   local version
-  read -e -r -p 'Nuova versione (es. v2.5.0): ' version
+  read -e -r -p "Nuova versione (ultimo tag rilasciato: ${previous_tag:-nessuno}): " version
   [[ "$version" =~ ^v[0-9]+(\.[0-9]+)*(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]] || die 'Versione non valida.'
   ! git rev-parse --verify --quiet "refs/tags/${version}" >/dev/null || die "Il tag ${version} esiste già localmente."
   ! git ls-remote --exit-code --tags origin "refs/tags/${version}" >/dev/null 2>&1 || die "Il tag ${version} esiste già su origin."
 
-  local previous_tag notes_file
-  previous_tag="$(gh release list --repo "$REPOSITORY" --limit 1 --json tagName --jq '.[0].tagName')"
+  local notes_file
   notes_file="$(mktemp)"
   trap 'rm -f "${notes_file:-}"' EXIT
   {
