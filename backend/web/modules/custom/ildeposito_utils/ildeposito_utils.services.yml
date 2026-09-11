@@ -32,6 +32,12 @@ services:
   Drupal\ildeposito_utils\Service\MastodonTelegramNotifier:
     autowire: true
 
+  Drupal\ildeposito_utils\Service\InstagramTelegramNotifier:
+    autowire: true
+
+  Drupal\ildeposito_utils\Service\MetaWeeklyStatsReporter:
+    autowire: true
+
   Drupal\ildeposito_utils\Controller\FacebookWebhookController:
     autowire: true
 

@@ -21,6 +21,8 @@ final class FacebookTelegramQueueTerminateSubscriber implements EventSubscriberI
 
   private const QUEUE_NAME = 'ildeposito_utils_facebook_telegram';
 
+  private const INSTAGRAM_QUEUE_NAME = 'ildeposito_utils_instagram_telegram';
+
   public function __construct(
     private readonly QueueFactory $queueFactory,
     private readonly QueueWorkerManagerInterface $queueWorkerManager,
@@ -32,12 +34,17 @@ final class FacebookTelegramQueueTerminateSubscriber implements EventSubscriberI
   }
 
   public function onTerminate(TerminateEvent $event): void {
-    $queue = $this->queueFactory->get(self::QUEUE_NAME);
+    $this->drain(self::QUEUE_NAME);
+    $this->drain(self::INSTAGRAM_QUEUE_NAME);
+  }
+
+  private function drain(string $queueName): void {
+    $queue = $this->queueFactory->get($queueName);
     if ($queue->numberOfItems() === 0) {
       return;
     }
 
-    $worker = $this->queueWorkerManager->createInstance(self::QUEUE_NAME);
+    $worker = $this->queueWorkerManager->createInstance($queueName);
     while ($item = $queue->claimItem()) {
       try {
         $worker->processItem($item->data);
@@ -49,7 +56,7 @@ final class FacebookTelegramQueueTerminateSubscriber implements EventSubscriberI
       }
       catch (\Throwable $exception) {
         $queue->releaseItem($item);
-        $this->logger->error('Replica Facebook -> Telegram fallita: @message', ['@message' => $exception->getMessage()]);
+        $this->logger->error('Elaborazione coda @queue fallita: @message', ['@queue' => $queueName, '@message' => $exception->getMessage()]);
         return;
       }
     }

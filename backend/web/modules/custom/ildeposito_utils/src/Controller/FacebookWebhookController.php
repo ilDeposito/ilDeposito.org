@@ -7,20 +7,24 @@ namespace Drupal\ildeposito_utils\Controller;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\Site\Settings;
+use Drupal\ildeposito_utils\Service\FacebookInstagramPublisher;
 use Drupal\ildeposito_utils\Service\FacebookPageClient;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Riceve le notifiche feed della Pagina dall'app Meta.
+ * Riceve le notifiche Facebook e Instagram dall'app Meta.
  */
 final class FacebookWebhookController extends ControllerBase {
 
   private const QUEUE_NAME = 'ildeposito_utils_facebook_telegram';
 
+  private const INSTAGRAM_QUEUE_NAME = 'ildeposito_utils_instagram_telegram';
+
   public function __construct(
     private readonly QueueFactory $queueFactory,
     private readonly FacebookPageClient $facebookPageClient,
+    private readonly FacebookInstagramPublisher $instagramPublisher,
   ) {}
 
   public function receive(Request $request): Response {
@@ -40,7 +44,16 @@ final class FacebookWebhookController extends ControllerBase {
       return new Response('Invalid JSON.', Response::HTTP_BAD_REQUEST);
     }
 
-    if (!is_array($payload) || ($payload['object'] ?? NULL) !== 'page') {
+    if (!is_array($payload)) {
+      return new Response('', Response::HTTP_NO_CONTENT);
+    }
+
+    if (($payload['object'] ?? NULL) === 'instagram') {
+      $this->queueInstagramNotifications($payload);
+      return new Response('', Response::HTTP_OK);
+    }
+
+    if (($payload['object'] ?? NULL) !== 'page') {
       return new Response('', Response::HTTP_NO_CONTENT);
     }
 
@@ -62,6 +75,30 @@ final class FacebookWebhookController extends ControllerBase {
     }
 
     return new Response('', Response::HTTP_OK);
+  }
+
+  /**
+   * Accoda esclusivamente commenti e menzioni dell'account Instagram collegato.
+   *
+   * @param array<string, mixed> $payload
+   */
+  private function queueInstagramNotifications(array $payload): void {
+    $instagramAccountId = $this->instagramPublisher->getInstagramAccountId();
+    $queue = $this->queueFactory->get(self::INSTAGRAM_QUEUE_NAME);
+
+    foreach ($payload['entry'] ?? [] as $entry) {
+      if (!is_array($entry) || (string) ($entry['id'] ?? '') !== $instagramAccountId) {
+        continue;
+      }
+      foreach ($entry['changes'] ?? [] as $change) {
+        if (!is_array($change) || !in_array($change['field'] ?? NULL, ['comments', 'mentions'], TRUE)) {
+          continue;
+        }
+        if (is_array($change['value'] ?? NULL)) {
+          $queue->createItem(['field' => $change['field'], 'value' => $change['value']]);
+        }
+      }
+    }
   }
 
   private function verify(Request $request): Response {

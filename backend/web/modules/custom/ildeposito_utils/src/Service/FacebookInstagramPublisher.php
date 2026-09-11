@@ -104,7 +104,8 @@ final class FacebookInstagramPublisher {
     return is_string($url) && $url !== '' ? $url : NULL;
   }
 
-  private function getInstagramAccountId(): string {
+  /** Restituisce l'account Instagram professionale collegato alla Pagina. */
+  public function getInstagramAccountId(): string {
     $response = $this->facebookPageClient->getAsPage($this->facebookPageClient->getPageId(), [
       'fields' => 'instagram_business_account{id}',
     ]);
