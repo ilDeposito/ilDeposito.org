@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Drupal\ildeposito_utils\Service;
 
 use Drupal\Core\State\StateInterface;
+use Drupal\Core\Site\Settings;
 use GuzzleHttp\ClientInterface;
 
-/** Prepara e invia il riepilogo settimanale delle statistiche Meta. */
+/** Prepara e invia il riepilogo settimanale delle statistiche social. */
 final class MetaWeeklyStatsReporter {
 
   private const STATE_SNAPSHOT = 'ildeposito_utils.meta_weekly_stats.snapshot';
@@ -16,9 +17,12 @@ final class MetaWeeklyStatsReporter {
 
   private const STATE_INSTAGRAM_EVENTS = 'ildeposito_utils.meta_weekly_stats.instagram_events';
 
+  private const STATE_MASTODON_EVENTS = 'ildeposito_utils.meta_weekly_stats.mastodon_events';
+
   public function __construct(
     private readonly FacebookPageClient $facebookPageClient,
     private readonly FacebookInstagramPublisher $instagramPublisher,
+    private readonly MastodonClient $mastodonClient,
     private readonly ClientInterface $httpClient,
     private readonly StateInterface $state,
   ) {}
@@ -36,6 +40,25 @@ final class MetaWeeklyStatsReporter {
     $cutoff = time() - 60 * 86400;
     $events = array_filter($events, static fn (mixed $event): bool => is_array($event) && (int) ($event['received'] ?? 0) >= $cutoff);
     $this->state->set(self::STATE_INSTAGRAM_EVENTS, $events);
+  }
+
+  /** Registra una risposta o una menzione Mastodon per il prossimo riepilogo. */
+  public function recordMastodonEvent(array $notification, string $accountId): void {
+    if (($notification['type'] ?? NULL) !== 'mention' || $accountId === '') {
+      return;
+    }
+    $id = (string) ($notification['id'] ?? '');
+    if ($id === '') {
+      return;
+    }
+    $status = is_array($notification['status'] ?? NULL) ? $notification['status'] : [];
+    $field = (string) ($status['in_reply_to_account_id'] ?? '') === $accountId ? 'replies' : 'mentions';
+    $events = $this->state->get(self::STATE_MASTODON_EVENTS, []);
+    $events = is_array($events) ? $events : [];
+    $events[$id] = ['field' => $field, 'received' => time()];
+    $cutoff = time() - 60 * 86400;
+    $events = array_filter($events, static fn (mixed $event): bool => is_array($event) && (int) ($event['received'] ?? 0) >= $cutoff);
+    $this->state->set(self::STATE_MASTODON_EVENTS, $events);
   }
 
   public function isConfigured(): bool {
@@ -88,13 +111,74 @@ final class MetaWeeklyStatsReporter {
     return $this->format($this->snapshot(), $previous, time());
   }
 
-  /** @return array{collected_at: int, facebook: array<string, int>, instagram: array<string, int>} */
+  /** @return array<string, mixed> */
   private function snapshot(): array {
     return [
       'collected_at' => time(),
       'facebook' => $this->facebookSnapshot(),
       'instagram' => $this->instagramSnapshot(),
+      'mastodon' => $this->mastodonSnapshot(),
+      'telegram' => $this->telegramChannelSnapshot(),
     ];
+  }
+
+  /** @return array{members: int}|null */
+  private function telegramChannelSnapshot(): ?array {
+    $token = trim((string) Settings::get('ildeposito_utils_telegram_channel_bot_token', ''));
+    $chatId = trim((string) Settings::get('ildeposito_utils_telegram_channel_chat_id', ''));
+    if ($token === '' || $chatId === '') {
+      return NULL;
+    }
+    try {
+      $response = $this->httpClient->request('GET', 'https://api.telegram.org/bot' . $token . '/getChatMemberCount', [
+        'query' => ['chat_id' => $chatId],
+        'timeout' => 10,
+      ]);
+      $payload = json_decode((string) $response->getBody(), TRUE, 512, JSON_THROW_ON_ERROR);
+      if (!is_array($payload) || ($payload['ok'] ?? FALSE) !== TRUE || !is_int($payload['result'] ?? NULL)) {
+        return NULL;
+      }
+      return ['members' => $payload['result']];
+    }
+    catch (\Throwable) {
+      // Il canale resta una sorgente opzionale: un errore non blocca il report.
+      return NULL;
+    }
+  }
+
+  /** @return array<string, int>|null */
+  private function mastodonSnapshot(): ?array {
+    if (!$this->mastodonClient->isConfigured()) {
+      return NULL;
+    }
+    $account = $this->mastodonClient->verifyCredentials();
+    $accountId = (string) ($account['id'] ?? '');
+    if ($accountId === '') {
+      return NULL;
+    }
+    $response = $this->mastodonClient->request('GET', '/api/v1/accounts/' . rawurlencode($accountId) . '/statuses', [
+      'query' => ['limit' => 100, 'exclude_replies' => 'true', 'exclude_reblogs' => 'true'],
+    ]);
+    $statuses = json_decode((string) $response->getBody(), TRUE, 512, JSON_THROW_ON_ERROR);
+    if (!is_array($statuses)) {
+      throw new \RuntimeException('Mastodon ha restituito una lista di post non valida per il riepilogo settimanale.');
+    }
+    $totals = [
+      'followers' => (int) ($account['followers_count'] ?? 0),
+      'posts' => (int) ($account['statuses_count'] ?? 0),
+      'favourites' => 0,
+      'reblogs' => 0,
+      'replies' => 0,
+    ];
+    foreach ($statuses as $status) {
+      if (!is_array($status)) {
+        continue;
+      }
+      $totals['favourites'] += (int) ($status['favourites_count'] ?? 0);
+      $totals['reblogs'] += (int) ($status['reblogs_count'] ?? 0);
+      $totals['replies'] += (int) ($status['replies_count'] ?? 0);
+    }
+    return $totals;
   }
 
   /** @return array<string, int> */
@@ -162,13 +246,21 @@ final class MetaWeeklyStatsReporter {
   private function format(array $current, array $previous, int $now): string {
     $facebook = $this->delta($current['facebook'] ?? [], $previous['facebook'] ?? []);
     $instagram = $this->delta($current['instagram'] ?? [], $previous['instagram'] ?? []);
+    $mastodon = $this->delta($current['mastodon'] ?? [], $previous['mastodon'] ?? ($current['mastodon'] ?? []));
+    $telegram = $this->delta($current['telegram'] ?? [], $previous['telegram'] ?? ($current['telegram'] ?? []));
     $events = $this->instagramEventsSince((int) ($previous['collected_at'] ?? $now), $now);
     if ($events['comments'] > 0) {
       $instagram['comments'] = $events['comments'];
     }
     $instagram['mentions'] = $events['mentions'];
 
-    return "📊 Meta — Statistiche della settimana\n\n"
+    $mastodonEvents = $this->mastodonEventsSince((int) ($previous['collected_at'] ?? $now), $now);
+    if ($mastodonEvents['replies'] > 0) {
+      $mastodon['replies'] = $mastodonEvents['replies'];
+    }
+    $mastodon['mentions'] = $mastodonEvents['mentions'];
+
+    $text = "📊 Statistiche settimanali\n\n"
       . "🔵 Facebook\n"
       . 'Follower: ' . $this->number($current['facebook']['followers'] ?? 0) . ' (' . $this->signed($facebook['followers'] ?? 0) . ")\n"
       . 'Visualizzazioni dei post: ' . $this->number($facebook['views'] ?? 0) . "\n"
@@ -180,6 +272,19 @@ final class MetaWeeklyStatsReporter {
       . 'Commenti: ' . $this->number($instagram['comments'] ?? 0) . "\n"
       . 'Menzioni: ' . $this->number($instagram['mentions'] ?? 0) . "\n"
       . 'Interazioni: ' . $this->number($instagram['likes'] ?? 0) . ' mi piace · ' . $this->number($instagram['saves'] ?? 0) . ' salvataggi · ' . $this->number($instagram['shares'] ?? 0) . ' condivisioni';
+
+    if (is_array($current['mastodon'] ?? NULL)) {
+      $text .= "\n\n🟢 Mastodon\n"
+        . 'Follower: ' . $this->number($current['mastodon']['followers'] ?? 0) . ' (' . $this->signed($mastodon['followers'] ?? 0) . ")\n"
+        . 'Post pubblicati: ' . $this->number($mastodon['posts'] ?? 0) . "\n"
+        . 'Interazioni: ' . $this->number($mastodon['favourites'] ?? 0) . ' preferiti · ' . $this->number($mastodon['reblogs'] ?? 0) . ' boost · ' . $this->number($mastodon['replies'] ?? 0) . " risposte\n"
+        . 'Menzioni: ' . $this->number($mastodon['mentions'] ?? 0);
+    }
+    if (is_array($current['telegram'] ?? NULL)) {
+      $text .= "\n\n🔵 Telegram\n"
+        . 'Iscritti al canale: ' . $this->number($current['telegram']['members'] ?? 0) . ' (' . $this->signed($telegram['members'] ?? 0) . ')';
+    }
+    return $text;
   }
 
   /** @param array<string, int> $current @param array<string, int> $previous @return array<string, int> */
@@ -197,6 +302,21 @@ final class MetaWeeklyStatsReporter {
   private function instagramEventsSince(int $from, int $until): array {
     $result = ['comments' => 0, 'mentions' => 0];
     foreach ($this->state->get(self::STATE_INSTAGRAM_EVENTS, []) as $event) {
+      if (!is_array($event) || (int) ($event['received'] ?? 0) < $from || (int) ($event['received'] ?? 0) >= $until) {
+        continue;
+      }
+      $field = $event['field'] ?? '';
+      if (isset($result[$field])) {
+        $result[$field]++;
+      }
+    }
+    return $result;
+  }
+
+  /** @return array{replies: int, mentions: int} */
+  private function mastodonEventsSince(int $from, int $until): array {
+    $result = ['replies' => 0, 'mentions' => 0];
+    foreach ($this->state->get(self::STATE_MASTODON_EVENTS, []) as $event) {
       if (!is_array($event) || (int) ($event['received'] ?? 0) < $from || (int) ($event['received'] ?? 0) >= $until) {
         continue;
       }

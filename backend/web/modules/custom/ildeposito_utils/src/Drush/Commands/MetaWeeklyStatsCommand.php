@@ -15,7 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /** Invia il riepilogo settimanale unico di Facebook e Instagram. */
 #[AsCommand(
   name: 'ildeposito:meta-weekly-stats',
-  description: 'Invia il riepilogo settimanale delle statistiche Meta su Telegram.',
+  description: 'Invia il riepilogo settimanale delle statistiche social su Telegram.',
   aliases: ['iumetaweeklystats'],
 )]
 final class MetaWeeklyStatsCommand extends Command {
@@ -34,7 +34,7 @@ final class MetaWeeklyStatsCommand extends Command {
 
   protected function execute(InputInterface $input, OutputInterface $output): int {
     if (!$this->reporter->isConfigured()) {
-      $output->writeln('<comment>Riepilogo Meta non configurato in questo ambiente.</comment>');
+      $output->writeln('<comment>Riepilogo social non configurato in questo ambiente.</comment>');
       return Command::SUCCESS;
     }
 
@@ -48,7 +48,7 @@ final class MetaWeeklyStatsCommand extends Command {
     return match ($this->reporter->report()) {
       'baseline' => $this->write($output, 'Baseline inizializzata: il primo riepilogo sarà inviato dopo una settimana.'),
       'already_sent' => $this->write($output, 'Riepilogo della settimana già inviato.'),
-      default => $this->write($output, 'Riepilogo Meta inviato su Telegram.'),
+      default => $this->write($output, 'Riepilogo social inviato su Telegram.'),
     };
   }
 
