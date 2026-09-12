@@ -19,6 +19,12 @@ Il frontend raggiunge il backend tramite la rete Docker interna (`drupal-api` al
 
 Gestito da `./local.sh` nella root del progetto.
 
+**Regola operativa:** lo stack locale è integralmente DDEV. Esegui PHP,
+Composer, Drush, Node e npm nel container DDEV (`ddev exec`), oppure usa
+`./local.sh` per le operazioni di stack. Non usare i runtime del Mac né Docker
+Compose direttamente in locale. Per esempio: `ddev exec php -l <file>` e
+`ddev exec --dir /var/www/html/frontend npm run <script>`.
+
 ```bash
 ./local.sh up          # Avvia DDEV → Drupal + Astro dev server
 ./local.sh stop        # Arresta

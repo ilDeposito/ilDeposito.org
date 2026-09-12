@@ -57,6 +57,22 @@ final class FacebookInstagramPublisher {
         ->execute();
     }
 
+    $container = $this->getMediaContainerStatus($creationId);
+    if ($container['status_code'] === 'IN_PROGRESS') {
+      // Meta scarica la foto dal suo URL in modo asincrono. Rilasciamo il
+      // lease, così il prossimo giro della coda può riprovare senza attendere
+      // i dieci minuti riservati ai processi realmente bloccati.
+      $this->markPending($facebookPostId);
+      return self::RESULT_BUSY;
+    }
+    if ($container['status_code'] !== 'FINISHED') {
+      throw new \RuntimeException(sprintf(
+        'Il contenitore media Instagram non è pubblicabile (%s): %s',
+        $container['status_code'],
+        $container['status'],
+      ));
+    }
+
     $mediaId = $this->publishMediaContainer($accountId, $creationId);
     $this->database->update(self::TABLE)
       ->fields(['status' => 'sent', 'instagram_media_id' => $mediaId, 'sent' => time()])
@@ -130,6 +146,28 @@ final class FacebookInstagramPublisher {
     return $this->responseId($response->getBody(), 'contenitore media Instagram');
   }
 
+  /** @return array{status_code: string, status: string} */
+  private function getMediaContainerStatus(string $creationId): array {
+    $response = $this->facebookPageClient->getAsPage($creationId, [
+      'fields' => 'status_code,status',
+    ]);
+    try {
+      $payload = json_decode((string) $response->getBody(), TRUE, 512, JSON_THROW_ON_ERROR);
+    }
+    catch (\JsonException $exception) {
+      throw new \RuntimeException('Instagram ha restituito lo stato del contenitore media in un formato non JSON.', 0, $exception);
+    }
+    $statusCode = is_array($payload) ? ($payload['status_code'] ?? NULL) : NULL;
+    $status = is_array($payload) ? ($payload['status'] ?? NULL) : NULL;
+    if (!is_string($statusCode) || $statusCode === '') {
+      throw new \RuntimeException('Instagram non ha restituito lo stato del contenitore media.');
+    }
+    return [
+      'status_code' => $statusCode,
+      'status' => is_string($status) && $status !== '' ? $status : 'nessun dettaglio fornito',
+    ];
+  }
+
   private function publishMediaContainer(string $accountId, string $creationId): string {
     $response = $this->facebookPageClient->post($accountId . '/media_publish', ['creation_id' => $creationId]);
     return $this->responseId($response->getBody(), 'pubblicazione Instagram');
@@ -193,6 +231,13 @@ final class FacebookInstagramPublisher {
   private function markIgnored(string $facebookPostId): void {
     $this->database->update(self::TABLE)
       ->fields(['status' => 'ignored', 'sent' => time()])
+      ->condition('facebook_post_id', $facebookPostId)
+      ->execute();
+  }
+
+  private function markPending(string $facebookPostId): void {
+    $this->database->update(self::TABLE)
+      ->fields(['status' => 'pending', 'processing_started' => NULL])
       ->condition('facebook_post_id', $facebookPostId)
       ->execute();
   }

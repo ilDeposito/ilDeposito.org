@@ -27,6 +27,21 @@ file).
   area unless a full build is required.
 - Keep replies and code comments concise; do not restate repository context.
 
+## Local Runtime Policy
+
+The local stack runs entirely in DDEV. For any local execution, use DDEV or
+the project wrapper: never use host `php`, `composer`, `drush`, `node`, npm, or
+Docker Compose directly.
+
+- Start, stop, restart, and build the stack with `./local.sh`.
+- Run Drupal and Composer commands with `ddev drush …` and `ddev composer …`.
+- Run PHP checks in the DDEV web container, for example
+  `ddev exec php -l backend/web/modules/custom/example.php`.
+- Run frontend Node commands through DDEV, for example
+  `ddev exec --dir /var/www/html/frontend npm run build`.
+
+`./ildeposito.sh` and raw Docker Compose are for staging/production only.
+
 ## Key File Structure
 
 ```text
@@ -61,23 +76,24 @@ ildeposito.sh               # workflow stage/prod
 ## Essential Commands
 
 ```bash
-# install e avvio locale
-ddev start
+# install e avvio locale (tutto via DDEV)
+./local.sh up
 ddev composer install
-cd frontend && npm ci && npm run dev
+ddev exec --dir /var/www/html/frontend npm ci
 
 # avvio completo Drupal + Astro
 ./local.sh up
 
 # build e controlli frontend
-cd frontend && npm run build
-cd frontend && npm run preview
-cd frontend && node --test tests/schema.test.mjs
-cd frontend && npm run test:e2e
+./local.sh build
+ddev exec --dir /var/www/html/frontend npm run preview
+ddev exec --dir /var/www/html/frontend node --test tests/schema.test.mjs
+ddev exec --dir /var/www/html/frontend npm run test:e2e
 
 # Drupal locale
 ddev drush cr
 ddev drush status
+ddev exec php -l backend/web/modules/custom/ildeposito_utils/src/Service/FacebookInstagramPublisher.php
 
 # stage/prod
 ./ildeposito.sh up
