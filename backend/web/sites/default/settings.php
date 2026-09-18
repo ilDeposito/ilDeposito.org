@@ -56,6 +56,14 @@ $settings['ildeposito_utils_telegram_channel_chat_id'] = getenv('TELEGRAM_CANALE
 $settings['ildeposito_utils_mastodon_base_url'] = rtrim(getenv('MASTODON_BASE_URL') ?: '', '/');
 $settings['ildeposito_utils_mastodon_access_token'] = getenv('MASTODON_ACCESS_TOKEN') ?: '';
 
+// Listmonk (newsletter.ildeposito.org) per la campagna newsletter
+// (ildeposito_utils, drush ildeposito:newsletter-create). Il token è quello
+// di un utente API di Listmonk (funge da password in HTTP Basic Auth): non va
+// salvato nella configurazione Drupal né nel repository.
+$settings['ildeposito_utils_listmonk_base_url'] = rtrim(getenv('LISTMONK_BASE_URL') ?: '', '/');
+$settings['ildeposito_utils_listmonk_username'] = getenv('LISTMONK_USERNAME') ?: '';
+$settings['ildeposito_utils_listmonk_token'] = getenv('LISTMONK_TOKEN') ?: '';
+
 // Anteprima frontend (ildeposito_preview): secret HMAC condiviso col
 // frontend Astro (rotta /preview/[uuid]) e URL base del frontend a cui
 // reindirizzare. Diversi per ambiente, impostati SOLO via env (non sotto
