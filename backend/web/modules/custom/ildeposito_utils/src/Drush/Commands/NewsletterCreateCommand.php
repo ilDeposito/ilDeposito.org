@@ -7,6 +7,7 @@ namespace Drupal\ildeposito_utils\Drush\Commands;
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Site\Settings;
+use Drupal\Core\StreamWrapper\StreamWrapperManager;
 use Drupal\node\NodeInterface;
 use Drush\Commands\AutowireTrait;
 use GuzzleHttp\ClientInterface;
@@ -25,15 +26,19 @@ use Symfony\Component\Console\Output\OutputInterface;
  * Il body contiene la raccolta settimanale:
  * - "Storia cantata: gli eventi della settimana": gli eventi il cui
  *   anniversario (mese/giorno di field_data_evento) cade tra oggi e i 6
- *   giorni successivi (7 giorni, la settimana lun>dom di pubblicazione),
- *   con la data dell'evento in italiano davanti al titolo
- *   ("28 ottobre 1945 - Titolo");
- * - "Ultimi canti inseriti": gli ultimi 5 canti pubblicati.
- * I link usano {{ TrackLink }} per il tracking Listmonk e hanno CSS inline
- * (nero, sottolineato). Se non cade alcun evento, il blocco evento sparisce.
- * Subito dopo la creazione la bozza viene validata chiamando la preview
- * dell'API Listmonk: se il contenuto non compila il comando fallisce (in
- * stage/prod l'errore arriva su Telegram), lasciando comunque la bozza.
+ *   giorni successivi (7 giorni, la settimana lun>dom di pubblicazione).
+ *   Ogni evento è una riga con miniatura in bianco e nero a sinistra e
+ *   data/titolo a destra (image style newsletter_evento, 200×200 reso a
+ *   100×100), quando l'evento ha un'immagine;
+ * - "Ultimi canti inseriti": gli ultimi 5 canti pubblicati;
+ * - "I canti più visti della settimana": i canti con più visualizzazioni nel
+ *   campo field_visualizzazioni_settimana.
+ * Se una sezione è vuota sparisce; il blocco eventi resta solo se cade un
+ * anniversario. I link usano {{ TrackLink }} per il tracking Listmonk e hanno
+ * CSS inline (nero, sottolineato). Subito dopo la creazione la bozza viene
+ * validata chiamando la preview dell'API Listmonk: se il contenuto non
+ * compila il comando fallisce (in stage/prod l'errore arriva su Telegram),
+ * lasciando comunque la bozza.
  *
  * Le credenziali API (LISTMONK_BASE_URL, LISTMONK_USERNAME, LISTMONK_TOKEN)
  * sono lette dal file .env della root del progetto via settings.php. Se
@@ -67,6 +72,15 @@ final class NewsletterCreateCommand extends Command {
 
   // Numero di canti mostrati nel blocco "Ultimi canti inseriti".
   private const ULTIMI_CANTI_COUNT = 5;
+
+  // Numero di canti mostrati nel blocco "I canti più visti della settimana".
+  private const CANTI_PIU_VISTI_COUNT = 5;
+
+  // Image style della miniatura dell'evento: crop quadrato B/N (200×200,
+  // mostrato a 100×100, così è nitido anche su display Retina).
+  private const IMAGE_STYLE_NEWSLETTER_EVENTO = 'newsletter_evento';
+  private const EVENTO_THUMB_DISPLAY = 100;
+  private const EVENTO_THUMB_SOURCE = 200;
 
   // Finestra temporale (giorni) che definisce i canti "appena inseriti".
   private const CANTI_ULTIMI_GIORNI = 7;
@@ -177,7 +191,7 @@ final class NewsletterCreateCommand extends Command {
     $eventi = $this->getEventiAnniversarioSettimana();
     if ($eventi !== []) {
       $htmlParts[] = '<h2>Storia cantata: gli eventi della settimana</h2>';
-      $htmlParts[] = $this->buildHtmlList($eventi, TRUE);
+      $htmlParts[] = $this->buildEventiHtml($eventi);
       $textParts[] = '';
       $textParts[] = 'Storia cantata: gli eventi della settimana';
       $textParts[] = $this->buildTextList($eventi, TRUE);
@@ -190,6 +204,15 @@ final class NewsletterCreateCommand extends Command {
       $textParts[] = '';
       $textParts[] = 'Ultimi canti inseriti';
       $textParts[] = $this->buildTextList($canti);
+    }
+
+    $popolari = $this->getCantiPiuVistiSettimana();
+    if ($popolari !== []) {
+      $htmlParts[] = '<h2>I canti più visti della settimana</h2>';
+      $htmlParts[] = $this->buildHtmlList($popolari);
+      $textParts[] = '';
+      $textParts[] = 'I canti più visti della settimana';
+      $textParts[] = $this->buildTextList($popolari);
     }
 
     return [
@@ -269,32 +292,152 @@ final class NewsletterCreateCommand extends Command {
   }
 
   /**
+   * @return \Drupal\node\NodeInterface[] I canti pubblicati più visualizzati
+   *   della settimana (field_visualizzazioni_settimana > 0), dal più visto.
+   *   Se nessun canto ha visualizzazioni registrate, ritorna lista vuota e il
+   *   blocco non viene stampato.
+   */
+  private function getCantiPiuVistiSettimana(): array {
+    $storage = $this->entityTypeManager->getStorage('node');
+    $query = $storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('type', 'canto')
+      ->condition('status', NodeInterface::PUBLISHED)
+      ->condition('field_visualizzazioni_settimana', 0, '>')
+      ->sort('field_visualizzazioni_settimana', 'DESC')
+      ->range(0, self::CANTI_PIU_VISTI_COUNT);
+
+    $ids = $query->execute();
+
+    return $ids === [] ? [] : $storage->loadMultiple($ids);
+  }
+
+  /**
    * @param \Drupal\node\NodeInterface[] $nodes
-   * @param bool $withDate
-   *   TRUE per gli eventi: ogni voce è prefissata con la data dell'evento in
-   *   italiano ("28 ottobre 1945 - Titolo").
-   *
    *   Elenco puntato HTML con link assoluti tracciati via {{ TrackLink }}:
    *   CSS inline nero e sottolineato.
    */
-  private function buildHtmlList(array $nodes, bool $withDate = FALSE): string {
+  private function buildHtmlList(array $nodes): string {
     $items = '';
     foreach ($nodes as $node) {
-      $label = $node->label();
-      if ($withDate) {
-        $dateLabel = $this->eventDateLabel($node);
-        if ($dateLabel !== '') {
-          $label = $dateLabel . ' - ' . $label;
-        }
-      }
       $url = $node->toUrl('canonical', [
         'absolute' => TRUE,
         'base_url' => self::PUBLIC_BASE_URL,
       ])->toString();
-      $items .= '<li><a href="{{ TrackLink "' . $url . '" }}" style="color:#000000;text-decoration:underline">' . Html::escape($label) . '</a></li>';
+      $items .= '<li><a href="{{ TrackLink "' . $url . '" }}" style="color:#000000;text-decoration:underline">' . Html::escape($node->label()) . '</a>' . Html::escape($this->autoriTestoLabel($node)) . '</li>';
     }
 
     return '<ul>' . $items . '</ul>';
+  }
+
+  /**
+   * Righe tabella per il blocco eventi: miniatura B/N a sinistra, poi data e,
+   * a capo, il titolo. Layout a tabella (niente flex: non è supportato dagli
+   * email client); width 100% così su mobile la riga si contrae da sola.
+   * Se l'evento non ha immagine o lo style non è disponibile, si stampa solo
+   * la riga testuale.
+   *
+   * @param \Drupal\node\NodeInterface[] $nodes
+   */
+  private function buildEventiHtml(array $nodes): string {
+    $rows = '';
+    foreach ($nodes as $node) {
+      $url = $node->toUrl('canonical', [
+        'absolute' => TRUE,
+        'base_url' => self::PUBLIC_BASE_URL,
+      ])->toString();
+      $tracked = '{{ TrackLink "' . $url . '" }}';
+      $dateRow = $this->eventDateLabel($node);
+      if ($dateRow !== '') {
+        $dateRow = '<div style="font-family:Georgia, \'Times New Roman\', Times, serif; font-size:12px; line-height:18px; color:#5a5a5a;">' . $dateRow . '</div>';
+      }
+      $title = '<a href="' . $tracked . '" style="color:#000000;text-decoration:underline;font-family:Helvetica, Arial, sans-serif;font-size:15px;line-height:20px;font-weight:600;">' . Html::escape($node->label()) . '</a>';
+
+      $thumb = $this->getEventoImmagine($node);
+      $size = self::EVENTO_THUMB_DISPLAY;
+      if ($thumb !== NULL) {
+        $rows .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 12px 0;"><tr>'
+          . '<td width="' . $size . '" valign="top" style="padding:0 ' . max(8, $size / 8) . 'px 0 0;">'
+          . '<a href="' . $tracked . '" style="text-decoration:none;border:0;display:block;">'
+          . '<img src="' . $thumb['url'] . '" width="' . $size . '" height="' . $size . '" alt="' . $thumb['alt'] . '" '
+          . 'style="display:block;width:' . $size . 'px;height:' . $size . 'px;border-radius:4px;border:0;outline:none;">'
+          . '</a></td>'
+          . '<td valign="middle" style="padding:0;">' . $dateRow . $title . '</td>'
+          . '</tr></table>';
+      }
+      else {
+        $rows .= '<div style="margin:0 0 12px 0;">' . $dateRow . $title . '</div>';
+      }
+    }
+
+    return $rows;
+  }
+
+  /**
+   * Miniatura B/N dell'evento (image style newsletter_evento, sotto
+   * sites/default/files che è esposto pubblicamente dal bypass Authelia).
+   * Il derivato viene pre-generato qui così il primo apertore non innesca la
+   * generazione on-demand di Drupal.
+   *
+   * @return array{url: string, alt: string}|NULL
+   */
+  private function getEventoImmagine(NodeInterface $node): ?array {
+    $baseUrl = $this->getPublicBackendUrl();
+    if ($baseUrl === '') {
+      return NULL;
+    }
+    if ($node->get('field_immagine')->isEmpty()) {
+      return NULL;
+    }
+    $media = $node->get('field_immagine')->entity;
+    if ($media === NULL || !$media->hasField('field_media_image') || $media->get('field_media_image')->isEmpty()) {
+      return NULL;
+    }
+    $file = $media->get('field_media_image')->entity;
+    if ($file === NULL) {
+      return NULL;
+    }
+    $style = $this->entityTypeManager->getStorage('image_style')->load(self::IMAGE_STYLE_NEWSLETTER_EVENTO);
+    if ($style === NULL) {
+      return NULL;
+    }
+
+    $uri = $file->getFileUri();
+    try {
+      if (!$style->createDerivative($uri, $style->buildUri($uri))) {
+        return NULL;
+      }
+    }
+    catch (\Throwable) {
+      return NULL;
+    }
+
+    // URL costruito a mano, senza itok: il derivato esiste già (createDerivative
+    // l'ha scritto) quindi viene servito staticamente. buildUrl() restituirebbe
+    // un URL già assoluto col contesto CLI corrente: va bene in DDEV ma non in
+    // prod (drush in crond, host sbagliato), qui è deterministico.
+    $relativeTarget = StreamWrapperManager::getTarget($uri);
+    $path = '/sites/default/files/styles/' . self::IMAGE_STYLE_NEWSLETTER_EVENTO . '/public/' . $relativeTarget;
+
+    return [
+      'url' => $baseUrl . implode('/', array_map('rawurlencode', explode('/', $path))),
+      'alt' => '',
+    ];
+  }
+
+  /**
+   * URL base pubblico del backend (admin.ildeposito.org / admin-stage...):
+   * serve per gli URL assoluti delle immagini della newsletter. In DDEV cade
+   * su DDEV_PRIMARY_URL: il files è servito dallo stesso web container.
+   */
+  private function getPublicBackendUrl(): string {
+    $url = trim((string) Settings::get('ildeposito_utils_public_backend_url', ''));
+    if ($url !== '') {
+      return rtrim($url, '/');
+    }
+    $ddev = getenv('DDEV_PRIMARY_URL');
+
+    return $ddev === FALSE ? '' : rtrim($ddev, '/');
   }
 
   /**
@@ -315,6 +458,7 @@ final class NewsletterCreateCommand extends Command {
           $label = $dateLabel . ' - ' . $label;
         }
       }
+      $label .= $this->autoriTestoLabel($node);
       $url = $node->toUrl('canonical', [
         'absolute' => TRUE,
         'base_url' => self::PUBLIC_BASE_URL,
@@ -323,6 +467,27 @@ final class NewsletterCreateCommand extends Command {
     }
 
     return implode("\n", $items);
+  }
+
+  /**
+   * In parentesi, i titoli dei nodi autore collegati (field_autori_testo),
+   * es. "(Paolo Pietrangeli)" oppure "(Fausto Amodei, Cantacronache)".
+   * Stringa vuota se il campo è vuoto o non presente sul bundle. Il testo
+   * non è linkato.
+   */
+  private function autoriTestoLabel(NodeInterface $node): string {
+    if (!$node->hasField('field_autori_testo') || $node->get('field_autori_testo')->isEmpty()) {
+      return '';
+    }
+    $names = [];
+    foreach ($node->get('field_autori_testo') as $item) {
+      $ref = $item->entity;
+      if ($ref !== NULL) {
+        $names[] = $ref->label();
+      }
+    }
+
+    return $names === [] ? '' : ' (' . implode(', ', $names) . ')';
   }
 
   /**

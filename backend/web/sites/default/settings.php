@@ -64,6 +64,12 @@ $settings['ildeposito_utils_listmonk_base_url'] = rtrim(getenv('LISTMONK_BASE_UR
 $settings['ildeposito_utils_listmonk_username'] = getenv('LISTMONK_USERNAME') ?: '';
 $settings['ildeposito_utils_listmonk_token'] = getenv('LISTMONK_TOKEN') ?: '';
 
+// URL pubblico del backend (admin.ildeposito.org / admin-stage.ildeposito.org):
+// serve per gli URL assoluti delle immagini nella newsletter. La rotta
+// /sites/default/files* ha il bypass Authelia su Caddy, quindi le miniature
+// degli image style sono raggiungibili anche dagli email client.
+$settings['ildeposito_utils_public_backend_url'] = rtrim(getenv('PUBLIC_BACKEND_URL') ?: '', '/');
+
 // Anteprima frontend (ildeposito_preview): secret HMAC condiviso col
 // frontend Astro (rotta /preview/[uuid]) e URL base del frontend a cui
 // reindirizzare. Diversi per ambiente, impostati SOLO via env (non sotto

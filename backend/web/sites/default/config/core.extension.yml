@@ -36,6 +36,10 @@ module:
   ildeposito_stats: 0
   ildeposito_utils: 0
   image: 0
+  file_mdm: 0
+  file_mdm_exif: 0
+  file_mdm_font: 0
+  image_effects: 0
   inline_form_errors: 0
   jsonapi: 0
   language: 0

@@ -1,0 +1,30 @@
+uuid: 56703d8d-f217-4137-a93a-33a0d40a0a5b
+langcode: it
+status: true
+dependencies:
+  module:
+    - image
+    - image_effects
+name: newsletter_evento
+label: 'Newsletter - miniatura evento'
+effects:
+  1be7e43a-78a2-4a35-8edd-577fce8b7c3e:
+    uuid: 1be7e43a-78a2-4a35-8edd-577fce8b7c3e
+    id: image_scale_and_crop
+    weight: 1
+    data:
+      width: 200
+      height: 200
+      anchor: center-center
+  298958cd-4840-469f-b577-56e47a70179b:
+    uuid: 298958cd-4840-469f-b577-56e47a70179b
+    id: image_effects_convolution
+    weight: 2
+    data:
+      kernel:
+        - [0.299, 0.587, 0.114]
+        - [0.299, 0.587, 0.114]
+        - [0.299, 0.587, 0.114]
+      divisor: 1
+      offset: 0
+      label: 'Bianco e nero'

@@ -155,3 +155,13 @@ function ildeposito_utils_update_10004(): void {
     $schema->createTable('ildeposito_utils_facebook_mastodon', ildeposito_utils_schema()['ildeposito_utils_facebook_mastodon']);
   }
 }
+
+/**
+ * Abilita image_effects (e dipendenze): miniatura B/N degli eventi nella
+ * newsletter. Il config:import successivo trova il modulo attivo.
+ */
+function ildeposito_utils_update_10005(): void {
+  if (!\Drupal::moduleHandler()->moduleExists('image_effects')) {
+    \Drupal::service('module_installer')->install(['image_effects']);
+  }
+}
