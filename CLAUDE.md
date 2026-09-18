@@ -55,9 +55,9 @@ ddev drush uli              # Login link admin
 ddev ssh                    # Shell nel container web
 ```
 
-### Staging e Produzione — Docker Compose + Caddy
+### Staging e Produzione — Docker4Drupal (Wodby) + Docker Compose + Caddy
 
-Gestiti da `./ildeposito.sh` nella root del progetto. Legge `.env` per determinare l'ambiente (`ENV=stage|prod`).
+Lo stack è **Docker4Drupal (Wodby)** orchestrato da Docker Compose — SOLO stage/prod, mai in locale (in locale si usa DDEV). Gestito da `./ildeposito.sh` nella root del progetto, che legge `.env` per determinare l'ambiente (`ENV=stage|prod`).
 
 ```bash
 ./ildeposito.sh up                # Avvia ambiente (pull + up -d)

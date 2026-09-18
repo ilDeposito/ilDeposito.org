@@ -1,0 +1,28 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "bash": {
+      "*": "ask",
+      "rtk git status*": "allow",
+      "rtk git diff*": "allow",
+      "rtk git log*": "allow",
+      "rtk git branch*": "allow",
+      "rtk git remote*": "allow",
+      "rtk git show*": "allow",
+      "rtk git stash*": "allow",
+      "rtk ddev*": "allow",
+      "rtk ./local.sh*": "allow",
+      "rtk ./ildeposito.sh*": "allow",
+      "git status*": "allow",
+      "git diff*": "allow",
+      "git log*": "allow",
+      "git branch*": "allow",
+      "git remote*": "allow",
+      "git show*": "allow",
+      "git stash*": "allow",
+      "ddev*": "allow",
+      "./local.sh*": "allow",
+      "./ildeposito.sh*": "allow"
+    }
+  }
+}

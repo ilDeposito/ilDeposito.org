@@ -5,8 +5,8 @@
 - Headless monorepo: Drupal 11/PHP 8.3 (`backend/`) + Astro 7.3 (`frontend/`).
 - Drupal JSON:API; Astro SSG con SSR solo per `/api/*`.
 - Frontend: Node >=22.12, TypeScript strict, Tailwind v4, DaisyUI v5, Pagefind, Playwright.
-- Backend: Composer/Drush 13, MariaDB, Redis; DDEV locale, Docker Compose stage/prod.
-- Config principali: `.ddev/config.yaml`, `compose.yml`, `backend/composer.json`, `frontend/astro.config.mjs`.
+- Backend: Composer/Drush 13, MariaDB, Redis.
+- Config ambiente: locale `.ddev/config.yaml`; stage/prod `compose.yml` + `backend/compose*.yml` + `frontend/compose*.yml`.
 
 ## Context Discipline
 
@@ -19,7 +19,7 @@ file).
 |---|---|
 | Astro routes, data layer, SSR, build output | `docs/frontend.md` |
 | Drupal modules, firewall, editor workflows | `docs/backend.md` |
-| Local/stage/prod operations and infrastructure | the relevant section of `CLAUDE.md` |
+| Environments and infrastructure detail | `Ambienti` below; full reference in `CLAUDE.md` |
 | A package command or dependency | the closest `package.json` or `composer.json` |
 
 - Search narrowly first (`rtk rg --files <area>`), then open only matched files.
@@ -27,20 +27,24 @@ file).
   area unless a full build is required.
 - Keep replies and code comments concise; do not restate repository context.
 
-## Local Runtime Policy
+## Ambienti
 
-The local stack runs entirely in DDEV. For any local execution, use DDEV or
-the project wrapper: never use host `php`, `composer`, `drush`, `node`, npm, or
-Docker Compose directly.
+Due stack, uno per contesto — mai scambiarli. Docker4Drupal (Wodby) è SOLO
+stage/prod; in locale si usa DDEV.
 
-- Start, stop, restart, and build the stack with `./local.sh`.
-- Run Drupal and Composer commands with `ddev drush …` and `ddev composer …`.
-- Run PHP checks in the DDEV web container, for example
-  `ddev exec php -l backend/web/modules/custom/example.php`.
-- Run frontend Node commands through DDEV, for example
-  `ddev exec --dir /var/www/html/frontend npm run build`.
+| Ambiente | Stack | Wrapper | Comandi servizi |
+|---|---|---|---|
+| **Locale** | DDEV (`.ddev/`: PHP/MariaDB/Redis/nginx) | `./local.sh` | `ddev <cmd>` |
+| **Stage / Prod** | Docker Compose Docker4Drupal/Wodby (`compose*.yml`) + Caddy | `./ildeposito.sh` | `./ildeposito.sh drush/composer/exec …` |
 
-`./ildeposito.sh` and raw Docker Compose are for staging/production only.
+- **Locale**: tutto gira in DDEV. Mai invocare `docker compose`, `docker`,
+  `make`, `ildeposito.sh` né i runtime dell'host (`php`, `composer`, `drush`,
+  `node`, `npm`): si usa solo `ddev …` e `./local.sh …` (es. `ddev drush status`,
+  `ddev composer install`, `ddev exec --dir /var/www/html/frontend npm run build`).
+- **Stage/Prod**: solo sul server (`.env` con `ENV=stage|prod`). Mai invocare
+  DDEV. I comandi passano sempre da `./ildeposito.sh` (es. `./ildeposito.sh drush cr`,
+  `./ildeposito.sh build-frontend`), mai da `docker compose` diretto.
+- La scelta del wrapper segue l'ambiente in cui si lavora, non la comodità.
 
 ## Key File Structure
 
