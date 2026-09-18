@@ -109,7 +109,7 @@ final class NewsletterCreateCommand extends Command {
     }
 
     if (!$this->isValidBaseUrl($baseUrl)) {
-      return $this->reportFailure($output, 'LISTMONK_BASE_URL deve essere un URL HTTPS valido.');
+      return $this->reportFailure($output, 'LISTMONK_BASE_URL deve essere un URL HTTP/HTTPS valido.');
     }
 
     // Data corrente in italiano ("18 settembre 2026"): IntlDateFormatter usa
@@ -573,8 +573,12 @@ final class NewsletterCreateCommand extends Command {
   private function isValidBaseUrl(string $baseUrl): bool {
     $parts = parse_url($baseUrl);
 
+    // In prod Listmonk si raggiunge container-to-container sulla rete Docker
+    // interna (http://ildeposito_listmonk:9000): dentro Docker il dominio
+    // pubblico risolve sull'IP del container Listmonk dove però non c'è nulla
+    // in ascolto su 443 (il TLS lo termina Caddy), quindi http è ammesso.
     return $parts !== FALSE
-      && ($parts['scheme'] ?? '') === 'https'
+      && in_array($parts['scheme'] ?? '', ['http', 'https'], TRUE)
       && !empty($parts['host'])
       && !isset($parts['user'])
       && !isset($parts['pass'])
