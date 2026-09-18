@@ -7,6 +7,7 @@ namespace Drupal\ildeposito_utils\Service;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\Site\Settings;
 use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Exception\RequestException;
 
 /** Prepara e invia il riepilogo settimanale delle statistiche social. */
 final class MetaWeeklyStatsReporter {
@@ -71,9 +72,12 @@ final class MetaWeeklyStatsReporter {
   /**
    * Invia il riepilogo, oppure inizializza il confronto alla prima esecuzione.
    *
+   * @param callable(string):void|null $onProgress
+   *   Funzione richiamata ad ogni progresso del comando.
+   *
    * @return 'baseline'|'sent'|'already_sent'
    */
-  public function report(bool $dryRun = FALSE): string {
+  public function report(bool $dryRun = FALSE, ?callable $onProgress = NULL): string {
     if (!$this->isConfigured()) {
       throw new \LogicException('Riepilogo Meta non configurato.');
     }
@@ -84,7 +88,7 @@ final class MetaWeeklyStatsReporter {
       return 'already_sent';
     }
 
-    $current = $this->snapshot();
+    $current = $this->snapshot($onProgress);
     $previous = $this->state->get(self::STATE_SNAPSHOT);
     if (!is_array($previous)) {
       if (!$dryRun) {
@@ -95,6 +99,7 @@ final class MetaWeeklyStatsReporter {
 
     $text = $this->format($current, $previous, $now->getTimestamp());
     if (!$dryRun) {
+      $this->progress($onProgress, 'Invio del riepilogo su Telegram…');
       $this->telegram($text);
       $this->state->set(self::STATE_SNAPSHOT, $current);
       $this->state->set(self::STATE_LAST_REPORT, $reportKey);
@@ -102,23 +107,40 @@ final class MetaWeeklyStatsReporter {
     return 'sent';
   }
 
-  /** Rende disponibile l'anteprima senza cambiare lo stato né inviare messaggi. */
-  public function preview(): ?string {
+  /**
+   * Rende disponibile l'anteprima senza cambiare lo stato né inviare messaggi.
+   *
+   * @param callable(string):void|null $onProgress
+   *   Funzione richiamata ad ogni progresso del comando.
+   */
+  public function preview(?callable $onProgress = NULL): ?string {
     $previous = $this->state->get(self::STATE_SNAPSHOT);
     if (!is_array($previous)) {
       return NULL;
     }
-    return $this->format($this->snapshot(), $previous, time());
+    return $this->format($this->snapshot($onProgress), $previous, time());
   }
 
-  /** @return array<string, mixed> */
-  private function snapshot(): array {
+  /** @param callable(string):void|null $onProgress @return array<string, mixed> */
+  private function snapshot(?callable $onProgress = NULL): array {
+    $this->progress($onProgress, 'Facebook: follower e post della pagina…');
+    $facebook = $this->facebookSnapshot($onProgress);
+
+    $this->progress($onProgress, 'Instagram: follower e contenuti…');
+    $instagram = $this->instagramSnapshot($onProgress);
+
+    $this->progress($onProgress, 'Mastodon: profilo e interazioni…');
+    $mastodon = $this->mastodonSnapshot();
+
+    $this->progress($onProgress, 'Telegram: iscritti al canale…');
+    $telegram = $this->telegramChannelSnapshot();
+
     return [
       'collected_at' => time(),
-      'facebook' => $this->facebookSnapshot(),
-      'instagram' => $this->instagramSnapshot(),
-      'mastodon' => $this->mastodonSnapshot(),
-      'telegram' => $this->telegramChannelSnapshot(),
+      'facebook' => $facebook,
+      'instagram' => $instagram,
+      'mastodon' => $mastodon,
+      'telegram' => $telegram,
     ];
   }
 
@@ -151,38 +173,47 @@ final class MetaWeeklyStatsReporter {
     if (!$this->mastodonClient->isConfigured()) {
       return NULL;
     }
-    $account = $this->mastodonClient->verifyCredentials();
-    $accountId = (string) ($account['id'] ?? '');
-    if ($accountId === '') {
+    try {
+      $account = $this->mastodonClient->verifyCredentials();
+      $accountId = (string) ($account['id'] ?? '');
+      if ($accountId === '') {
+        return NULL;
+      }
+      $response = $this->mastodonClient->request('GET', '/api/v1/accounts/' . rawurlencode($accountId) . '/statuses', [
+        'query' => ['limit' => 100, 'exclude_replies' => 'true', 'exclude_reblogs' => 'true'],
+      ]);
+      $statuses = json_decode((string) $response->getBody(), TRUE, 512, JSON_THROW_ON_ERROR);
+      if (!is_array($statuses)) {
+        throw new \RuntimeException('Mastodon ha restituito una lista di post non valida per il riepilogo settimanale.');
+      }
+      $totals = [
+        'followers' => (int) ($account['followers_count'] ?? 0),
+        'posts' => (int) ($account['statuses_count'] ?? 0),
+        'favourites' => 0,
+        'reblogs' => 0,
+        'replies' => 0,
+      ];
+      foreach ($statuses as $status) {
+        if (!is_array($status)) {
+          continue;
+        }
+        $totals['favourites'] += (int) ($status['favourites_count'] ?? 0);
+        $totals['reblogs'] += (int) ($status['reblogs_count'] ?? 0);
+        $totals['replies'] += (int) ($status['replies_count'] ?? 0);
+      }
+      return $totals;
+    }
+    catch (\Throwable $exception) {
+      // Mastodon è una sezione facoltativa del riepilogo: un errore qui non
+      // impedisce l'invio delle statistiche degli altri canali, ma va comunque
+      // segnalato (il logger error viene inoltrato a Telegram in prod).
+      $this->logger()->error('Statistiche settimanali: sezione Mastodon non disponibile, @message', ['@message' => $this->safeErrorMessage($exception)]);
       return NULL;
     }
-    $response = $this->mastodonClient->request('GET', '/api/v1/accounts/' . rawurlencode($accountId) . '/statuses', [
-      'query' => ['limit' => 100, 'exclude_replies' => 'true', 'exclude_reblogs' => 'true'],
-    ]);
-    $statuses = json_decode((string) $response->getBody(), TRUE, 512, JSON_THROW_ON_ERROR);
-    if (!is_array($statuses)) {
-      throw new \RuntimeException('Mastodon ha restituito una lista di post non valida per il riepilogo settimanale.');
-    }
-    $totals = [
-      'followers' => (int) ($account['followers_count'] ?? 0),
-      'posts' => (int) ($account['statuses_count'] ?? 0),
-      'favourites' => 0,
-      'reblogs' => 0,
-      'replies' => 0,
-    ];
-    foreach ($statuses as $status) {
-      if (!is_array($status)) {
-        continue;
-      }
-      $totals['favourites'] += (int) ($status['favourites_count'] ?? 0);
-      $totals['reblogs'] += (int) ($status['reblogs_count'] ?? 0);
-      $totals['replies'] += (int) ($status['replies_count'] ?? 0);
-    }
-    return $totals;
   }
 
-  /** @return array<string, int> */
-  private function facebookSnapshot(): array {
+  /** @param callable(string):void|null $onProgress @return array<string, int> */
+  private function facebookSnapshot(?callable $onProgress = NULL): array {
     $page = $this->graph($this->facebookPageClient->getAsPage($this->facebookPageClient->getPageId(), [
       'fields' => 'followers_count',
     ]));
@@ -191,10 +222,14 @@ final class MetaWeeklyStatsReporter {
       'limit' => 100,
     ]));
     $totals = ['followers' => (int) ($page['followers_count'] ?? 0), 'views' => 0, 'comments' => 0, 'likes' => 0, 'shares' => 0];
-    foreach ($posts['data'] ?? [] as $post) {
+    $postList = $posts['data'] ?? [];
+    $index = 0;
+    foreach ($postList as $post) {
       if (!is_array($post)) {
         continue;
       }
+      $index++;
+      $this->progress($onProgress, sprintf('Facebook: post %d di %d…', $index, count($postList)));
       $totals['comments'] += $this->summary($post['comments'] ?? []);
       $totals['likes'] += $this->summary($post['reactions'] ?? []);
       $totals['shares'] += (int) (($post['shares']['count'] ?? 0));
@@ -203,8 +238,8 @@ final class MetaWeeklyStatsReporter {
     return $totals;
   }
 
-  /** @return array<string, int> */
-  private function instagramSnapshot(): array {
+  /** @param callable(string):void|null $onProgress @return array<string, int> */
+  private function instagramSnapshot(?callable $onProgress = NULL): array {
     $accountId = $this->instagramPublisher->getInstagramAccountId();
     $account = $this->graph($this->facebookPageClient->get($accountId, ['fields' => 'followers_count']));
     $media = $this->graph($this->facebookPageClient->get($accountId . '/media', [
@@ -212,10 +247,14 @@ final class MetaWeeklyStatsReporter {
       'limit' => 100,
     ]));
     $totals = ['followers' => (int) ($account['followers_count'] ?? 0), 'views' => 0, 'comments' => 0, 'likes' => 0, 'saves' => 0, 'shares' => 0];
-    foreach ($media['data'] ?? [] as $item) {
+    $mediaList = $media['data'] ?? [];
+    $index = 0;
+    foreach ($mediaList as $item) {
       if (!is_array($item)) {
         continue;
       }
+      $index++;
+      $this->progress($onProgress, sprintf('Instagram: contenuti %d di %d…', $index, count($mediaList)));
       $totals['comments'] += (int) ($item['comments_count'] ?? 0);
       $totals['likes'] += (int) ($item['like_count'] ?? 0);
       $id = (string) ($item['id'] ?? '');
@@ -391,6 +430,39 @@ final class MetaWeeklyStatsReporter {
 
   private function signed(int $value): string {
     return ($value > 0 ? '+' : '') . $this->number($value);
+  }
+
+  /** @return \Psr\Log\LoggerInterface */
+  private function logger(): \Psr\Log\LoggerInterface {
+    return \Drupal::logger('ildeposito_utils');
+  }
+
+  /** @param callable(string):void|null $onProgress */
+  private function progress(?callable $onProgress, string $message): void {
+    if ($onProgress !== NULL) {
+      $onProgress($message);
+    }
+  }
+
+  /**
+   * Produce un messaggio diagnostico privo di URL o parametri segreti.
+   */
+  private function safeErrorMessage(\Throwable $exception): string {
+    if ($exception instanceof RequestException && $exception->getResponse() !== NULL) {
+      $response = $exception->getResponse();
+      try {
+        $payload = json_decode((string) $response->getBody(), TRUE, 512, JSON_THROW_ON_ERROR);
+      }
+      catch (\JsonException) {
+        $payload = [];
+      }
+      $error = is_array($payload) ? ($payload['error'] ?? NULL) : NULL;
+      if (is_string($error)) {
+        return sprintf('Mastodon ha risposto HTTP %d: %s', $response->getStatusCode(), $error);
+      }
+      return sprintf('Mastodon ha risposto HTTP %d.', $response->getStatusCode());
+    }
+    return sprintf('errore interno durante la richiesta (%s)', $exception::class);
   }
 
 }
