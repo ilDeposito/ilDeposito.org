@@ -403,19 +403,26 @@ final class NewsletterCreateCommand extends Command {
     }
 
     $uri = $file->getFileUri();
-    try {
-      if (!$style->createDerivative($uri, $style->buildUri($uri))) {
+    $derivative_uri = $style->buildUri($uri);
+    // Se il derivato esiste già va riusato: createDerivative() fallisce (e
+    // logga "Cached image file ... already exists") quando il file di
+    // destinazione è già presente, quindi va chiamato solo se manca.
+    if (!file_exists($derivative_uri)) {
+      try {
+        if (!$style->createDerivative($uri, $derivative_uri)) {
+          return NULL;
+        }
+      }
+      catch (\Throwable) {
         return NULL;
       }
     }
-    catch (\Throwable) {
-      return NULL;
-    }
 
-    // URL costruito a mano, senza itok: il derivato esiste già (createDerivative
-    // l'ha scritto) quindi viene servito staticamente. buildUrl() restituirebbe
-    // un URL già assoluto col contesto CLI corrente: va bene in DDEV ma non in
-    // prod (drush in crond, host sbagliato), qui è deterministico.
+    // URL costruito a mano, senza itok: il derivato esiste già (creato ora con
+    // createDerivative oppure riusato perché già presente) quindi viene servito
+    // staticamente. buildUrl() restituirebbe un URL già assoluto col contesto
+    // CLI corrente: va bene in DDEV ma non in prod (drush in crond, host
+    // sbagliato), qui è deterministico.
     $relativeTarget = StreamWrapperManager::getTarget($uri);
     $path = '/sites/default/files/styles/' . self::IMAGE_STYLE_NEWSLETTER_EVENTO . '/public/' . $relativeTarget;
 
