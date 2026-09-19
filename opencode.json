@@ -1,6 +1,7 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "permission": {
+    "external_directory": "ask",
     "bash": {
       "*": "ask",
       "graft*": "allow",
@@ -8,6 +9,18 @@
       "ddev*": "allow",
       "git": "allow",
       "git *": "allow",
+      "ls": "allow",
+      "ls *": "allow",
+      "pwd": "allow",
+      "uname": "allow",
+      "uname *": "allow",
+      "date": "allow",
+      "which *": "allow",
+      "command -v *": "allow",
+      "cat *": "allow",
+      "head *": "allow",
+      "tail *": "allow",
+      "wc *": "allow",
       "local.sh*": "allow",
       "./local.sh*": "allow",
       "bash local.sh*": "allow",
