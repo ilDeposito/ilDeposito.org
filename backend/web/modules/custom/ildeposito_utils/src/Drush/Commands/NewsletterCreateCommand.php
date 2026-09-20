@@ -185,12 +185,12 @@ final class NewsletterCreateCommand extends Command {
     $htmlParts = [];
     $textParts = [];
 
-    $htmlParts[] = '<p>Ecco la newsletter settimanale de ilDeposito.org: storia cantata, nuovi inserimenti e altre notizie.</p>';
-    $textParts[] = 'Ecco la newsletter settimanale de ilDeposito.org: storia cantata, nuovi inserimenti e altre notizie.';
+    $htmlParts[] = '<p>Ecco la newsletter settimanale de ilDeposito.org: gli eventi della storia cantata, i nuovi inserimenti e aggiornamento legati al nostro progetto.</p>';
+    $textParts[] = 'Ecco la newsletter settimanale de ilDeposito.org: gli eventi della storia cantata, i nuovi inserimenti e aggiornamento legati al nostro progetto..';
 
     $eventi = $this->getEventiAnniversarioSettimana();
     if ($eventi !== []) {
-      $htmlParts[] = '<h2>Storia cantata: gli eventi della settimana</h2>';
+      $htmlParts[] = '<h3>Storia cantata: gli eventi della settimana</h3>';
       $htmlParts[] = $this->buildEventiHtml($eventi);
       $textParts[] = '';
       $textParts[] = 'Storia cantata: gli eventi della settimana';
@@ -199,7 +199,7 @@ final class NewsletterCreateCommand extends Command {
 
     $canti = $this->getUltimiCanti();
     if ($canti !== []) {
-      $htmlParts[] = '<h2>Ultimi canti inseriti</h2>';
+      $htmlParts[] = '<h3>Ultimi canti inseriti</h3>';
       $htmlParts[] = $this->buildHtmlList($canti);
       $textParts[] = '';
       $textParts[] = 'Ultimi canti inseriti';
@@ -208,7 +208,7 @@ final class NewsletterCreateCommand extends Command {
 
     $popolari = $this->getCantiPiuVistiSettimana();
     if ($popolari !== []) {
-      $htmlParts[] = '<h2>I canti più visti della settimana</h2>';
+      $htmlParts[] = '<h3>I canti più visti della settimana</h3>';
       $htmlParts[] = $this->buildHtmlList($popolari);
       $textParts[] = '';
       $textParts[] = 'I canti più visti della settimana';
