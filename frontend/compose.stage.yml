@@ -55,6 +55,14 @@ services:
       DRUPAL_API_USER: ${DRUPAL_API_USER}
       DRUPAL_API_PASS: ${DRUPAL_API_PASS}
       ALTCHA_HMAC_KEY: ${ALTCHA_HMAC_KEY}
+      # Listmonk per la rotta SSR /api/newsletter (iscrizione double opt-in).
+      # Stesse variabili del backend (container-to-container sulla rete
+      # interna, es. http://ildeposito_listmonk:9000 in prod): SSR-runtime
+      # only, come le credenziali Drupal — la build statica non le usa.
+      LISTMONK_BASE_URL: ${LISTMONK_BASE_URL:-}
+      LISTMONK_USERNAME: ${LISTMONK_USERNAME:-}
+      LISTMONK_TOKEN: ${LISTMONK_TOKEN:-}
+      LISTMONK_NEWSLETTER_LIST_ID: ${LISTMONK_NEWSLETTER_LIST_ID:-}
       # Secret HMAC condiviso con Drupal (ildeposito_preview_secret in
       # settings.php) per verificare i token dei link di anteprima frontend.
       ILDEPOSITO_PREVIEW_SECRET: ${ILDEPOSITO_PREVIEW_SECRET:-}

@@ -85,11 +85,10 @@ final class NewsletterCreateCommand extends Command {
   // Finestra temporale (giorni) che definisce i canti "appena inseriti".
   private const CANTI_ULTIMI_GIORNI = 7;
 
-  // Fase di sviluppo: il blocco "Ultimi canti inseriti" (titolo compreso) è
-  // sempre mostrato. In produzione impostare a TRUE: il blocco apparirà solo
-  // se negli ultimi CANTI_ULTIMI_GIORNI giorni sono stati pubblicati canti,
-  // altrimenti sparisce del tutto.
-  private const SHOW_CANTI_SOLO_ULTIMI_GIORNI = FALSE;
+  // Il blocco "Ultimi canti inseriti" (titolo compreso) appare solo se negli
+  // ultimi CANTI_ULTIMI_GIORNI giorni sono stati pubblicati canti, altrimenti
+  // sparisce del tutto.
+  private const SHOW_CANTI_SOLO_ULTIMI_GIORNI = TRUE;
 
   public function __construct(
     private readonly ClientInterface $httpClient,

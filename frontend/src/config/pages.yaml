@@ -51,6 +51,12 @@ contatti:
   pageTitle: "Contatti"
   pageDescription: "Scrivici per segnalazioni, collaborazioni o informazioni sull'archivio."
 
+newsletter:
+  metaTitle: "Newsletter"
+  metaDescription: "Iscriviti alla newsletter settimanale de ilDeposito.org: storia cantata, nuovi canti inseriti e i più visti della settimana."
+  pageTitle: "Newsletter"
+  pageDescription: "La newsletter settimanale de ilDeposito.org: storia cantata, nuovi inserimenti e i canti più visti."
+
 canzonieri:
   metaTitle: "Canzonieri"
   metaDescription: "Canzonieri PDF collettivi: tutti i canti, tutti i canti con accordi, per periodo e per autore."

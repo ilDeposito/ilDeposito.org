@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumb from '../components/ui/Breadcrumb.astro';
+import HeaderWatermark from '../components/ui/HeaderWatermark.astro';
+import NewsletterForm from '../components/ui/NewsletterForm.astro';
+import { getPageMeta } from '../lib/pages.js';
+import { buildBreadcrumbSchema, buildWebPageSchema } from '../lib/schema.js';
+import { buildCanonical } from '../lib/seo.js';
+
+const meta = getPageMeta('newsletter');
+const canonical = buildCanonical(Astro);
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') || 'https://www.ildeposito.org';
+const jsonLd = [
+  buildWebPageSchema(meta.metaTitle, meta.metaDescription, canonical),
+  buildBreadcrumbSchema([
+    { name: 'Home', url: `${siteUrl}/` },
+    { name: 'Newsletter', url: canonical },
+  ]),
+];
+---
+<BaseLayout
+  title={meta.metaTitle}
+  description={meta.metaDescription}
+  noindex={meta.noindex}
+  jsonLd={jsonLd}
+>
+  <header class="relative overflow-hidden bg-base-200 border-b-2 border-secondary">
+    <HeaderWatermark />
+    <div class="relative z-10 max-w-6xl mx-auto px-4 py-6 flex flex-col gap-3">
+      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Newsletter' }]} />
+      <h1 class="font-serif font-semibold text-2xl md:text-3xl text-base-content">{meta.pageTitle}</h1>
+      <p class="font-sans text-base-content/70">{meta.pageDescription}</p>
+    </div>
+  </header>
+
+  <div class="max-w-2xl mx-auto px-4 py-10">
+
+    <div class="font-sans text-lg text-base-content/80 leading-relaxed mb-8">
+      <p>Con la newsletter di IlDeposito ricevi aggiornamenti sul nostro archivio, 
+        gli eventi della storia cantata e altre informazioni.</p>
+
+<p>Unisciti a noi per scoprire i nuovi canti inseriti, riscoprire la memoria collettiva 
+e rimanere sempre in contatto con tutte le novità del progetto.</p>
+    </div>
+
+    <NewsletterForm uid="newsletter-page" />
+
+  </div>
+
+</BaseLayout>

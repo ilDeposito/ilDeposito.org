@@ -1,0 +1,268 @@
+---
+// Form di iscrizione alla newsletter (Listmonk, double opt-in).
+//
+// Componente autonomo e riusabile: POST FormData a /api/newsletter (rotta SSR
+// che verifica Altcha server-side e chiama le API Listmonk). Stessi pattern
+// del modulo contatti: honeypot, <altcha-widget>, checkbox privacy
+// obbligatoria con link a /informazioni/privacy, validazione JS + server.
+//
+// Props:
+// - uid: prefisso degli id (default "nl"). Cambialo se monti il componente
+//   più volte nella stessa pagina, così gli id restano unici.
+// - title/description: intestazione opzionale sopra il form.
+// - compact: nasconde intestazione e usa il bottone a larghezza piena
+//   (pensato per footer/sidebar).
+//
+// Nota CSP: lo script inline viene hashato in build dall'integrazione
+// csp-hashes, come per il modulo contatti — nessuna allowlist manuale.
+interface Props {
+  uid?: string;
+  title?: string;
+  description?: string;
+  compact?: boolean;
+}
+
+const { uid = 'nl', title, description, compact = false } = Astro.props;
+
+const emailId = `${uid}-email`;
+const privacyId = `${uid}-privacy`;
+const errEmailId = `err-${uid}-email`;
+const errPrivacyId = `err-${uid}-privacy`;
+const formId = `${uid}-form`;
+const errorId = `${uid}-error`;
+const errorMsgId = `${uid}-error-msg`;
+const successId = `${uid}-success`;
+const submitId = `${uid}-submit`;
+const submitLabelId = `${uid}-submit-label`;
+---
+<div class="newsletter-form" data-newsletter-root={uid}>
+  {(title || description) && !compact && (
+    <div class="flex flex-col gap-2 mb-5">
+      {title && <h2 class="font-serif font-semibold text-xl text-base-content">{title}</h2>}
+      {description && <p class="font-sans text-base-content/70">{description}</p>}
+    </div>
+  )}
+
+  <div id={errorId} role="alert" class="alert alert-error mb-6 hidden">
+    <i class="ph ph-warning-circle text-xl"></i>
+    <span id={errorMsgId}>Si è verificato un errore durante l'iscrizione. Riprova più tardi.</span>
+  </div>
+
+  <div id={successId} role="status" class="alert alert-success mb-6 hidden">
+    <i class="ph ph-check-circle text-xl"></i>
+    <span>Grazie per l'iscrizione! Controlla la tua casella email e conferma l'iscrizione cliccando sul link che ti abbiamo inviato.</span>
+  </div>
+
+  <form id={formId} action="/api/newsletter" method="post" class="js-newsletter-form flex flex-col gap-5" data-uid={uid} novalidate>
+
+    <!-- Honeypot: campo invisibile compilato solo dai bot -->
+    <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;">
+      <label for={`${uid}-website`}>Non compilare</label>
+      <input type="text" id={`${uid}-website`} name="website" tabindex="-1" autocomplete="off" />
+    </div>
+
+    <div class="form-control">
+      <label class="label" for={emailId}>
+        <span class="label-text font-semibold">Email <span class="text-error" aria-hidden="true">*</span></span>
+      </label>
+      <input
+        type="email"
+        id={emailId}
+        name="email"
+        required
+        maxlength="254"
+        autocomplete="email"
+        aria-describedby={errEmailId}
+        class="input input-bordered form-border bg-base-200 w-full"
+        placeholder="la-tua@email.it"
+      />
+      <p id={errEmailId} class="text-error text-sm mt-1 hidden"></p>
+    </div>
+
+    <!-- Altcha: proof-of-work antispam, self-hosted, zero dati a terzi -->
+    <altcha-widget challenge="/api/altcha" hidefooter></altcha-widget>
+
+    <div class="form-control">
+      <label class="label cursor-pointer justify-start gap-3" for={privacyId}>
+        <input
+          type="checkbox"
+          id={privacyId}
+          name="privacy"
+          aria-describedby={errPrivacyId}
+          class="checkbox checkbox-primary form-border shrink-0"
+        />
+        <span class="label-text">
+          Ho letto e accetto la <a href="/informazioni/privacy" class="link link-primary font-semibold">Privacy Policy</a>
+          <span class="text-error" aria-hidden="true"> *</span>
+        </span>
+      </label>
+      <p id={errPrivacyId} class="text-error text-sm mt-1 hidden"></p>
+    </div>
+
+    <div class="mt-2">
+      <button id={submitId} type="submit" class={`btn btn-primary ${compact ? 'w-full' : 'w-full sm:w-auto'}`}>
+        <i class="ph ph-envelope-simple"></i>
+        <span id={submitLabelId}>Iscriviti alla newsletter</span>
+      </button>
+    </div>
+
+  </form>
+</div>
+
+<script>
+  // Registra <altcha-widget> come custom element (bundlato da Vite, zero CDN esterni)
+  import 'altcha';
+</script>
+
+<script is:inline>
+(function () {
+  // Cablaggio per-istanza: ogni form .js-newsletter-form lavora solo sul suo
+  // sottoalbero (data-uid), così il componente può comparire N volte per pagina.
+  document.querySelectorAll('form.js-newsletter-form').forEach(function (form) {
+    if (form.dataset.wired) return;
+    form.dataset.wired = '1';
+
+    const uid = form.dataset.uid;
+    const byId = (id) => document.getElementById(id);
+    const submitBtn = byId(`${uid}-submit`);
+    const submitLabel = byId(`${uid}-submit-label`);
+    const errorBox = byId(`${uid}-error`);
+    const errorMsg = byId(`${uid}-error-msg`);
+    const successBox = byId(`${uid}-success`);
+    const privacyCheck = byId(`${uid}-privacy`);
+    const emailInput = byId(`${uid}-email`);
+
+    const fieldErrors = {
+      email: [emailInput, byId(`err-${uid}-email`)],
+      privacy: [privacyCheck, byId(`err-${uid}-privacy`)],
+    };
+
+    function setFieldError(field, msg) {
+      const [input, errEl] = fieldErrors[field];
+      input.setAttribute('aria-invalid', 'true');
+      errEl.textContent = msg;
+      errEl.classList.remove('hidden');
+    }
+
+    function clearFieldErrors() {
+      Object.values(fieldErrors).forEach(([input, errEl]) => {
+        input.removeAttribute('aria-invalid');
+        errEl.classList.add('hidden');
+        errEl.textContent = '';
+      });
+    }
+
+    Object.values(fieldErrors).forEach(([input, errEl]) => {
+      const clear = () => {
+        input.removeAttribute('aria-invalid');
+        errEl.classList.add('hidden');
+      };
+      input.addEventListener('input', clear);
+      input.addEventListener('change', clear);
+    });
+
+    function setLoading(loading) {
+      submitBtn.disabled = loading;
+      submitLabel.textContent = loading ? 'Iscrizione in corso…' : 'Iscriviti alla newsletter';
+      if (loading) {
+        submitBtn.classList.add('loading', 'loading-spinner');
+      } else {
+        submitBtn.classList.remove('loading', 'loading-spinner');
+      }
+    }
+
+    function showError(msg) {
+      hideSuccess();
+      errorMsg.textContent = msg;
+      errorBox.classList.remove('hidden');
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      errorBox.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+    }
+
+    function hideError() {
+      errorBox.classList.add('hidden');
+    }
+
+    function showSuccess() {
+      hideError();
+      form.classList.add('hidden');
+      successBox.classList.remove('hidden');
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      successBox.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+    }
+
+    function hideSuccess() {
+      successBox.classList.add('hidden');
+    }
+
+    // Il token Altcha va rigenerato se l'invio fallisce dopo essere stato
+    // consumato lato server (replay già usato, o errore Listmonk successivo
+    // alla verifica): senza reset, ogni retry ripropone lo stesso token già
+    // bruciato e fallisce di nuovo con "verifica antispam non valida".
+    function resetAltcha() {
+      const old = form.querySelector('altcha-widget');
+      if (old) old.replaceWith(old.cloneNode(true));
+    }
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      hideError();
+      clearFieldErrors();
+
+      const fd = new FormData(form);
+      const privacyAccettata = privacyCheck.checked;
+
+      // --- Validazione campi ---
+      if (!emailInput.checkValidity()) {
+        showError('Inserisci un indirizzo email valido.');
+        setFieldError('email', 'Inserisci un indirizzo email valido.');
+        return;
+      }
+
+      if (!privacyAccettata) {
+        showError('Devi accettare la Privacy Policy per iscriverti alla newsletter.');
+        setFieldError('privacy', 'Devi accettare la Privacy Policy per iscriverti alla newsletter.');
+        return;
+      }
+
+      if (!fd.get('altcha')) {
+        showError('Completa la verifica antispam prima di iscriverti.');
+        return;
+      }
+
+      setLoading(true);
+
+      let data;
+      try {
+        const res = await fetch('/api/newsletter', { method: 'POST', body: fd });
+        data = await res.json();
+      } catch (err) {
+        setLoading(false);
+        showError('Errore di rete. Controlla la connessione e riprova.');
+        return;
+      }
+
+      setLoading(false);
+
+      if (data.ok) {
+        form.reset();
+        showSuccess();
+      } else {
+        const messaggi = {
+          campi_mancanti: 'Inserisci il tuo indirizzo email.',
+          email_non_valida: 'Inserisci un indirizzo email valido.',
+          verifica_fallita: 'Verifica antispam non valida. Ricarica la pagina e riprova.',
+          privacy_non_accettata: 'Devi accettare la Privacy Policy per iscriverti alla newsletter.',
+          gia_iscritto: 'Questo indirizzo è già iscritto alla newsletter.',
+          invio_fallito: "Si è verificato un errore durante l'iscrizione. Riprova più tardi.",
+        };
+        const msg = messaggi[data.error] ?? "Si è verificato un errore. Riprova più tardi.";
+        showError(msg);
+        if (data.error === 'verifica_fallita' || data.error === 'invio_fallito') {
+          resetAltcha();
+        }
+      }
+    });
+  });
+})();
+</script>
