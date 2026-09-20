@@ -35,7 +35,12 @@ use Symfony\Component\Console\Output\OutputInterface;
  *   campo field_visualizzazioni_settimana.
  * Se una sezione è vuota sparisce; il blocco eventi resta solo se cade un
  * anniversario. I link usano {{ TrackLink }} per il tracking Listmonk e hanno
- * CSS inline (nero, sottolineato). Subito dopo la creazione la bozza viene
+ * CSS inline (nero, sottolineato). Dentro TrackLink (e come URL nudo con UTM
+ * nell'altbody) ogni URL porta utm_source=newsletter, utm_medium=email,
+ * utm_campaign=newsletter-AAAA-MM-GG (uno per invio, 1:1 con la campagna) e
+ * utm_content a seconda del blocco, letti da Umami. Lo slug viaggia anche in
+ * `attribs.utm_campaign` così il template può taggare header/footer con
+ * {{ .Campaign.Attribs.utm_campaign }}. Subito dopo la creazione la bozza viene
  * validata chiamando la preview dell'API Listmonk: se il contenuto non
  * compila il comando fallisce (in stage/prod l'errore arriva su Telegram),
  * lasciando comunque la bozza.
@@ -90,6 +95,15 @@ final class NewsletterCreateCommand extends Command {
   // sparisce del tutto.
   private const SHOW_CANTI_SOLO_ULTIMI_GIORNI = TRUE;
 
+  // UTM letti da Umami: source = canale logico (stabile anche cambiando
+  // ESP), medium = tipo di canale, campaign = slug per singolo invio (1:1
+  // con la campagna Listmonk), content = blocco della mail.
+  private const UTM_SOURCE = 'newsletter';
+  private const UTM_MEDIUM = 'email';
+  private const UTM_CONTENT_EVENTI = 'eventi-settimana';
+  private const UTM_CONTENT_ULTIMI = 'ultimi-canti';
+  private const UTM_CONTENT_PIU_VISTI = 'piu-visti';
+
   public function __construct(
     private readonly ClientInterface $httpClient,
     private readonly EntityTypeManagerInterface $entityTypeManager,
@@ -113,11 +127,15 @@ final class NewsletterCreateCommand extends Command {
 
     // Data corrente in italiano ("18 settembre 2026"): IntlDateFormatter usa
     // locale "it_IT" e fuso del sito (Europe/Rome, impostato da Drupal).
-    $dateIt = (new \IntlDateFormatter('it_IT', \IntlDateFormatter::LONG, \IntlDateFormatter::NONE, date_default_timezone_get()))->format(time());
+    // Lo slug UTM (newsletter-2026-09-18) deriva dalla stessa data: è 1:1
+    // con la campagna Listmonk e fa da join-key con Umami.
+    $now = new \DateTimeImmutable('now', new \DateTimeZone(date_default_timezone_get()));
+    $dateIt = (new \IntlDateFormatter('it_IT', \IntlDateFormatter::LONG, \IntlDateFormatter::NONE, date_default_timezone_get()))->format($now->getTimestamp());
     $name = 'Newsletter ' . $dateIt;
     $subject = '[ilDeposito] Newsletter ' . $dateIt;
+    $utmCampaign = 'newsletter-' . $now->format('Y-m-d');
 
-    $body = $this->buildBody();
+    $body = $this->buildBody($utmCampaign);
 
     $payload = [
       'name' => $name,
@@ -132,6 +150,9 @@ final class NewsletterCreateCommand extends Command {
       'messenger' => 'email',
       'template_id' => self::TEMPLATE_ID,
       'tags' => ['newsletter'],
+      // Il template legge lo slug per singolo invio come
+      // {{ .Campaign.Attribs.utm_campaign }} per i link di header/footer.
+      'attribs' => ['utm_campaign' => $utmCampaign],
     ];
 
     try {
@@ -157,7 +178,7 @@ final class NewsletterCreateCommand extends Command {
       \Drupal::logger('ildeposito_utils')->info('Campagna Listmonk creata: @name (#@id).', ['@name' => $name, '@id' => $campaignId]);
       $output->writeln(sprintf('<info>Campagna creata: %s (#%d).</info>', $name, $campaignId));
 
-      if ($this->validatePreview($campaignId)) {
+      if ($this->validatePreview($campaignId, $utmCampaign)) {
         $output->writeln(sprintf('<info>Preview campagna #%d: OK (contenuto compilabile).</info>', $campaignId));
       }
       else {
@@ -178,9 +199,11 @@ final class NewsletterCreateCommand extends Command {
   /**
    * Compone intro e blocchi della newsletter in HTML e in testo semplice.
    *
-   * @return array{html: string, text: string}
+   * I link verso il sito portano gli UTM per Umami (dentro {{ TrackLink }}
+   * in HTML, come URL nudo con UTM nell'altbody): Listmonk traccia il click
+   * e redirige alla destinazione taggata.
    */
-  private function buildBody(): array {
+  private function buildBody(string $utmCampaign): array {
     $htmlParts = [];
     $textParts = [];
 
@@ -190,28 +213,28 @@ final class NewsletterCreateCommand extends Command {
     $eventi = $this->getEventiAnniversarioSettimana();
     if ($eventi !== []) {
       $htmlParts[] = '<h3>Storia cantata: gli eventi della settimana</h3>';
-      $htmlParts[] = $this->buildEventiHtml($eventi);
+      $htmlParts[] = $this->buildEventiHtml($eventi, $utmCampaign);
       $textParts[] = '';
       $textParts[] = 'Storia cantata: gli eventi della settimana';
-      $textParts[] = $this->buildTextList($eventi, TRUE);
+      $textParts[] = $this->buildTextList($eventi, $utmCampaign, self::UTM_CONTENT_EVENTI, TRUE);
     }
 
     $canti = $this->getUltimiCanti();
     if ($canti !== []) {
       $htmlParts[] = '<h3>Ultimi canti inseriti</h3>';
-      $htmlParts[] = $this->buildHtmlList($canti);
+      $htmlParts[] = $this->buildHtmlList($canti, $utmCampaign, self::UTM_CONTENT_ULTIMI);
       $textParts[] = '';
       $textParts[] = 'Ultimi canti inseriti';
-      $textParts[] = $this->buildTextList($canti);
+      $textParts[] = $this->buildTextList($canti, $utmCampaign, self::UTM_CONTENT_ULTIMI);
     }
 
     $popolari = $this->getCantiPiuVistiSettimana();
     if ($popolari !== []) {
       $htmlParts[] = '<h3>I canti più visti della settimana</h3>';
-      $htmlParts[] = $this->buildHtmlList($popolari);
+      $htmlParts[] = $this->buildHtmlList($popolari, $utmCampaign, self::UTM_CONTENT_PIU_VISTI);
       $textParts[] = '';
       $textParts[] = 'I canti più visti della settimana';
-      $textParts[] = $this->buildTextList($popolari);
+      $textParts[] = $this->buildTextList($popolari, $utmCampaign, self::UTM_CONTENT_PIU_VISTI);
     }
 
     return [
@@ -313,17 +336,18 @@ final class NewsletterCreateCommand extends Command {
 
   /**
    * @param \Drupal\node\NodeInterface[] $nodes
-   *   Elenco puntato HTML con link assoluti tracciati via {{ TrackLink }}:
-   *   CSS inline nero e sottolineato.
+   *   Elenco puntato HTML con link assoluti taggati UTM per Umami e tracciati
+   *   via {{ TrackLink }} per Listmonk: CSS inline nero e sottolineato.
    */
-  private function buildHtmlList(array $nodes): string {
+  private function buildHtmlList(array $nodes, string $utmCampaign, string $utmContent): string {
     $items = '';
     foreach ($nodes as $node) {
       $url = $node->toUrl('canonical', [
         'absolute' => TRUE,
         'base_url' => self::PUBLIC_BASE_URL,
       ])->toString();
-      $items .= '<li><a href="{{ TrackLink "' . $url . '" }}" style="color:#000000;text-decoration:underline">' . Html::escape($node->label()) . '</a>' . Html::escape($this->autoriTestoLabel($node)) . '</li>';
+      $tagged = $this->tagUrl($url, $utmCampaign, $utmContent);
+      $items .= '<li><a href="{{ TrackLink "' . $tagged . '" }}" style="color:#000000;text-decoration:underline">' . Html::escape($node->label()) . '</a>' . Html::escape($this->autoriTestoLabel($node)) . '</li>';
     }
 
     return '<ul>' . $items . '</ul>';
@@ -338,14 +362,14 @@ final class NewsletterCreateCommand extends Command {
    *
    * @param \Drupal\node\NodeInterface[] $nodes
    */
-  private function buildEventiHtml(array $nodes): string {
+  private function buildEventiHtml(array $nodes, string $utmCampaign): string {
     $rows = '';
     foreach ($nodes as $node) {
       $url = $node->toUrl('canonical', [
         'absolute' => TRUE,
         'base_url' => self::PUBLIC_BASE_URL,
       ])->toString();
-      $tracked = '{{ TrackLink "' . $url . '" }}';
+      $tracked = '{{ TrackLink "' . $this->tagUrl($url, $utmCampaign, self::UTM_CONTENT_EVENTI) . '" }}';
       $dateRow = $this->eventDateLabel($node);
       if ($dateRow !== '') {
         $dateRow = '<div style="font-family:Georgia, \'Times New Roman\', Times, serif; font-size:12px; line-height:18px; color:#5a5a5a;">' . $dateRow . '</div>';
@@ -452,9 +476,10 @@ final class NewsletterCreateCommand extends Command {
    *   TRUE per gli eventi: ogni voce è prefissata con la data dell'evento in
    *   italiano.
    *
-   *   Stessa lista in testo semplice (per l'altbody, senza tracking).
+   *   Stessa lista in testo semplice (per l'altbody): URL nudo con UTM per
+   *   Umami, senza {{ TrackLink }} di Listmonk.
    */
-  private function buildTextList(array $nodes, bool $withDate = FALSE): string {
+  private function buildTextList(array $nodes, string $utmCampaign, string $utmContent, bool $withDate = FALSE): string {
     $items = [];
     foreach ($nodes as $node) {
       $label = $node->label();
@@ -469,10 +494,41 @@ final class NewsletterCreateCommand extends Command {
         'absolute' => TRUE,
         'base_url' => self::PUBLIC_BASE_URL,
       ])->toString();
-      $items[] = '- ' . $label . ': ' . $url;
+      $items[] = '- ' . $label . ': ' . $this->tagUrl($url, $utmCampaign, $utmContent);
     }
 
     return implode("\n", $items);
+  }
+
+  /**
+   * Aggiunge gli UTM per Umami agli URL canonici del sito. Gli UTM già
+   * presenti non vengono sovrascritti; query e fragment sono preservati.
+   */
+  private function tagUrl(string $url, string $utmCampaign, string $utmContent): string {
+    $parts = parse_url($url);
+    if (!is_array($parts) || empty($parts['host'])) {
+      return $url;
+    }
+    $query = [];
+    parse_str((string) ($parts['query'] ?? ''), $query);
+    $query += [
+      'utm_source' => self::UTM_SOURCE,
+      'utm_medium' => self::UTM_MEDIUM,
+      'utm_campaign' => $utmCampaign,
+      'utm_content' => $utmContent,
+    ];
+
+    $tagged = ($parts['scheme'] ?? 'https') . '://' . $parts['host'];
+    if (isset($parts['port'])) {
+      $tagged .= ':' . $parts['port'];
+    }
+    $tagged .= $parts['path'] ?? '/';
+    $tagged .= '?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+    if (isset($parts['fragment'])) {
+      $tagged .= '#' . $parts['fragment'];
+    }
+
+    return $tagged;
   }
 
   /**
@@ -541,13 +597,11 @@ final class NewsletterCreateCommand extends Command {
    * con il template assegnato e risponde con un errore HTTP se il contenuto
    * non compila. Fallisce solo il render: la bozza rimane comunque creata.
    *
-   * @param int $campaignId
-   *   ID della campagna appena creata.
-   *
-   * @return bool
-   *   TRUE se la preview viene servita correttamente.
+   * Oltre allo status controlla che lo slug UTM compaia nell'HTML
+   * renderizzato e che nessun link del template lo abbia perso per strada
+   * (attributo vuoto: utm_campaign=&).
    */
-  private function validatePreview(int $campaignId): bool {
+  private function validatePreview(int $campaignId, string $utmCampaign): bool {
     try {
       $response = $this->httpClient->request('GET', $this->getBaseUrl() . '/api/campaigns/' . $campaignId . '/preview', [
         'headers' => [
@@ -566,7 +620,24 @@ final class NewsletterCreateCommand extends Command {
       return FALSE;
     }
 
-    return $response->getStatusCode() >= 200 && $response->getStatusCode() < 300;
+    if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 300) {
+      return FALSE;
+    }
+
+    $preview = (string) $response->getBody();
+    if (!str_contains($preview, $utmCampaign)) {
+      \Drupal::logger('ildeposito_utils')->error('Preview Listmonk della campagna @id: slug UTM @slug assente nel contenuto renderizzato.', [
+        '@id' => $campaignId,
+        '@slug' => $utmCampaign,
+      ]);
+      return FALSE;
+    }
+    if (str_contains($preview, 'utm_campaign=&') || str_contains($preview, 'utm_campaign="')) {
+      \Drupal::logger('ildeposito_utils')->error('Preview Listmonk della campagna @id: un link del template ha utm_campaign vuoto (attribs non risolti).', ['@id' => $campaignId]);
+      return FALSE;
+    }
+
+    return TRUE;
   }
 
   private function reportFailure(OutputInterface $output, string $reason): int {
