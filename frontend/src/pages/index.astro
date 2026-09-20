@@ -4,6 +4,7 @@ import ildepositoHome from '../assets/images/ildeposito_home.png';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/base/Icon.astro';
 import MonthCalendar from '../components/ui/MonthCalendar.astro';
+import NewsletterForm from '../components/ui/NewsletterForm.astro';
 import HeaderWatermark from '../components/ui/HeaderWatermark.astro';
 import AutorePlaceholder from '../components/ui/AutorePlaceholder.astro';
 import PlaceholderCerchio from '../components/ui/PlaceholderCerchio.astro';
@@ -445,8 +446,23 @@ const autoriConDati = autori.map((autore) => ({
     </section>
   )}
 
-  <!-- ═══ 6. CALENDARIO CANTATO ═══ bg-base-200 -->
+  <!-- ═══ 6. NEWSLETTER ═══ bg-base-200 -->
   <section class="bg-base-200">
+    <div class="max-w-2xl mx-auto px-4 py-12 md:py-16">
+      <h2 class="font-serif font-bold text-xl md:text-2xl text-base-content text-center border-b-2 border-secondary pb-2 w-fit mx-auto mb-6">
+        <Icon name="envelope" class="text-primary mr-2" />Newsletter
+      </h2>
+      <p class="font-serif italic text-base text-base-content/70 text-center mb-8">
+        Iscriviti alla newsletter de ilDeposito per rimanere aggiornato sulle attività del progetto.
+      </p>
+      <div class="bg-base-100 rounded-lg p-5 md:p-8 shadow-sm border border-base-300">
+        <NewsletterForm uid="home-newsletter" />
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 7. CALENDARIO CANTATO ═══ bg-base-100 -->
+  <section class="bg-base-100">
     <div class="max-w-6xl mx-auto px-4 py-12 md:py-16">
       <div class="flex flex-col md:flex-row items-center gap-8 md:gap-16">
         <div class="flex flex-col gap-4 md:w-1/2 text-center md:text-left">
@@ -463,7 +479,7 @@ const autoriConDati = autori.map((autore) => ({
           </a>
         </div>
         <div class="md:w-1/2 flex justify-center">
-          <div class="bg-base-100 rounded-lg p-5 md:p-8 shadow-sm border border-base-300">
+          <div class="bg-base-200 rounded-lg p-5 md:p-8 shadow-sm border border-base-300">
             <MonthCalendar month={month} year={todayYear} highlightedDays={highlightedDays} basePath="/archivio/calendario-cantato" />
           </div>
         </div>
@@ -471,7 +487,7 @@ const autoriConDati = autori.map((autore) => ({
     </div>
   </section>
 
-  <!-- ═══ 7. CANZONIERI PDF ═══ bg-secondary -->
+  <!-- ═══ 8. CANZONIERI PDF ═══ bg-secondary -->
   <section class="bg-secondary text-secondary-content">
     <div class="max-w-2xl mx-auto px-4 py-12 md:py-16 text-center flex flex-col items-center gap-4">
       <h2 class="font-serif font-bold text-xl md:text-2xl">
@@ -488,7 +504,7 @@ const autoriConDati = autori.map((autore) => ({
     </div>
   </section>
 
-  <!-- ═══ 8. TAG PIÙ USATI ═══ bg-base-100 -->
+  <!-- ═══ 9. TAG PIÙ USATI ═══ bg-base-100 -->
   {tagsSorted.length > 0 && (
     <section class="bg-base-100">
       <div class="max-w-4xl mx-auto px-4 py-12 md:py-16">
@@ -518,7 +534,7 @@ const autoriConDati = autori.map((autore) => ({
     </section>
   )}
 
-  <!-- ═══ 9. COLLABORA ═══ bg-base-300 -->
+  <!-- ═══ 10. COLLABORA ═══ bg-base-300 -->
   <section class="bg-base-300">
     <div class="max-w-2xl mx-auto px-4 py-12 md:py-16 text-center">
       <h2 class="font-serif font-bold text-xl md:text-2xl text-base-content mb-3">Collabora con noi</h2>
