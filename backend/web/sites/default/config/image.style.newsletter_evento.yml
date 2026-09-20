@@ -13,3 +13,8 @@ effects:
       width: 200
       height: 200
       anchor: center-center
+  a93e559d-e7a6-48bf-bf8a-879e34687c19:
+    uuid: a93e559d-e7a6-48bf-bf8a-879e34687c19
+    id: image_desaturate
+    weight: 2
+    data: {  }
