@@ -347,7 +347,7 @@ final class NewsletterCreateCommand extends Command {
         'base_url' => self::PUBLIC_BASE_URL,
       ])->toString();
       $tagged = $this->tagUrl($url, $utmCampaign, $utmContent);
-      $items .= '<li><a href="{{ TrackLink "' . $tagged . '" }}" style="color:#000000;text-decoration:underline">' . Html::escape($node->label()) . '</a>' . Html::escape($this->autoriTestoLabel($node)) . '</li>';
+      $items .= '<li><a href="{{ TrackLink "' . $tagged . '" . }}" style="color:#000000;text-decoration:underline">' . Html::escape($node->label()) . '</a>' . Html::escape($this->autoriTestoLabel($node)) . '</li>';
     }
 
     return '<ul>' . $items . '</ul>';
@@ -369,7 +369,7 @@ final class NewsletterCreateCommand extends Command {
         'absolute' => TRUE,
         'base_url' => self::PUBLIC_BASE_URL,
       ])->toString();
-      $tracked = '{{ TrackLink "' . $this->tagUrl($url, $utmCampaign, self::UTM_CONTENT_EVENTI) . '" }}';
+      $tracked = '{{ TrackLink "' . $this->tagUrl($url, $utmCampaign, self::UTM_CONTENT_EVENTI) . '" . }}';
       $dateRow = $this->eventDateLabel($node);
       if ($dateRow !== '') {
         $dateRow = '<div style="font-family:Georgia, \'Times New Roman\', Times, serif; font-size:12px; line-height:18px; color:#5a5a5a;">' . $dateRow . '</div>';
