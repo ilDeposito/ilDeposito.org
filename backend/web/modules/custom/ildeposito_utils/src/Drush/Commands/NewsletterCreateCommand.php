@@ -6,6 +6,7 @@ namespace Drupal\ildeposito_utils\Drush\Commands;
 
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Site\Settings;
 use Drupal\Core\StreamWrapper\StreamWrapperManager;
 use Drupal\node\NodeInterface;
@@ -20,7 +21,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Crea una campagna newsletter su Listmonk (stato bozza).
  *
- * La campagna usa la lista #4 e il template #9. Nome e oggetto riflettono la
+ * La campagna usa il template #9 e la lista LISTMONK_NEWSLETTER_LIST_ID (la
+ * stessa a cui /api/newsletter iscrive gli utenti; fallback 4 se assente o
+ * non valida). Nome e oggetto riflettono la
  * data corrente in italiano ("Newsletter 18 settembre 2026").
  *
  * Il body contiene la raccolta settimanale:
@@ -33,6 +36,13 @@ use Symfony\Component\Console\Output\OutputInterface;
  * - "Ultimi canti inseriti": gli ultimi 5 canti pubblicati;
  * - "I canti più visti della settimana": i canti con più visualizzazioni nel
  *   campo field_visualizzazioni_settimana.
+ * - "Articoli consigliati": gli ultimi GHOST_POSTS_LIMIT articoli da Ghost
+ *   (Content API v6, www.cosmonauta.dev) con UTM utm_content=cosmonauta.
+ *   Ogni articolo è una riga con miniatura a colori a sinistra (feature_image
+ *   scaricata e ritagliata quadrata come gli eventi, senza bianco e nero) e
+ *   a destra data di pubblicazione in piccolo, titolo linkato e sottotitolo
+ *   (custom_excerpt o excerpt). Fase di test: GHOST_TAG vuoto = ultimi 2
+ *   articoli qualsiasi; a regime: ultimi 7 giorni con filter tag:[slug].
  * Se una sezione è vuota sparisce; il blocco eventi resta solo se cade un
  * anniversario. I link usano {{ TrackLink }} per il tracking Listmonk e hanno
  * CSS inline (nero, sottolineato). Dentro TrackLink (e come URL nudo con UTM
@@ -40,10 +50,8 @@ use Symfony\Component\Console\Output\OutputInterface;
  * utm_campaign=newsletter-AAAA-MM-GG (uno per invio, 1:1 con la campagna) e
  * utm_content a seconda del blocco, letti da Umami. Lo slug viaggia anche in
  * `attribs.utm_campaign` così il template può taggare header/footer con
- * {{ .Campaign.Attribs.utm_campaign }}. Subito dopo la creazione la bozza viene
- * validata chiamando la preview dell'API Listmonk: se il contenuto non
- * compila il comando fallisce (in stage/prod l'errore arriva su Telegram),
- * lasciando comunque la bozza.
+ * {{ .Campaign.Attribs.utm_campaign }}. La bozza resta da verificare e inviare
+ * da newsletter.ildeposito.org.
  *
  * Le credenziali API (LISTMONK_BASE_URL, LISTMONK_USERNAME, LISTMONK_TOKEN)
  * sono lette dal file .env della root del progetto via settings.php. Se
@@ -51,7 +59,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 #[AsCommand(
   name: self::NAME,
-  description: 'Crea la campagna newsletter su Listmonk (bozza, lista 4, template 9).',
+  description: 'Crea la campagna newsletter su Listmonk (bozza, template 9, lista da LISTMONK_NEWSLETTER_LIST_ID).',
   aliases: ['iuneventcreate'],
 )]
 final class NewsletterCreateCommand extends Command {
@@ -60,9 +68,12 @@ final class NewsletterCreateCommand extends Command {
 
   public const NAME = 'ildeposito:newsletter-create';
 
-  // Lista e template fissi per questa newsletter.
-  private const LIST_ID = 4;
+  // Template fisso per questa newsletter.
   private const TEMPLATE_ID = 9;
+
+  // Lista di fallback quando LISTMONK_NEWSLETTER_LIST_ID è assente o non è
+  // un intero positivo (4 = lista di test).
+  private const DEFAULT_LIST_ID = 4;
 
   // Frontend pubblico: il backend (e drush) non ha request context, l'URL
   // deve restare fisso e puntare sempre al sito pubblico.
@@ -103,6 +114,29 @@ final class NewsletterCreateCommand extends Command {
   private const UTM_CONTENT_EVENTI = 'eventi-settimana';
   private const UTM_CONTENT_ULTIMI = 'ultimi-canti';
   private const UTM_CONTENT_PIU_VISTI = 'piu-visti';
+  private const UTM_CONTENT_GHOST = 'cosmonauta';
+
+  // Blog Ghost (www.cosmonauta.dev, Content API v6, sola lettura): numero di
+  // articoli mostrati nel blocco "Articoli consigliati" e finestra temporale
+  // (giorni) usata quando GHOST_TAG è valorizzato. Fase di test: GHOST_TAG
+  // vuoto = ultimi GHOST_POSTS_LIMIT articoli qualsiasi; a regime:
+  // filter=tag:[slug]+published_at:>'...' sugli ultimi GHOST_POSTS_GIORNI gg.
+  private const GHOST_POSTS_LIMIT = 2;
+  private const GHOST_POSTS_GIORNI = 7;
+
+  // Miniatura degli articoli Ghost: stesso crop quadrato degli eventi
+  // (200×200 reso a 100×100) ma a colori, via image style newsletter_ghost.
+  // La feature_image remota viene scaricata una sola volta in
+  // public://newsletter-ghost/ (chiave = sha1 dell'URL) e riusata dalle
+  // campagne successive; oltre GHOST_IMAGE_MAX_BYTES o se non è
+  // un'immagine valida la riga resta solo testuale.
+  private const IMAGE_STYLE_NEWSLETTER_GHOST = 'newsletter_ghost';
+  private const GHOST_THUMB_DISPLAY = 100;
+  private const GHOST_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+  private const GHOST_IMAGE_DIR = 'public://newsletter-ghost';
+
+  // Lunghezza massima del sottotitolo (excerpt) degli articoli Ghost.
+  private const GHOST_EXCERPT_MAX = 180;
 
   public function __construct(
     private readonly ClientInterface $httpClient,
@@ -140,7 +174,7 @@ final class NewsletterCreateCommand extends Command {
     $payload = [
       'name' => $name,
       'subject' => $subject,
-      'lists' => [self::LIST_ID],
+      'lists' => [$this->getListId()],
       'type' => 'regular',
       'content_type' => 'html',
       'body' => $body['html'],
@@ -177,16 +211,6 @@ final class NewsletterCreateCommand extends Command {
     if ($campaignId !== NULL) {
       \Drupal::logger('ildeposito_utils')->info('Campagna Listmonk creata: @name (#@id).', ['@name' => $name, '@id' => $campaignId]);
       $output->writeln(sprintf('<info>Campagna creata: %s (#%d).</info>', $name, $campaignId));
-
-      if ($this->validatePreview($campaignId, $utmCampaign)) {
-        $output->writeln(sprintf('<info>Preview campagna #%d: OK (contenuto compilabile).</info>', $campaignId));
-      }
-      else {
-        $message = sprintf('Campagna #%d creata, ma la preview Listmonk non è riuscita: il contenuto non compila (rivedere la bozza su newsletter.ildeposito.org).', $campaignId);
-        \Drupal::logger('ildeposito_utils')->error($message);
-        $output->writeln('<error>' . $message . '</error>');
-        return Command::FAILURE;
-      }
     }
     else {
       \Drupal::logger('ildeposito_utils')->info('Campagna Listmonk creata: @name (ID non presente nella risposta).', ['@name' => $name]);
@@ -235,6 +259,15 @@ final class NewsletterCreateCommand extends Command {
       $textParts[] = '';
       $textParts[] = 'I canti più visti della settimana';
       $textParts[] = $this->buildTextList($popolari, $utmCampaign, self::UTM_CONTENT_PIU_VISTI);
+    }
+
+    $ghost = $this->getGhostPosts();
+    if ($ghost !== []) {
+      $htmlParts[] = '<h3>Articoli consigliati</h3>';
+      $htmlParts[] = $this->buildGhostHtmlList($ghost, $utmCampaign);
+      $textParts[] = '';
+      $textParts[] = 'Articoli consigliati';
+      $textParts[] = $this->buildGhostTextList($ghost, $utmCampaign);
     }
 
     return [
@@ -332,6 +365,321 @@ final class NewsletterCreateCommand extends Command {
     $ids = $query->execute();
 
     return $ids === [] ? [] : $storage->loadMultiple($ids);
+  }
+
+  /**
+   * Articoli del blog Ghost (Content API v6, sola lettura, solo pubblicati).
+   *
+   * Fase di test (GHOST_TAG vuoto): ultimi GHOST_POSTS_LIMIT articoli
+   * qualsiasi, ordinati per published_at DESC. A regime (GHOST_TAG
+   * valorizzato): articoli degli ultimi GHOST_POSTS_GIORNI giorni con quel
+   * tag (filter NQL tag:[slug]+published_at:>'...').
+   *
+   * Non fallisce mai: config assente, timeout, HTTP non-2xx o JSON non valido
+   * → warning in log e lista vuota, così la campagna viene creata comunque
+   * senza il blocco "Articoli consigliati".
+   *
+   * @return array<int, array{title: string, url: string, published_at: string, excerpt: string, feature_image: string}>
+   */
+  private function getGhostPosts(): array {
+    $baseUrl = $this->getGhostApiUrl();
+    $key = $this->getGhostKey();
+    if ($baseUrl === '' || $key === '') {
+      return [];
+    }
+
+    $tag = $this->getGhostTag();
+    $query = [
+      'key' => $key,
+      'limit' => (string) self::GHOST_POSTS_LIMIT,
+      'order' => 'published_at DESC',
+      'fields' => 'title,url,published_at,excerpt,custom_excerpt,feature_image',
+    ];
+    if ($tag !== '') {
+      $since = new \DateTimeImmutable(
+        '-' . self::GHOST_POSTS_GIORNI . ' days',
+        new \DateTimeZone(date_default_timezone_get()),
+      );
+      $query['filter'] = 'tag:' . $tag . "+published_at:>'" . $since->format('Y-m-d H:i:s') . "'";
+    }
+
+    try {
+      $response = $this->httpClient->request('GET', $baseUrl . '/ghost/api/content/posts/', [
+        'headers' => [
+          'Accept' => 'application/json',
+          'Accept-Version' => 'v6.0',
+        ],
+        'query' => $query,
+        'connect_timeout' => 10,
+        'timeout' => 15,
+      ]);
+    }
+    catch (\Throwable $e) {
+      \Drupal::logger('ildeposito_utils')->warning('Ghost non raggiungibile, blocco "Articoli consigliati" saltato (@class).', ['@class' => $e::class]);
+      return [];
+    }
+
+    if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 300) {
+      \Drupal::logger('ildeposito_utils')->warning('Ghost ha risposto HTTP @code, blocco "Articoli consigliati" saltato.', ['@code' => $response->getStatusCode()]);
+      return [];
+    }
+
+    try {
+      $payload = json_decode((string) $response->getBody(), TRUE, 512, JSON_THROW_ON_ERROR);
+    }
+    catch (\JsonException) {
+      \Drupal::logger('ildeposito_utils')->warning('Risposta Ghost non valida (JSON), blocco "Articoli consigliati" saltato.');
+      return [];
+    }
+
+    $posts = $payload['posts'] ?? NULL;
+    if (!is_array($posts)) {
+      \Drupal::logger('ildeposito_utils')->warning('Risposta Ghost senza chiave posts, blocco "Articoli consigliati" saltato.');
+      return [];
+    }
+
+    $items = [];
+    foreach ($posts as $post) {
+      if (!is_array($post) || empty($post['title']) || empty($post['url']) || !is_string($post['title']) || !is_string($post['url'])) {
+        continue;
+      }
+      // Sottotitolo: custom_excerpt se l'autore l'ha scritto, altrimenti
+      // l'excerpt generato da Ghost; entrambi sono testo semplice.
+      $excerpt = $post['custom_excerpt'] ?? '';
+      if (!is_string($excerpt) || trim($excerpt) === '') {
+        $excerpt = is_string($post['excerpt'] ?? NULL) ? (string) $post['excerpt'] : '';
+      }
+      $publishedAt = is_string($post['published_at'] ?? NULL) ? (string) $post['published_at'] : '';
+      $featureImage = is_string($post['feature_image'] ?? NULL) ? (string) $post['feature_image'] : '';
+      $items[] = [
+        'title' => $post['title'],
+        'url' => $post['url'],
+        'published_at' => $publishedAt,
+        'excerpt' => $this->truncateExcerpt($excerpt),
+        'feature_image' => $featureImage,
+      ];
+      if (count($items) >= self::GHOST_POSTS_LIMIT) {
+        break;
+      }
+    }
+
+    return $items;
+  }
+
+  /**
+   * Righe tabella per gli articoli Ghost: miniatura a colori a sinistra,
+   * a destra data di pubblicazione in piccolo, titolo linkato e sottotitolo.
+   * Stesso layout a tabella degli eventi (niente flex: non è supportato
+   * dagli email client); se l'articolo non ha immagine valida si stampa
+   * solo la riga testuale.
+   *
+   * @param array<int, array{title: string, url: string, published_at: string, excerpt: string, feature_image: string}> $posts
+   */
+  private function buildGhostHtmlList(array $posts, string $utmCampaign): string {
+    $rows = '';
+    foreach ($posts as $post) {
+      $tracked = '{{ TrackLink "' . $this->tagUrl($post['url'], $utmCampaign, self::UTM_CONTENT_GHOST) . '" . }}';
+      $dateRow = $this->ghostDateLabel($post['published_at']);
+      if ($dateRow !== '') {
+        $dateRow = '<div style="font-family:Georgia, \'Times New Roman\', Times, serif; font-size:12px; line-height:18px; color:#5a5a5a;">' . $dateRow . '</div>';
+      }
+      $title = '<a href="' . $tracked . '" style="color:#000000;text-decoration:underline;font-family:Helvetica, Arial, sans-serif;font-size:15px;line-height:20px;font-weight:600;">' . Html::escape($post['title']) . '</a>';
+      $excerptRow = $post['excerpt'] !== ''
+        ? '<div style="font-family:Helvetica, Arial, sans-serif;font-size:13px;line-height:18px;color:#333333;">' . Html::escape($post['excerpt']) . '</div>'
+        : '';
+
+      $thumb = $this->getGhostImmagine($post);
+      $size = self::GHOST_THUMB_DISPLAY;
+      if ($thumb !== NULL) {
+        $rows .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 12px 0;"><tr>'
+          . '<td width="' . $size . '" valign="top" style="padding:0 12px 0 0;">'
+          . '<a href="' . $tracked . '" style="text-decoration:none;border:0;display:block;">'
+          . '<img src="' . $thumb['url'] . '" width="' . $size . '" height="' . $size . '" alt="' . $thumb['alt'] . '" '
+          . 'style="display:block;width:' . $size . 'px;height:' . $size . 'px;border-radius:4px;border:0;outline:none;">'
+          . '</a></td>'
+          . '<td valign="middle" style="padding:0;">' . $dateRow . $title . $excerptRow . '</td>'
+          . '</tr></table>';
+      }
+      else {
+        $rows .= '<div style="margin:0 0 12px 0;">' . $dateRow . $title . $excerptRow . '</div>';
+      }
+    }
+
+    return $rows;
+  }
+
+  /**
+   * Stessa lista in testo semplice (altbody): URL nudo con UTM per Umami,
+   * con data ed excerpt.
+   *
+   * @param array<int, array{title: string, url: string, published_at: string, excerpt: string, feature_image: string}> $posts
+   */
+  private function buildGhostTextList(array $posts, string $utmCampaign): string {
+    $items = [];
+    foreach ($posts as $post) {
+      $label = $post['title'];
+      $dateLabel = $this->ghostDateLabel($post['published_at']);
+      if ($dateLabel !== '') {
+        $label .= ' (' . $dateLabel . ')';
+      }
+      $items[] = '- ' . $label . ': ' . $this->tagUrl($post['url'], $utmCampaign, self::UTM_CONTENT_GHOST);
+      if ($post['excerpt'] !== '') {
+        $items[] = '  ' . $post['excerpt'];
+      }
+    }
+
+    return implode("\n", $items);
+  }
+
+  /**
+   * Miniatura a colori dell'articolo Ghost: la feature_image remota viene
+   * scaricata in public://newsletter-ghost/ (una sola volta per URL) e
+   * ritagliata quadrata con lo style newsletter_ghost. Il derivato viene
+   * pre-generato qui così il primo apertore non innesca la generazione
+   * on-demand di Drupal.
+   *
+   * @param array{title: string, url: string, published_at: string, excerpt: string, feature_image: string} $post
+   *
+   * @return array{url: string, alt: string}|NULL
+   */
+  private function getGhostImmagine(array $post): ?array {
+    $baseUrl = $this->getPublicBackendUrl();
+    if ($baseUrl === '' || $post['feature_image'] === '') {
+      return NULL;
+    }
+    $sourceUri = $this->downloadGhostImage($post['feature_image']);
+    if ($sourceUri === NULL) {
+      return NULL;
+    }
+    $style = $this->entityTypeManager->getStorage('image_style')->load(self::IMAGE_STYLE_NEWSLETTER_GHOST);
+    if ($style === NULL) {
+      return NULL;
+    }
+
+    $derivative_uri = $style->buildUri($sourceUri);
+    // Se il derivato esiste già va riusato: createDerivative() fallisce (e
+    // logga "Cached image file ... already exists") quando il file di
+    // destinazione è già presente, quindi va chiamato solo se manca.
+    if (!file_exists($derivative_uri)) {
+      try {
+        if (!$style->createDerivative($sourceUri, $derivative_uri)) {
+          return NULL;
+        }
+      }
+      catch (\Throwable) {
+        return NULL;
+      }
+    }
+
+    // URL costruito a mano, senza itok: il derivato esiste già quindi viene
+    // servito staticamente (stesso schema di getEventoImmagine).
+    $relativeTarget = StreamWrapperManager::getTarget($sourceUri);
+    $path = '/sites/default/files/styles/' . self::IMAGE_STYLE_NEWSLETTER_GHOST . '/public/' . $relativeTarget;
+
+    return [
+      'url' => $baseUrl . implode('/', array_map('rawurlencode', explode('/', $path))),
+      'alt' => Html::escape($post['title']),
+    ];
+  }
+
+  /**
+   * Scarica la feature_image remota in public://newsletter-ghost/.
+   *
+   * Accetta solo URL http/https con estensione immagine nota, entro
+   * GHOST_IMAGE_MAX_BYTES e con contenuto immagine valido (getimagesize):
+   * in ogni altro caso ritorna NULL e la riga resta solo testuale. Il file
+   * è indicizzato dallo sha1 dell'URL, così viene scaricato una sola volta.
+   *
+   * @return string|NULL URI public:// del file locale.
+   */
+  private function downloadGhostImage(string $url): ?string {
+    $parts = parse_url($url);
+    if (!is_array($parts) || !in_array($parts['scheme'] ?? '', ['http', 'https'], TRUE) || empty($parts['host'])) {
+      return NULL;
+    }
+    $extension = strtolower(pathinfo($parts['path'] ?? '', PATHINFO_EXTENSION));
+    if (!in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif'], TRUE)) {
+      return NULL;
+    }
+
+    $fileSystem = \Drupal::service('file_system');
+    $directory = self::GHOST_IMAGE_DIR;
+    $destination = $directory . '/' . sha1($url) . '.' . $extension;
+    if (file_exists($destination)) {
+      return $destination;
+    }
+
+    try {
+      $response = $this->httpClient->request('GET', $url, [
+        'headers' => ['Accept' => 'image/*'],
+        'connect_timeout' => 10,
+        'timeout' => 20,
+        'http_errors' => FALSE,
+      ]);
+    }
+    catch (\Throwable) {
+      return NULL;
+    }
+    if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 300) {
+      return NULL;
+    }
+
+    $tmp = $fileSystem->tempnam('temporary://', 'ghost_');
+    if ($tmp === FALSE) {
+      return NULL;
+    }
+    try {
+      if (file_put_contents($tmp, (string) $response->getBody()) === FALSE) {
+        return NULL;
+      }
+      if (filesize($tmp) === FALSE || filesize($tmp) > self::GHOST_IMAGE_MAX_BYTES || getimagesize($tmp) === FALSE) {
+        return NULL;
+      }
+      $fileSystem->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS);
+      $moved = $fileSystem->move($tmp, $destination, FileSystemInterface::EXISTS_ERROR);
+    }
+    finally {
+      if (file_exists($tmp)) {
+        $fileSystem->unlink($tmp);
+      }
+    }
+
+    return $moved !== FALSE ? $destination : NULL;
+  }
+
+  /**
+   * Data di pubblicazione dell'articolo (published_at ISO 8601 di Ghost) in
+   * italiano, es. "3 settembre 2026". Stringa vuota se non leggibile.
+   */
+  private function ghostDateLabel(string $publishedAt): string {
+    if ($publishedAt === '') {
+      return '';
+    }
+    try {
+      $date = new \DateTimeImmutable($publishedAt);
+    }
+    catch (\Throwable) {
+      return '';
+    }
+
+    $formatter = new \IntlDateFormatter('it_IT', \IntlDateFormatter::LONG, \IntlDateFormatter::NONE, date_default_timezone_get());
+
+    return (string) $formatter->format($date);
+  }
+
+  /**
+   * Sottotitolo in testo semplice entro GHOST_EXCERPT_MAX caratteri,
+   * tagliato sull'ultimo spazio con ellissi.
+   */
+  private function truncateExcerpt(string $excerpt): string {
+    $excerpt = trim(preg_replace('/\s+/u', ' ', strip_tags($excerpt)) ?? '');
+    if (mb_strlen($excerpt) <= self::GHOST_EXCERPT_MAX) {
+      return $excerpt;
+    }
+    $cut = mb_substr($excerpt, 0, self::GHOST_EXCERPT_MAX);
+    $space = mb_strrpos($cut, ' ');
+
+    return ($space !== FALSE ? mb_substr($cut, 0, $space) : $cut) . '…';
   }
 
   /**
@@ -591,55 +939,6 @@ final class NewsletterCreateCommand extends Command {
     return is_int($id) || (is_string($id) && ctype_digit($id)) ? (int) $id : NULL;
   }
 
-  /**
-   * Verifica che la campagna appena creata sia rendibilizzabile: la GET
-   * /api/campaigns/{id}/preview compila il body (inclusi i {{ TrackLink }})
-   * con il template assegnato e risponde con un errore HTTP se il contenuto
-   * non compila. Fallisce solo il render: la bozza rimane comunque creata.
-   *
-   * Oltre allo status controlla che lo slug UTM compaia nell'HTML
-   * renderizzato e che nessun link del template lo abbia perso per strada
-   * (attributo vuoto: utm_campaign=&).
-   */
-  private function validatePreview(int $campaignId, string $utmCampaign): bool {
-    try {
-      $response = $this->httpClient->request('GET', $this->getBaseUrl() . '/api/campaigns/' . $campaignId . '/preview', [
-        'headers' => [
-          'Accept' => 'application/json',
-          'Authorization' => 'Basic ' . base64_encode($this->getUsername() . ':' . $this->getToken()),
-        ],
-        'connect_timeout' => 10,
-        'timeout' => 30,
-      ]);
-    }
-    catch (\Throwable $e) {
-      \Drupal::logger('ildeposito_utils')->error('Preview Listmonk non riuscita per la campagna @id: @error', [
-        '@id' => $campaignId,
-        '@error' => $e->getMessage(),
-      ]);
-      return FALSE;
-    }
-
-    if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 300) {
-      return FALSE;
-    }
-
-    $preview = (string) $response->getBody();
-    if (!str_contains($preview, $utmCampaign)) {
-      \Drupal::logger('ildeposito_utils')->error('Preview Listmonk della campagna @id: slug UTM @slug assente nel contenuto renderizzato.', [
-        '@id' => $campaignId,
-        '@slug' => $utmCampaign,
-      ]);
-      return FALSE;
-    }
-    if (str_contains($preview, 'utm_campaign=&') || str_contains($preview, 'utm_campaign="')) {
-      \Drupal::logger('ildeposito_utils')->error('Preview Listmonk della campagna @id: un link del template ha utm_campaign vuoto (attribs non risolti).', ['@id' => $campaignId]);
-      return FALSE;
-    }
-
-    return TRUE;
-  }
-
   private function reportFailure(OutputInterface $output, string $reason): int {
     $message = 'Creazione campagna Listmonk fallita: ' . $reason;
     \Drupal::logger('ildeposito_utils')->error($message);
@@ -684,6 +983,34 @@ final class NewsletterCreateCommand extends Command {
 
   private function getToken(): string {
     return trim((string) Settings::get('ildeposito_utils_listmonk_token', ''));
+  }
+
+  /**
+   * ID della lista Listmonk destinataria: LISTMONK_NEWSLETTER_LIST_ID via
+   * settings.php (stessa lista delle iscrizioni da /api/newsletter).
+   * Fallback a DEFAULT_LIST_ID con warning se assente o non valido, così gli
+   * ambienti non configurati mantengono il comportamento precedente.
+   */
+  private function getListId(): int {
+    $listId = (int) trim((string) Settings::get('ildeposito_utils_listmonk_list_id', ''));
+    if ($listId > 0) {
+      return $listId;
+    }
+    \Drupal::logger('ildeposito_utils')->warning('LISTMONK_NEWSLETTER_LIST_ID assente o non valido: uso la lista di fallback @id.', ['@id' => self::DEFAULT_LIST_ID]);
+
+    return self::DEFAULT_LIST_ID;
+  }
+
+  private function getGhostApiUrl(): string {
+    return rtrim(trim((string) Settings::get('ildeposito_utils_ghost_api_url', '')), '/');
+  }
+
+  private function getGhostKey(): string {
+    return trim((string) Settings::get('ildeposito_utils_ghost_content_key', ''));
+  }
+
+  private function getGhostTag(): string {
+    return trim((string) Settings::get('ildeposito_utils_ghost_tag', ''));
   }
 
 }

@@ -1,0 +1,15 @@
+uuid: 94ceb378-51ba-4ea7-89df-7f38c3b7898b
+langcode: it
+status: true
+dependencies: {  }
+name: newsletter_ghost
+label: 'Newsletter - miniatura Ghost'
+effects:
+  48ae0fa6-f38c-42ae-b07c-9acddc270333:
+    uuid: 48ae0fa6-f38c-42ae-b07c-9acddc270333
+    id: image_scale_and_crop
+    weight: 1
+    data:
+      width: 200
+      height: 200
+      anchor: center-center

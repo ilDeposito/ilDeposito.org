@@ -63,12 +63,25 @@ $settings['ildeposito_utils_mastodon_access_token'] = getenv('MASTODON_ACCESS_TO
 $settings['ildeposito_utils_listmonk_base_url'] = rtrim(getenv('LISTMONK_BASE_URL') ?: '', '/');
 $settings['ildeposito_utils_listmonk_username'] = getenv('LISTMONK_USERNAME') ?: '';
 $settings['ildeposito_utils_listmonk_token'] = getenv('LISTMONK_TOKEN') ?: '';
+// ID della lista Listmonk destinataria della campagna newsletter
+// (ildeposito_utils, drush ildeposito:newsletter-create): la stessa lista a
+// cui la rotta SSR /api/newsletter iscrive gli utenti, così invio e iscrizioni
+// restano allineati. Stringa grezza: la validazione (intero positivo,
+// fallback 4) è nel comando.
+$settings['ildeposito_utils_listmonk_list_id'] = trim((string) (getenv('LISTMONK_NEWSLETTER_LIST_ID') ?: ''));
 
 // URL pubblico del backend (admin.ildeposito.org / admin-stage.ildeposito.org):
 // serve per gli URL assoluti delle immagini nella newsletter. La rotta
 // /sites/default/files* ha il bypass Authelia su Caddy, quindi le miniature
 // degli image style sono raggiungibili anche dagli email client.
 $settings['ildeposito_utils_public_backend_url'] = rtrim(getenv('PUBLIC_BACKEND_URL') ?: '', '/');
+
+// Blog Ghost (www.cosmonauta.dev) per il blocco "Articoli consigliati" della
+// newsletter (ildeposito_utils, drush ildeposito:newsletter-create).
+// Solo Content API Key (sola lettura): mai la Admin API Key.
+$settings['ildeposito_utils_ghost_api_url'] = rtrim(getenv('GHOST_API_URL') ?: '', '/');
+$settings['ildeposito_utils_ghost_content_key'] = getenv('GHOST_CONTENT_API_KEY') ?: '';
+$settings['ildeposito_utils_ghost_tag'] = trim((string) (getenv('GHOST_TAG') ?: ''));
 
 // Anteprima frontend (ildeposito_preview): secret HMAC condiviso col
 // frontend Astro (rotta /preview/[uuid]) e URL base del frontend a cui
