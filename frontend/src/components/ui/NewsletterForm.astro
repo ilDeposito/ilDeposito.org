@@ -79,8 +79,16 @@ const submitLabelId = `${uid}-submit-label`;
       <p id={errEmailId} class="text-error text-sm mt-1 hidden"></p>
     </div>
 
-    <!-- Altcha: proof-of-work antispam, self-hosted, zero dati a terzi -->
-    <altcha-widget challenge="/api/altcha" hidefooter></altcha-widget>
+    <!-- Altcha: proof-of-work antispam, self-hosted, zero dati a terzi.
+      language="it" forza l'italiano: il bundle principale include solo
+      l'inglese, senza import i18n l'auto-detect da <html lang="it">
+      ricade su "I'm not a robot" (vedi script sotto).
+      Le variabili --altcha-* compattano la card (ereditano nello shadow DOM);
+      il footer è spento anche via proprietà nello script perché il solo
+      attributo hidefooter non risulta sufficiente. -->
+    <div class="newsletter-altcha">
+      <altcha-widget challenge="/api/altcha" hidefooter language="it"></altcha-widget>
+    </div>
 
     <div class="form-control">
       <label class="label cursor-pointer justify-start gap-3" for={privacyId}>
@@ -109,9 +117,27 @@ const submitLabelId = `${uid}-submit-label`;
   </form>
 </div>
 
+<style>
+  /* Compatta la card Altcha: le custom properties ereditano nello shadow DOM */
+  .newsletter-altcha {
+    --altcha-max-width: 100%;
+    --altcha-padding: 0.5rem 0.75rem;
+    --altcha-checkbox-size: 18px;
+  }
+</style>
+
 <script>
   // Registra <altcha-widget> come custom element (bundlato da Vite, zero CDN esterni)
   import 'altcha';
+  // Traduzione italiana del widget (il bundle principale è solo inglese)
+  import 'altcha/i18n/it';
+
+  // Spegne il footer "Protected by ALTCHA" via proprietà: il solo attributo
+  // hidefooter non basta a nasconderlo. Assegnazione innocua se il widget
+  // non è ancora definito (la proprietà resta sull'elemento).
+  document.querySelectorAll('altcha-widget').forEach((w) => {
+    (w as unknown as Record<string, unknown>).hideFooter = true;
+  });
 </script>
 
 <script is:inline>
@@ -200,8 +226,22 @@ const submitLabelId = `${uid}-submit-label`;
     // alla verifica): senza reset, ogni retry ripropone lo stesso token già
     // bruciato e fallisce di nuovo con "verifica antispam non valida".
     function resetAltcha() {
-      const old = form.querySelector('altcha-widget');
-      if (old) old.replaceWith(old.cloneNode(true));
+      const widget = form.querySelector('altcha-widget');
+      // reset() rigenera il challenge preservando la configurazione
+      // (incluso hideFooter); il clone perderebbe le proprietà JS.
+      if (widget && typeof widget.reset === 'function') {
+        try {
+          widget.reset();
+          return;
+        } catch {
+          // fallback al clone sotto
+        }
+      }
+      if (widget) {
+        const fresh = widget.cloneNode(true);
+        fresh.hideFooter = true;
+        widget.replaceWith(fresh);
+      }
     }
 
     form.addEventListener('submit', async function (e) {
