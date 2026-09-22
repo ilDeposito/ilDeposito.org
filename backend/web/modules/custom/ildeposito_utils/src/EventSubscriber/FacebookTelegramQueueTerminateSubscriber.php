@@ -44,7 +44,17 @@ final class FacebookTelegramQueueTerminateSubscriber implements EventSubscriberI
       return;
     }
 
-    $worker = $this->queueWorkerManager->createInstance($queueName);
+    // Il drain gira nel kernel terminate di OGNI richiesta e comando drush:
+    // se la costruzione del worker fallisce (per esempio container non ancora
+    // ricostruito dopo un deploy che cambia il costruttore di un publisher),
+    // l'item resta in coda e il comando in primo piano non deve fallire.
+    try {
+      $worker = $this->queueWorkerManager->createInstance($queueName);
+    }
+    catch (\Throwable $exception) {
+      $this->logger->error('Inizializzazione coda @queue fallita: @message', ['@queue' => $queueName, '@message' => $exception->getMessage()]);
+      return;
+    }
     while ($item = $queue->claimItem()) {
       try {
         $worker->processItem($item->data);
