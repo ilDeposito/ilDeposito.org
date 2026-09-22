@@ -6,6 +6,7 @@ namespace Drupal\ildeposito_utils\Service;
 
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Site\Settings;
+use Drupal\Core\State\StateInterface;
 use GuzzleHttp\ClientInterface;
 
 /**
@@ -16,6 +17,24 @@ final class FacebookTelegramPublisher {
   private const TABLE = 'ildeposito_utils_facebook_telegram';
 
   private const PROCESSING_LEASE = 600;
+
+  /**
+   * Fuso orario esplicito per la fascia di silenzio: l'ora dei post non deve
+   * mai dipendere dal timezone del server o dal default di PHP.
+   */
+  private const TIMEZONE = 'Europe/Rome';
+
+  /**
+   * Il primo post automatico del giorno esce sul canale non prima di quest'ora.
+   */
+  private const MORNING_HOLD_HOUR = 8;
+
+  private const MORNING_HOLD_MINUTE = 30;
+
+  /**
+   * Data Europe/Rome (Y-m-d) del giorno il cui slot mattutino e' consumato.
+   */
+  private const STATE_MORNING_POST_DATE = 'ildeposito_utils.telegram_morning_post_date';
 
   private const TELEGRAM_UTM = [
     'utm_source' => 'telegram',
@@ -34,6 +53,7 @@ final class FacebookTelegramPublisher {
     private readonly FacebookPageClient $facebookPageClient,
     private readonly ClientInterface $httpClient,
     private readonly Connection $database,
+    private readonly StateInterface $state,
   ) {}
 
   /**
@@ -65,6 +85,14 @@ final class FacebookTelegramPublisher {
     if (!$this->isOfficialPost($post)) {
       $this->markIgnored($facebookPostId);
       return self::RESULT_IGNORED;
+    }
+
+    if ($this->shouldHoldForMorning($post)) {
+      // Primo automatico del giorno in fascia di silenzio: rilasciamo subito
+      // il lease e restiamo BUSY finche' non sono le 8:30. Instagram e
+      // Mastodon sono gia' usciti (Telegram e' ultimo nel worker).
+      $this->markPending($facebookPostId);
+      return self::RESULT_BUSY;
     }
 
     $messageId = $this->sendToTelegram($post);
@@ -109,12 +137,45 @@ final class FacebookTelegramPublisher {
   }
 
   /**
+   * Decide se trattenere il primo post automatico del giorno fino alle 8:30.
+   *
+   * Vale solo per i post automatici della Storia Cantata (link alla scheda
+   * /eventi/), solo per il primo del giorno (slot giornaliero in State,
+   * consumato alla prima trattenuta o al primo invio) e solo prima delle
+   * 8:30 Europe/Rome: dopo quell'ora esce subito, anche se nessun giro coda
+   * e' passato nella finestra (meglio tardi che mai).
+   *
+   * @param array<string, mixed> $post
+   */
+  private function shouldHoldForMorning(array $post): bool {
+    if ($this->findPostEventUrl($post) === NULL) {
+      return FALSE;
+    }
+    $now = new \DateTimeImmutable('now', new \DateTimeZone(self::TIMEZONE));
+    $today = $now->format('Y-m-d');
+    if ($this->state->get(self::STATE_MORNING_POST_DATE) === $today) {
+      return FALSE;
+    }
+    $this->state->set(self::STATE_MORNING_POST_DATE, $today);
+    return $now < $now->setTime(self::MORNING_HOLD_HOUR, self::MORNING_HOLD_MINUTE);
+  }
+
+  /**
+   * @param array<string, mixed> $post
+   */
+  private function findPostEventUrl(array $post): ?string {
+    $text = $this->tagIldepositoUrls(trim((string) ($post['message'] ?? '')));
+    $urls = $this->collectUrls($post['attachments'] ?? []);
+    return $this->findEventUrl(array_merge($urls, $this->urlsInText($text)));
+  }
+
+  /**
    * @param array<string, mixed> $post
    */
   private function sendToTelegram(array $post): int {
     $text = $this->tagIldepositoUrls(trim((string) ($post['message'] ?? '')));
     $urls = $this->collectUrls($post['attachments'] ?? []);
-    $eventUrl = $this->findEventUrl(array_merge($urls, $this->urlsInText($text)));
+    $eventUrl = $this->findPostEventUrl($post);
 
     // I post automatici della Storia Cantata rimandano alla scheda evento:
     // sul canale e' piu' utile la preview OpenGraph del sito della foto FB.
@@ -514,6 +575,13 @@ final class FacebookTelegramPublisher {
   private function markIgnored(string $facebookPostId): void {
     $this->database->update(self::TABLE)
       ->fields(['status' => 'ignored', 'sent' => time()])
+      ->condition('facebook_post_id', $facebookPostId)
+      ->execute();
+  }
+
+  private function markPending(string $facebookPostId): void {
+    $this->database->update(self::TABLE)
+      ->fields(['status' => 'pending', 'processing_started' => NULL])
       ->condition('facebook_post_id', $facebookPostId)
       ->execute();
   }

@@ -54,12 +54,14 @@ final class FacebookTelegramWorker extends QueueWorkerBase implements ContainerF
     if ($this->instagramPublisher->publish($postId) === FacebookInstagramPublisher::RESULT_BUSY) {
       throw new RequeueException();
     }
-    if ($this->publisher->publish($postId) === FacebookTelegramPublisher::RESULT_BUSY) {
+    if ($this->mastodonPublisher->isConfigured() && $this->mastodonPublisher->publish($postId) === FacebookMastodonPublisher::RESULT_BUSY) {
       // L'altro canale (webhook o cron) ha gia' il lease: manteniamo l'item
       // finche' non lo marca inviato o il lease scade dopo un crash.
       throw new RequeueException();
     }
-    if ($this->mastodonPublisher->isConfigured() && $this->mastodonPublisher->publish($postId) === FacebookMastodonPublisher::RESULT_BUSY) {
+    if ($this->publisher->publish($postId) === FacebookTelegramPublisher::RESULT_BUSY) {
+      // Telegram e' ultimo di proposito: la trattenuta del primo post
+      // automatico fino alle 8:30 non blocca Instagram e Mastodon.
       throw new RequeueException();
     }
   }
