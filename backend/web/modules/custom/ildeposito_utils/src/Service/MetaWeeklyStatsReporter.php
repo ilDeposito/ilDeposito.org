@@ -20,6 +20,14 @@ final class MetaWeeklyStatsReporter {
 
   private const STATE_MASTODON_EVENTS = 'ildeposito_utils.meta_weekly_stats.mastodon_events';
 
+  /**
+   * Versione del formato snapshot.
+   *
+   * v1 = somme cumulative (causava delta negativi); v2 = mappe per post.
+   * Uno snapshot v1 viene trattato come baseline da reinizializzare.
+   */
+  private const SNAPSHOT_VERSION = 2;
+
   public function __construct(
     private readonly FacebookPageClient $facebookPageClient,
     private readonly FacebookInstagramPublisher $instagramPublisher,
@@ -90,7 +98,7 @@ final class MetaWeeklyStatsReporter {
 
     $current = $this->snapshot($onProgress);
     $previous = $this->state->get(self::STATE_SNAPSHOT);
-    if (!is_array($previous)) {
+    if (!$this->isComparableSnapshot($previous)) {
       if (!$dryRun) {
         $this->state->set(self::STATE_SNAPSHOT, $current);
       }
@@ -115,10 +123,22 @@ final class MetaWeeklyStatsReporter {
    */
   public function preview(?callable $onProgress = NULL): ?string {
     $previous = $this->state->get(self::STATE_SNAPSHOT);
-    if (!is_array($previous)) {
+    if (!$this->isComparableSnapshot($previous)) {
       return NULL;
     }
     return $this->format($this->snapshot($onProgress), $previous, time());
+  }
+
+  /**
+   * Uno snapshot è confrontabile solo se è in formato v2 (mappe per post).
+   *
+   * Gli snapshot v1 (somme cumulative) vengono trattati come baseline.
+   */
+  private function isComparableSnapshot(mixed $snapshot): bool {
+    return is_array($snapshot)
+      && ($snapshot['version'] ?? NULL) === self::SNAPSHOT_VERSION
+      && isset($snapshot['facebook']['posts']) && is_array($snapshot['facebook']['posts'])
+      && isset($snapshot['instagram']['media']) && is_array($snapshot['instagram']['media']);
   }
 
   /** @param callable(string):void|null $onProgress @return array<string, mixed> */
@@ -136,6 +156,7 @@ final class MetaWeeklyStatsReporter {
     $telegram = $this->telegramChannelSnapshot();
 
     return [
+      'version' => self::SNAPSHOT_VERSION,
       'collected_at' => time(),
       'facebook' => $facebook,
       'instagram' => $instagram,
@@ -168,7 +189,7 @@ final class MetaWeeklyStatsReporter {
     }
   }
 
-  /** @return array<string, int>|null */
+  /** @return array<string, mixed>|null */
   private function mastodonSnapshot(): ?array {
     if (!$this->mastodonClient->isConfigured()) {
       return NULL;
@@ -179,29 +200,28 @@ final class MetaWeeklyStatsReporter {
       if ($accountId === '') {
         return NULL;
       }
-      $response = $this->mastodonClient->request('GET', '/api/v1/accounts/' . rawurlencode($accountId) . '/statuses', [
-        'query' => ['limit' => 100, 'exclude_replies' => 'true', 'exclude_reblogs' => 'true'],
-      ]);
-      $statuses = json_decode((string) $response->getBody(), TRUE, 512, JSON_THROW_ON_ERROR);
-      if (!is_array($statuses)) {
-        throw new \RuntimeException('Mastodon ha restituito una lista di post non valida per il riepilogo settimanale.');
-      }
-      $totals = [
-        'followers' => (int) ($account['followers_count'] ?? 0),
-        'posts' => (int) ($account['statuses_count'] ?? 0),
-        'favourites' => 0,
-        'reblogs' => 0,
-        'replies' => 0,
-      ];
+      $statuses = $this->mastodonStatuses($accountId);
+      $map = [];
       foreach ($statuses as $status) {
         if (!is_array($status)) {
           continue;
         }
-        $totals['favourites'] += (int) ($status['favourites_count'] ?? 0);
-        $totals['reblogs'] += (int) ($status['reblogs_count'] ?? 0);
-        $totals['replies'] += (int) ($status['replies_count'] ?? 0);
+        $id = (string) ($status['id'] ?? '');
+        if ($id === '') {
+          continue;
+        }
+        $map[$id] = [
+          'created' => $this->toTimestamp($status['created_at'] ?? NULL),
+          'favourites' => (int) ($status['favourites_count'] ?? 0),
+          'reblogs' => (int) ($status['reblogs_count'] ?? 0),
+          'replies' => (int) ($status['replies_count'] ?? 0),
+        ];
       }
-      return $totals;
+      return [
+        'followers' => (int) ($account['followers_count'] ?? 0),
+        'posts_total' => (int) ($account['statuses_count'] ?? 0),
+        'statuses' => $map,
+      ];
     }
     catch (\Throwable $exception) {
       // Mastodon è una sezione facoltativa del riepilogo: un errore qui non
@@ -212,56 +232,122 @@ final class MetaWeeklyStatsReporter {
     }
   }
 
-  /** @param callable(string):void|null $onProgress @return array<string, int> */
+  /**
+   * Legge gli status propri dell'account, paginando finché serve.
+   *
+   * @return list<array<string, mixed>>
+   */
+  private function mastodonStatuses(string $accountId): array {
+    $all = [];
+    $maxId = NULL;
+    for ($page = 0; $page < 4; $page++) {
+      $query = ['limit' => 80, 'exclude_replies' => 'true', 'exclude_reblogs' => 'true'];
+      if ($maxId !== NULL) {
+        $query['max_id'] = $maxId;
+      }
+      $response = $this->mastodonClient->request('GET', '/api/v1/accounts/' . rawurlencode($accountId) . '/statuses', [
+        'query' => $query,
+      ]);
+      $statuses = json_decode((string) $response->getBody(), TRUE, 512, JSON_THROW_ON_ERROR);
+      if (!is_array($statuses) || $statuses === []) {
+        break;
+      }
+      foreach ($statuses as $status) {
+        if (is_array($status)) {
+          $all[] = $status;
+        }
+      }
+      if (count($statuses) < 80) {
+        break;
+      }
+      $tail = end($statuses);
+      $maxId = is_array($tail) && isset($tail['id']) ? (string) $tail['id'] : NULL;
+      if ($maxId === NULL) {
+        break;
+      }
+    }
+    return $all;
+  }
+
+  /** @param callable(string):void|null $onProgress @return array<string, mixed> */
   private function facebookSnapshot(?callable $onProgress = NULL): array {
     $page = $this->graph($this->facebookPageClient->getAsPage($this->facebookPageClient->getPageId(), [
       'fields' => 'followers_count',
     ]));
-    $posts = $this->graph($this->facebookPageClient->getFromPage('published_posts', [
-      'fields' => 'id,comments.limit(0).summary(true),reactions.type(LIKE).limit(0).summary(true),shares',
-      'limit' => 100,
-    ]));
-    $totals = ['followers' => (int) ($page['followers_count'] ?? 0), 'views' => 0, 'comments' => 0, 'likes' => 0, 'shares' => 0];
-    $postList = $posts['data'] ?? [];
+    $postList = $this->graphAllPages(
+      fn (): \Psr\Http\Message\ResponseInterface => $this->facebookPageClient->getFromPage('published_posts', [
+        // reactions senza type() = totale di tutte le reaction, non solo LIKE.
+        'fields' => 'id,created_time,comments.limit(0).summary(true),reactions.limit(0).summary(true),shares',
+        'limit' => 100,
+      ]),
+      500,
+    );
+    $posts = [];
+    $viewsUnavailable = 0;
     $index = 0;
     foreach ($postList as $post) {
       if (!is_array($post)) {
         continue;
       }
+      $id = (string) ($post['id'] ?? '');
+      if ($id === '') {
+        continue;
+      }
       $index++;
       $this->progress($onProgress, sprintf('Facebook: post %d di %d…', $index, count($postList)));
-      $totals['comments'] += $this->summary($post['comments'] ?? []);
-      $totals['likes'] += $this->summary($post['reactions'] ?? []);
-      $totals['shares'] += (int) (($post['shares']['count'] ?? 0));
-      $totals['views'] += $this->metric($this->facebookPageClient, (string) ($post['id'] ?? ''), 'post_impressions', TRUE);
+      $views = $this->insightMetric($this->facebookPageClient, $id, 'post_impressions', TRUE);
+      if ($views === NULL) {
+        $viewsUnavailable++;
+      }
+      $posts[$id] = [
+        'created' => $this->toTimestamp($post['created_time'] ?? NULL),
+        'comments' => $this->summary($post['comments'] ?? []),
+        'likes' => $this->summary($post['reactions'] ?? []),
+        'shares' => (int) (($post['shares']['count'] ?? 0)),
+        'views' => $views ?? 0,
+      ];
     }
-    return $totals;
+    if ($viewsUnavailable > 0) {
+      $this->logger()->warning('Statistiche settimanali: insight Facebook post_impressions non disponibile per @n post su @total (permesso read_insights o formato non supportato?).', [
+        '@n' => $viewsUnavailable,
+        '@total' => count($postList),
+      ]);
+    }
+    return [
+      'followers' => (int) ($page['followers_count'] ?? 0),
+      'posts' => $posts,
+      'views_unavailable' => $viewsUnavailable,
+    ];
   }
 
-  /** @param callable(string):void|null $onProgress @return array<string, int> */
+  /** @param callable(string):void|null $onProgress @return array<string, mixed> */
   private function instagramSnapshot(?callable $onProgress = NULL): array {
     $accountId = $this->instagramPublisher->getInstagramAccountId();
     $account = $this->graph($this->facebookPageClient->get($accountId, ['fields' => 'followers_count']));
-    $media = $this->graph($this->facebookPageClient->get($accountId . '/media', [
-      'fields' => 'id,comments_count,like_count',
-      'limit' => 100,
-    ]));
-    $totals = ['followers' => (int) ($account['followers_count'] ?? 0), 'views' => 0, 'comments' => 0, 'likes' => 0, 'saves' => 0, 'shares' => 0];
-    $mediaList = $media['data'] ?? [];
+    $mediaList = $this->graphAllPages(
+      fn (): \Psr\Http\Message\ResponseInterface => $this->facebookPageClient->get($accountId . '/media', [
+        'fields' => 'id,timestamp,comments_count,like_count',
+        'limit' => 100,
+      ]),
+      500,
+    );
+    $media = [];
+    $viewsUnavailable = 0;
+    $savesUnavailable = 0;
     $index = 0;
     foreach ($mediaList as $item) {
       if (!is_array($item)) {
         continue;
       }
-      $index++;
-      $this->progress($onProgress, sprintf('Instagram: contenuti %d di %d…', $index, count($mediaList)));
-      $totals['comments'] += (int) ($item['comments_count'] ?? 0);
-      $totals['likes'] += (int) ($item['like_count'] ?? 0);
       $id = (string) ($item['id'] ?? '');
       if ($id === '') {
         continue;
       }
-      $totals['views'] += $this->metric($this->facebookPageClient, $id, 'views');
+      $index++;
+      $this->progress($onProgress, sprintf('Instagram: contenuti %d di %d…', $index, count($mediaList)));
+      $views = $this->insightMetric($this->facebookPageClient, $id, 'views');
+      $saves = NULL;
+      $shares = NULL;
       try {
         $insights = $this->graph($this->facebookPageClient->get($id . '/insights', ['metric' => 'saved,shares']));
         foreach ($insights['data'] ?? [] as $insight) {
@@ -269,69 +355,187 @@ final class MetaWeeklyStatsReporter {
             continue;
           }
           $name = (string) ($insight['name'] ?? '');
-          if (in_array($name, ['saved', 'shares'], TRUE)) {
-            $totals[$name === 'saved' ? 'saves' : 'shares'] += $this->insightValue($insight);
+          if ($name === 'saved') {
+            $saves = $this->insightValue($insight);
+          }
+          elseif ($name === 'shares') {
+            $shares = $this->insightValue($insight);
           }
         }
       }
-      catch (\Throwable) {
-        // Alcuni tipi di media non espongono salvataggi o condivisioni.
+      catch (\Throwable $exception) {
+        $this->logger()->warning('Statistiche settimanali: insight Instagram saved/shares non disponibile per un contenuto (@message).', [
+          '@message' => $this->metaErrorMessage($exception),
+        ]);
       }
+      if ($views === NULL) {
+        $viewsUnavailable++;
+      }
+      if ($saves === NULL || $shares === NULL) {
+        $savesUnavailable++;
+      }
+      $media[$id] = [
+        'created' => $this->toTimestamp($item['timestamp'] ?? NULL),
+        'comments' => (int) ($item['comments_count'] ?? 0),
+        'likes' => (int) ($item['like_count'] ?? 0),
+        'views' => $views ?? 0,
+        'saves' => $saves ?? 0,
+        'shares' => $shares ?? 0,
+      ];
     }
-    return $totals;
+    if ($viewsUnavailable > 0) {
+      $this->logger()->warning('Statistiche settimanali: insight Instagram views non disponibile per @n contenuti su @total.', [
+        '@n' => $viewsUnavailable,
+        '@total' => count($mediaList),
+      ]);
+    }
+    return [
+      'followers' => (int) ($account['followers_count'] ?? 0),
+      'media' => $media,
+      'views_unavailable' => $viewsUnavailable,
+      'saves_unavailable' => $savesUnavailable,
+    ];
+  }
+
+  /**
+   * Segue la paginazione Graph (`paging.next`) fino a $maxItems elementi.
+   *
+   * @param callable():\Psr\Http\Message\ResponseInterface $firstPage
+   * @return list<array<string, mixed>>
+   */
+  private function graphAllPages(callable $firstPage, int $maxItems = 500): array {
+    $payload = $this->graph($firstPage());
+    $items = array_values(array_filter($payload['data'] ?? [], 'is_array'));
+    $next = is_array($payload['paging'] ?? NULL) ? ($payload['paging']['next'] ?? NULL) : NULL;
+    $pages = 0;
+    while (is_string($next) && $next !== '' && count($items) < $maxItems && $pages < 5) {
+      $pages++;
+      $response = $this->httpClient->request('GET', $next, ['timeout' => 30]);
+      $payload = $this->graph($response);
+      foreach ($payload['data'] ?? [] as $item) {
+        if (is_array($item)) {
+          $items[] = $item;
+        }
+        if (count($items) >= $maxItems) {
+          break;
+        }
+      }
+      $next = is_array($payload['paging'] ?? NULL) ? ($payload['paging']['next'] ?? NULL) : NULL;
+    }
+    return array_slice($items, 0, $maxItems);
   }
 
   /** @param array<string, mixed> $current @param array<string, mixed> $previous */
   private function format(array $current, array $previous, int $now): string {
-    $facebook = $this->delta($current['facebook'] ?? [], $previous['facebook'] ?? []);
-    $instagram = $this->delta($current['instagram'] ?? [], $previous['instagram'] ?? []);
-    $mastodon = $this->delta($current['mastodon'] ?? [], $previous['mastodon'] ?? ($current['mastodon'] ?? []));
-    $telegram = $this->delta($current['telegram'] ?? [], $previous['telegram'] ?? ($current['telegram'] ?? []));
-    $events = $this->instagramEventsSince((int) ($previous['collected_at'] ?? $now), $now);
-    if ($events['comments'] > 0) {
-      $instagram['comments'] = $events['comments'];
-    }
-    $instagram['mentions'] = $events['mentions'];
+    $from = (int) ($previous['collected_at'] ?? $now);
 
-    $mastodonEvents = $this->mastodonEventsSince((int) ($previous['collected_at'] ?? $now), $now);
-    if ($mastodonEvents['replies'] > 0) {
-      $mastodon['replies'] = $mastodonEvents['replies'];
+    $facebook = $this->weeklyPostActivity(
+      $current['facebook']['posts'] ?? [],
+      is_array($previous['facebook'] ?? NULL) ? ($previous['facebook']['posts'] ?? []) : [],
+      ['comments', 'likes', 'shares', 'views'],
+      $from,
+      $now,
+    );
+    $facebookFollowers = (int) ($current['facebook']['followers'] ?? 0) - (int) ($previous['facebook']['followers'] ?? 0);
+
+    $instagram = $this->weeklyPostActivity(
+      $current['instagram']['media'] ?? [],
+      is_array($previous['instagram'] ?? NULL) ? ($previous['instagram']['media'] ?? []) : [],
+      ['comments', 'likes', 'views', 'saves', 'shares'],
+      $from,
+      $now,
+    );
+    $instagramFollowers = (int) ($current['instagram']['followers'] ?? 0) - (int) ($previous['instagram']['followers'] ?? 0);
+    // Commenti e like da API per-post (mai negativi); menzioni solo da webhook.
+    $instagramMentions = $this->instagramEventsSince($from, $now)['mentions'];
+
+    $mastodonActivity = $this->weeklyPostActivity(
+      is_array($current['mastodon'] ?? NULL) ? ($current['mastodon']['statuses'] ?? []) : [],
+      is_array($previous['mastodon'] ?? NULL) ? ($previous['mastodon']['statuses'] ?? []) : [],
+      ['favourites', 'reblogs', 'replies'],
+      $from,
+      $now,
+    );
+    $mastodonFollowers = is_array($current['mastodon'] ?? NULL)
+      ? (int) ($current['mastodon']['followers'] ?? 0) - (int) ($previous['mastodon']['followers'] ?? 0)
+      : 0;
+    $mastodonPosts = $mastodonActivity['_new'] ?? 0;
+    $mastodonMentions = $this->mastodonEventsSince($from, $now)['mentions'];
+
+    $telegramMembers = NULL;
+    $telegramDelta = 0;
+    if (is_array($current['telegram'] ?? NULL)) {
+      $telegramMembers = (int) ($current['telegram']['members'] ?? 0);
+      $telegramDelta = $telegramMembers - (int) ($previous['telegram']['members'] ?? $telegramMembers);
     }
-    $mastodon['mentions'] = $mastodonEvents['mentions'];
 
     $text = "📊 Statistiche settimanali\n\n"
       . "🔵 Facebook\n"
-      . 'Follower: ' . $this->number($current['facebook']['followers'] ?? 0) . ' (' . $this->signed($facebook['followers'] ?? 0) . ")\n"
-      . 'Visualizzazioni dei post: ' . $this->number($facebook['views'] ?? 0) . "\n"
+      . 'Follower: ' . $this->number((int) ($current['facebook']['followers'] ?? 0)) . ' (' . $this->signed($facebookFollowers) . ")\n"
+      . 'Post pubblicati: ' . $this->number($facebook['_new'] ?? 0) . "\n"
+      . 'Visualizzazioni dei post: ' . $this->activity($facebook['views'] ?? 0, (int) ($current['facebook']['views_unavailable'] ?? 0)) . "\n"
       . 'Commenti: ' . $this->number($facebook['comments'] ?? 0) . "\n"
-      . 'Interazioni: ' . $this->number($facebook['likes'] ?? 0) . ' mi piace · ' . $this->number($facebook['shares'] ?? 0) . " condivisioni\n\n"
+      . 'Interazioni: ' . $this->number($facebook['likes'] ?? 0) . ' reazioni · ' . $this->number($facebook['shares'] ?? 0) . " condivisioni\n\n"
       . "🟣 Instagram\n"
-      . 'Follower: ' . $this->number($current['instagram']['followers'] ?? 0) . ' (' . $this->signed($instagram['followers'] ?? 0) . ")\n"
-      . 'Visualizzazioni dei post: ' . $this->number($instagram['views'] ?? 0) . "\n"
+      . 'Follower: ' . $this->number((int) ($current['instagram']['followers'] ?? 0)) . ' (' . $this->signed($instagramFollowers) . ")\n"
+      . 'Contenuti pubblicati: ' . $this->number($instagram['_new'] ?? 0) . "\n"
+      . 'Visualizzazioni dei post: ' . $this->activity($instagram['views'] ?? 0, (int) ($current['instagram']['views_unavailable'] ?? 0)) . "\n"
       . 'Commenti: ' . $this->number($instagram['comments'] ?? 0) . "\n"
-      . 'Menzioni: ' . $this->number($instagram['mentions'] ?? 0) . "\n"
+      . 'Menzioni: ' . $this->number($instagramMentions) . "\n"
       . 'Interazioni: ' . $this->number($instagram['likes'] ?? 0) . ' mi piace · ' . $this->number($instagram['saves'] ?? 0) . ' salvataggi · ' . $this->number($instagram['shares'] ?? 0) . ' condivisioni';
 
     if (is_array($current['mastodon'] ?? NULL)) {
       $text .= "\n\n🟢 Mastodon\n"
-        . 'Follower: ' . $this->number($current['mastodon']['followers'] ?? 0) . ' (' . $this->signed($mastodon['followers'] ?? 0) . ")\n"
-        . 'Post pubblicati: ' . $this->number($mastodon['posts'] ?? 0) . "\n"
-        . 'Interazioni: ' . $this->number($mastodon['favourites'] ?? 0) . ' preferiti · ' . $this->number($mastodon['reblogs'] ?? 0) . ' boost · ' . $this->number($mastodon['replies'] ?? 0) . " risposte\n"
-        . 'Menzioni: ' . $this->number($mastodon['mentions'] ?? 0);
+        . 'Follower: ' . $this->number((int) ($current['mastodon']['followers'] ?? 0)) . ' (' . $this->signed($mastodonFollowers) . ")\n"
+        . 'Post pubblicati: ' . $this->number($mastodonPosts) . "\n"
+        . 'Interazioni: ' . $this->number($mastodonActivity['favourites'] ?? 0) . ' preferiti · ' . $this->number($mastodonActivity['reblogs'] ?? 0) . ' boost · ' . $this->number($mastodonActivity['replies'] ?? 0) . " risposte\n"
+        . 'Menzioni: ' . $this->number($mastodonMentions);
     }
-    if (is_array($current['telegram'] ?? NULL)) {
+    if ($telegramMembers !== NULL) {
       $text .= "\n\n🔵 Telegram\n"
-        . 'Iscritti al canale: ' . $this->number($current['telegram']['members'] ?? 0) . ' (' . $this->signed($telegram['members'] ?? 0) . ')';
+        . 'Iscritti al canale: ' . $this->number($telegramMembers) . ' (' . $this->signed($telegramDelta) . ')';
     }
     return $text;
   }
 
-  /** @param array<string, int> $current @param array<string, int> $previous @return array<string, int> */
-  private function delta(array $current, array $previous): array {
-    $result = [];
-    foreach ($current as $key => $value) {
-      if ($key !== 'collected_at') {
-        $result[$key] = $value - (int) ($previous[$key] ?? 0);
+  /**
+   * Attività settimanale su mappe per-post.
+   *
+   * Post nuovi nella finestra = intero valore; post già visti = solo
+   * l'incremento non negativo. I post spariti vengono ignorati (non sottratti).
+   *
+   * @param array<string, array<string, int>> $currMap
+   * @param array<string, array<string, int>> $prevMap
+   * @param list<string> $keys
+   * @return array<string, int> Attività per chiave + '_new' (post nuovi).
+   */
+  private function weeklyPostActivity(array $currMap, array $prevMap, array $keys, int $from, int $now): array {
+    $result = ['_new' => 0];
+    foreach ($keys as $key) {
+      $result[$key] = 0;
+    }
+    foreach ($currMap as $id => $curr) {
+      if (!is_array($curr)) {
+        continue;
+      }
+      $created = (int) ($curr['created'] ?? 0);
+      $prev = $prevMap[$id] ?? NULL;
+      if (!is_array($prev)) {
+        // Post mai visto: conta solo se creato nella finestra (altrimenti è
+        // un post vecchio entrato in finestra di paginazione: ignorato).
+        if ($created > $from && $created <= $now) {
+          $result['_new']++;
+          foreach ($keys as $key) {
+            $result[$key] += max(0, (int) ($curr[$key] ?? 0));
+          }
+        }
+        continue;
+      }
+      foreach ($keys as $key) {
+        $result[$key] += max(0, (int) ($curr[$key] ?? 0) - (int) ($prev[$key] ?? 0));
+      }
+      if ($created > $from && $created <= $now) {
+        $result['_new']++;
       }
     }
     return $result;
@@ -388,13 +592,14 @@ final class MetaWeeklyStatsReporter {
   }
 
   /**
-   * Restituisce il contatore di un Insight per contenuto, se Meta lo espone.
+   * Insight per contenuto: valore o NULL se Meta non lo espone.
    *
-   * Immagini e alcuni formati di video non supportano le stesse metriche.
+   * A differenza del vecchio metric(), il fallimento è distinguibile dallo
+   * zero reale e viene conteggiato dal chiamante come "non disponibile".
    */
-  private function metric(FacebookPageClient $client, string $id, string $metric, bool $asPage = FALSE): int {
+  private function insightMetric(FacebookPageClient $client, string $id, string $metric, bool $asPage = FALSE): ?int {
     if ($id === '') {
-      return 0;
+      return NULL;
     }
     try {
       $response = $asPage
@@ -408,9 +613,10 @@ final class MetaWeeklyStatsReporter {
       }
     }
     catch (\Throwable) {
-      // L'assenza della metrica per un formato non invalida il riepilogo.
+      // Conteggio "non disponibile" a cura del chiamante, con warning aggregato.
+      return NULL;
     }
-    return 0;
+    return NULL;
   }
 
   private function telegram(string $text): void {
@@ -428,8 +634,31 @@ final class MetaWeeklyStatsReporter {
     return number_format($value, 0, ',', '.');
   }
 
+  /**
+   * Attività con gestione "non disponibile": mai negativa, mai zero falso.
+   */
+  private function activity(int $value, int $unavailable): string {
+    if ($value === 0 && $unavailable > 0) {
+      return 'n.d.';
+    }
+    return $this->number(max(0, $value));
+  }
+
   private function signed(int $value): string {
     return ($value > 0 ? '+' : '') . $this->number($value);
+  }
+
+  private function toTimestamp(mixed $value): int {
+    if (is_int($value) && $value > 0) {
+      return $value;
+    }
+    if (is_string($value) && $value !== '') {
+      $parsed = strtotime($value);
+      if ($parsed !== FALSE) {
+        return $parsed;
+      }
+    }
+    return 0;
   }
 
   /** @return \Psr\Log\LoggerInterface */
@@ -463,6 +692,27 @@ final class MetaWeeklyStatsReporter {
       return sprintf('Mastodon ha risposto HTTP %d.', $response->getStatusCode());
     }
     return sprintf('errore interno durante la richiesta (%s)', $exception::class);
+  }
+
+  /**
+   * Diagnostica Meta priva di URL o parametri segreti (per i warning insight).
+   */
+  private function metaErrorMessage(\Throwable $exception): string {
+    if ($exception instanceof RequestException && $exception->getResponse() !== NULL) {
+      $response = $exception->getResponse();
+      try {
+        $payload = json_decode((string) $response->getBody(), TRUE, 512, JSON_THROW_ON_ERROR);
+      }
+      catch (\JsonException) {
+        $payload = [];
+      }
+      $error = is_array($payload) ? ($payload['error'] ?? NULL) : NULL;
+      if (is_array($error) && is_string($error['message'] ?? NULL)) {
+        return sprintf('HTTP %d: %s', $response->getStatusCode(), $error['message']);
+      }
+      return sprintf('HTTP %d.', $response->getStatusCode());
+    }
+    return sprintf('errore interno (%s)', $exception::class);
   }
 
 }
