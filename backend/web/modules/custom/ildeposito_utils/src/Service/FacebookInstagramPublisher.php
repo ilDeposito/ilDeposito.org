@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace Drupal\ildeposito_utils\Service;
 
 use Drupal\Core\Database\Connection;
+use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\Site\Settings;
+use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Exception\ClientException;
 
 /**
  * Replica su Instagram le foto native pubblicate dalla Pagina Facebook.
@@ -15,6 +19,24 @@ final class FacebookInstagramPublisher {
   private const PROCESSING_LEASE = 600;
   private const MAX_CAPTION_LENGTH = 2200;
 
+  /**
+   * Intervallo di aspect ratio accettato dall'API di pubblicazione Instagram.
+   *
+   * @see https://developers.facebook.com/docs/instagram-platform/instagram-graph-api/reference/error-codes
+   *   Errore 36003 / 2207009.
+   */
+  private const MIN_ASPECT_RATIO = 0.8;
+
+  private const MAX_ASPECT_RATIO = 1.91;
+
+  /**
+   * Sottocartella pubblica che ospita i derivati con letterbox per Instagram.
+   *
+   * Il path /sites/default/files* ha il bypass Authelia su Caddy, quindi Meta
+   * puo' scaricare il file quando crea il contenitore media.
+   */
+  private const FALLBACK_DIRECTORY = 'public://instagram';
+
   public const RESULT_DONE = 'done';
   public const RESULT_BUSY = 'busy';
   public const RESULT_IGNORED = 'ignored';
@@ -22,6 +44,8 @@ final class FacebookInstagramPublisher {
   public function __construct(
     private readonly FacebookPageClient $facebookPageClient,
     private readonly Connection $database,
+    private readonly ClientInterface $httpClient,
+    private readonly FileSystemInterface $fileSystem,
   ) {}
 
   public function isConfigured(): bool {
@@ -50,7 +74,14 @@ final class FacebookInstagramPublisher {
     $accountId = $this->getInstagramAccountId();
     $creationId = $this->getCreationId($facebookPostId);
     if ($creationId === NULL) {
-      $creationId = $this->createMediaContainer($accountId, $imageUrl, $this->getCaption($post));
+      $creationId = $this->createContainer($accountId, $facebookPostId, $imageUrl, $this->getCaption($post));
+      if ($creationId === NULL) {
+        // Foto deterministicamente non pubblicabile su Instagram (per esempio
+        // aspect ratio fuori range anche dopo il letterbox): la saltiamo senza
+        // bloccare Telegram e Mastodon, che il worker esegue subito dopo.
+        $this->markIgnored($facebookPostId);
+        return self::RESULT_IGNORED;
+      }
       $this->database->update(self::TABLE)
         ->fields(['instagram_creation_id' => $creationId])
         ->condition('facebook_post_id', $facebookPostId)
@@ -144,6 +175,174 @@ final class FacebookInstagramPublisher {
       'caption' => $caption,
     ]);
     return $this->responseId($response->getBody(), 'contenitore media Instagram');
+  }
+
+  /**
+   * Crea il contenitore media, con fallback con letterbox se il ratio non va.
+   *
+   * Restituisce NULL quando la foto e' deterministicamente non pubblicabile
+   * (il chiamante la marca ignorata cosi' Telegram e Mastodon proseguono);
+   * rilancia invece gli errori transienti, che la coda ritentera'.
+   */
+  private function createContainer(string $accountId, string $facebookPostId, string $imageUrl, string $caption): ?string {
+    try {
+      return $this->createMediaContainer($accountId, $imageUrl, $caption);
+    }
+    catch (ClientException $exception) {
+      if (!$this->isAspectRatioError($exception)) {
+        throw $exception;
+      }
+    }
+
+    $fallbackUrl = $this->paddedImageUrl($facebookPostId, $imageUrl);
+    if ($fallbackUrl === NULL) {
+      return NULL;
+    }
+    try {
+      return $this->createMediaContainer($accountId, $fallbackUrl, $caption);
+    }
+    catch (ClientException $exception) {
+      if (!$this->isAspectRatioError($exception)) {
+        throw $exception;
+      }
+      return NULL;
+    }
+  }
+
+  /**
+   * Riconosce il rifiuto per aspect ratio (400 / 36003 / 2207009 di Meta).
+   */
+  private function isAspectRatioError(ClientException $exception): bool {
+    $response = $exception->getResponse();
+    if ($response === NULL) {
+      return FALSE;
+    }
+    try {
+      $payload = json_decode((string) $response->getBody(), TRUE, 512, JSON_THROW_ON_ERROR);
+    }
+    catch (\JsonException) {
+      return str_contains(strtolower($exception->getMessage()), 'aspect ratio');
+    }
+    $error = is_array($payload) ? ($payload['error'] ?? NULL) : NULL;
+    if (!is_array($error) || (int) ($error['code'] ?? 0) !== 36003) {
+      return FALSE;
+    }
+    $subcode = (int) ($error['error_subcode'] ?? 0);
+    return $subcode === 2207009 || str_contains(strtolower((string) ($error['message'] ?? '')), 'aspect ratio');
+  }
+
+  /**
+   * Scarica la foto e ne pubblica un derivato con letterbox entro 1.91:1.
+   *
+   * Il contenuto non viene mai tagliato: si aggiungono solo bande nere fino
+   * al ratio minimo accettato. Restituisce NULL quando l'immagine non e'
+   * elaborabile; lancia RuntimeException per gli errori ambientali (rete,
+   * disco, GD assente), che la coda deve ritentare.
+   */
+  private function paddedImageUrl(string $facebookPostId, string $imageUrl): ?string {
+    try {
+      $response = $this->httpClient->get($imageUrl, [
+        'timeout' => 30,
+        'connect_timeout' => 10,
+      ]);
+      $data = (string) $response->getBody();
+    }
+    catch (\Throwable $exception) {
+      throw new \RuntimeException('Impossibile scaricare la foto Facebook per Instagram.', 0, $exception);
+    }
+
+    $size = @getimagesizefromstring($data);
+    if ($size === FALSE || $size[0] <= 0 || $size[1] <= 0) {
+      return NULL;
+    }
+    [$width, $height] = [$size[0], $size[1]];
+    $ratio = $width / $height;
+    if ($ratio >= self::MIN_ASPECT_RATIO && $ratio <= self::MAX_ASPECT_RATIO) {
+      // Meta l'ha rifiutata ma il ratio misurato rientra: il padding non
+      // aiuterebbe, evitiamo un ciclo di tentativi identici.
+      return NULL;
+    }
+    if ($ratio > self::MAX_ASPECT_RATIO) {
+      $targetWidth = $width;
+      $targetHeight = (int) ceil($width / self::MAX_ASPECT_RATIO);
+    }
+    else {
+      $targetWidth = (int) ceil($height * self::MIN_ASPECT_RATIO);
+      $targetHeight = $height;
+    }
+
+    $padded = $this->letterbox($data, $width, $height, $targetWidth, $targetHeight);
+    // prepareDirectory() riceve la directory per riferimento: serve una
+    // variabile, non la costante di classe.
+    $directory = self::FALLBACK_DIRECTORY;
+    $this->fileSystem->prepareDirectory(
+      $directory,
+      FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS,
+    );
+    $filename = 'facebook-' . preg_replace('/[^a-z0-9]+/', '-', strtolower($facebookPostId)) . '.jpg';
+    // Il derivato resta su disco: Meta lo scarica in modo asincrono durante
+    // l'elaborazione del contenitore, quindi non va rimosso dopo l'invio.
+    $saved = $this->fileSystem->saveData($padded, $directory . '/' . $filename, FileSystemInterface::EXISTS_REPLACE);
+    if ($saved === FALSE) {
+      throw new \RuntimeException('Impossibile salvare il derivato Instagram con letterbox.');
+    }
+    $baseUrl = $this->getPublicBackendUrl();
+    if ($baseUrl === '') {
+      throw new \RuntimeException('URL pubblico del backend non configurato per il derivato Instagram.');
+    }
+    $path = '/sites/default/files/instagram/' . $filename;
+    return $baseUrl . implode('/', array_map('rawurlencode', explode('/', $path)));
+  }
+
+  /**
+   * Centra l'immagine su uno sfondo nero della dimensione indicata (JPEG).
+   */
+  private function letterbox(string $data, int $width, int $height, int $targetWidth, int $targetHeight): string {
+    if (!function_exists('imagecreatefromstring')) {
+      throw new \RuntimeException('GD non disponibile per il letterbox Instagram.');
+    }
+    $source = @imagecreatefromstring($data);
+    if ($source === FALSE) {
+      throw new \RuntimeException('Impossibile elaborare la foto Facebook per Instagram.');
+    }
+    try {
+      $target = imagecreatetruecolor($targetWidth, $targetHeight);
+      if ($target === FALSE) {
+        throw new \RuntimeException('Impossibile creare il canvas per il letterbox Instagram.');
+      }
+      try {
+        imagefill($target, 0, 0, (int) imagecolorallocate($target, 0, 0, 0));
+        imagecopy($target, $source, (int) (($targetWidth - $width) / 2), (int) (($targetHeight - $height) / 2), 0, 0, $width, $height);
+        ob_start();
+        $ok = imagejpeg($target, NULL, 90);
+        $encoded = (string) ob_get_clean();
+        if (!$ok || $encoded === '') {
+          throw new \RuntimeException('Codifica JPEG del letterbox Instagram fallita.');
+        }
+        return $encoded;
+      }
+      finally {
+        imagedestroy($target);
+      }
+    }
+    finally {
+      imagedestroy($source);
+    }
+  }
+
+  /**
+   * URL base pubblico del backend (stesso pattern della newsletter).
+   *
+   * Deterministico in ogni contesto (webhook, cron web, drush in crond), a
+   * differenza di file_url_generator che senza request non ha host.
+   */
+  private function getPublicBackendUrl(): string {
+    $url = trim((string) Settings::get('ildeposito_utils_public_backend_url', ''));
+    if ($url !== '') {
+      return rtrim($url, '/');
+    }
+    $ddev = getenv('DDEV_PRIMARY_URL');
+    return $ddev === FALSE ? '' : rtrim($ddev, '/');
   }
 
   /** @return array{status_code: string, status: string} */
