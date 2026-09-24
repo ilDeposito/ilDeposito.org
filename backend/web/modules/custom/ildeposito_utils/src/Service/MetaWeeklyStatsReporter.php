@@ -334,6 +334,8 @@ final class MetaWeeklyStatsReporter {
     $media = [];
     $viewsUnavailable = 0;
     $savesUnavailable = 0;
+    $insightsErrors = 0;
+    $firstInsightsError = '';
     $index = 0;
     foreach ($mediaList as $item) {
       if (!is_array($item)) {
@@ -364,9 +366,10 @@ final class MetaWeeklyStatsReporter {
         }
       }
       catch (\Throwable $exception) {
-        $this->logger()->warning('Statistiche settimanali: insight Instagram saved/shares non disponibile per un contenuto (@message).', [
-          '@message' => $this->metaErrorMessage($exception),
-        ]);
+        $insightsErrors++;
+        if ($firstInsightsError === '') {
+          $firstInsightsError = $this->metaErrorMessage($exception);
+        }
       }
       if ($views === NULL) {
         $viewsUnavailable++;
@@ -387,6 +390,12 @@ final class MetaWeeklyStatsReporter {
       $this->logger()->warning('Statistiche settimanali: insight Instagram views non disponibile per @n contenuti su @total.', [
         '@n' => $viewsUnavailable,
         '@total' => count($mediaList),
+      ]);
+    }
+    if ($insightsErrors > 0) {
+      $this->logger()->warning('Statistiche settimanali: insight Instagram saved/shares non disponibile per @n contenuti (@message).', [
+        '@n' => $insightsErrors,
+        '@message' => $firstInsightsError,
       ]);
     }
     return [
