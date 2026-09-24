@@ -16,10 +16,11 @@ use GuzzleHttp\Exception\RequestException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Crea una campagna newsletter su Listmonk (stato bozza).
+ * Crea una campagna newsletter su Listmonk e la avvia.
  *
  * La campagna usa il template #9 e la lista LISTMONK_NEWSLETTER_LIST_ID (la
  * stessa a cui /api/newsletter iscrive gli utenti; fallback 4 se assente o
@@ -50,8 +51,10 @@ use Symfony\Component\Console\Output\OutputInterface;
  * utm_campaign=newsletter-AAAA-MM-GG (uno per invio, 1:1 con la campagna) e
  * utm_content a seconda del blocco, letti da Umami. Lo slug viaggia anche in
  * `attribs.utm_campaign` così il template può taggare header/footer con
- * {{ .Campaign.Attribs.utm_campaign }}. La bozza resta da verificare e inviare
- * da newsletter.ildeposito.org.
+ * {{ .Campaign.Attribs.utm_campaign }}. Di default la campagna viene anche
+ * avviata subito (PUT /api/campaigns/{id}/status con status=running); con
+ * --no-launch resta invece in bozza da verificare e inviare da
+ * newsletter.ildeposito.org.
  *
  * Le credenziali API (LISTMONK_BASE_URL, LISTMONK_USERNAME, LISTMONK_TOKEN)
  * sono lette dal file .env della root del progetto via settings.php. Se
@@ -59,7 +62,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 #[AsCommand(
   name: self::NAME,
-  description: 'Crea la campagna newsletter su Listmonk (bozza, template 9, lista da LISTMONK_NEWSLETTER_LIST_ID).',
+  description: 'Crea la campagna newsletter su Listmonk (template 9, lista da LISTMONK_NEWSLETTER_LIST_ID) e la avvia; con --no-launch resta in bozza.',
   aliases: ['iuneventcreate'],
 )]
 final class NewsletterCreateCommand extends Command {
@@ -145,6 +148,10 @@ final class NewsletterCreateCommand extends Command {
     parent::__construct();
   }
 
+  protected function configure(): void {
+    $this->addOption('no-launch', NULL, InputOption::VALUE_NONE, 'Crea la campagna ma non la avvia (resta in bozza).');
+  }
+
   protected function execute(InputInterface $input, OutputInterface $output): int {
     $baseUrl = $this->getBaseUrl();
     $username = $this->getUsername();
@@ -216,6 +223,34 @@ final class NewsletterCreateCommand extends Command {
       \Drupal::logger('ildeposito_utils')->info('Campagna Listmonk creata: @name (ID non presente nella risposta).', ['@name' => $name]);
       $output->writeln(sprintf('<info>Campagna creata: %s (ID non presente nella risposta).</info>', $name));
     }
+
+    if ((bool) $input->getOption('no-launch')) {
+      return Command::SUCCESS;
+    }
+
+    if ($campaignId === NULL) {
+      return $this->reportFailure($output, 'ID campagna assente nella risposta Listmonk: avvio non possibile.');
+    }
+
+    try {
+      // Solo le campagne in bozza (o in pausa) possono passare a running.
+      $this->httpClient->request('PUT', $baseUrl . '/api/campaigns/' . $campaignId . '/status', [
+        'headers' => [
+          'Accept' => 'application/json',
+          'Content-Type' => 'application/json',
+          'Authorization' => 'Basic ' . base64_encode($username . ':' . $token),
+        ],
+        'json' => ['status' => 'running'],
+        'connect_timeout' => 10,
+        'timeout' => 30,
+      ]);
+    }
+    catch (\Throwable $e) {
+      return $this->reportFailure($output, sprintf('campagna #%d creata ma avvio fallito: %s', $campaignId, $this->getSafeErrorMessage($e)));
+    }
+
+    \Drupal::logger('ildeposito_utils')->info('Campagna Listmonk avviata: @name (#@id).', ['@name' => $name, '@id' => $campaignId]);
+    $output->writeln(sprintf('<info>Campagna avviata: %s (#%d).</info>', $name, $campaignId));
 
     return Command::SUCCESS;
   }
