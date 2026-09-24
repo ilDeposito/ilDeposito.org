@@ -70,7 +70,7 @@ L'invio usa il sistema mail di Drupal core (`MailManagerInterface`). In staging/
 
 Il mittente viene sovrascritto dall'hook `mail_alter` nel modulo `ildeposito_utils` tramite la variabile d'ambiente `MAIL_FROM`.
 
-In locale (DDEV), le email vengono intercettate da **Mailpit** (`https://ildeposito11.ddev.site:8026`).
+In locale (DDEV), le email vengono intercettate da **Mailpit** (`https://ildeposito.ddev.site:8026`).
 
 ## Permessi
 

@@ -20,7 +20,7 @@ Monorepo: `backend/` Drupal 11 + PHP 8.3 (headless CMS, JSON:API) → `frontend/
 
 - Local: never `docker compose`, `docker`, `make`, `ildeposito.sh`, or host `php/composer/drush/node/npm`. All PHP commands and proofs run inside DDEV (host PHP version differs): `ddev exec php -l …`, `ddev exec php -r …`, `ddev drush php:eval …`, never bare `php`. Example: `ddev drush cr`, `ddev composer install`, `ddev exec --dir /var/www/html/frontend npm run build`.
 - Stage/prod: never DDEV or bare `docker compose`; always `./ildeposito.sh drush|composer|build-frontend|up …`.
-- Single repo-root `.env` (Astro `vite.envDir: '../'`). `DRUPAL_API_URL=http://ildeposito11.ddev.site` local, `http://drupal-api:80` stage/prod (hardcoded in compose). `DRUPAL_API_USER/PASS`, `ALTCHA_HMAC_KEY` are SSR-runtime only (`frontend-api`), not build-time.
+- Single repo-root `.env` (Astro `vite.envDir: '../'`). `DRUPAL_API_URL=http://ildeposito.ddev.site` local, `http://drupal-api:80` stage/prod (hardcoded in compose). `DRUPAL_API_USER/PASS`, `ALTCHA_HMAC_KEY` are SSR-runtime only (`frontend-api`), not build-time.
 
 ## Commands
 

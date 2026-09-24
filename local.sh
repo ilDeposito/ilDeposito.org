@@ -38,8 +38,8 @@ cmd_up() {
     logfile=$(mktemp)
     if ddev start >"$logfile" 2>&1; then
         ok "Ambiente avviato"
-        info "Drupal:       https://ildeposito11.ddev.site"
-        info "Frontend dev: https://ildeposito11.ddev.site:4322"
+        info "Drupal:       https://ildeposito.ddev.site"
+        info "Frontend dev: https://ildeposito.ddev.site:4322"
     else
         error "Avvio fallito"
         cat "$logfile"
@@ -137,8 +137,8 @@ cmd_build() {
         # in memoria all'avvio del processo Node: senza restart continuerebbe
         # a servire le rotte SSR — es. /canzonieri — della build precedente).
         # astro-static non esiste più (vedi docker-compose.astro-nginx.yaml).
-        docker restart ddev-ildeposito11-astro-node >/dev/null 2>&1
-        ok "Container frontend riavviato → https://frontend.ildeposito11.ddev.site"
+        docker restart ddev-ildeposito-astro-node >/dev/null 2>&1
+        ok "Container frontend riavviato → https://frontend.ildeposito.ddev.site"
     else
         printf "\n"
         error "Build fallita (exit code: ${exit_code})"
@@ -163,7 +163,7 @@ cmd_canzonieri() {
         error "frontend/.env non trovato"
         exit 1
     fi
-    # DRUPAL_API_URL locale (http://ildeposito11.ddev.site): lo script gira
+    # DRUPAL_API_URL locale (http://ildeposito.ddev.site): lo script gira
     # fuori dalla pipeline Vite/Astro, quindi va eseguito direttamente con
     # node e la env non viene caricata da sola come durante 'npm run build'.
     set -a
@@ -175,8 +175,8 @@ cmd_canzonieri() {
         ok "Canzonieri generati in frontend/dist/client/pdf/canzonieri"
         # dist/ è montato nel container astro-node: i file nuovi sono serviti
         # subito (lettura da disco a ogni richiesta), nessun restart necessario.
-        info "PDF:    https://frontend.ildeposito11.ddev.site/pdf/canzonieri/"
-        info "Pagina: https://frontend.ildeposito11.ddev.site/canzonieri"
+        info "PDF:    https://frontend.ildeposito.ddev.site/pdf/canzonieri/"
+        info "Pagina: https://frontend.ildeposito.ddev.site/canzonieri"
     else
         error "Generazione canzonieri fallita"
         exit 1

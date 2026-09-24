@@ -163,9 +163,9 @@ parameters:
     allowedHeaders: ['Content-Type', 'Authorization']
     allowedMethods: ['GET', 'OPTIONS']
     allowedOrigins:
-      - 'https://ildeposito11.ddev.site'
-      - 'https://ildeposito11.ddev.site:4322'
-      - 'https://frontend.ildeposito11.ddev.site'
+      - 'https://ildeposito.ddev.site'
+      - 'https://ildeposito.ddev.site:4322'
+      - 'https://frontend.ildeposito.ddev.site'
     exposedHeaders: false
     maxAge: false
     supportsCredentials: false

@@ -47,7 +47,7 @@ container `web` — si aggiungono a `web_environment` in `.ddev/config.yaml`
 ```yaml
 web_environment:
     - ILDEPOSITO_PREVIEW_SECRET=un-secret-di-sviluppo-qualsiasi
-    - ILDEPOSITO_PREVIEW_FRONTEND_URL=https://ildeposito11.ddev.site:4322
+    - ILDEPOSITO_PREVIEW_FRONTEND_URL=https://ildeposito.ddev.site:4322
 ```
 
 **Lato Astro (`npm run dev`)**: legge direttamente il `.env` nella root del

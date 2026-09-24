@@ -11,7 +11,7 @@ Monorepo con due applicazioni indipendenti: **Drupal 11** (backend/CMS) espone c
 | **Backend** | `backend/` | Drupal 11 + PHP 8.3 + Radix 6 (Bootstrap 5) | CMS, JSON:API, admin |
 | **Frontend** | `frontend/` | Astro 7.3 + Node adapter 11 + Tailwind 4.3 + DaisyUI 5.7 | Sito pubblico (SSG + SSR on-demand) |
 
-Il frontend raggiunge il backend tramite la rete Docker interna (`drupal-api` alias nginx) in staging/prod, oppure via `http://ildeposito11.ddev.site` in locale.
+Il frontend raggiunge il backend tramite la rete Docker interna (`drupal-api` alias nginx) in staging/prod, oppure via `http://ildeposito.ddev.site` in locale.
 
 ## Ambienti
 
@@ -41,12 +41,12 @@ Compose direttamente in locale. Per esempio: `ddev exec php -l <file>` e
 
 **Servizi DDEV aggiuntivi** (`.ddev/docker-compose.*.yaml`):
 - **Astro dev server** — porta 4321 interna, esposta come HTTPS su porta 4322
-- **Astro static** — container nginx che serve `frontend/dist/` come `frontend.ildeposito11.ddev.site`
+- **Astro static** — container nginx che serve `frontend/dist/` come `frontend.ildeposito.ddev.site`
 
 **URL locali:**
-- Drupal: `https://ildeposito11.ddev.site`
-- Frontend dev (Astro): `https://ildeposito11.ddev.site:4322`
-- Frontend statico (build): `https://frontend.ildeposito11.ddev.site`
+- Drupal: `https://ildeposito.ddev.site`
+- Frontend dev (Astro): `https://ildeposito.ddev.site:4322`
+- Frontend statico (build): `https://frontend.ildeposito.ddev.site`
 
 **Comandi DDEV utili:**
 ```bash
@@ -313,7 +313,7 @@ base-100:  oklch(0.96 0.013 92)   — pergamena #f4f1e8
 ### Env
 
 ```
-DRUPAL_API_URL=http://ildeposito11.ddev.site   # Locale (DDEV)
+DRUPAL_API_URL=http://ildeposito.ddev.site   # Locale (DDEV)
 DRUPAL_API_URL=http://drupal-api:80            # Stage/Prod (rete Docker interna)
 ```
 

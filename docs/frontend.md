@@ -86,7 +86,7 @@ Web components vanilla, nessun framework: `event-carousel.js`, `image-carousel.j
 ## Env
 
 ```
-DRUPAL_API_URL=http://ildeposito11.ddev.site   # locale (DDEV)
+DRUPAL_API_URL=http://ildeposito.ddev.site   # locale (DDEV)
 DRUPAL_API_URL=http://drupal-api:80            # stage/prod (rete Docker interna)
 ```
 

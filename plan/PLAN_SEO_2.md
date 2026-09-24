@@ -270,7 +270,7 @@ environment:
 ```
 
 ### Verifica Task 4 (DDEV)
-1. Submit form `/admin/config/search/redirects` con una riga di test, `curl http://ildeposito11.ddev.site/api/redirects.json` → verificare payload.
+1. Submit form `/admin/config/search/redirects` con una riga di test, `curl http://ildeposito.ddev.site/api/redirects.json` → verificare payload.
 2. Simulare la generazione build-time del redirect nginx, avviare nginx locale con l'`include`, `curl -I http://localhost/vecchia-pagina` → atteso `301` con `Location` corretto.
 3. `curl -I http://localhost/node/123` → atteso `301` a `/`.
 4. Generare un 404 reale, verificare l'entry in `/var/log/nginx/404.log` nel container, poi `ddev drush ildeposito:report-404` e verificare l'email (Mailpit in locale).
