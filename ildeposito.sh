@@ -31,10 +31,10 @@ fi
 
 # Docker Compose include backend/compose.yml con backend/.env come file di
 # variabili (tag delle immagini e valori Docker4Drupal, non credenziali di
-# ambiente). Il file è ignorato per non versionare configurazioni locali.
-# Va controllato sia all'avvio, sia dopo il checkout di deploy: un checkout
-# precedente può ancora tracciarlo e `git reset --hard` lo rimuove quando il
-# commit di destinazione lo ignora.
+# ambiente). Il file è versionato: è la sorgente di verità delle versioni delle
+# immagini in stage/prod. Questo controllo resta come rete di sicurezza per i
+# checkout in cui manca (es. `git clean` o deploy da un ref precedente che non
+# lo traccia ancora): viene ricreato dal template `.env.example`.
 ensure_backend_env() {
     local backend_env_file="${PROJECT_ROOT}/backend/.env"
     if [[ ! -f "${backend_env_file}" ]]; then

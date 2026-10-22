@@ -15,6 +15,10 @@ Thumbs.db
 
 # Env
 .env
+# Docker4Drupal: contiene solo tag delle immagini e valori non segreti, ed è la
+# sorgente di verità dei deploy stage/prod (compose.yml lo usa come env_file del
+# backend) → versionato. Le credenziali vere stanno nel .env della root.
+!backend/.env
 
 # Backup
 backup/*
