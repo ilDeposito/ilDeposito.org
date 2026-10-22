@@ -108,7 +108,11 @@ wait_for_nginx_healthy() {
 # cambiano da un deploy all'altro un semplice `nginx -s reload` continua
 # silenziosamente a servire la config precedente — serve un force-recreate
 # del container per un mount nuovo (vedi cmd_build_frontend).
+# nginx-main.conf è il contesto main (include di /etc/nginx/modules/*.conf e di
+# conf.d): senza di lui il pacchetto Alpine userebbe http.d e i file qui sotto
+# verrebbero ignorati.
 NGINX_CONF_FILES=(
+    "${PROJECT_ROOT}/frontend/nginx-main.conf"
     "${PROJECT_ROOT}/frontend/nginx.conf"
     "${PROJECT_ROOT}/frontend/nginx-ratelimit.conf"
     "${PROJECT_ROOT}/frontend/nginx-log-formats.conf"
@@ -117,6 +121,34 @@ NGINX_CONF_FILES=(
 )
 nginx_conf_hash() {
     cat "${NGINX_CONF_FILES[@]}" | md5sum | cut -d' ' -f1
+}
+
+# Immagine nginx di frontend-web: è locale (frontend/nginx-image/Dockerfile,
+# Alpine + pacchetto nginx + brotli), non arriva da un registry. Conseguenze:
+# `compose pull` non la aggiorna e `compose up -d` non ricostruisce se
+# l'immagine esiste già, quindi va costruita sul server quando il Dockerfile
+# cambia. L'hash fa da marcatore, come .nginx-conf.hash per i file di config.
+NGINX_IMAGE_FILES=(
+    "${PROJECT_ROOT}/frontend/nginx-image/Dockerfile"
+)
+nginx_image_hash() {
+    cat "${NGINX_IMAGE_FILES[@]}" | md5sum | cut -d' ' -f1
+}
+
+# Ritorna 0 se l'immagine è stata (ri)costruita adesso — il chiamante deve
+# ricreare il container — 1 se era già allineata. Il container esistente è
+# condizione necessaria ma non sufficiente: al primo avvio l'immagine manca.
+ensure_nginx_image() {
+    local hash_file="${PROJECT_ROOT}/.nginx-image.hash" new_hash
+    new_hash="$(nginx_image_hash)"
+    if [[ -s "${hash_file}" && "$(cat "${hash_file}")" == "${new_hash}" ]] \
+        && [[ -n "$(${COMPOSE} ps -aq frontend-web)" ]]; then
+        return 1
+    fi
+    info "Build immagine frontend-web (nginx + brotli)..."
+    ${COMPOSE} build frontend-web
+    printf '%s\n' "${new_hash}" > "${hash_file}"
+    return 0
 }
 
 # Valida i file di config nginx in un container "usa e getta" invece che con
@@ -158,7 +190,17 @@ cmd_up() {
     docker volume inspect "${log_vol}" &>/dev/null \
         || { info "Creazione volume ${log_vol}..."; docker volume create "${log_vol}"; }
     ${COMPOSE} pull --quiet
+    # L'immagine di frontend-web è costruita in casa: `pull` non la tocca.
+    # Va (ri)costruita prima di `up -d`, e se è nuova il container va ricreato
+    # esplicitamente: è stateless, un force-recreate mirato costa un secondo di
+    # reload e non tocca php/mariadb/redis.
+    local nginx_image_rebuilt=0
+    if ensure_nginx_image; then nginx_image_rebuilt=1; fi
     ${COMPOSE} up -d ${extra_flags}
+    if (( nginx_image_rebuilt )); then
+        info "Nuova immagine frontend-web: ricreo il container..."
+        ${COMPOSE} up -d --force-recreate frontend-web
+    fi
     # Restart mirato (non --force-recreate): 'up -d' ricrea da sé i container
     # il cui config/immagine cambia (es. bump versione Wodby in .env), ma un
     # git pull sul bind mount non tocca config/immagine, quindi senza questo
@@ -280,6 +322,18 @@ _run_build_frontend() {
 
     info "Rebuild immagine astro-builder..."
     ${COMPOSE} build astro-builder
+
+    # L'immagine nginx è locale (vedi ensure_nginx_image): le pipeline
+    # content|full|pdf non passano da cmd_up e resterebbero sull'immagine
+    # vecchia. Se il Dockerfile è cambiato ricreiamo il container PRIMA di
+    # validate_nginx_config, che gira in un container usa-e-getta con
+    # l'immagine corrente: validare contro quella vecchia sarebbe falsa
+    # sicurezza.
+    if ensure_nginx_image; then
+        info "Nuova immagine frontend-web: ricreo il container..."
+        ${COMPOSE} up -d --force-recreate frontend-web
+        wait_for_nginx_healthy frontend-web
+    fi
 
     wait_for_nginx_healthy
 

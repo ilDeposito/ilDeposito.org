@@ -21,10 +21,12 @@ Fontsource 5.3.0, Playwright 1.63.0, PDFKit 0.20.2, ALTCHA 3.2.2/
 
 ## Infrastruttura stage/prod
 
-- `frontend-web` (nginx) serve i file statici da `current/client` e fa da reverse proxy di `/api/*` verso `frontend-api`
+- `frontend-web` (nginx) serve i file statici da `current/client` e fa da reverse proxy di `/api/*` verso `frontend-api`. Immagine locale (`frontend/nginx-image/Dockerfile`): Alpine 3.24 + pacchetto `nginx` + `nginx-mod-http-brotli`, niente più `macbre/nginx-brotli` (nginx 1.21.0 fermo al 2021). Non avendo `image:` nel compose, `docker compose pull` non la aggiorna: la ricostruisce `./ildeposito.sh` (`ensure_nginx_image`) quando cambia il Dockerfile
 - `frontend-api` (Node, porta 4321) esegue `server/entry.mjs`, unico responsabile degli endpoint SSR
 - Deploy zero-downtime: il builder genera in `releases/$TIMESTAMP`, symlink `current` → ultima release, mantiene le ultime 7
 - `security.checkOrigin` disabilitato in `astro.config.mjs`: dietro il proxy nginx il Node adapter costruisce sempre `url.origin` come `http://` (non legge `X-Forwarded-Proto`), quindi l'anti-spam è delegato al rate limit nginx sulla zona `api`
+
+**Aggiornamento immagine nginx** (`frontend/nginx-image/Dockerfile`): si bumpa il digest di `alpine:3.24` (e si verifica che le versioni dei pacchetti `nginx`/`nginx-mod-http-brotli` nel ramo `v3.24` siano allineate). Il rebuild lo fa `./ildeposito.sh` (`ensure_nginx_image`): l'hash del Dockerfile in `.nginx-image.hash` fa scattare build + force-recreate di `frontend-web` solo quando il file cambia. Le versioni installate finiscono nei log di build (`nginx -v`, `apk info -v`); a runtime `nginx -T` mostra i `load_module` e le direttive effettive.
 
 ## Data layer (`src/lib/api/drupal/`)
 

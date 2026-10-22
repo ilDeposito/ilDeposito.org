@@ -91,7 +91,15 @@ services:
 
   frontend-web:
     container_name: ildeposito_stage_frontend_nginx
-    image: macbre/nginx-brotli@sha256:c21d7b2a59c4e802b5511654b487855b40e32c4e28d6816b69e58fabf4a59281
+    # Immagine locale (frontend/nginx-image/Dockerfile): Alpine 3.24 + pacchetto
+    # nginx + nginx-mod-http-brotli. Sostituisce macbre/nginx-brotli (nginx
+    # 1.21.0, ultimo push 2021, nessun aggiornamento a monte).
+    # Niente `image:` di proposito: `compose pull` non deve cercarla su un
+    # registry, e la (ri)costruzione è governata da ./ildeposito.sh
+    # `ensure_nginx_image` (build + force-recreate di frontend-web solo quando
+    # il Dockerfile cambia).
+    build:
+      context: ./nginx-image
     restart: unless-stopped
     mem_limit: 256m
     cpus: 1.0
@@ -99,10 +107,11 @@ services:
       # Subnet della rete docker "caddy": unico trusted proxy per X-Forwarded-For
       # (real_ip → rate limit per IP reale). Vedi nginx-realip.conf.template.
       CADDY_TRUSTED_SUBNET: ${CADDY_TRUSTED_SUBNET:?definire CADDY_TRUSTED_SUBNET in .env, vedi .env.example}
-    # L'immagine non ha /docker-entrypoint.d (template envsubst dell'immagine
+    # L'immagine è Alpine "nuda" (niente /docker-entrypoint.d dell'immagine
     # nginx ufficiale): genera realip.conf all'avvio, poi il CMD originale.
     command: >
-      sh -c "envsubst '$$CADDY_TRUSTED_SUBNET'
+      sh -c "mkdir -p /var/log/nginx
+      && envsubst '$$CADDY_TRUSTED_SUBNET'
       < /etc/nginx/templates/realip.conf.template
       > /etc/nginx/conf.d/realip.conf
       && touch /var/log/nginx/404.log
@@ -119,6 +128,10 @@ services:
       start_period: 10s
     volumes:
       - frontend_output:/usr/share/nginx/html:ro
+      # Contesto main di nginx (include dei moduli + di conf.d). Il pacchetto
+      # Alpine userebbe http.d; qui teniamo il layout conf.d già usato da
+      # compose e da ./ildeposito.sh (envsubst realip, validate_nginx_config).
+      - ./nginx-main.conf:/etc/nginx/nginx.conf:ro
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./nginx-ratelimit.conf:/etc/nginx/conf.d/ratelimit.conf:ro
       # Ordine alfabetico conf.d: "00-" garantisce che log_format sia dichiarato

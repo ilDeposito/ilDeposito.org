@@ -1,8 +1,9 @@
 # Trusted proxy per il modulo real_ip. Questo file è un TEMPLATE: all'avvio
 # del container il command di frontend-web (vedi compose.*.yml) lo passa a
 # envsubst, che sostituisce CADDY_TRUSTED_SUBNET e scrive il risultato in
-# /etc/nginx/conf.d/realip.conf. L'immagine macbre/nginx-brotli non ha il
-# meccanismo /docker-entrypoint.d dell'immagine nginx ufficiale.
+# /etc/nginx/conf.d/realip.conf. L'immagine di frontend-web (Alpine "nuda",
+# frontend/nginx-image/Dockerfile) non ha il meccanismo /docker-entrypoint.d
+# dell'immagine nginx ufficiale.
 #
 # Nginx riceve tutte le connessioni da Caddy (reverse proxy davanti), quindi
 # $remote_addr è sempre l'IP del container Caddy: senza real_ip, limit_req

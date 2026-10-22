@@ -96,7 +96,7 @@ compose.yml (root)
 |---|---|---|
 | astro-builder | Node 22-alpine (custom Dockerfile) | Profile `build` — esegue solo su `build-frontend` |
 | frontend-api | node:22-alpine | Server SSR Astro (`server/entry.mjs`, porta 4321) — serve gli endpoint `/api/*` |
-| frontend-web | macbre/nginx-brotli | Serve i file statici da `current/client`, proxy di `/api/` verso `frontend-api` |
+| frontend-web | `frontend/nginx-image/Dockerfile` (Alpine 3.24 + nginx + `nginx-mod-http-brotli`) | Serve i file statici da `current/client`, proxy di `/api/` verso `frontend-api`. Immagine locale: `compose pull` non la aggiorna, va ricostruita da `./ildeposito.sh` |
 
 Basic auth Caddy: **stage** protegge sia backend (`admin-stage`) sia frontend (`stage`); **prod** protegge solo il backend (`admin`), il frontend (`www`) è pubblico. Sul backend le label Caddy includono `header_up -Authorization` per non inoltrare l'header al modulo `basic_auth` di Drupal (che altrimenti risponderebbe 403).
 
