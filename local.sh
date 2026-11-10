@@ -32,6 +32,133 @@ run_step() {
     exit "$code"
 }
 
+# ---------------------------------------------------------------------------
+# Binding nativi npm — auto-riparazione (bug npm/cli#4828).
+#
+# frontend/node_modules è condiviso da più ambienti: host macOS ('./local.sh
+# build', canzonieri, test), container web DDEV (linux/arm64 gnu, eventuali
+# 'ddev exec … npm run …') e astro-node (linux/arm64, che lo monta in sola
+# lettura e carica sharp a runtime per l'SSR). npm però installa i pacchetti
+# nativi — le optionalDependencies con campi os/cpu — solo per la piattaforma
+# su cui gira: un 'npm ci'/'npm install' dentro DDEV lascia node_modules senza
+# i binding darwin e la build host fallisce con "Cannot find native binding"
+# (e viceversa). ensure_native_bindings (chiamata da cmd_build e
+# cmd_upgrade_frontend) rileggia le versioni dal lockfile e ripristina tutto
+# quello che manca, per l'host e per i container.
+
+# Stampa i pacchetti nativi richiesti da una piattaforma npm e assenti da
+# node_modules, uno per riga. Argomenti: piattaforma e architettura
+# (es. darwin arm64, linux arm64). I container girano con l'architettura
+# dell'host su Apple Silicon, quindi arm64 per entrambi.
+native_bindings_missing() {
+    local platform="$1" arch="$2"
+    (cd "${PROJECT_ROOT}/frontend" && \
+     NPM_BINDINGS_PLATFORM="$platform" NPM_BINDINGS_ARCH="$arch" \
+     node --input-type=module -e '
+import { readFileSync, existsSync } from "node:fs";
+const PREFIX = "node_modules/";
+const platform = process.env.NPM_BINDINGS_PLATFORM;
+const arch = process.env.NPM_BINDINGS_ARCH;
+const lock = JSON.parse(readFileSync("package-lock.json", "utf8"));
+for (const [path, pkg] of Object.entries(lock.packages ?? {})) {
+    // Solo pacchetti di primo livello (i binding nativi vengono sempre sollevati).
+    if (!path.startsWith(PREFIX) || path.includes(PREFIX, PREFIX.length)) continue;
+    if (!pkg.optional || (!pkg.os && !pkg.cpu)) continue;
+    if (pkg.os && !pkg.os.includes(platform)) continue;
+    if (pkg.cpu && !pkg.cpu.includes(arch)) continue;
+    if (!existsSync(PREFIX + path.slice(PREFIX.length))) console.log(path.slice(PREFIX.length));
+}') 2>/dev/null
+}
+
+# Ripristina i binding linux/arm64 dei container, cancellati da un npm
+# ci/update host-side. Versioni pinnate dal lockfile. Due varianti, che
+# coesistono in node_modules senza conflitti:
+# - *-gnu (glibc): container web DDEV (Debian) per 'ddev exec … npm …';
+# - *musl: astro-node (node:22-alpine), che monta node_modules in sola
+#   lettura e carica sharp a runtime per le rotte SSR (/canzonieri);
+#   sharp altrimenti ricade sul fallback @img/sharp-wasm32, anch'esso
+#   rimosso da un npm ci host-side.
+# Le varianti wasm sono escluse: sono solo fallback, i nativi bastano.
+restore_container_bindings() {
+    local specs
+    specs=$(cd "${PROJECT_ROOT}/frontend" && node --input-type=module -e '
+import { readFileSync } from "node:fs";
+const PREFIX = "node_modules/";
+const lock = JSON.parse(readFileSync("package-lock.json", "utf8"));
+const specs = [];
+for (const [path, pkg] of Object.entries(lock.packages ?? {})) {
+    if (!path.startsWith(PREFIX) || path.includes(PREFIX, PREFIX.length)) continue;
+    if (!pkg.optional || !pkg.os?.includes("linux") || !pkg.cpu?.includes("arm64")) continue;
+    if (path.includes("wasm")) continue;
+    if (pkg.version) specs.push(`${path.slice(PREFIX.length)}@${pkg.version}`);
+}
+console.log(specs.join(" "));' 2>/dev/null)
+    [[ -z "$specs" ]] && return 0
+
+    local logfile
+    logfile=$(mktemp)
+    # --force: npm rifiuterebbe i pacchetti con os/cpu di un'altra piattaforma
+    # (EBADPLATFORM); --no-save --package-lock=false: installazione fuori dal
+    # lockfile, invisibile a git.
+    if ! (cd "${PROJECT_ROOT}/frontend" && npm install --no-save --package-lock=false --force $specs) >"$logfile" 2>&1; then
+        error "Ripristino binding linux-arm64 dei container fallito"
+        cat "$logfile" >&2
+        rm -f "$logfile"
+        return 1
+    fi
+    rm -f "$logfile"
+}
+
+# Verifica e ripara node_modules: binding dell'host per la build (rolldown,
+# lightningcss, oxide, sharp, pagefind…) + binding linux/arm64 per i container
+# (SSR di astro-node e npm dentro DDEV). Su un clone fresco funziona da sola:
+# node_modules assente → npm ci completo dell'host + binding container.
+ensure_native_bindings() {
+    local platform arch
+    platform="$(node -p process.platform)"
+    arch="$(node -p process.arch)"
+
+    local host_missing container_missing
+    host_missing=$(native_bindings_missing "$platform" "$arch" || true)
+    container_missing=$(native_bindings_missing linux arm64 || true)
+
+    if [[ -z "$host_missing" && -z "$container_missing" ]]; then
+        return 0
+    fi
+
+    warn "Binding nativi npm mancanti in node_modules (npm eseguito dentro DDEV?)"
+
+    if [[ -n "$host_missing" ]]; then
+        info "Mancanti sull'host (${platform}-${arch}): $(echo "$host_missing" | tr '\n' ' ')"
+        info "Reinstallo le dipendenze sull'host..."
+        local logfile
+        logfile=$(mktemp)
+        if ! (cd "${PROJECT_ROOT}/frontend" && npm ci --no-audit --no-fund) >"$logfile" 2>&1; then
+            error "npm ci fallito"
+            cat "$logfile" >&2
+            rm -f "$logfile"
+            exit 1
+        fi
+        rm -f "$logfile"
+
+        local still
+        still=$(native_bindings_missing "$platform" "$arch" || true)
+        if [[ -n "$still" ]]; then
+            error "Binding nativi mancanti anche dopo npm ci: $(echo "$still" | tr '\n' ' ')"
+            exit 1
+        fi
+        # npm ci ripulisce node_modules per intero: i binding linux dei
+        # container vanno sempre ripristinati dopo.
+        info "Ripristino i binding linux-arm64 per i container (SSR astro-node)..."
+        restore_container_bindings
+    elif [[ -n "$container_missing" ]]; then
+        info "Ripristino i binding linux-arm64 per i container (SSR astro-node)..."
+        restore_container_bindings
+    fi
+
+    ok "node_modules operativo per host e container"
+}
+
 cmd_up() {
     info "Avvio ambiente locale..."
     local logfile
@@ -72,6 +199,11 @@ cmd_build() {
     fi
 
     info "Nodi pubblicati: ${total}"
+
+    # Auto-riparazione node_modules (binding nativi host + container): dopo
+    # un npm ci/install dentro DDEV questo è ciò che rimette in piedi la build.
+    ensure_native_bindings
+
     info "Pulizia cache Vite..."
     rm -rf "${PROJECT_ROOT}/frontend/node_modules/.vite"
 
@@ -477,6 +609,8 @@ cmd_upgrade_frontend() {
     fi
 
     ok "Pacchetti npm aggiornati (entro i range di package.json)"
+    # npm update (host) rimuove i binding linux/arm64 usati dai container.
+    ensure_native_bindings
     echo ""
     info "Verifico build..."
 

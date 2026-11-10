@@ -83,7 +83,10 @@ ildeposito.sh               # workflow stage/prod
 # install e avvio locale (tutto via DDEV)
 ./local.sh up
 ddev composer install
-ddev exec --dir /var/www/html/frontend npm ci
+# frontend: NON serve npm ci — './local.sh build' installa/ripara node_modules
+# da solo (binding nativi host + container). Mai 'npm ci/install' dentro
+# DDEV: node_modules è condiviso e npm installa i binding solo della
+# piattaforma su cui gira (npm/cli#4828), rompendo la build dell'host.
 
 # avvio completo Drupal + Astro
 ./local.sh up
