@@ -8,9 +8,15 @@ plugin: generic
 settings:
   client_id: CHANGE_ME_CLIENT_ID
   client_secret: CHANGE_ME_CLIENT_SECRET
+  provider_slug: ''
   iss_allowed_domains: ''
   prompt:
     - login
+  verify_id_token: warn
+  issuer: ''
+  jwks_uri: ''
+  id_token_signing_algorithms:
+    - RS256
   issuer_url: 'https://auth.ildeposito.org'
   authorization_endpoint: 'https://auth.ildeposito.org/api/oidc/authorization'
   token_endpoint: 'https://auth.ildeposito.org/api/oidc/token'
@@ -21,4 +27,3 @@ settings:
     - profile
     - email
     - groups
-  provider_slug: ''
